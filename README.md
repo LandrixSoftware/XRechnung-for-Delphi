@@ -5,3 +5,11 @@
 ## Version
 
 Aktuelle XRechnung-Version 2.0.0
+
+## Weitere Informationen zu XRechnung
+
+https://www.verband-e-rechnung.org/xrechnung/
+
+https://www.xoev.de/xrechnung-16828
+
+https://github.com/itplr-kosit

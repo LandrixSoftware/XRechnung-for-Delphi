@@ -1,4 +1,4 @@
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=5V8N3XFTU495G) Eine offizielle Rechung für die Spende kann ausgestellt werden.
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=5V8N3XFTU495G) Eine offizielle Rechnung fÃ¼r die Spende kann ausgestellt werden.
 
 # XRechnung-for-Delphi
 

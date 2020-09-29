@@ -12,8 +12,9 @@ del /q /s *.map
 del /q /s *.ico
 del /q /s *.otares
 del /q /s *.stat
-rmdir /Q /S .\Samples\ZUGFeRD\__history
-rmdir /Q /S .\Samples\ZUGFeRD\__recovery
-rmdir /Q /S .\bin
+rmdir /Q /S .\Samples\__history
+rmdir /Q /S .\Samples\__recovery
+rmdir /Q /S .\Samples\Win32
+rmdir /Q /S .\Samples\Win64
 rmdir /Q /S .\__history
 rmdir /Q /S .\__recovery

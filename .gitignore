@@ -26,6 +26,15 @@
 #*.obj
 #
 
+Dokumentation
+Samples/Win32
+Samples/Win64
+Tools/openxrechnungtoolbox
+Tools/validator
+Tools/validator-configuration-122
+Tools/validator-configuration-200
+Schema
+
 # Delphi compiler-generated binaries (safe to delete)
 *.exe
 *.dll

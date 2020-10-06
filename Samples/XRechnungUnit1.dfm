@@ -39,8 +39,8 @@ object Form1: TForm1
   end
   object Button3: TButton
     Left = 8
-    Top = 132
-    Width = 75
+    Top = 164
+    Width = 129
     Height = 25
     Caption = 'Erzeugen'
     TabOrder = 1
@@ -88,7 +88,7 @@ object Form1: TForm1
       8000000000000000000000000000000000000000000000000000000000000000
       00000000000000000100000000000000000000000000000000000000}
   end
-  object RadioGroup1: TRadioGroup
+  object rbPaymentTerms: TRadioGroup
     Left = 8
     Top = 27
     Width = 129
@@ -100,6 +100,43 @@ object Form1: TForm1
       'Netto'
       '1 Skonto'
       '2 Skonto')
-    TabOrder = 12
+    TabOrder = 6
+  end
+  object Button1: TButton
+    Left = 8
+    Top = 195
+    Width = 129
+    Height = 25
+    Caption = 'Viewer starten'
+    TabOrder = 7
+    OnClick = Button1Click
+  end
+  object pnStartDragX122: TPanel
+    Left = 552
+    Top = 440
+    Width = 225
+    Height = 33
+    Caption = 'Ziehe XRechnung von hier in den Viewer'
+    TabOrder = 8
+    Visible = False
+    OnMouseDown = pnStartDragX200MouseDown
+  end
+  object pnStartDragX200: TPanel
+    Left = 552
+    Top = 936
+    Width = 225
+    Height = 33
+    Caption = 'Ziehe XRechnung von hier in den Viewer'
+    TabOrder = 9
+    Visible = False
+    OnMouseDown = pnStartDragX200MouseDown
+  end
+  object cbAllowanceCharges: TCheckBox
+    Left = 8
+    Top = 132
+    Width = 138
+    Height = 17
+    Caption = 'Nachlaesse generieren'
+    TabOrder = 10
   end
 end

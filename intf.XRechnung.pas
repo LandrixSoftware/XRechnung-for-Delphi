@@ -33,11 +33,13 @@ type
     class function InvoiceTypeCodeToStr(_Val : TInvoiceTypeCode) : String;
     class function InvoicePaymentMeansCodeToStr(_Val : TInvoicePaymentMeansCode) : String;
     class function InvoiceUnitCodeToStr(_Val : TInvoiceUnitCode) : String;   //mehr Konvertierungen in Res\intf.XRechnung.unusedUnits.pas
+    class function InvoiceAllowanceOrChargeIdentCodeToStr(_Val : TInvoiceAllowanceOrChargeIdentCode) : String;
+    class function InvoiceDutyTaxFeeCategoryCodeToStr(_Val : TInvoiceDutyTaxFeeCategoryCode) : String;
   end;
 
   TXRechnungValidationHelper = class(TObject)
   public type
-    TXRechnungVersion = (XRechnungVersion_Unkown,XRechnungVersion_122,XRechnungVersion_200);
+    TXRechnungVersion = (XRechnungVersion_Unknown,XRechnungVersion_122,XRechnungVersion_200);
     TValidationError = record
     public
       Reason : String;
@@ -279,6 +281,31 @@ begin
     end;
   end;
 
+  for var allowanceCharge : TInvoiceAllowanceCharge in _Invoice.AllowanceCharges do
+  with xRoot.AddChild('cac:AllowanceCharge') do
+  begin
+    AddChild('cbc:ChargeIndicator').Text := LowerCase(BoolToStr(false,true));
+    AddChild('cbc:AllowanceChargeReasonCode').Text := TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(allowanceCharge.ReasonCode);
+    AddChild('cbc:AllowanceChargeReason').Text := allowanceCharge.Reason;
+    AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
+    with AddChild('cbc:Amount') do
+    begin
+      Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+      Text := TXRechnungHelper.AmountToStr(allowanceCharge.Amount);
+    end;
+    with AddChild('cbc:BaseAmount') do
+    begin
+      Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+      Text := TXRechnungHelper.AmountToStr(allowanceCharge.BaseAmount);
+    end;
+    with AddChild('cac:TaxCategory') do
+    begin
+      AddChild('cbc:ID').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(allowanceCharge.TaxCategory);
+      AddChild('cbc:Percent').Text := TXRechnungHelper.PercentageToStr(allowanceCharge.TaxPercent);
+      AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
+    end;
+  end;
+
   with xRoot.AddChild('cac:TaxTotal') do
   begin
     with AddChild('cbc:TaxAmount') do
@@ -301,7 +328,7 @@ begin
       end;
       with AddChild('cac:TaxCategory') do
       begin
-        AddChild('cbc:ID').Text := 'S';
+        AddChild('cbc:ID').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(taxSubtotal.TaxCategory);
         AddChild('cbc:Percent').Text := TXRechnungHelper.PercentageToStr(taxSubtotal.TaxPercent);
         AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
       end;
@@ -325,7 +352,11 @@ begin
         Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
         Text := TXRechnungHelper.AmountToStr(_Invoice.TaxInclusiveAmount);
       end;
-      //      <cbc:AllowanceTotalAmount currencyID="EUR">0</cbc:AllowanceTotalAmount>
+      with AddChild('cbc:AllowanceTotalAmount') do
+      begin
+        Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+        Text := TXRechnungHelper.AmountToStr(_Invoice.AllowanceTotalAmount);
+      end;
       //      <cbc:ChargeTotalAmount currencyID="EUR">0</cbc:ChargeTotalAmount>
       //      <cbc:PrepaidAmount currencyID="EUR">0</cbc:PrepaidAmount>
       //      <cbc:PayableRoundingAmount currencyID="EUR">0</cbc:PayableRoundingAmount>
@@ -369,7 +400,7 @@ begin
       //   </cac:StandardItemIdentification>
       with AddChild('cac:ClassifiedTaxCategory') do
       begin
-        AddChild('cbc:ID').Text := 'S';
+        AddChild('cbc:ID').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(invoiceLine.TaxCategory);
         AddChild('cbc:Percent').Text := TXRechnungHelper.PercentageToStr(invoiceLine.TaxPercent);
         AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
       end;
@@ -456,6 +487,147 @@ begin
   Result := System.StrUtils.ReplaceText(Format('%.2f',[_Val]),',','.');
 end;
 
+class function TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(
+  _Val: TInvoiceAllowanceOrChargeIdentCode): String;
+begin
+  case _Val of
+    //iacic_HandlingCommission: Result :=                                '1';
+    //iacic_AmendmentCommission: Result :=                               '2';
+    //iacic_AcceptanceCommission: Result :=                              '3';
+    //iacic_CommissionForObtainingAcceptance: Result :=                  '4';
+    //iacic_CommissionOnDelivery: Result :=                              '5';
+    //iacic_AdvisingCommission: Result :=                                '6';
+    //iacic_ConfirmationCommission: Result :=                            '7';
+    //iacic_DeferredPaymentCommission: Result :=                         '8';
+    //iacic_CommissionForTakingUpDocuments: Result :=                    '9';
+    //iacic_OpeningCommission: Result :=                                 '10';
+    //iacic_FeeForPaymentUnderReserve: Result :=                         '11';
+    //iacic_DiscrepancyFee: Result :=                                    '12';
+    //iacic_DomicilationCommission: Result :=                            '13';
+    //iacic_CommissionForReleaseOfGoods: Result :=                       '14';
+    //iacic_CollectionCommission: Result :=                              '15';
+    //iacic_NegotiationCommission: Result :=                             '16';
+    //iacic_ReturnCommission: Result :=                                  '17';
+    //iacic_BLSplittingCharges: Result :=                                '18';
+    //iacic_TrustCommission: Result :=                                   '19';
+    //iacic_TransferCommission: Result :=                                '20';
+    //iacic_CommissionForOpeningIrrevocableDocumentaryCredits: Result := '21';
+    //iacic_PreadviceCommission: Result :=                               '22';
+    //iacic_SupervisoryCommission: Result :=                             '23';
+    //iacic_ModelCharges: Result :=                                      '24';
+    //iacic_RiskCommission: Result :=                                    '25';
+    //iacic_GuaranteeCommission: Result :=                               '26';
+    //iacic_ReimbursementCommission: Result :=                           '27';
+    //iacic_StampDuty: Result :=                                         '28';
+    //iacic_Brokerage: Result :=                                         '29';
+    //iacic_BankCharges: Result :=                                       '30';
+    //iacic_BankChargesInformation: Result :=                            '31';
+    //iacic_CourierFee: Result :=                                        '32';
+    //iacic_PhoneFee: Result :=                                          '33';
+    //iacic_PostageFee: Result :=                                        '34';
+    //iacic_SWIFTFee: Result :=                                          '35';
+    //iacic_TelexFee: Result :=                                          '36';
+    //iacic_PenaltyForLateDeliveryOfDocuments: Result :=                 '37';
+    //iacic_PenaltyForLateDeliveryOfValuationOfWorks: Result :=          '38';
+    //iacic_PenaltyForExecutionOfWorksBehindSchedule: Result :=          '39';
+    //iacic_OtherPenalties: Result :=                                    '40';
+    iacic_BonusForWorksAheadOfSchedule: Result :=                      '41';
+    iacic_OtherBonus: Result :=                                        '42';
+    //iacic_ProjectManagementCost: Result :=                             '44';
+    //iacic_ProRataRetention: Result :=                                  '45';
+    //iacic_ContractualRetention: Result :=                              '46';
+    //iacic_OtherRetentions: Result :=                                   '47';
+    //iacic_InterestOnArrears: Result :=                                 '48';
+    //iacic_Interest: Result :=                                          '49';
+    //iacic_ChargePerCreditCover: Result :=                              '50';
+    //iacic_ChargePerUnusedCreditCover: Result :=                        '51';
+    //iacic_MinimumCommission: Result :=                                 '52';
+    //iacic_FactoringCommission: Result :=                               '53';
+    //iacic_ChamberOfCommerceCharge: Result :=                           '54';
+    //iacic_TransferCharges: Result :=                                   '55';
+    //iacic_RepatriationCharges: Result :=                               '56';
+    //iacic_MiscellaneousCharges: Result :=                              '57';
+    //iacic_ForeignExchangeCharges: Result :=                            '58';
+    //iacic_AgreedDebitInterestCharge: Result :=                         '59';
+    iacic_ManufacturersConsumerDiscount: Result :=                     '60';
+    //iacic_FaxAdviceCharge: Result :=                                   '61';
+    iacic_DueToMilitaryStatus: Result :=                               '62';
+    iacic_DueToWorkAccident: Result :=                                 '63';
+    iacic_SpecialAgreement: Result :=                                  '64';
+    iacic_ProductionErrorDiscount: Result :=                           '65';
+    iacic_NewOutletDiscount: Result :=                                 '66';
+    iacic_SampleDiscount: Result :=                                    '67';
+    iacic_EndOfRangeDiscount: Result :=                                '68';
+    //iacic_ChargeForACustomerSpecificFinish: Result :=                  '69';
+    iacic_IncotermDiscount: Result :=                                  '70';
+    iacic_PointOfSalesThresholdAllowance: Result :=                    '71';
+    //iacic_TechnicalModificationCosts: Result :=                        '72';
+    //iacic_JoborderProductionCosts: Result :=                           '73';
+    //iacic_OffpremisesCosts: Result :=                                  '74';
+    //iacic_AdditionalProcessingCosts: Result :=                         '75';
+    //iacic_AttestingCharge: Result :=                                   '76';
+    //iacic_RushDeliverySurcharge: Result :=                             '77';
+    //iacic_SpecialConstructionCosts: Result :=                          '78';
+    //iacic_FreightCharges: Result :=                                    '79';
+    //iacic_PackingCharge: Result :=                                     '80';
+    //iacic_RepairCharge: Result :=                                      '81';
+    //iacic_LoadingCharge: Result :=                                     '82';
+    //iacic_SetupCharge: Result :=                                       '83';
+    //iacic_TestingCharge: Result :=                                     '84';
+    //iacic_WarehousingCharge: Result :=                                 '85';
+    //iacic_GoldSurcharge: Result :=                                     '86';
+    //iacic_CopperSurcharge: Result :=                                   '87';
+    iacic_MaterialSurchargeDeduction: Result :=                        '88';
+    //iacic_LeadSurcharge: Result :=                                     '89';
+    //iacic_PriceIndexSurcharge: Result :=                               '90';
+    //iacic_PlatinumSurcharge: Result :=                                 '91';
+    //iacic_SilverSurcharge: Result :=                                   '92';
+    //iacic_WolframSurcharge: Result :=                                  '93';
+    //iacic_AluminumSurcharge: Result :=                                 '94';
+    iacic_Discount: Result :=                                          '95';
+    //iacic_Insurance: Result :=                                         '96';
+    //iacic_MinimumOrderMinimumBillingCharge: Result :=                  '97';
+    //iacic_MaterialSurchargeSspecialMaterials: Result :=                '98';
+    //iacic_Surcharge: Result :=                                         '99';
+    iacic_SpecialRebate: Result :=                                     '100';
+    //iacic_CarbonFootprintCharge: Result :=                             '101';
+    iacic_FixedLongTerm: Result :=                                     '102';
+    iacic_Temporary: Result :=                                         '103';
+    iacic_Standard: Result :=                                          '104';
+    //iacic_YearlyTurnover: Result :=                                    '105';
+    //iacic_WithheldTaxesAndSocialSecurityContributions: Result :=       '106';
+    else Result := '';
+  end;
+end;
+
+class function TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(_Val: TInvoiceDutyTaxFeeCategoryCode): String;
+begin
+  case _Val of
+    //idtfcc_A_MixedTaxRate: Result := 'A';
+    //idtfcc_AA_LowerRate: Result := 'AA';
+    //idtfcc_AB_ExemptForResale: Result := 'AB';
+    //idtfcc_AC_ValueAddedTaxVATNotNowDueForPayment: Result := 'AC';
+    //idtfcc_AD_ValueAddedTaxVATDueFromAPreviousInvoice: Result := 'AD';
+    idtfcc_AE_VATReverseCharge: Result := 'AE';
+    //idtfcc_B_TransferredVAT: Result := 'B';
+    //idtfcc_C_DutyPaidBySupplier: Result := 'C';
+    //idtfcc_D_ValueAddedTaxVATMmarginSchemeTravelAgents: Result := 'D';
+    idtfcc_E_ExemptFromTax: Result := 'E';
+    //idtfcc_F_ValueAddedTaxVATMmarginSchemeSecondhandGoods: Result := 'F';
+    idtfcc_G_FreeExportItemTaxNotCharged: Result := 'G';
+    //idtfcc_H_HigherRate: Result := 'H';
+    //idtfcc_I_ValueAddedTaxVATMarginSchemeWorksOfArt: Result := 'I';
+    //idtfcc_J_ValueAddedTaxVATMarginSchemeCollectorsItemsAndAntiques: Result := 'J';
+    idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices: Result := 'K';
+    idtfcc_L_CanaryIslandsGeneralIndirectTax: Result := 'L';
+    idtfcc_M_TaxForProductionServicesAndImportationInCeutaAndMelilla: Result := 'M';
+    idtfcc_O_ServicesOutsideScopeOfTax: Result := 'O';
+    idtfcc_S_StandardRate: Result := 'S';
+    idtfcc_Z_ZeroRatedGoods: Result := 'Z';
+    else Result := '';
+  end;
+end;
+
 class function TXRechnungHelper.InvoicePaymentMeansCodeToStr(_Val: TInvoicePaymentMeansCode): String;
 begin
   case _Val of
@@ -519,7 +691,7 @@ class function TXRechnungValidationHelper.GetXRechnungVersion(
 var
   node : IXMLNode;
 begin
-  Result := XRechnungVersion_Unkown;
+  Result := XRechnungVersion_Unknown;
   if _XML = nil then
     exit;
   if (not (SameText(_XML.DocumentElement.NodeName,'Invoice') or SameText(_XML.DocumentElement.NodeName,'ubl:Invoice'))) then
@@ -538,7 +710,7 @@ class function TXRechnungValidationHelper.GetXRechnungVersion(const _Filename: S
 var
   xml : IXMLDocument;
 begin
-  Result := XRechnungVersion_Unkown;
+  Result := XRechnungVersion_Unknown;
   if not FileExists(_Filename) then
     exit;
   xml := TXMLDocument.Create(nil);

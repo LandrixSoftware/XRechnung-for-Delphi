@@ -126,6 +126,9 @@ class procedure TXRechnungInvoiceAdapter.SaveDocument(_Invoice: TInvoice;
   _Version : TXRechnungValidationHelper.TXRechnungVersion; _Xml: IXMLDocument);
 var
   xRoot : IXMLNode;
+  allowanceCharge : TInvoiceAllowanceCharge;
+  taxSubtotal : TInvoiceTaxAmount;
+  invoiceLine : TInvoiceLine;
 begin
   {$IFDEF USE_OXMLDomVendor}TXMLDocument(_Xml).DOMVendor := Xml.xmldom.GetDOMVendor(sOXmlDOMVendor);{$ENDIF}
   //Result := xmldoc.GetDocBinding('rsm:CrossIndustryInvoice', TXMLCrossIndustryDocumentType) as IXMLCrossIndustryDocumentType;
@@ -281,7 +284,7 @@ begin
     end;
   end;
 
-  for var allowanceCharge : TInvoiceAllowanceCharge in _Invoice.AllowanceCharges do
+  for allowanceCharge in _Invoice.AllowanceCharges do
   with xRoot.AddChild('cac:AllowanceCharge') do
   begin
     AddChild('cbc:ChargeIndicator').Text := LowerCase(BoolToStr(false,true));
@@ -313,7 +316,7 @@ begin
       Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
       Text := TXRechnungHelper.AmountToStr(_Invoice.TaxAmountTotal);
     end;
-    for var taxSubtotal : TInvoiceTaxAmount in _Invoice.TaxAmountSubtotals do
+    for taxSubtotal in _Invoice.TaxAmountSubtotals do
     with AddChild('cac:TaxSubtotal') do
     begin
       with AddChild('cbc:TaxableAmount') do
@@ -367,7 +370,7 @@ begin
       end;
   end;
 
-  for var invoiceLine : TInvoiceLine in _Invoice.InvoiceLines do
+  for invoiceLine in _Invoice.InvoiceLines do
   with xRoot.AddChild('cac:InvoiceLine') do
   begin
     AddChild('cbc:ID').Text := invoiceLine.ID;

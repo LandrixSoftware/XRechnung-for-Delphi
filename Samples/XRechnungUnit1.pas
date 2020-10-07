@@ -47,6 +47,7 @@ procedure TForm1.Button3Click(Sender: TObject);
 var
   inv : TInvoice;
   hstr : String;
+  Doc : Variant;
 begin
   WebBrowser1.Navigate2('about:blank');
   WebBrowser2.Navigate2('about:blank');
@@ -195,6 +196,16 @@ begin
       TaxPercent := 19.0;
       TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
     end;
+    with inv.AllowanceCharges.AddAllowanceCharge do
+    begin
+      ReasonCode := TInvoiceAllowanceOrChargeIdentCode.iacic_Discount;
+      Reason := 'Nachlass 2 ohne Angabe von Basisbetrag und Nachlassprozente. Ist zu prüfen, ob das so gedacht ist, z.B. für abziebare Abschlagsrechnungen, valide ist es.';
+      BaseAmount := 0.00;
+      MultiplierFactorNumeric := 0; //6 Prozent auf 60 EUR
+      Amount := 5.00;
+      TaxPercent := 19.0;
+      TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    end;
   end;
 
   inv.TaxAmountTotal := 26.0;
@@ -217,12 +228,12 @@ begin
 
   if cbAllowanceCharges.Checked then
   begin
-    inv.AllowanceTotalAmount := 5.00;
-    inv.TaxAmountSubtotals[1].TaxableAmount := 95.00;
-    inv.TaxAmountSubtotals[1].TaxAmount := 18.05;
-    inv.TaxAmountTotal := inv.TaxAmountTotal - 0.95;
+    inv.AllowanceTotalAmount := 5.00 + 5.00;
+    inv.TaxAmountSubtotals[1].TaxableAmount := inv.TaxAmountSubtotals[1].TaxableAmount - 5.00 -5.00;
+    inv.TaxAmountSubtotals[1].TaxAmount := inv.TaxAmountSubtotals[1].TaxAmount - 0.95 - 0.95;
+    inv.TaxAmountTotal := inv.TaxAmountTotal - 0.95 - 0.95;
     inv.TaxExclusiveAmount := inv.TaxExclusiveAmount - inv.AllowanceTotalAmount;
-    inv.TaxInclusiveAmount := 100.00 + 95.00 + 7.00 + 18.05;
+    inv.TaxInclusiveAmount := inv.TaxInclusiveAmount - 5.00 - 0.95 - 5.00 - 0.95;
     inv.PayableAmount := inv.TaxInclusiveAmount;
   end;
 
@@ -240,7 +251,7 @@ begin
       WebBrowser1.Navigate2('file:\\\'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122-report.html');
     end else
     begin
-      var Doc : Variant := WebBrowser1.Document;
+      Doc := WebBrowser1.Document;
       Doc.Clear;
       Doc.Write('<html><body>Validation Tool nicht installiert. Siehe Verzeichnis ./Tools/Read.Me</body></html>');
       Doc.Close;
@@ -256,7 +267,7 @@ begin
       WebBrowser2.Navigate2('file:\\\'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200-report.html');
     end else
     begin
-      var Doc : Variant := WebBrowser2.Document;
+      Doc := WebBrowser2.Document;
       Doc.Clear;
       Doc.Write('<html><body>Validation Tool nicht installiert. Siehe Verzeichnis ./Tools/Read.Me</body></html>');
       Doc.Close;

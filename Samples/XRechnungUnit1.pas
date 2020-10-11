@@ -247,7 +247,7 @@ begin
     TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_122,ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml');
     if FileExists(toolsPath+'validator\validationtool-1.3.1-java8-standalone.jar') then
     begin
-      ExecAndWait(GetEnvironmentVariable('JAVA_HOME')+'\java','-jar '+toolsPath+'validator\validationtool-1.3.1-java8-standalone.jar -s '+toolsPath+'validator-configuration-122\scenarios.xml  -h '+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml');
+      ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\validationtool-1.3.1-java8-standalone.jar -s '+toolsPath+'validator-configuration-122\scenarios.xml -h '+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml');
       WebBrowser1.Navigate2('file:\\\'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122-report.html');
     end else
     begin
@@ -263,7 +263,7 @@ begin
     TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_200,ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml');
     if FileExists(toolsPath+'validator\validationtool-1.3.1-java8-standalone.jar') then
     begin
-      ExecAndWait(GetEnvironmentVariable('JAVA_HOME')+'\java','-jar '+toolsPath+'validator\validationtool-1.3.1-java8-standalone.jar -s '+toolsPath+'validator-configuration-200\scenarios.xml  -h '+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml');
+      ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\validationtool-1.3.1-java8-standalone.jar -s '+toolsPath+'validator-configuration-200\scenarios.xml -h '+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml');
       WebBrowser2.Navigate2('file:\\\'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200-report.html');
     end else
     begin
@@ -282,7 +282,7 @@ end;
 procedure TForm1.Button1Click(Sender: TObject);
 begin
   if FileExists(toolsPath+'openxrechnungtoolbox\OpenXRechnungToolbox.jar') then
-    ShellExecute(0,'open',PWideChar(GetEnvironmentVariable('JAVA_HOME')+'\java'),PWideChar('-jar OpenXRechnungToolbox.jar'),PWideChar(toolsPath+'openxrechnungtoolbox\'),SW_SHOWNORMAL)
+    ShellExecute(0,'open',PWideChar(toolsPath+'jre\jdk8u265-b01-jre\bin\java'),PWideChar('-jar OpenXRechnungToolbox.jar'),PWideChar(toolsPath+'openxrechnungtoolbox\'),SW_SHOWNORMAL)
   else
     MessageDlg('Viewer nicht installiert. Siehe Verzeichnis ./Tools/Read.Me', mtError, [mbOK], 0);
 end;

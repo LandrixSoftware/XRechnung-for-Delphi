@@ -33,6 +33,7 @@ Tools/openxrechnungtoolbox
 Tools/validator
 Tools/validator-configuration-122
 Tools/validator-configuration-200
+Tools/jre
 Schema
 
 # Delphi compiler-generated binaries (safe to delete)

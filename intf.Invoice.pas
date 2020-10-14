@@ -170,6 +170,14 @@ type
                         );
   {$endregion}
 
+  {$region 'TInvoiceSpecialServiceDescriptionCode'}
+  //cbc:ChargeIndicator = true
+  TInvoiceSpecialServiceDescriptionCode = (issdc_None, //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:untdid.7161_2
+                        issdc_AAA_Telecommunication, //The service of providing telecommunication activities and/or faclities.
+                        issdc_PC_Packing //The service of packing.
+                        );
+  {$endregion}
+
   {$region 'TInvoiceDutyTaxFeeCategoryCode'}
   //Nur ein Teil der Codes ist erlaubt
   TInvoiceDutyTaxFeeCategoryCode = (idtfcc_None, //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:untdid.5305_2
@@ -227,7 +235,9 @@ type
 
   TInvoiceAllowanceCharge = class(TOBject)
   public
-    ReasonCode : TInvoiceAllowanceOrChargeIdentCode;
+    ChargeIndicator : Boolean;
+    ReasonCodeAllowance : TInvoiceAllowanceOrChargeIdentCode;
+    ReasonCodeCharge : TInvoiceSpecialServiceDescriptionCode;
     Reason : String;
     BaseAmount : Currency;
     MultiplierFactorNumeric : double;
@@ -304,6 +314,7 @@ type
     TaxExclusiveAmount : Currency;
     TaxInclusiveAmount : Currency;
     AllowanceTotalAmount : Currency;
+    ChargeTotalAmount : Currency;
     PayableAmount : Currency;
   public
     constructor Create;

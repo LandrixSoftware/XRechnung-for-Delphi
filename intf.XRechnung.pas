@@ -58,6 +58,7 @@ type
     class function InvoicePaymentMeansCodeToStr(_Val : TInvoicePaymentMeansCode) : String;
     class function InvoiceUnitCodeToStr(_Val : TInvoiceUnitCode) : String;   //mehr Konvertierungen in Res\intf.XRechnung.unusedUnits.pas
     class function InvoiceAllowanceOrChargeIdentCodeToStr(_Val : TInvoiceAllowanceOrChargeIdentCode) : String;
+    class function InvoiceSpecialServiceDescriptionCodeToStr(_Val : TInvoiceSpecialServiceDescriptionCode) : String;
     class function InvoiceDutyTaxFeeCategoryCodeToStr(_Val : TInvoiceDutyTaxFeeCategoryCode) : String;
   end;
 
@@ -311,8 +312,11 @@ begin
   for allowanceCharge in _Invoice.AllowanceCharges do
   with xRoot.AddChild('cac:AllowanceCharge') do
   begin
-    AddChild('cbc:ChargeIndicator').Text := LowerCase(BoolToStr(false,true));
-    AddChild('cbc:AllowanceChargeReasonCode').Text := TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(allowanceCharge.ReasonCode);
+    AddChild('cbc:ChargeIndicator').Text := LowerCase(BoolToStr(allowanceCharge.ChargeIndicator,true));
+    AddChild('cbc:AllowanceChargeReasonCode').Text :=
+             IfThen(allowanceCharge.ChargeIndicator,
+             TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(allowanceCharge.ReasonCodeCharge),
+             TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(allowanceCharge.ReasonCodeAllowance));
     AddChild('cbc:AllowanceChargeReason').Text := allowanceCharge.Reason;
     AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
     with AddChild('cbc:Amount') do
@@ -384,7 +388,11 @@ begin
         Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
         Text := TXRechnungHelper.AmountToStr(_Invoice.AllowanceTotalAmount);
       end;
-      //      <cbc:ChargeTotalAmount currencyID="EUR">0</cbc:ChargeTotalAmount>
+      with AddChild('cbc:ChargeTotalAmount') do
+      begin
+        Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+        Text := TXRechnungHelper.AmountToStr(_Invoice.ChargeTotalAmount);
+      end;
       //      <cbc:PrepaidAmount currencyID="EUR">0</cbc:PrepaidAmount>
       //      <cbc:PayableRoundingAmount currencyID="EUR">0</cbc:PayableRoundingAmount>
       with AddChild('cbc:PayableAmount') do
@@ -659,6 +667,16 @@ class function TXRechnungHelper.InvoicePaymentMeansCodeToStr(_Val: TInvoicePayme
 begin
   case _Val of
     ipmc_SEPACreditTransfer: Result := '58';
+    else Result := '';
+  end;
+end;
+
+class function TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(
+  _Val: TInvoiceSpecialServiceDescriptionCode): String;
+begin
+  case _Val of
+    issdc_AAA_Telecommunication: Result := 'AAA';
+    issdc_PC_Packing: Result := 'PC';
     else Result := '';
   end;
 end;

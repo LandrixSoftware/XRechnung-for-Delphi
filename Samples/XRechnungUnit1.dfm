@@ -29,6 +29,13 @@ object Form1: TForm1
     Height = 13
     Caption = 'XRechnung 2.0.0'
   end
+  object Label3: TLabel
+    Left = 8
+    Top = 253
+    Width = 82
+    Height = 13
+    Caption = 'Weitere Beispiele'
+  end
   object Memo1: TMemo
     Left = 152
     Top = 27
@@ -39,7 +46,7 @@ object Form1: TForm1
   end
   object Button3: TButton
     Left = 8
-    Top = 164
+    Top = 139
     Width = 129
     Height = 25
     Caption = 'Erzeugen'
@@ -90,7 +97,7 @@ object Form1: TForm1
   end
   object rbPaymentTerms: TRadioGroup
     Left = 8
-    Top = 27
+    Top = 11
     Width = 129
     Height = 99
     Caption = 'Zahlungsbedingungen'
@@ -104,7 +111,7 @@ object Form1: TForm1
   end
   object Button1: TButton
     Left = 8
-    Top = 195
+    Top = 1150
     Width = 129
     Height = 25
     Caption = 'Viewer starten'
@@ -133,10 +140,26 @@ object Form1: TForm1
   end
   object cbAllowanceCharges: TCheckBox
     Left = 8
-    Top = 132
+    Top = 116
     Width = 138
     Height = 17
-    Caption = 'Nachlaesse generieren'
+    Caption = 'Nachlaesse/Zuschlaege'
     TabOrder = 10
+  end
+  object Button2: TButton
+    Left = 8
+    Top = 272
+    Width = 129
+    Height = 25
+    Caption = 'Abschlagsrechnungen'
+    TabOrder = 11
+  end
+  object Button4: TButton
+    Left = 8
+    Top = 303
+    Width = 129
+    Height = 25
+    Caption = 'Titel / Positionsgruppen'
+    TabOrder = 12
   end
 end

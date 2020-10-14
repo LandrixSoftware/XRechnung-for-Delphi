@@ -25,6 +25,9 @@ type
     pnStartDragX122: TPanel;
     pnStartDragX200: TPanel;
     cbAllowanceCharges: TCheckBox;
+    Button2: TButton;
+    Button4: TButton;
+    Label3: TLabel;
     procedure Button3Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -187,8 +190,8 @@ begin
       //102 Fixed long term - Feste Laufzeit
       //103 Temporary - Vorlaeufig
       //104 Standard - Regulaer
-
-      ReasonCode := TInvoiceAllowanceOrChargeIdentCode.iacic_Discount;
+      ChargeIndicator := false;
+      ReasonCodeAllowance := TInvoiceAllowanceOrChargeIdentCode.iacic_Discount;
       Reason := 'Nachlass 1';
       BaseAmount := 50.00;
       MultiplierFactorNumeric := 10; //6 Prozent auf 60 EUR
@@ -198,11 +201,23 @@ begin
     end;
     with inv.AllowanceCharges.AddAllowanceCharge do
     begin
-      ReasonCode := TInvoiceAllowanceOrChargeIdentCode.iacic_Discount;
-      Reason := 'Nachlass 2 ohne Angabe von Basisbetrag und Nachlassprozente. Ist zu prüfen, ob das so gedacht ist, z.B. für abziebare Abschlagsrechnungen, valide ist es.';
+      ChargeIndicator := false;
+      ReasonCodeAllowance := TInvoiceAllowanceOrChargeIdentCode.iacic_Discount;
+      Reason := 'Nachlass 2 ohne Angabe von Basisbetrag und Nachlassprozente.';
       BaseAmount := 0.00;
       MultiplierFactorNumeric := 0; //6 Prozent auf 60 EUR
       Amount := 5.00;
+      TaxPercent := 19.0;
+      TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    end;
+    with inv.AllowanceCharges.AddAllowanceCharge do
+    begin
+      ChargeIndicator := true;
+      ReasonCodeCharge := TInvoiceSpecialServiceDescriptionCode.issdc_AAA_Telecommunication;
+      Reason := 'Zuschlag fuer Kommuikation';
+      BaseAmount := 10.00;
+      MultiplierFactorNumeric := 10; //6 Prozent auf 60 EUR
+      Amount := 1.00;
       TaxPercent := 19.0;
       TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
     end;
@@ -223,26 +238,26 @@ begin
   inv.TaxExclusiveAmount := 200.00; //Summe ohne MwSt
   inv.TaxInclusiveAmount := 226.00; //Summe inkl MwSt
   inv.AllowanceTotalAmount := 0; //Abzuege
+  inv.ChargeTotalAmount := 0; //Zuschlaege
 
   inv.PayableAmount := 226.00;      //Summe Zahlbar MwSt
 
   if cbAllowanceCharges.Checked then
   begin
     inv.AllowanceTotalAmount := 5.00 + 5.00;
-    inv.TaxAmountSubtotals[1].TaxableAmount := inv.TaxAmountSubtotals[1].TaxableAmount - 5.00 -5.00;
-    inv.TaxAmountSubtotals[1].TaxAmount := inv.TaxAmountSubtotals[1].TaxAmount - 0.95 - 0.95;
-    inv.TaxAmountTotal := inv.TaxAmountTotal - 0.95 - 0.95;
-    inv.TaxExclusiveAmount := inv.TaxExclusiveAmount - inv.AllowanceTotalAmount;
-    inv.TaxInclusiveAmount := inv.TaxInclusiveAmount - 5.00 - 0.95 - 5.00 - 0.95;
+    inv.ChargeTotalAmount := 1.00;
+    inv.TaxAmountSubtotals[1].TaxableAmount := inv.TaxAmountSubtotals[1].TaxableAmount - 5.00 - 5.00 + 1.00;
+    inv.TaxAmountSubtotals[1].TaxAmount := inv.TaxAmountSubtotals[1].TaxAmount - 0.95 - 0.95 + 0.19;
+    inv.TaxAmountTotal := inv.TaxAmountTotal - 0.95 - 0.95 + 0.19;
+    inv.TaxExclusiveAmount := inv.TaxExclusiveAmount - inv.AllowanceTotalAmount + inv.ChargeTotalAmount;
+    inv.TaxInclusiveAmount := inv.TaxInclusiveAmount - 5.00 - 0.95 - 5.00 - 0.95 + 1.00 + 0.19;
     inv.PayableAmount := inv.TaxInclusiveAmount;
   end;
 
-  //TODO ChargeTotalAmount Zuschlaege
   //TODO PrepaidAmount
   //TODO PayableRoundingAmount
 
-
-  try
+  try
     TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_122,hstr);
     TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_122,ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml');
     if FileExists(toolsPath+'validator\validationtool-1.3.1-java8-standalone.jar') then

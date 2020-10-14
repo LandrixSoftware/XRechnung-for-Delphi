@@ -155,8 +155,91 @@ var
   xRoot : IXMLNode;
   allowanceCharge : TInvoiceAllowanceCharge;
   taxSubtotal : TInvoiceTaxAmount;
-  invoiceLine : TInvoiceLine;
+  i : Integer;
   precedingInvoiceReference : TInvoicePrecedingInvoiceReference;
+
+  procedure InternalAddInvoiceLine(_Invoiceline : TInvoiceLine; _Node : IXMLNode);
+  var subinvoiceline : TInvoiceLine;
+    allowanceCharge : TInvoiceAllowanceCharge;
+  begin
+  with _Node do
+  begin
+    AddChild('cbc:ID').Text := _Invoiceline.ID;
+    if not _Invoiceline.Note.IsEmpty then
+      AddChild('cbc:Note').Text := _Invoiceline.Note;
+    with AddChild('cbc:InvoicedQuantity') do
+    begin
+      Attributes['unitCode'] := TXRechnungHelper.InvoiceUnitCodeToStr(_Invoiceline.UnitCode);
+      Text := TXRechnungHelper.QuantityToStr(_Invoiceline.Quantity);
+    end;
+    with AddChild('cbc:LineExtensionAmount') do
+    begin
+      Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+      Text := TXRechnungHelper.AmountToStr(_Invoiceline.LineAmount);
+    end;
+    //  <cac:DocumentReference>
+    //     <cbc:ID/>
+    //     <cbc:DocumentType>916</cbc:DocumentType>
+    //  </cac:DocumentReference>
+    for allowanceCharge in _Invoiceline.AllowanceCharges do
+    with AddChild('cac:AllowanceCharge') do
+    begin
+      AddChild('cbc:ChargeIndicator').Text := LowerCase(BoolToStr(allowanceCharge.ChargeIndicator,true));
+      AddChild('cbc:AllowanceChargeReasonCode').Text :=
+               IfThen(allowanceCharge.ChargeIndicator,
+               TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(allowanceCharge.ReasonCodeCharge),
+               TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(allowanceCharge.ReasonCodeAllowance));
+      AddChild('cbc:AllowanceChargeReason').Text := allowanceCharge.Reason;
+      AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
+      with AddChild('cbc:Amount') do
+      begin
+        Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+        Text := TXRechnungHelper.AmountToStr(allowanceCharge.Amount);
+      end;
+      with AddChild('cbc:BaseAmount') do
+      begin
+        Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+        Text := TXRechnungHelper.AmountToStr(allowanceCharge.BaseAmount);
+      end;
+    end;
+    with AddChild('cac:Item') do
+    begin
+      AddChild('cbc:Description').Text := _Invoiceline.Description;
+      AddChild('cbc:Name').Text := _Invoiceline.Name;
+      //   <cac:BuyersItemIdentification>
+      //      <cbc:ID/>
+      //   </cac:BuyersItemIdentification>
+      AddChild('cac:SellersItemIdentification').AddChild('cbc:ID').Text := _Invoiceline.SellersItemIdentification;
+      //<cac:StandardItemIdentification>
+      //      <cbc:ID schemeID="0001"/>
+      //   </cac:StandardItemIdentification>
+      with AddChild('cac:ClassifiedTaxCategory') do
+      begin
+        AddChild('cbc:ID').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(_Invoiceline.TaxCategory);
+        AddChild('cbc:Percent').Text := TXRechnungHelper.PercentageToStr(_Invoiceline.TaxPercent);
+        AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
+      end;
+    end;
+    with AddChild('cac:Price') do
+    begin
+      with AddChild('cbc:PriceAmount') do
+      begin
+        Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+        Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoiceline.PriceAmount);
+      end;
+      if (_Invoiceline.BaseQuantity <> 0) and (_Invoiceline.BaseQuantityUnitCode <> iuc_None) then
+      with AddChild('cbc:BaseQuantity') do
+      begin
+        Attributes['unitCode'] := TXRechnungHelper.InvoiceUnitCodeToStr(_Invoiceline.BaseQuantityUnitCode);
+        Text := IntToStr(_Invoiceline.BaseQuantity);
+      end;
+    end;
+    if _Version = XRechnungVersion_200 then
+    for subinvoiceline in _Invoiceline.SubInvoiceLines do
+      InternalAddInvoiceLine(subinvoiceline,_Node.AddChild('cac:SubInvoiceLine'));
+  end;
+  end;
+
 begin
   {$IFDEF USE_OXMLDomVendor}TXMLDocument(_Xml).DOMVendor := Xml.xmldom.GetDOMVendor(sOXmlDOMVendor);{$ENDIF}
   //Result := xmldoc.GetDocBinding('rsm:CrossIndustryInvoice', TXMLCrossIndustryDocumentType) as IXMLCrossIndustryDocumentType;
@@ -416,80 +499,8 @@ begin
       end;
   end;
 
-  for invoiceLine in _Invoice.InvoiceLines do
-  with xRoot.AddChild('cac:InvoiceLine') do
-  begin
-    AddChild('cbc:ID').Text := invoiceLine.ID;
-    if not invoiceLine.Note.IsEmpty then
-      AddChild('cbc:Note').Text := invoiceLine.Note;
-    with AddChild('cbc:InvoicedQuantity') do
-    begin
-      Attributes['unitCode'] := TXRechnungHelper.InvoiceUnitCodeToStr(invoiceLine.UnitCode);
-      Text := TXRechnungHelper.QuantityToStr(invoiceLine.Quantity);
-    end;
-    with AddChild('cbc:LineExtensionAmount') do
-    begin
-      Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
-      Text := TXRechnungHelper.AmountToStr(invoiceLine.LineAmount);
-    end;
-    //  <cac:DocumentReference>
-    //     <cbc:ID/>
-    //     <cbc:DocumentType>916</cbc:DocumentType>
-    //  </cac:DocumentReference>
-    for allowanceCharge in invoiceLine.AllowanceCharges do
-    with AddChild('cac:AllowanceCharge') do
-    begin
-      AddChild('cbc:ChargeIndicator').Text := LowerCase(BoolToStr(allowanceCharge.ChargeIndicator,true));
-      AddChild('cbc:AllowanceChargeReasonCode').Text :=
-               IfThen(allowanceCharge.ChargeIndicator,
-               TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(allowanceCharge.ReasonCodeCharge),
-               TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(allowanceCharge.ReasonCodeAllowance));
-      AddChild('cbc:AllowanceChargeReason').Text := allowanceCharge.Reason;
-      AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
-      with AddChild('cbc:Amount') do
-      begin
-        Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
-        Text := TXRechnungHelper.AmountToStr(allowanceCharge.Amount);
-      end;
-      with AddChild('cbc:BaseAmount') do
-      begin
-        Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
-        Text := TXRechnungHelper.AmountToStr(allowanceCharge.BaseAmount);
-      end;
-    end;
-    with AddChild('cac:Item') do
-    begin
-      AddChild('cbc:Description').Text := invoiceLine.Description;
-      AddChild('cbc:Name').Text := invoiceLine.Name;
-      //   <cac:BuyersItemIdentification>
-      //      <cbc:ID/>
-      //   </cac:BuyersItemIdentification>
-      AddChild('cac:SellersItemIdentification').AddChild('cbc:ID').Text := invoiceLine.SellersItemIdentification;
-      //<cac:StandardItemIdentification>
-      //      <cbc:ID schemeID="0001"/>
-      //   </cac:StandardItemIdentification>
-      with AddChild('cac:ClassifiedTaxCategory') do
-      begin
-        AddChild('cbc:ID').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(invoiceLine.TaxCategory);
-        AddChild('cbc:Percent').Text := TXRechnungHelper.PercentageToStr(invoiceLine.TaxPercent);
-        AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
-      end;
-    end;
-    with AddChild('cac:Price') do
-    begin
-      with AddChild('cbc:PriceAmount') do
-      begin
-        Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
-        Text := TXRechnungHelper.UnitPriceAmountToStr(invoiceLine.PriceAmount);
-      end;
-      if (invoiceLine.BaseQuantity <> 0) and (invoiceLine.BaseQuantityUnitCode <> iuc_None) then
-      with AddChild('cbc:BaseQuantity') do
-      begin
-        Attributes['unitCode'] := TXRechnungHelper.InvoiceUnitCodeToStr(invoiceLine.BaseQuantityUnitCode);
-        Text := IntToStr(invoiceLine.BaseQuantity);
-      end;
-    end;
-  end;
+  for i := 0 to _Invoice.InvoiceLines.Count-1 do
+    InternalAddInvoiceLine(_Invoice.InvoiceLines[i],xRoot.AddChild('cac:InvoiceLine'));
 end;
 
 { TXRechnungXMLHelper }

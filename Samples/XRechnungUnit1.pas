@@ -33,6 +33,7 @@ type
     procedure btOpenViewerClick(Sender: TObject);
     procedure pnStartDragX122MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure pnStartDragX200MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure Button4Click(Sender: TObject);
   private
     function ExecAndWait(Filename, Params: string): Boolean;
   public
@@ -165,6 +166,7 @@ begin
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
     LineAmount := 100;
 
+    //Nachlass zur Position
     if cbAllowanceCharges.Checked then
     with AllowanceCharges.AddAllowanceCharge do
     begin
@@ -175,7 +177,6 @@ begin
       Amount := 5.00;
       //Nicht erforderlich TaxPercent := 19.0;
       //Nicht erforderlich TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
-
       LineAmount := LineAmount - Amount;
     end;
   end;
@@ -301,6 +302,176 @@ begin
     end;
     Memo1.Lines.Text := hstr;
     pnStartDragX122.Visible := FileExists(ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml');
+
+    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_200,hstr);
+    TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_200,ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml');
+    if FileExists(toolsPath+'validator\validationtool-1.3.1-java8-standalone.jar') then
+    begin
+      ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\validationtool-1.3.1-java8-standalone.jar -s '+toolsPath+'validator-configuration-200\scenarios.xml -h '+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml');
+      WebBrowser2.Navigate2('file:\\\'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200-report.html');
+    end else
+    begin
+      Doc := WebBrowser2.Document;
+      Doc.Clear;
+      Doc.Write('<html><body>Validation Tool nicht installiert. Siehe Verzeichnis ./Tools/Read.Me</body></html>');
+      Doc.Close;
+    end;
+    Memo2.Lines.Text := hstr;
+    pnStartDragX200.Visible := FileExists(ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml');
+  finally
+    inv.Free;
+  end;
+end;
+
+procedure TForm1.Button4Click(Sender: TObject);
+var
+  inv : TInvoice;
+  hstr : String;
+  Doc : Variant;
+begin
+  ShowMessage('Die Validierungswarnung scheint derzeit noch normal zu sein.'+#10+'[UBL-CR-646]-A UBL invoice should not include the InvoiceLine SubInvoiceLine');
+
+  WebBrowser1.Navigate2('about:blank');
+  WebBrowser2.Navigate2('about:blank');
+  Memo1.Clear;
+  Memo2.Clear;
+  Memo3.Clear;
+  pnStartDragX122.Visible := false;
+  pnStartDragX200.Visible := false;
+
+  inv := TInvoice.Create;
+  inv.InvoiceNumber := 'R2020-0815';
+  inv.InvoiceIssueDate := Date;
+  inv.InvoiceDueDate := Date+30;
+  inv.InvoicePeriodStartDate := Date-30;
+  inv.InvoicePeriodEndDate := Date-1;
+  inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
+  inv.InvoiceCurrencyCode := 'EUR';
+  inv.TaxCurrencyCode := 'EUR';
+  inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
+  inv.Note := 'keine';
+
+  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingSupplierParty.CompanyID :=  '';
+  inv.AccountingSupplierParty.StreetName := 'Verkaeuferstraße 1';
+  inv.AccountingSupplierParty.City := 'Verkaeuferstadt';
+  inv.AccountingSupplierParty.PostalZone := '01234';
+  inv.AccountingSupplierParty.CountryCode := 'DE';
+  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingSupplierParty.ContactName := 'Meier';
+  inv.AccountingSupplierParty.ContactTelephone := '030 0815';
+  inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
+
+  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
+  inv.AccountingCustomerParty.StreetName := 'Kaeuferstraße 1';
+  inv.AccountingCustomerParty.City := 'Kaeuferstadt';
+  inv.AccountingCustomerParty.PostalZone := '05678';
+  inv.AccountingCustomerParty.CountryCode := 'DE';
+  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingCustomerParty.ContactName := 'Müller';
+  inv.AccountingCustomerParty.ContactTelephone := '030 1508';
+  inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
+
+  inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
+  inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
+  inv.PayeeFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+  inv.PayeeFinancialAccountName := 'Fa. XY';
+  //inv.PayeeFinancialInstitutionBranch := 'DEU...'; //BIC
+
+  inv.PaymentTermsType := iptt_Net;
+  inv.PaymentTermNetNote := 'Zahlbar sofort ohne Abzug.';
+
+  with inv.InvoiceLines.AddInvoiceLine do
+  begin
+    ID := '01'; //Positionsnummer
+    //Note : String; //Hinweis
+    Name := 'Kurzinfo Titel'; //Kurztext
+    Quantity := 1; //Menge
+    UnitCode := TInvoiceUnitCode.iuc_piece; //Mengeneinheit
+    TaxPercent := 19.0; //MwSt
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    BaseQuantity := 0; //Preiseinheit
+    BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
+    LineAmount := 400;
+
+    with SubInvoiceLines.AddInvoiceLine do
+    begin
+      ID := '01.01'; //Positionsnummer
+      Name := 'Kurzinfo Artikel 1'; //Kurztext
+      Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
+      Quantity := 4; //Menge
+      UnitCode := TInvoiceUnitCode.iuc_piece; //Mengeneinheit
+      SellersItemIdentification := 'A0815'; //Artikelnummer
+      TaxPercent := 19.0; //MwSt
+      TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+      PriceAmount := 50; //Einzelpreis
+      //TODO Preiseinheiten
+      BaseQuantity := 0; //Preiseinheit
+      BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
+      LineAmount := 200;
+    end;
+    with SubInvoiceLines.AddInvoiceLine do
+    begin
+      ID := '01.02'; //Positionsnummer
+      Name := 'Kurzinfo Artikel 2'; //Kurztext
+      Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
+      Quantity := 4; //Menge
+      UnitCode := TInvoiceUnitCode.iuc_piece; //Mengeneinheit
+      SellersItemIdentification := 'A0816'; //Artikelnummer
+      TaxPercent := 19.0; //MwSt
+      TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+      PriceAmount := 50; //Einzelpreis
+      //TODO Preiseinheiten
+      BaseQuantity := 0; //Preiseinheit
+      BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
+      LineAmount := 200;
+    end;
+    //Nachlass
+    with AllowanceCharges.AddAllowanceCharge do
+    begin
+      ChargeIndicator := false;
+      ReasonCodeAllowance := TInvoiceAllowanceOrChargeIdentCode.iacic_Discount;
+      BaseAmount := 400.00;
+      MultiplierFactorNumeric := 10; //10 Prozent auf 400 EUR
+      Amount := 40.00;
+      LineAmount := LineAmount - Amount;
+    end;
+  end;
+
+  inv.TaxAmountTotal := 68.40;
+  SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
+  inv.TaxAmountSubtotals[0].TaxPercent := 19.0;
+  inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+  inv.TaxAmountSubtotals[0].TaxableAmount := 360.0;
+  inv.TaxAmountSubtotals[0].TaxAmount := 68.40;
+
+  inv.LineAmount := 360.0;         //Summe
+  inv.TaxExclusiveAmount := 360.00; //Summe ohne MwSt
+  inv.TaxInclusiveAmount := 428.40; //Summe inkl MwSt
+  inv.AllowanceTotalAmount := 0; //Abzuege
+  inv.ChargeTotalAmount := 0; //Zuschlaege
+  inv.PrepaidAmount := 0; //Anzahlungen
+  inv.PayableAmount := 428.40;      //Summe Zahlbar MwSt
+
+  try
+//    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_122,hstr);
+//    TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_122,ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml');
+//    if FileExists(toolsPath+'validator\validationtool-1.3.1-java8-standalone.jar') then
+//    begin
+//      ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\validationtool-1.3.1-java8-standalone.jar -s '+toolsPath+'validator-configuration-122\scenarios.xml -h '+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml');
+//      WebBrowser1.Navigate2('file:\\\'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122-report.html');
+//    end else
+//    begin
+//      Doc := WebBrowser1.Document;
+//      Doc.Clear;
+//      Doc.Write('<html><body>Validation Tool nicht installiert. Siehe Verzeichnis ./Tools/Read.Me</body></html>');
+//      Doc.Close;
+//    end;
+//    Memo1.Lines.Text := hstr;
+//    pnStartDragX122.Visible := FileExists(ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml');
 
     TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_200,hstr);
     TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_200,ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml');

@@ -222,6 +222,8 @@ type
     function AddAllowanceCharge : TInvoiceAllowanceCharge;
   end;
 
+  TInvoiceLines = class;
+
   TInvoiceLine = class(TObject)
   public
     ID : String; //Positionsnummer
@@ -238,6 +240,7 @@ type
     BaseQuantityUnitCode : TInvoiceUnitCode; //Preiseinheit Mengeneinheit
     LineAmount : Currency;
     AllowanceCharges : TInvoiceAllowanceCharges;
+    SubInvoiceLines : TInvoiceLines;
   public
     constructor Create;
     destructor Destroy; override;
@@ -396,11 +399,13 @@ end;
 constructor TInvoiceLine.Create;
 begin
   AllowanceCharges := TInvoiceAllowanceCharges.Create;
+  SubInvoiceLines := TInvoiceLines.Create;
 end;
 
 destructor TInvoiceLine.Destroy;
 begin
   if Assigned(AllowanceCharges) then begin AllowanceCharges.Free; AllowanceCharges := nil; end;
+  if Assigned(SubInvoiceLines) then begin SubInvoiceLines.Free; SubInvoiceLines := nil; end;
   inherited;
 end;
 

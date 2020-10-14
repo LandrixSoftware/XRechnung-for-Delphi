@@ -148,11 +148,12 @@ object Form1: TForm1
   end
   object Button4: TButton
     Left = 8
-    Top = 303
+    Top = 279
     Width = 129
     Height = 25
     Caption = 'Titel / Positionsgruppen'
     TabOrder = 11
+    OnClick = Button4Click
   end
   object cbPrepaidAmount: TCheckBox
     Left = 8

@@ -4,10 +4,6 @@
 
 Erstellen von Rechnungen im XRechnung-UBL-Format (Universal Business Language)
 
-## TODO
-
-- Gruppierungen von Positionen
-
 ## Version
 
 Aktuelle XRechnung-Versionen 1.2.2 und 2.0.0
@@ -20,4 +16,4 @@ https://www.xoev.de/xrechnung-16828
 
 https://github.com/itplr-kosit
 
-https://www.xrechnung.io
+https://cranesoftwrights.github.io/resources/Crane-UBL-2.2-Skeleton/Crane-UBL-Invoice-2.2.html#result

@@ -270,6 +270,17 @@ type
     ContactElectronicMail : String;
   end;
 
+  TInvoicePrecedingInvoiceReference = class(TObject)
+  public
+    ID : String;
+    IssueDate : TDate;
+  end;
+
+  TInvoicePrecedingInvoiceReferences = class(TObjectList<TInvoicePrecedingInvoiceReference>)
+  public
+    function AddPrecedingInvoiceReference : TInvoicePrecedingInvoiceReference;
+  end;
+
   TInvoice = class(TObject)
   public
     InvoiceNumber : String;  //Rechnungsnummer
@@ -305,7 +316,8 @@ type
 
     InvoiceLines : TInvoiceLines;
 
-    AllowanceCharges : TInvoiceAllowanceCharges; //Nachlaesse
+    AllowanceCharges : TInvoiceAllowanceCharges; //Nachlaesse, Zuschlaege
+    PrecedingInvoiceReferences : TInvoicePrecedingInvoiceReferences;
 
     TaxAmountTotal : Currency;
     TaxAmountSubtotals : TArray<TInvoiceTaxAmount>;
@@ -315,6 +327,7 @@ type
     TaxInclusiveAmount : Currency;
     AllowanceTotalAmount : Currency;
     ChargeTotalAmount : Currency;
+    PrepaidAmount : Currency;
     PayableAmount : Currency;
   public
     constructor Create;
@@ -330,6 +343,7 @@ constructor TInvoice.Create;
 begin
   InvoiceLines := TInvoiceLines.Create;
   AllowanceCharges := TInvoiceAllowanceCharges.Create;
+  PrecedingInvoiceReferences := TInvoicePrecedingInvoiceReferences.Create;
   Clear;
 end;
 
@@ -337,6 +351,7 @@ destructor TInvoice.Destroy;
 begin
   if Assigned(InvoiceLines) then begin InvoiceLines.Free; InvoiceLines := nil; end;
   if Assigned(AllowanceCharges) then begin AllowanceCharges.Free; AllowanceCharges := nil; end;
+  if Assigned(PrecedingInvoiceReferences) then begin PrecedingInvoiceReferences.Free; PrecedingInvoiceReferences := nil; end;
   inherited;
 end;
 
@@ -344,6 +359,7 @@ procedure TInvoice.Clear;
 begin
   InvoiceLines.Clear;
   AllowanceCharges.Clear;
+  PrecedingInvoiceReferences.Clear;
   SetLength(TaxAmountSubtotals,0);
 end;
 
@@ -360,6 +376,14 @@ end;
 function TInvoiceAllowanceCharges.AddAllowanceCharge: TInvoiceAllowanceCharge;
 begin
   Result := TInvoiceAllowanceCharge.Create;
+  Add(Result);
+end;
+
+{ TInvoicePrecedingInvoiceReferences }
+
+function TInvoicePrecedingInvoiceReferences.AddPrecedingInvoiceReference: TInvoicePrecedingInvoiceReference;
+begin
+  Result := TInvoicePrecedingInvoiceReference.Create;
   Add(Result);
 end;
 

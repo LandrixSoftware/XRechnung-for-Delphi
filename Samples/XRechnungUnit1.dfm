@@ -46,7 +46,7 @@ object Form1: TForm1
   end
   object Button3: TButton
     Left = 8
-    Top = 139
+    Top = 163
     Width = 129
     Height = 25
     Caption = 'Erzeugen'
@@ -161,5 +161,13 @@ object Form1: TForm1
     Height = 25
     Caption = 'Titel / Positionsgruppen'
     TabOrder = 12
+  end
+  object cbPrepaidAmount: TCheckBox
+    Left = 8
+    Top = 139
+    Width = 129
+    Height = 17
+    Caption = 'Anzahlungen'
+    TabOrder = 19
   end
 end

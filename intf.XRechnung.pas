@@ -154,6 +154,7 @@ var
   allowanceCharge : TInvoiceAllowanceCharge;
   taxSubtotal : TInvoiceTaxAmount;
   invoiceLine : TInvoiceLine;
+  precedingInvoiceReference : TInvoicePrecedingInvoiceReference;
 begin
   {$IFDEF USE_OXMLDomVendor}TXMLDocument(_Xml).DOMVendor := Xml.xmldom.GetDOMVendor(sOXmlDOMVendor);{$ENDIF}
   //Result := xmldoc.GetDocBinding('rsm:CrossIndustryInvoice', TXMLCrossIndustryDocumentType) as IXMLCrossIndustryDocumentType;
@@ -193,6 +194,13 @@ begin
   begin
     AddChild('cbc:StartDate').Text := TXRechnungHelper.DateToStr(_Invoice.InvoicePeriodStartDate);
     AddChild('cbc:EndDate').Text := TXRechnungHelper.DateToStr(_Invoice.InvoicePeriodEndDate);
+  end;
+
+  for precedingInvoiceReference in _Invoice.PrecedingInvoiceReferences do
+  with xRoot.AddChild('cac:BillingReference').AddChild('cac:InvoiceDocumentReference') do
+  begin
+    AddChild('cbc:ID').Text := precedingInvoiceReference.ID;
+    AddChild('cbc:IssueDate').Text := TXRechnungHelper.DateToStr(precedingInvoiceReference.IssueDate);
   end;
 
   with xRoot.AddChild('cac:AccountingSupplierParty').AddChild('cac:Party') do
@@ -393,7 +401,11 @@ begin
         Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
         Text := TXRechnungHelper.AmountToStr(_Invoice.ChargeTotalAmount);
       end;
-      //      <cbc:PrepaidAmount currencyID="EUR">0</cbc:PrepaidAmount>
+      with AddChild('cbc:PrepaidAmount') do
+      begin
+        Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+        Text := TXRechnungHelper.AmountToStr(_Invoice.PrepaidAmount);
+      end;
       //      <cbc:PayableRoundingAmount currencyID="EUR">0</cbc:PayableRoundingAmount>
       with AddChild('cbc:PayableAmount') do
       begin

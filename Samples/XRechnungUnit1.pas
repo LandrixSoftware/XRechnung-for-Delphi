@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs,Vcl.StdCtrls,Winapi.ShellApi,Winapi.ShlObj,WinApi.ActiveX
   ,System.IOUtils,System.Win.COMObj,System.UITypes
-  ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema,intf.MSXML2_TLB
+  ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema
   ,intf.XRechnung,intf.Invoice, Vcl.OleCtrls, SHDocVw, Vcl.ExtCtrls
   ;
 
@@ -28,6 +28,7 @@ type
     Button2: TButton;
     Button4: TButton;
     Label3: TLabel;
+    cbPrepaidAmount: TCheckBox;
     procedure Button3Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -57,6 +58,8 @@ begin
   Memo1.Clear;
   Memo2.Clear;
   Memo3.Clear;
+  pnStartDragX122.Visible := false;
+  pnStartDragX200.Visible := false;
 
   inv := TInvoice.Create;
   inv.InvoiceNumber := 'R2020-0815';
@@ -239,7 +242,7 @@ begin
   inv.TaxInclusiveAmount := 226.00; //Summe inkl MwSt
   inv.AllowanceTotalAmount := 0; //Abzuege
   inv.ChargeTotalAmount := 0; //Zuschlaege
-
+  inv.PrepaidAmount := 0; //Anzahlungen
   inv.PayableAmount := 226.00;      //Summe Zahlbar MwSt
 
   if cbAllowanceCharges.Checked then
@@ -254,7 +257,19 @@ begin
     inv.PayableAmount := inv.TaxInclusiveAmount;
   end;
 
-  //TODO PrepaidAmount
+  //Abschlagszahlungen abziehen
+  //TODO Evtl könnte man das ganze noch ergänzen, indem man die Abschlagsrechnungen als Anhang anhängt
+  if cbPrepaidAmount.Checked then
+  begin
+    with inv.PrecedingInvoiceReferences.AddPrecedingInvoiceReference do
+    begin
+      ID := 'R2020-0001';
+      IssueDate := Date-100;
+    end;
+    inv.PrepaidAmount := 100;
+    inv.PayableAmount := inv.PayableAmount - inv.PrepaidAmount;
+  end;
+
   //TODO PayableRoundingAmount
 
   try

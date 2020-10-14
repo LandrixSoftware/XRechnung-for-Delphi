@@ -21,17 +21,16 @@ type
     Label2: TLabel;
     WebBrowser2: TWebBrowser;
     rbPaymentTerms: TRadioGroup;
-    Button1: TButton;
+    btOpenViewer: TButton;
     pnStartDragX122: TPanel;
     pnStartDragX200: TPanel;
     cbAllowanceCharges: TCheckBox;
-    Button2: TButton;
     Button4: TButton;
     Label3: TLabel;
     cbPrepaidAmount: TCheckBox;
     procedure Button3Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
+    procedure btOpenViewerClick(Sender: TObject);
     procedure pnStartDragX122MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure pnStartDragX200MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
   private
@@ -147,7 +146,6 @@ begin
     //TODO Preiseinheiten
     BaseQuantity := 0; //Preiseinheit
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
-    //TODO Rabatte
     LineAmount := 100;
   end;
   with inv.InvoiceLines.AddInvoiceLine do
@@ -166,6 +164,20 @@ begin
     BaseQuantity := 0; //Preiseinheit
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
     LineAmount := 100;
+
+    if cbAllowanceCharges.Checked then
+    with AllowanceCharges.AddAllowanceCharge do
+    begin
+      ChargeIndicator := false;
+      ReasonCodeAllowance := TInvoiceAllowanceOrChargeIdentCode.iacic_Discount;
+      BaseAmount := 50.00;
+      MultiplierFactorNumeric := 10; //10 Prozent auf 50 EUR
+      Amount := 5.00;
+      //Nicht erforderlich TaxPercent := 19.0;
+      //Nicht erforderlich TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+
+      LineAmount := LineAmount - Amount;
+    end;
   end;
 
 
@@ -197,7 +209,7 @@ begin
       ReasonCodeAllowance := TInvoiceAllowanceOrChargeIdentCode.iacic_Discount;
       Reason := 'Nachlass 1';
       BaseAmount := 50.00;
-      MultiplierFactorNumeric := 10; //6 Prozent auf 60 EUR
+      MultiplierFactorNumeric := 10; //10 Prozent auf 50 EUR
       Amount := 5.00;
       TaxPercent := 19.0;
       TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
@@ -208,7 +220,7 @@ begin
       ReasonCodeAllowance := TInvoiceAllowanceOrChargeIdentCode.iacic_Discount;
       Reason := 'Nachlass 2 ohne Angabe von Basisbetrag und Nachlassprozente.';
       BaseAmount := 0.00;
-      MultiplierFactorNumeric := 0; //6 Prozent auf 60 EUR
+      MultiplierFactorNumeric := 0;
       Amount := 5.00;
       TaxPercent := 19.0;
       TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
@@ -219,7 +231,7 @@ begin
       ReasonCodeCharge := TInvoiceSpecialServiceDescriptionCode.issdc_AAA_Telecommunication;
       Reason := 'Zuschlag fuer Kommuikation';
       BaseAmount := 10.00;
-      MultiplierFactorNumeric := 10; //6 Prozent auf 60 EUR
+      MultiplierFactorNumeric := 10; //10 Prozent auf 10 EUR
       Amount := 1.00;
       TaxPercent := 19.0;
       TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
@@ -247,26 +259,27 @@ begin
 
   if cbAllowanceCharges.Checked then
   begin
+    inv.LineAmount := inv.LineAmount - 5.00;
     inv.AllowanceTotalAmount := 5.00 + 5.00;
     inv.ChargeTotalAmount := 1.00;
-    inv.TaxAmountSubtotals[1].TaxableAmount := inv.TaxAmountSubtotals[1].TaxableAmount - 5.00 - 5.00 + 1.00;
-    inv.TaxAmountSubtotals[1].TaxAmount := inv.TaxAmountSubtotals[1].TaxAmount - 0.95 - 0.95 + 0.19;
-    inv.TaxAmountTotal := inv.TaxAmountTotal - 0.95 - 0.95 + 0.19;
-    inv.TaxExclusiveAmount := inv.TaxExclusiveAmount - inv.AllowanceTotalAmount + inv.ChargeTotalAmount;
-    inv.TaxInclusiveAmount := inv.TaxInclusiveAmount - 5.00 - 0.95 - 5.00 - 0.95 + 1.00 + 0.19;
+    inv.TaxAmountSubtotals[1].TaxableAmount := inv.TaxAmountSubtotals[1].TaxableAmount - 5.00 - 5.00 + 1.00 - 5.00;
+    inv.TaxAmountSubtotals[1].TaxAmount := inv.TaxAmountSubtotals[1].TaxAmount - 0.95 - 0.95 + 0.19 - 0.95;
+    inv.TaxAmountTotal := inv.TaxAmountTotal - 0.95 - 0.95 + 0.19 - 0.95;
+    inv.TaxExclusiveAmount := inv.TaxExclusiveAmount - inv.AllowanceTotalAmount + inv.ChargeTotalAmount - 5.00;
+    inv.TaxInclusiveAmount := inv.TaxInclusiveAmount - 5.00 - 0.95 - 5.00 - 0.95 + 1.00 + 0.19 - 5.00 -0.95;
     inv.PayableAmount := inv.TaxInclusiveAmount;
   end;
 
   //Abschlagszahlungen abziehen
-  //TODO Evtl könnte man das ganze noch ergänzen, indem man die Abschlagsrechnungen als Anhang anhängt
+  //TODO Evtl könnte man das hier noch ergänzen, indem man die Abschlagsrechnungen als Anhang anhängt
   if cbPrepaidAmount.Checked then
   begin
     with inv.PrecedingInvoiceReferences.AddPrecedingInvoiceReference do
     begin
       ID := 'R2020-0001';
-      IssueDate := Date-100;
+      IssueDate := Date-100; //Rechnungsdatum
     end;
-    inv.PrepaidAmount := 100;
+    inv.PrepaidAmount := 100.00; //Euro angezahlt
     inv.PayableAmount := inv.PayableAmount - inv.PrepaidAmount;
   end;
 
@@ -309,7 +322,7 @@ begin
   end;
 end;
 
-procedure TForm1.Button1Click(Sender: TObject);
+procedure TForm1.btOpenViewerClick(Sender: TObject);
 begin
   if FileExists(toolsPath+'openxrechnungtoolbox\OpenXRechnungToolbox.jar') then
     ShellExecute(0,'open',PWideChar(toolsPath+'jre\jdk8u265-b01-jre\bin\java'),PWideChar('-jar OpenXRechnungToolbox.jar'),PWideChar(toolsPath+'openxrechnungtoolbox\'),SW_SHOWNORMAL)

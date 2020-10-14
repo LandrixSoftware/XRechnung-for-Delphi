@@ -204,35 +204,6 @@ type
           idtfcc_Z_ZeroRatedGoods);
   {$endregion}
 
-  TInvoiceLine = class(TObject)
-  public
-    ID : String; //Positionsnummer
-    Note : String; //Hinweis
-    Name : String; //Kurztext
-    Description : String; //Laengere Beschreibung
-    Quantity : double; //Menge
-    UnitCode : TInvoiceUnitCode; //Mengeneinheit
-    SellersItemIdentification : String; //Artikelnummer
-    TaxPercent : double; //MwSt
-    TaxCategory : TInvoiceDutyTaxFeeCategoryCode; //MwSt-Einordnung
-    PriceAmount : Currency; //Einzelpreis
-    BaseQuantity : Integer; //Preiseinheit
-    BaseQuantityUnitCode : TInvoiceUnitCode; //Preiseinheit Mengeneinheit
-    LineAmount : Currency;
-  end;
-
-  TInvoiceLines = class(TObjectList<TInvoiceLine>)
-  public
-    function AddInvoiceLine : TInvoiceLine;
-  end;
-
-  TInvoiceTaxAmount = record
-    TaxableAmount : Currency;
-    TaxAmount : Currency;
-    TaxPercent : double;
-    TaxCategory : TInvoiceDutyTaxFeeCategoryCode;
-  end;
-
   TInvoiceAllowanceCharge = class(TOBject)
   public
     ChargeIndicator : Boolean;
@@ -249,6 +220,39 @@ type
   TInvoiceAllowanceCharges = class(TObjectList<TInvoiceAllowanceCharge>)
   public
     function AddAllowanceCharge : TInvoiceAllowanceCharge;
+  end;
+
+  TInvoiceLine = class(TObject)
+  public
+    ID : String; //Positionsnummer
+    Note : String; //Hinweis
+    Name : String; //Kurztext
+    Description : String; //Laengere Beschreibung
+    Quantity : double; //Menge
+    UnitCode : TInvoiceUnitCode; //Mengeneinheit
+    SellersItemIdentification : String; //Artikelnummer
+    TaxPercent : double; //MwSt
+    TaxCategory : TInvoiceDutyTaxFeeCategoryCode; //MwSt-Einordnung
+    PriceAmount : Currency; //Einzelpreis
+    BaseQuantity : Integer; //Preiseinheit
+    BaseQuantityUnitCode : TInvoiceUnitCode; //Preiseinheit Mengeneinheit
+    LineAmount : Currency;
+    AllowanceCharges : TInvoiceAllowanceCharges;
+  public
+    constructor Create;
+    destructor Destroy; override;
+  end;
+
+  TInvoiceLines = class(TObjectList<TInvoiceLine>)
+  public
+    function AddInvoiceLine : TInvoiceLine;
+  end;
+
+  TInvoiceTaxAmount = record
+    TaxableAmount : Currency;
+    TaxAmount : Currency;
+    TaxPercent : double;
+    TaxCategory : TInvoiceDutyTaxFeeCategoryCode;
   end;
 
   TInvoiceAccountingParty = record
@@ -385,6 +389,19 @@ function TInvoicePrecedingInvoiceReferences.AddPrecedingInvoiceReference: TInvoi
 begin
   Result := TInvoicePrecedingInvoiceReference.Create;
   Add(Result);
+end;
+
+{ TInvoiceLine }
+
+constructor TInvoiceLine.Create;
+begin
+  AllowanceCharges := TInvoiceAllowanceCharges.Create;
+end;
+
+destructor TInvoiceLine.Destroy;
+begin
+  if Assigned(AllowanceCharges) then begin AllowanceCharges.Free; AllowanceCharges := nil; end;
+  inherited;
 end;
 
 end.

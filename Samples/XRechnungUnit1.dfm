@@ -109,14 +109,14 @@ object Form1: TForm1
       '2 Skonto')
     TabOrder = 6
   end
-  object Button1: TButton
+  object btOpenViewer: TButton
     Left = 8
     Top = 1150
     Width = 129
     Height = 25
     Caption = 'Viewer starten'
     TabOrder = 7
-    OnClick = Button1Click
+    OnClick = btOpenViewerClick
   end
   object pnStartDragX122: TPanel
     Left = 552
@@ -146,28 +146,20 @@ object Form1: TForm1
     Caption = 'Nachlaesse/Zuschlaege'
     TabOrder = 10
   end
-  object Button2: TButton
-    Left = 8
-    Top = 272
-    Width = 129
-    Height = 25
-    Caption = 'Abschlagsrechnungen'
-    TabOrder = 11
-  end
   object Button4: TButton
     Left = 8
     Top = 303
     Width = 129
     Height = 25
     Caption = 'Titel / Positionsgruppen'
-    TabOrder = 12
+    TabOrder = 11
   end
   object cbPrepaidAmount: TCheckBox
     Left = 8
     Top = 139
     Width = 129
     Height = 17
-    Caption = 'Anzahlungen'
-    TabOrder = 19
+    Caption = 'Abschlagsrechnungen'
+    TabOrder = 18
   end
 end

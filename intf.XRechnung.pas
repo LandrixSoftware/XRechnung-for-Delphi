@@ -34,6 +34,8 @@ uses
   ,intf.Invoice
   ;
 
+//https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/tree/
+
 type
   TXRechnungXMLHelper = class(TObject)
   public type
@@ -434,6 +436,27 @@ begin
     //     <cbc:ID/>
     //     <cbc:DocumentType>916</cbc:DocumentType>
     //  </cac:DocumentReference>
+    for allowanceCharge in invoiceLine.AllowanceCharges do
+    with AddChild('cac:AllowanceCharge') do
+    begin
+      AddChild('cbc:ChargeIndicator').Text := LowerCase(BoolToStr(allowanceCharge.ChargeIndicator,true));
+      AddChild('cbc:AllowanceChargeReasonCode').Text :=
+               IfThen(allowanceCharge.ChargeIndicator,
+               TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(allowanceCharge.ReasonCodeCharge),
+               TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(allowanceCharge.ReasonCodeAllowance));
+      AddChild('cbc:AllowanceChargeReason').Text := allowanceCharge.Reason;
+      AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
+      with AddChild('cbc:Amount') do
+      begin
+        Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+        Text := TXRechnungHelper.AmountToStr(allowanceCharge.Amount);
+      end;
+      with AddChild('cbc:BaseAmount') do
+      begin
+        Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+        Text := TXRechnungHelper.AmountToStr(allowanceCharge.BaseAmount);
+      end;
+    end;
     with AddChild('cac:Item') do
     begin
       AddChild('cbc:Description').Text := invoiceLine.Description;
@@ -451,7 +474,6 @@ begin
         AddChild('cbc:Percent').Text := TXRechnungHelper.PercentageToStr(invoiceLine.TaxPercent);
         AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
       end;
-
     end;
     with AddChild('cac:Price') do
     begin
@@ -466,13 +488,7 @@ begin
         Attributes['unitCode'] := TXRechnungHelper.InvoiceUnitCodeToStr(invoiceLine.BaseQuantityUnitCode);
         Text := IntToStr(invoiceLine.BaseQuantity);
       end;
-//         <cac:AllowanceCharge>
-//            <cbc:ChargeIndicator>false</cbc:ChargeIndicator>
-//            <cbc:Amount currencyID="EUR">4</cbc:Amount>
-//            <cbc:BaseAmount currencyID="EUR">55</cbc:BaseAmount>
-//         </cac:AllowanceCharge>
     end;
-
   end;
 end;
 

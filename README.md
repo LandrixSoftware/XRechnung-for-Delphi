@@ -6,9 +6,7 @@ Erstellen von Rechnungen im XRechnung-UBL-Format (Universal Business Language)
 
 ## TODO
 
-- Abschlagsrechnungen/Anzahlungen in Schlussrechnungen verarbeiten (nur in Version 2.0.0 möglich)
-- Zuschläge auf Rechnungsebene
-- Nachläße und Zuschläge auf Positionsebene
+- Gruppierungen von Positionen
 
 ## Version
 

@@ -4,6 +4,14 @@
 
 Erstellen von Rechnungen im XRechnung-UBL-Format (Universal Business Language)
 
+## TODO
+
+Offener Issue zur Validierungswarnung bei Positionsgruppen, falls wer eine Erklärung hat...
+
+UBL-CR-646 A UBL invoice should not include the InvoiceLine SubInvoiceLine
+
+https://github.com/itplr-kosit/validator-configuration-xrechnung/issues/36
+
 ## Version
 
 Aktuelle XRechnung-Versionen 1.2.2 und 2.0.0

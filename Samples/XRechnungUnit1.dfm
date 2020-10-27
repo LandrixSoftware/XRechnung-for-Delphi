@@ -13,6 +13,9 @@ object Form1: TForm1
   OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
+  DesignSize = (
+    1910
+    1183)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -66,6 +69,7 @@ object Form1: TForm1
     Top = 27
     Width = 1081
     Height = 473
+    Anchors = [akLeft, akTop, akRight]
     TabOrder = 3
     ControlData = {
       4C000000B96F0000E33000000000000000000000000000000000000000000000
@@ -87,6 +91,7 @@ object Form1: TForm1
     Top = 525
     Width = 1081
     Height = 473
+    Anchors = [akLeft, akTop, akRight]
     TabOrder = 5
     ControlData = {
       4C000000B96F0000E33000000000000000000000000000000000000000000000
@@ -119,8 +124,8 @@ object Form1: TForm1
     OnClick = btOpenViewerClick
   end
   object pnStartDragX122: TPanel
-    Left = 552
-    Top = 440
+    Left = 401
+    Top = 439
     Width = 225
     Height = 33
     Caption = 'Ziehe XRechnung von hier in den Viewer'
@@ -129,7 +134,7 @@ object Form1: TForm1
     OnMouseDown = pnStartDragX200MouseDown
   end
   object pnStartDragX200: TPanel
-    Left = 552
+    Left = 401
     Top = 936
     Width = 225
     Height = 33
@@ -161,6 +166,26 @@ object Form1: TForm1
     Width = 129
     Height = 17
     Caption = 'Abschlagsrechnungen'
-    TabOrder = 18
+    TabOrder = 12
+  end
+  object btX122ConvertHTML: TButton
+    Left = 632
+    Top = 440
+    Width = 137
+    Height = 33
+    Caption = 'XRechnung nach HTML'
+    TabOrder = 19
+    Visible = False
+    OnClick = btX122ConvertHTMLClick
+  end
+  object btX200ConvertHTML: TButton
+    Left = 632
+    Top = 937
+    Width = 137
+    Height = 33
+    Caption = 'XRechnung nach HTML'
+    TabOrder = 20
+    Visible = False
+    OnClick = btX200ConvertHTMLClick
   end
 end

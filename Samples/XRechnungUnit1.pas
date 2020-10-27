@@ -28,12 +28,16 @@ type
     Button4: TButton;
     Label3: TLabel;
     cbPrepaidAmount: TCheckBox;
+    btX122ConvertHTML: TButton;
+    btX200ConvertHTML: TButton;
     procedure Button3Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btOpenViewerClick(Sender: TObject);
     procedure pnStartDragX122MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure pnStartDragX200MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure Button4Click(Sender: TObject);
+    procedure btX122ConvertHTMLClick(Sender: TObject);
+    procedure btX200ConvertHTMLClick(Sender: TObject);
   private
     function ExecAndWait(Filename, Params: string): Boolean;
   public
@@ -46,6 +50,56 @@ var
 implementation
 
 {$R *.dfm}
+
+procedure TForm1.btX122ConvertHTMLClick(Sender: TObject);
+var
+  Doc : Variant;
+begin
+  Memo3.Clear;
+  if FileExists(toolsPath+'saxon\saxon-he-10.2.jar') then
+  begin
+    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'saxon\saxon-he-10.2.jar '+
+               '-s:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml '+
+               '-xsl:'+toolsPath+'visualization\xsl\ubl-invoice-xr.xsl '+
+               '-o:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122-xr.xml');
+    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'saxon\saxon-he-10.2.jar '+
+               '-s:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122-xr.xml '+
+               '-xsl:'+toolsPath+'visualization\xsl\xrechnung-html.xsl '+
+               '-o:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.html');
+    WebBrowser1.Navigate2('file:\\\'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.html');
+  end else
+  begin
+    Doc := WebBrowser1.Document;
+    Doc.Clear;
+    Doc.Write('<html><body>Validation Tool nicht installiert. Siehe Verzeichnis ./Tools/Read.Me</body></html>');
+    Doc.Close;
+  end;
+end;
+
+procedure TForm1.btX200ConvertHTMLClick(Sender: TObject);
+var
+  Doc : Variant;
+begin
+  Memo3.Clear;
+  if FileExists(toolsPath+'saxon\saxon-he-10.2.jar') then
+  begin
+    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'saxon\saxon-he-10.2.jar '+
+               '-s:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml '+
+               '-xsl:'+toolsPath+'visualization\xsl\ubl-invoice-xr.xsl '+
+               '-o:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200-xr.xml');
+    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'saxon\saxon-he-10.2.jar '+
+               '-s:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200-xr.xml '+
+               '-xsl:'+toolsPath+'visualization\xsl\xrechnung-html.xsl '+
+               '-o:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.html');
+    WebBrowser2.Navigate2('file:\\\'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.html');
+  end else
+  begin
+    Doc := WebBrowser2.Document;
+    Doc.Clear;
+    Doc.Write('<html><body>Validation Tool nicht installiert. Siehe Verzeichnis ./Tools/Read.Me</body></html>');
+    Doc.Close;
+  end;
+end;
 
 procedure TForm1.Button3Click(Sender: TObject);
 var
@@ -60,6 +114,8 @@ begin
   Memo3.Clear;
   pnStartDragX122.Visible := false;
   pnStartDragX200.Visible := false;
+  btX122ConvertHTML.Visible := false;
+  btX200ConvertHTML.Visible := false;
 
   inv := TInvoice.Create;
   inv.InvoiceNumber := 'R2020-0815';
@@ -302,6 +358,7 @@ begin
     end;
     Memo1.Lines.Text := hstr;
     pnStartDragX122.Visible := FileExists(ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml');
+    btX122ConvertHTML.Visible := pnStartDragX122.Visible;
 
     TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_200,hstr);
     TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_200,ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml');
@@ -318,6 +375,7 @@ begin
     end;
     Memo2.Lines.Text := hstr;
     pnStartDragX200.Visible := FileExists(ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml');
+    btX200ConvertHTML.Visible := pnStartDragX200.Visible;
   finally
     inv.Free;
   end;
@@ -338,6 +396,8 @@ begin
   Memo3.Clear;
   pnStartDragX122.Visible := false;
   pnStartDragX200.Visible := false;
+  btX122ConvertHTML.Visible := false;
+  btX200ConvertHTML.Visible := false;
 
   inv := TInvoice.Create;
   inv.InvoiceNumber := 'R2020-0815';
@@ -488,6 +548,7 @@ begin
     end;
     Memo2.Lines.Text := hstr;
     pnStartDragX200.Visible := FileExists(ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml');
+    btX200ConvertHTML.Visible := pnStartDragX200.Visible;
   finally
     inv.Free;
   end;

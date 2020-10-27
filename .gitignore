@@ -35,6 +35,7 @@ Tools/validator-configuration-122
 Tools/validator-configuration-200
 Tools/jre
 Tools/visualization
+Tools/saxon
 Schema
 
 # Delphi compiler-generated binaries (safe to delete)

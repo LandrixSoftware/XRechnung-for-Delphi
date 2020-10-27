@@ -368,6 +368,7 @@ begin
   AllowanceCharges.Clear;
   PrecedingInvoiceReferences.Clear;
   SetLength(TaxAmountSubtotals,0);
+  PaymentTermsType := iptt_None;
 end;
 
 { TInvoiceLines }

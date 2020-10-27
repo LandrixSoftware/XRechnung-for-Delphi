@@ -12,6 +12,7 @@ del /q /s *.map
 del /q /s *.ico
 del /q /s *.otares
 del /q /s *.stat
+del /q /s *~dsk
 rmdir /Q /S .\Samples\__history
 rmdir /Q /S .\Samples\__recovery
 rmdir /Q /S .\Samples\Win32

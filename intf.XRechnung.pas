@@ -454,6 +454,8 @@ begin
       begin
         AddChild('cbc:ID').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(taxSubtotal.TaxCategory);
         AddChild('cbc:Percent').Text := TXRechnungHelper.PercentageToStr(taxSubtotal.TaxPercent);
+        if not taxSubtotal.TaxExemptionReasonCode.isEmpty then
+          AddChild('cbc:TaxExemptionReasonCode').Text := taxSubtotal.TaxExemptionReasonCode;
         AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
       end;
     end;
@@ -715,6 +717,7 @@ class function TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(
 begin
   case _Val of
     issdc_AAA_Telecommunication: Result := 'AAA';
+    issdc_ABK_Miscellaneous: Result := 'ABK';
     issdc_PC_Packing: Result := 'PC';
     else Result := '';
   end;

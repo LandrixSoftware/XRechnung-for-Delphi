@@ -174,6 +174,7 @@ type
   //cbc:ChargeIndicator = true
   TInvoiceSpecialServiceDescriptionCode = (issdc_None, //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:untdid.7161_2
                         issdc_AAA_Telecommunication, //The service of providing telecommunication activities and/or faclities.
+                        issdc_ABK_Miscellaneous,	//Miscellaneous services.
                         issdc_PC_Packing //The service of packing.
                         );
   {$endregion}
@@ -256,6 +257,7 @@ type
     TaxAmount : Currency;
     TaxPercent : double;
     TaxCategory : TInvoiceDutyTaxFeeCategoryCode;
+    TaxExemptionReasonCode : String; //sollte gesetzt werden bei TaxCategory = AE,E,O,Z
   end;
 
   TInvoiceAccountingParty = record

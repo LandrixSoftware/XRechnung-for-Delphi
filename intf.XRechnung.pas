@@ -292,6 +292,11 @@ begin
 
   with xRoot.AddChild('cac:AccountingSupplierParty').AddChild('cac:Party') do
   begin
+    if not _Invoice.AccountingSupplierParty.IdentifierSellerBuyer.IsEmpty then
+    with AddChild('cac:PartyIdentification') do
+    begin
+      AddChild('cbc:ID').Text := _Invoice.AccountingSupplierParty.IdentifierSellerBuyer;
+    end;
     with AddChild('cac:PartyName') do
     begin
       AddChild('cbc:Name').Text := _Invoice.AccountingSupplierParty.Name;
@@ -324,6 +329,11 @@ begin
 
   with xRoot.AddChild('cac:AccountingCustomerParty').AddChild('cac:Party') do
   begin
+    if not _Invoice.AccountingCustomerParty.IdentifierSellerBuyer.IsEmpty then
+    with AddChild('cac:PartyIdentification') do
+    begin
+      AddChild('cbc:ID').Text := _Invoice.AccountingCustomerParty.IdentifierSellerBuyer;
+    end;
     with AddChild('cac:PartyName') do
     begin
       AddChild('cbc:Name').Text := _Invoice.AccountingCustomerParty.Name;

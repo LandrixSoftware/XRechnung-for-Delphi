@@ -131,7 +131,7 @@ begin
   inv.PurchaseOrderReference := 'B0815'; //Bestell-Nr. optional
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
-  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
   inv.AccountingSupplierParty.StreetName := 'Verkaeuferstraße 1';
   inv.AccountingSupplierParty.City := 'Verkaeuferstadt';

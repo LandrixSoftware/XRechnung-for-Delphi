@@ -272,6 +272,8 @@ type
     //TODO <cbc:CountrySubentity>Sachsen</cbc:CountrySubentity>
     CountryCode : String;
 
+    IdentifierSellerBuyer : String; //Kreditor-Nr AccountingSupplierParty / Debitor-Nr AccountingCustomerParty
+
     VATCompanyID : String;
 
     ContactName : String;
@@ -309,7 +311,7 @@ type
 
     //TODO weitere Zahlungswege
     PaymentMeansCode : TInvoicePaymentMeansCode;
-    PaymentID : String; //Verwendungszweck der Überweisung, optional
+    PaymentID : String; //Verwendungszweck der Ueberweisung, optional
     PayeeFinancialAccount : String;
     PayeeFinancialAccountName : String;
     PayeeFinancialInstitutionBranch : String; //BIC

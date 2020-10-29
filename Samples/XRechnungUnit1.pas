@@ -56,13 +56,13 @@ var
   Doc : Variant;
 begin
   Memo3.Clear;
-  if FileExists(toolsPath+'saxon\saxon-he-10.2.jar') then
+  if FileExists(toolsPath+'validator\libs\Saxon-HE-9.9.1-3.jar') then
   begin
-    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'saxon\saxon-he-10.2.jar '+
+    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\libs\Saxon-HE-9.9.1-3.jar '+
                '-s:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml '+
                '-xsl:'+toolsPath+'visualization\xsl\ubl-invoice-xr.xsl '+
                '-o:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122-xr.xml');
-    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'saxon\saxon-he-10.2.jar '+
+    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\libs\Saxon-HE-9.9.1-3.jar '+
                '-s:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122-xr.xml '+
                '-xsl:'+toolsPath+'visualization\xsl\xrechnung-html.xsl '+
                '-o:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.html');
@@ -81,13 +81,13 @@ var
   Doc : Variant;
 begin
   Memo3.Clear;
-  if FileExists(toolsPath+'saxon\saxon-he-10.2.jar') then
+  if FileExists(toolsPath+'validator\libs\Saxon-HE-9.9.1-3.jar') then
   begin
-    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'saxon\saxon-he-10.2.jar '+
+    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\libs\Saxon-HE-9.9.1-3.jar '+
                '-s:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml '+
                '-xsl:'+toolsPath+'visualization\xsl\ubl-invoice-xr.xsl '+
                '-o:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200-xr.xml');
-    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'saxon\saxon-he-10.2.jar '+
+    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\libs\Saxon-HE-9.9.1-3.jar '+
                '-s:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200-xr.xml '+
                '-xsl:'+toolsPath+'visualization\xsl\xrechnung-html.xsl '+
                '-o:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.html');

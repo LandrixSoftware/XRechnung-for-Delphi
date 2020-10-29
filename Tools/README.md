@@ -10,8 +10,6 @@ https://github.com/itplr-kosit/validator-configuration-xrechnung
 
 https://github.com/itplr-kosit/xrechnung-visualization
 
-https://sourceforge.net/projects/saxon/
-
 https://github.com/jcthiele/OpenXRechnungToolbox
 
 https://adoptopenjdk.net
@@ -23,8 +21,6 @@ https://github.com/itplr-kosit/validator/releases/tag/v1.3.1
 https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/tag/release-2020-07-31
 
 https://github.com/itplr-kosit/xrechnung-visualization/releases/tag/v2020-07-31
-
-https://sourceforge.net/projects/saxon/files/Saxon-HE/10/Java/SaxonHE10-2J.zip/download
 
 https://github.com/jcthiele/OpenXRechnungToolbox/releases/tag/2020-08-28
 

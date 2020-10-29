@@ -128,6 +128,7 @@ begin
   inv.TaxCurrencyCode := 'EUR';
   inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
   inv.Note := 'keine';
+  inv.PurchaseOrderReference := 'B0815'; //Bestell-Nr. optional
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden

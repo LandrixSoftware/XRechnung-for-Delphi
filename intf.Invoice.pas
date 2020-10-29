@@ -294,14 +294,15 @@ type
   public
     InvoiceNumber : String;  //Rechnungsnummer
     InvoiceIssueDate : TDate; //Rechnungsdatum
-    InvoiceDueDate : TDate; //Fälligkeitsdatum
+    InvoiceDueDate : TDate; //Faelligkeitsdatum
     InvoicePeriodStartDate : TDate; //Leistungszeitraum Beginn
     InvoicePeriodEndDate : TDate; //Leistungszeitraum Ende
     InvoiceTypeCode : TInvoiceTypeCode;
-    InvoiceCurrencyCode : String;
-    TaxCurrencyCode : String;
-    BuyerReference : String; //Pflicht - Leitweg-ID - wird vom Rechnungsempfänger dem Rechnungsersteller zur Verfügung gestellt
+    InvoiceCurrencyCode : String; //EUR
+    TaxCurrencyCode : String;     //EUR
+    BuyerReference : String; //Pflicht - Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
     Note : String; //Hinweise zur Rechnung allgemein
+    PurchaseOrderReference : String; //Bestellnummer oder Vertragsnummer des Kaeufers
 
     AccountingSupplierParty : TInvoiceAccountingParty;
     AccountingCustomerParty : TInvoiceAccountingParty;

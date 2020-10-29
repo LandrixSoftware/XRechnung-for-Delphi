@@ -280,6 +280,8 @@ begin
     AddChild('cbc:StartDate').Text := TXRechnungHelper.DateToStr(_Invoice.InvoicePeriodStartDate);
     AddChild('cbc:EndDate').Text := TXRechnungHelper.DateToStr(_Invoice.InvoicePeriodEndDate);
   end;
+  if not _Invoice.PurchaseOrderReference.IsEmpty then
+    xRoot.AddChild('cac:OrderReference').AddChild('cbc:ID').Text := _Invoice.PurchaseOrderReference;
 
   for precedingInvoiceReference in _Invoice.PrecedingInvoiceReferences do
   with xRoot.AddChild('cac:BillingReference').AddChild('cac:InvoiceDocumentReference') do

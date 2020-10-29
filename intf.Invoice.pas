@@ -257,7 +257,7 @@ type
     TaxAmount : Currency;
     TaxPercent : double;
     TaxCategory : TInvoiceDutyTaxFeeCategoryCode;
-    TaxExemptionReasonCode : String; //sollte gesetzt werden bei TaxCategory = AE,E,O,Z
+    TaxExemptionReason : String; //sollte gesetzt werden bei TaxCategory = AE,E,O,Z
   end;
 
   TInvoiceAccountingParty = record

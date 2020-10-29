@@ -466,8 +466,8 @@ begin
       begin
         AddChild('cbc:ID').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(taxSubtotal.TaxCategory);
         AddChild('cbc:Percent').Text := TXRechnungHelper.PercentageToStr(taxSubtotal.TaxPercent);
-        if not taxSubtotal.TaxExemptionReasonCode.isEmpty then
-          AddChild('cbc:TaxExemptionReasonCode').Text := taxSubtotal.TaxExemptionReasonCode;
+        if not taxSubtotal.TaxExemptionReason.isEmpty then
+          AddChild('cbc:TaxExemptionReason').Text := taxSubtotal.TaxExemptionReason;
         AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
       end;
     end;

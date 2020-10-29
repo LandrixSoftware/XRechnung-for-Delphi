@@ -174,7 +174,7 @@ object Form1: TForm1
     Width = 137
     Height = 33
     Caption = 'XRechnung nach HTML'
-    TabOrder = 19
+    TabOrder = 13
     Visible = False
     OnClick = btX122ConvertHTMLClick
   end
@@ -184,8 +184,17 @@ object Form1: TForm1
     Width = 137
     Height = 33
     Caption = 'XRechnung nach HTML'
-    TabOrder = 20
+    TabOrder = 14
     Visible = False
     OnClick = btX200ConvertHTMLClick
+  end
+  object Button1: TButton
+    Left = 8
+    Top = 310
+    Width = 129
+    Height = 25
+    Caption = 'UStG '#167' 13b'
+    TabOrder = 21
+    OnClick = Button1Click
   end
 end

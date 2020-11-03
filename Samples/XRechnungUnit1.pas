@@ -60,13 +60,13 @@ var
   Doc : Variant;
 begin
   Memo3.Clear;
-  if FileExists(toolsPath+'validator\libs\Saxon-HE-9.9.1-3.jar') then
+  if FileExists(toolsPath+'validator\libs\Saxon-HE-9.9.1-7.jar') then
   begin
-    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\libs\Saxon-HE-9.9.1-3.jar '+
+    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\libs\Saxon-HE-9.9.1-7.jar '+
                '-s:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml '+
                '-xsl:'+toolsPath+'visualization\xsl\ubl-invoice-xr.xsl '+
                '-o:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122-xr.xml');
-    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\libs\Saxon-HE-9.9.1-3.jar '+
+    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\libs\Saxon-HE-9.9.1-7.jar '+
                '-s:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122-xr.xml '+
                '-xsl:'+toolsPath+'visualization\xsl\xrechnung-html.xsl '+
                '-o:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.html');
@@ -85,13 +85,13 @@ var
   Doc : Variant;
 begin
   Memo3.Clear;
-  if FileExists(toolsPath+'validator\libs\Saxon-HE-9.9.1-3.jar') then
+  if FileExists(toolsPath+'validator\libs\Saxon-HE-9.9.1-7.jar') then
   begin
-    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\libs\Saxon-HE-9.9.1-3.jar '+
+    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\libs\Saxon-HE-9.9.1-7.jar '+
                '-s:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml '+
                '-xsl:'+toolsPath+'visualization\xsl\ubl-invoice-xr.xsl '+
                '-o:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200-xr.xml');
-    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\libs\Saxon-HE-9.9.1-3.jar '+
+    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\libs\Saxon-HE-9.9.1-7.jar '+
                '-s:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200-xr.xml '+
                '-xsl:'+toolsPath+'visualization\xsl\xrechnung-html.xsl '+
                '-o:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.html');
@@ -672,9 +672,9 @@ var
 begin
   TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_122,hstr);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_122,ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml');
-  if FileExists(toolsPath+'validator\validationtool-1.3.1-java8-standalone.jar') then
+  if FileExists(toolsPath+'validator\validationtool-1.4.0-java8-standalone.jar') then
   begin
-    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\validationtool-1.3.1-java8-standalone.jar -s '+toolsPath+'validator-configuration-122\scenarios.xml -h '+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml');
+    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\validationtool-1.4.0-java8-standalone.jar -s '+toolsPath+'validator-configuration-122\scenarios.xml -h '+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml');
     WebBrowser1.Navigate2('file:\\\'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122-report.html');
   end else
   begin
@@ -695,9 +695,9 @@ var
 begin
   TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_200,hstr);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_200,ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml');
-  if FileExists(toolsPath+'validator\validationtool-1.3.1-java8-standalone.jar') then
+  if FileExists(toolsPath+'validator\validationtool-1.4.0-java8-standalone.jar') then
   begin
-    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\validationtool-1.3.1-java8-standalone.jar -s '+toolsPath+'validator-configuration-200\scenarios.xml -h '+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml');
+    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\validationtool-1.4.0-java8-standalone.jar -s '+toolsPath+'validator-configuration-200\scenarios.xml -h '+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml');
     WebBrowser2.Navigate2('file:\\\'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200-report.html');
   end else
   begin

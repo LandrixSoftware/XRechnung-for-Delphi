@@ -1,6 +1,6 @@
-# LANDRIX SOFTWARE OpenConnect-for-Delphi license agreement
+# LANDRIX SOFTWARE XRechnung-for-Delphi license agreement
 
-The commercial license for OpenConnect-for-Delphi gives you the right to:
+The commercial license for XRechnung-for-Delphi gives you the right to:
 
 - use the library for development of applications or any type of software module in general by a single named developer
 - sell any commercial compiled application using the library
@@ -8,7 +8,7 @@ The commercial license for OpenConnect-for-Delphi gives you the right to:
 - use the component and source code on all development systems used by the developer
 - sell any number of applications in any quantity without any additional run-time fees required
 
-A commercial licence is sold per developer developing applications that use OpenConnect-for-Delphi. 
+A commercial licence is sold per developer developing applications that use XRechnung-for-Delphi. 
 The cost is 200,00 EUR plus VAT per developer.
 
 Please send an e-mail to info@landrix.de to request an invoice which will contain the bank details.

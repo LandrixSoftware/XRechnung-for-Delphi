@@ -21,7 +21,6 @@ type
     Label2: TLabel;
     WebBrowser2: TWebBrowser;
     rbPaymentTerms: TRadioGroup;
-    btOpenViewer: TButton;
     pnStartDragX122: TPanel;
     pnStartDragX200: TPanel;
     cbAllowanceCharges: TCheckBox;
@@ -33,9 +32,6 @@ type
     Button1: TButton;
     procedure Button3Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure btOpenViewerClick(Sender: TObject);
-    procedure pnStartDragX122MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure pnStartDragX200MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure Button4Click(Sender: TObject);
     procedure btX122ConvertHTMLClick(Sender: TObject);
     procedure btX200ConvertHTMLClick(Sender: TObject);
@@ -592,14 +588,6 @@ begin
   end;
 end;
 
-procedure TForm1.btOpenViewerClick(Sender: TObject);
-begin
-  if FileExists(toolsPath+'openxrechnungtoolbox\OpenXRechnungToolbox.jar') then
-    ShellExecute(0,'open',PWideChar(toolsPath+'jre\jdk8u265-b01-jre\bin\java'),PWideChar('-jar OpenXRechnungToolbox.jar'),PWideChar(toolsPath+'openxrechnungtoolbox\'),SW_SHOWNORMAL)
-  else
-    MessageDlg('Viewer nicht installiert. Siehe Verzeichnis ./Tools/Read.Me', mtError, [mbOK], 0);
-end;
-
 function TForm1.ExecAndWait(Filename, Params: string): Boolean;
 var
   SA: TSecurityAttributes;
@@ -710,117 +698,5 @@ begin
   pnStartDragX200.Visible := FileExists(ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml');
   btX200ConvertHTML.Visible := pnStartDragX200.Visible;
 end;
-
-type
-  TDropSource = class(TInterfacedObject, IDropSource)
-  protected
-    fDirectory: String;
-    fFileName: String;
-  public
-    constructor Create(Directory: String; FileName: String);
-
-    // Funktionen für Drag&Drop
-    function GiveFeedback(dwEffect: Integer): HRESULT; stdcall;
-    function QueryContinueDrag(fEscapePressed: LongBool;
-      grfKeyState: Integer): HRESULT; stdcall;
-    procedure AfterConstruction; override;
-  end;
-
-{ TDropSource }
-
-procedure TDropSource.AfterConstruction;
-var
-  DataObject: IDataObject;
-  Effect: Integer;
-
-  function GetFileListDataObject(const Directory: string; FileName: String): IDataObject;
-  {type
-    PArrayOfPItemIDList = ^TArrayOfPItemIDList;
-    TArrayOfPItemIDList = array[0..0] of PItemIDList;}
-  var
-    Malloc: IMalloc;
-    Root: IShellFolder;
-    FolderPidl: PItemIDList;
-    Folder: IShellFolder;
-    p: PItemIDList;
-    chEaten: ULONG;
-    dwAttributes: ULONG;
-  begin
-    Result := nil;
-    OleCheck(SHGetMalloc(Malloc));
-    OleCheck(SHGetDesktopFolder(Root));
-    OleCheck(Root.ParseDisplayName(0, nil, PWideChar(WideString(Directory)), chEaten, FolderPidl, dwAttributes));
-
-    OleCheck(Root.BindToObject(FolderPidl, nil, IShellFolder, Pointer(Folder)));
-
-    //p := AllocMem(SizeOf(PItemIDList));
-    OleCheck(Folder.ParseDisplayName(0, nil, PWideChar(WideString(FileName)), chEaten, p, dwAttributes));
-
-    OleCheck(Folder.GetUIObjectOf(0, 1, p, IDataObject, nil, Pointer(Result)));
-
-    if p <> nil then
-      Malloc.Free(p);
-    //FreeMem(p); // <-- AV hier
-
-    Malloc.Free(FolderPidl);
-  end;
-
-begin
-  inherited;
-
-  DataObject := GetFileListDataObject(fDirectory, fFileName);
-  Effect := DROPEFFECT_NONE;
-  DoDragDrop(DataObject, Self, DROPEFFECT_MOVE, Effect);
-end;
-
-constructor TDropSource.Create(Directory: String; FileName: String);
-begin
-  fDirectory := Directory;
-  fFileName := FileName;
-end;
-
-function TDropSource.GiveFeedback(dwEffect: Integer): HRESULT;
-begin
-  Result := DRAGDROP_S_USEDEFAULTCURSORS;
-end;
-
-function TDropSource.QueryContinueDrag(fEscapePressed: LongBool;
-  grfKeyState: Integer): HRESULT;
-begin
-  // Operation abbrechen, wenn ESC gedrückt oder die rechte Maustaste gedrückt (Standard)
-  if fEscapePressed or (grfKeyState and MK_RBUTTON = MK_RBUTTON) then
-  begin
-    Result := DRAGDROP_S_CANCEL;
-  end
-  else
-    // Operation abschließen, wenn linke Maustaste losgelassen (Standard)
-    if grfKeyState and MK_LBUTTON = 0 then
-    begin
-      Result := DRAGDROP_S_DROP;
-    end
-    else
-    // Ansonsten Operation fortführen (Standard)
-    begin
-      Result := S_OK;
-    end;
-end;
-
-procedure TForm1.pnStartDragX122MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  TDropSource.Create(ExtractFilePath(Application.ExeName),'XRechnung-UBL-122.xml');
-end;
-
-procedure TForm1.pnStartDragX200MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  TDropSource.Create(ExtractFilePath(Application.ExeName),'XRechnung-UBL-200.xml');
-end;
-
-initialization
-
-  OleInitialize(nil); //For drag and drop
-
-finalization
-
-  OleUninitialize;    //For drag and drop
 
 end.

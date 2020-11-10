@@ -109,8 +109,6 @@ begin
   Memo1.Clear;
   Memo2.Clear;
   Memo3.Clear;
-  pnStartDragX122.Visible := false;
-  pnStartDragX200.Visible := false;
   btX122ConvertHTML.Visible := false;
   btX200ConvertHTML.Visible := false;
 
@@ -210,8 +208,6 @@ begin
   Memo1.Clear;
   Memo2.Clear;
   Memo3.Clear;
-  pnStartDragX122.Visible := false;
-  pnStartDragX200.Visible := false;
   btX122ConvertHTML.Visible := false;
   btX200ConvertHTML.Visible := false;
 
@@ -460,8 +456,6 @@ begin
   Memo1.Clear;
   Memo2.Clear;
   Memo3.Clear;
-  pnStartDragX122.Visible := false;
-  pnStartDragX200.Visible := false;
   btX122ConvertHTML.Visible := false;
   btX200ConvertHTML.Visible := false;
 
@@ -673,8 +667,7 @@ begin
     Doc.Close;
   end;
   Memo1.Lines.Text := hstr;
-  pnStartDragX122.Visible := FileExists(ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml');
-  btX122ConvertHTML.Visible := pnStartDragX122.Visible;
+  btX122ConvertHTML.Visible := FileExists(ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml');
 end;
 
 procedure TForm1.Generate200(inv: TInvoice);
@@ -696,8 +689,7 @@ begin
     Doc.Close;
   end;
   Memo2.Lines.Text := hstr;
-  pnStartDragX200.Visible := FileExists(ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml');
-  btX200ConvertHTML.Visible := pnStartDragX200.Visible;
+  btX200ConvertHTML.Visible := FileExists(ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml');
 end;
 
 end.

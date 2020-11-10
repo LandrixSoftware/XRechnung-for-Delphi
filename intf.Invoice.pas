@@ -443,6 +443,12 @@ begin
   _Success := false;
   if _UnitOfMeasure.IsEmpty then
     exit;
+  if SameText(_UnitOfMeasure,'st') or SameText(_UnitOfMeasure,'stk.') or SameText(_UnitOfMeasure,'stk') then
+  begin
+    result := iuc_piece;
+    _Success := true;
+    exit;
+  end;
   if SameText(_UnitOfMeasure,'std') or SameText(_UnitOfMeasure,'std.') then
   begin
     result := iuc_hour;

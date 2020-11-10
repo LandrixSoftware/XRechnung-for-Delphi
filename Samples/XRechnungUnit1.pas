@@ -21,8 +21,6 @@ type
     Label2: TLabel;
     WebBrowser2: TWebBrowser;
     rbPaymentTerms: TRadioGroup;
-    pnStartDragX122: TPanel;
-    pnStartDragX200: TPanel;
     cbAllowanceCharges: TCheckBox;
     Button4: TButton;
     Label3: TLabel;
@@ -104,6 +102,7 @@ end;
 procedure TForm1.Button1Click(Sender: TObject);
 var
   inv : TInvoice;
+  suc : Boolean;
 begin
   WebBrowser1.Navigate2('about:blank');
   WebBrowser2.Navigate2('about:blank');
@@ -166,7 +165,7 @@ begin
     Name := 'Kurzinfo Artikel 1'; //Kurztext
     Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
     Quantity := 4; //Menge
-    UnitCode := TInvoiceUnitCode.iuc_piece; //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
     SellersItemIdentification := 'A0815'; //Artikelnummer
     TaxPercent := 0.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_AE_VATReverseCharge;
@@ -204,6 +203,7 @@ end;
 procedure TForm1.Button3Click(Sender: TObject);
 var
   inv : TInvoice;
+  suc : Boolean;
 begin
   WebBrowser1.Navigate2('about:blank');
   WebBrowser2.Navigate2('about:blank');
@@ -293,7 +293,7 @@ begin
     Name := 'Kurzinfo Artikel 1'; //Kurztext
     Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
     Quantity := 2; //Menge
-    UnitCode := TInvoiceUnitCode.iuc_piece; //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
     //TODO Artikelnummer Kaeufer
     SellersItemIdentification := 'A0815'; //Artikelnummer
     TaxPercent := 7.0; //MwSt
@@ -311,7 +311,7 @@ begin
     Name := 'Kurzinfo Artikel 2'; //Kurztext
     Description := 'Langtext Artikel 2'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
     Quantity := 1; //Menge
-    UnitCode := TInvoiceUnitCode.iuc_piece; //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
     //TODO Artikelnummer Kaeufer
     SellersItemIdentification := 'A0816'; //Artikelnummer
     TaxPercent := 19.0; //MwSt
@@ -451,6 +451,7 @@ end;
 procedure TForm1.Button4Click(Sender: TObject);
 var
   inv : TInvoice;
+  suc : Boolean;
 begin
   ShowMessage('Die Validierungswarnung scheint derzeit noch normal zu sein.'+#10+'[UBL-CR-646]-A UBL invoice should not include the InvoiceLine SubInvoiceLine');
 
@@ -515,7 +516,7 @@ begin
     //Note : String; //Hinweis
     Name := 'Kurzinfo Titel'; //Kurztext
     Quantity := 1; //Menge
-    UnitCode := TInvoiceUnitCode.iuc_piece; //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
     TaxPercent := 19.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
     BaseQuantity := 0; //Preiseinheit
@@ -528,7 +529,7 @@ begin
       Name := 'Kurzinfo Artikel 1'; //Kurztext
       Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
       Quantity := 4; //Menge
-      UnitCode := TInvoiceUnitCode.iuc_piece; //Mengeneinheit
+      UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
       SellersItemIdentification := 'A0815'; //Artikelnummer
       TaxPercent := 19.0; //MwSt
       TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
@@ -544,7 +545,7 @@ begin
       Name := 'Kurzinfo Artikel 2'; //Kurztext
       Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
       Quantity := 4; //Menge
-      UnitCode := TInvoiceUnitCode.iuc_piece; //Mengeneinheit
+      UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
       SellersItemIdentification := 'A0816'; //Artikelnummer
       TaxPercent := 19.0; //MwSt
       TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;

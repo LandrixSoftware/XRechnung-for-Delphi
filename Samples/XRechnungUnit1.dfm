@@ -114,31 +114,13 @@ object Form1: TForm1
       '2 Skonto')
     TabOrder = 6
   end
-  object pnStartDragX122: TPanel
-    Left = 401
-    Top = 439
-    Width = 225
-    Height = 33
-    Caption = 'Ziehe XRechnung von hier in den Viewer'
-    TabOrder = 7
-    Visible = False
-  end
-  object pnStartDragX200: TPanel
-    Left = 401
-    Top = 936
-    Width = 225
-    Height = 33
-    Caption = 'Ziehe XRechnung von hier in den Viewer'
-    TabOrder = 8
-    Visible = False
-  end
   object cbAllowanceCharges: TCheckBox
     Left = 8
     Top = 116
     Width = 138
     Height = 17
     Caption = 'Nachlaesse/Zuschlaege'
-    TabOrder = 9
+    TabOrder = 7
   end
   object Button4: TButton
     Left = 8
@@ -146,7 +128,7 @@ object Form1: TForm1
     Width = 129
     Height = 25
     Caption = 'Titel / Positionsgruppen'
-    TabOrder = 10
+    TabOrder = 8
     OnClick = Button4Click
   end
   object cbPrepaidAmount: TCheckBox
@@ -155,7 +137,7 @@ object Form1: TForm1
     Width = 129
     Height = 17
     Caption = 'Abschlagsrechnungen'
-    TabOrder = 11
+    TabOrder = 9
   end
   object btX122ConvertHTML: TButton
     Left = 632
@@ -163,7 +145,7 @@ object Form1: TForm1
     Width = 137
     Height = 33
     Caption = 'XRechnung nach HTML'
-    TabOrder = 12
+    TabOrder = 10
     Visible = False
     OnClick = btX122ConvertHTMLClick
   end
@@ -173,7 +155,7 @@ object Form1: TForm1
     Width = 137
     Height = 33
     Caption = 'XRechnung nach HTML'
-    TabOrder = 13
+    TabOrder = 11
     Visible = False
     OnClick = btX200ConvertHTMLClick
   end
@@ -183,7 +165,7 @@ object Form1: TForm1
     Width = 129
     Height = 25
     Caption = 'UStG '#167' 13b'
-    TabOrder = 14
+    TabOrder = 12
     OnClick = Button1Click
   end
 end

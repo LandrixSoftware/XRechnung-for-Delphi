@@ -491,7 +491,6 @@ begin
     iuc_joule_per_gram : Result := 'D95';
     iuc_decare : Result := 'DAA';
     iuc_ten_day : Result := 'DAD';
-    iuc_day : Result := 'DAY';
     iuc_dry_pound : Result := 'DB';
     iuc_degree_unit_of_angle : Result := 'DD';
     iuc_decade : Result := 'DEC';
@@ -950,7 +949,6 @@ begin
     iuc_hectometre : Result := 'HMT';
     iuc_hectolitre_of_pure_alcohol : Result := 'HPA';
     iuc_hertz : Result := 'HTZ';
-    iuc_hour : Result := 'HUR';
     iuc_inch_pound_pound_inch : Result := 'IA';
     iuc_person : Result := 'IE';
     iuc_inch : Result := 'INH';
@@ -1144,7 +1142,6 @@ begin
     iuc_kilogram_of_choline_chloride : Result := 'KCC';
     iuc_kilogram_drained_net_weight : Result := 'KDW';
     iuc_kelvin : Result := 'KEL';
-    iuc_kilogram : Result := 'KGM';
     iuc_kilogram_per_second : Result := 'KGS';
     iuc_kilogram_of_hydrogen_peroxide : Result := 'KHY';
     iuc_kilohertz : Result := 'KHZ';
@@ -1160,7 +1157,6 @@ begin
     iuc_kilometre_per_hour : Result := 'KMH';
     iuc_square_kilometre : Result := 'KMK';
     iuc_kilogram_per_cubic_metre : Result := 'KMQ';
-    iuc_kilometre : Result := 'KMT';
     iuc_kilogram_of_nitrogen : Result := 'KNI';
     iuc_kilonewton_per_square_metre : Result := 'KNM';
     iuc_kilogram_named_substance : Result := 'KNS';
@@ -1180,7 +1176,6 @@ begin
     iuc_kilovar : Result := 'KVR';
     iuc_kilovolt : Result := 'KVT';
     iuc_kilogram_per_millimetre : Result := 'KW';
-    iuc_kilowatt_hour : Result := 'KWH';
     iuc_Kilowatt_hour_per_normalized_cubic_metre : Result := 'KWN';
     iuc_kilogram_of_tungsten_trioxide : Result := 'KWO';
     iuc_Kilowatt_hour_per_standard_cubic_metre : Result := 'KWS';
@@ -1290,7 +1285,6 @@ begin
     iuc_layer : Result := 'LR';
     iuc_lump_sum : Result := 'LS';
     iuc_ton_UK_or_long_ton_US : Result := 'LTN';
-    iuc_litre : Result := 'LTR';
     iuc_metric_ton_lubricating_oil : Result := 'LUB';
     iuc_lumen : Result := 'LUM';
     iuc_lux : Result := 'LUX';
@@ -1403,23 +1397,15 @@ begin
     iuc_megahertz : Result := 'MHZ';
     iuc_square_mile_statute_mile : Result := 'MIK';
     iuc_thousand : Result := 'MIL';
-    iuc_minute_unit_of_time : Result := 'MIN';
     iuc_million : Result := 'MIO';
     iuc_million_international_unit : Result := 'MIU';
     iuc_milliard : Result := 'MLD';
     iuc_millilitre : Result := 'MLT';
-    iuc_square_millimetre : Result := 'MMK';
-    iuc_cubic_millimetre : Result := 'MMQ';
-    iuc_millimetre : Result := 'MMT';
     iuc_kilogram_dry_weight : Result := 'MND';
-    iuc_month : Result := 'MON';
     iuc_megapascal : Result := 'MPA';
     iuc_cubic_metre_per_hour : Result := 'MQH';
     iuc_cubic_metre_per_second : Result := 'MQS';
     iuc_metre_per_second_squared : Result := 'MSK';
-    iuc_square_metre : Result := 'MTK';
-    iuc_cubic_metre : Result := 'MTQ';
-    iuc_metre : Result := 'MTR';
     iuc_metre_per_second : Result := 'MTS';
     iuc_megavolt_ampere : Result := 'MVA';
     iuc_megawatt_hour_1000_kWh : Result := 'MWH';
@@ -1516,7 +1502,6 @@ begin
     iuc_volt_per_pascal : Result := 'N98';
     iuc_picovolt : Result := 'N99';
     iuc_milligram_per_kilogram : Result := 'NA';
-    iuc_number_of_articles : Result := 'NAR';
     iuc_number_of_cells : Result := 'NCL';
     iuc_newton : Result := 'NEW';
     iuc_message : Result := 'NF';
@@ -1705,8 +1690,6 @@ begin
     iuc_half_year_6_months : Result := 'SAN';
     iuc_score : Result := 'SCO';
     iuc_scruple : Result := 'SCR';
-    iuc_second_unit_of_time : Result := 'SEC';
-    iuc_set : Result := 'SET';
     iuc_segment : Result := 'SG';
     iuc_siemens : Result := 'SIE';
     iuc_Standard_cubic_metre : Result := 'SM3';
@@ -1732,7 +1715,6 @@ begin
     iuc_metric_ton_including_inner_packaging : Result := 'TIP';
     iuc_tonne_kilometre : Result := 'TKM';
     iuc_kilogram_of_imported_meat_less_offal : Result := 'TMS';
-    iuc_tonne_metric_ton : Result := 'TNE';
     iuc_ten_pack : Result := 'TP';
     iuc_teeth_per_inch : Result := 'TPI';
     iuc_ten_pair : Result := 'TPR';
@@ -1753,7 +1735,6 @@ begin
     iuc_cord : Result := 'WCD';
     iuc_wet_ton : Result := 'WE';
     iuc_weber : Result := 'WEB';
-    iuc_week : Result := 'WEE';
     iuc_wine_gallon : Result := 'WG';
     iuc_watt_hour : Result := 'WHR';
     iuc_working_month : Result := 'WM';

@@ -752,6 +752,25 @@ begin
   case _Val of
     iuc_one : Result := 'C62';
     iuc_piece : Result := 'H87';
+    iuc_number_of_articles : Result := 'NAR';
+    iuc_set : Result := 'SET';
+    iuc_week : Result := 'WEE';
+    iuc_month : Result := 'MON';
+    iuc_day : Result := 'DAY';
+    iuc_tonne_metric_ton : Result := 'TNE';
+    iuc_square_metre : Result := 'MTK';
+    iuc_cubic_metre : Result := 'MTQ';
+    iuc_metre : Result := 'MTR';
+    iuc_square_millimetre : Result := 'MMK';
+    iuc_cubic_millimetre : Result := 'MMQ';
+    iuc_millimetre : Result := 'MMT';
+    iuc_minute_unit_of_time : Result := 'MIN';
+    iuc_second_unit_of_time : Result := 'SEC';
+    iuc_litre : Result := 'LTR';
+    iuc_hour : Result := 'HUR';
+    iuc_kilogram : Result := 'KGM';
+    iuc_kilometre : Result := 'KMT';
+    iuc_kilowatt_hour : Result := 'KWH';
   end;
 end;
 

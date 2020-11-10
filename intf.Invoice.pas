@@ -48,12 +48,35 @@ type
 
   {$region 'TInvoiceUnitCode'}
   TInvoiceUnitCode = (iuc_None //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:rec20_1
-                      ,iuc_one
-                      ,iuc_piece
+                      ,iuc_one   //C62 A unit of count defining the number of pieces
+                      ,iuc_piece //H87
+                      ,iuc_number_of_articles
+                      ,iuc_set
+                      ,iuc_week
+                      ,iuc_month
+                      ,iuc_day
+                      ,iuc_tonne_metric_ton
+                      ,iuc_square_metre
+                      ,iuc_cubic_metre
+                      ,iuc_metre
+                      ,iuc_square_millimetre
+                      ,iuc_cubic_millimetre
+                      ,iuc_millimetre
+                      ,iuc_minute_unit_of_time
+                      ,iuc_second_unit_of_time
+                      ,iuc_litre
+                      ,iuc_hour
+                      ,iuc_kilogram
+                      ,iuc_kilometre
+                      ,iuc_kilowatt_hour
                       );
   //mehr Einheiten in Res\intf.Invoice.unusedUnits.pas
   {$endregion}
 
+  TInvoiceUnitCodeHelper = class(TObject)
+  public
+    class function MapUnitOfMeasure(const _UnitOfMeasure : String; out _Success : Boolean; _DefaultOnFailure : TInvoiceUnitCode = TInvoiceUnitCode.iuc_piece) : TInvoiceUnitCode;
+  end;
 
   {$region 'TInvoiceAllowanceOrChargeIdentCode'}
   //cbc:ChargeIndicator = false dann sind folgende Code erlaubt 41 42 60 62 63 64 65 66 67 68 70 71 88 95 100 102 103 104
@@ -409,6 +432,107 @@ begin
   if Assigned(AllowanceCharges) then begin AllowanceCharges.Free; AllowanceCharges := nil; end;
   if Assigned(SubInvoiceLines) then begin SubInvoiceLines.Free; SubInvoiceLines := nil; end;
   inherited;
+end;
+
+{ TInvoiceUnitCodeHelper }
+
+class function TInvoiceUnitCodeHelper.MapUnitOfMeasure(const _UnitOfMeasure: String; out _Success: Boolean;
+  _DefaultOnFailure: TInvoiceUnitCode): TInvoiceUnitCode;
+begin
+  Result := _DefaultOnFailure;
+  _Success := false;
+  if _UnitOfMeasure.IsEmpty then
+    exit;
+  if SameText(_UnitOfMeasure,'std') or SameText(_UnitOfMeasure,'std.') then
+  begin
+    result := iuc_hour;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'tag') or SameText(_UnitOfMeasure,'tage') then
+  begin
+    result := iuc_day;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'monat') then
+  begin
+    result := iuc_month;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'woche') then
+  begin
+    result := iuc_week;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'kg') then
+  begin
+    result := iuc_kilogram;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'km') then
+  begin
+    result := iuc_kilometre;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'kwh') then
+  begin
+    result := iuc_kilowatt_hour;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'t') or SameText(_UnitOfMeasure,'tonne') then
+  begin
+    result := iuc_tonne_metric_ton;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'qm') then
+  begin
+    result := iuc_square_metre;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'qqm') then
+  begin
+    result := iuc_cubic_metre;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'m') then
+  begin
+    result := iuc_metre;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'mm') then
+  begin
+    result := iuc_millimetre;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'min') then
+  begin
+    result := iuc_minute_unit_of_time;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'sek') then
+  begin
+    result := iuc_second_unit_of_time;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'l') then
+  begin
+    result := iuc_litre;
+    _Success := true;
+    exit;
+  end;
 end;
 
 end.

@@ -60,9 +60,13 @@ type
     class function InvoiceDutyTaxFeeCategoryCodeToStr(_Val : TInvoiceDutyTaxFeeCategoryCode) : String;
   end;
 
+  TXRechnungVersion = (XRechnungVersion_Unknown,
+                       XRechnungVersion_122,
+                       XRechnungVersion_200_UBL,
+                       XRechnungVersion_200_UNCEFACT);
+
   TXRechnungValidationHelper = class(TObject)
   public type
-    TXRechnungVersion = (XRechnungVersion_Unknown,XRechnungVersion_122,XRechnungVersion_200);
     TValidationError = record
     public
       Reason : String;
@@ -78,11 +82,13 @@ type
 
   TXRechnungInvoiceAdapter = class
   private
-    class procedure SaveDocument(_Invoice: TInvoice;_Version : TXRechnungValidationHelper.TXRechnungVersion; _Xml : IXMLDocument);
+    class procedure SaveDocument(_Invoice: TInvoice;_Version : TXRechnungVersion; _Xml : IXMLDocument);
+    class procedure SaveDocumentUNCEFACT(_Invoice: TInvoice;_Xml : IXMLDocument);
+    class procedure SaveDocumentUBL(_Invoice: TInvoice;_Version : TXRechnungVersion; _Xml : IXMLDocument);
   public
-    class procedure SaveToStream(_Invoice : TInvoice; _Version : TXRechnungValidationHelper.TXRechnungVersion; _Stream : TStream);
-    class procedure SaveToFile(_Invoice : TInvoice; _Version : TXRechnungValidationHelper.TXRechnungVersion; const _Filename : String);
-    class procedure SaveToXMLStr(_Invoice : TInvoice; _Version : TXRechnungValidationHelper.TXRechnungVersion; out _XML : String);
+    class procedure SaveToStream(_Invoice : TInvoice; _Version : TXRechnungVersion; _Stream : TStream);
+    class procedure SaveToFile(_Invoice : TInvoice; _Version : TXRechnungVersion; const _Filename : String);
+    class procedure SaveToXMLStr(_Invoice : TInvoice; _Version : TXRechnungVersion; out _XML : String);
   end;
 
 implementation
@@ -92,7 +98,7 @@ implementation
 { TXRechnungInvoiceAdapter }
 
 class procedure TXRechnungInvoiceAdapter.SaveToStream(_Invoice: TInvoice;
-  _Version : TXRechnungValidationHelper.TXRechnungVersion; _Stream: TStream);
+  _Version : TXRechnungVersion; _Stream: TStream);
 var
   xml : IXMLDocument;
 begin
@@ -111,7 +117,7 @@ begin
 end;
 
 class procedure TXRechnungInvoiceAdapter.SaveToXMLStr(_Invoice: TInvoice;
-  _Version : TXRechnungValidationHelper.TXRechnungVersion; out _XML: String);
+  _Version : TXRechnungVersion; out _XML: String);
 var
   xml : IXMLDocument;
 begin
@@ -125,7 +131,7 @@ begin
 end;
 
 class procedure TXRechnungInvoiceAdapter.SaveToFile(_Invoice: TInvoice;
-  _Version : TXRechnungValidationHelper.TXRechnungVersion;const _Filename: String);
+  _Version : TXRechnungVersion;const _Filename: String);
 var
   xml : IXMLDocument;
 begin
@@ -146,7 +152,18 @@ begin
 end;
 
 class procedure TXRechnungInvoiceAdapter.SaveDocument(_Invoice: TInvoice;
-  _Version : TXRechnungValidationHelper.TXRechnungVersion; _Xml: IXMLDocument);
+  _Version : TXRechnungVersion; _Xml: IXMLDocument);
+begin
+  case _Version of
+    XRechnungVersion_122,
+    XRechnungVersion_200_UBL : SaveDocumentUBL(_Invoice,_Version,_Xml);
+    XRechnungVersion_200_UNCEFACT : SaveDocumentUNCEFACT(_Invoice,_Xml);
+    else raise Exception.Create('XRechnung - wrong version');
+  end;
+end;
+
+class procedure TXRechnungInvoiceAdapter.SaveDocumentUBL(_Invoice: TInvoice;
+  _Version : TXRechnungVersion; _Xml: IXMLDocument);
 var
   xRoot : IXMLNode;
   allowanceCharge : TInvoiceAllowanceCharge;
@@ -230,7 +247,7 @@ var
         Text := IntToStr(_Invoiceline.BaseQuantity);
       end;
     end;
-    if _Version = XRechnungVersion_200 then
+    if _Version = XRechnungVersion_200_UBL then
     for subinvoiceline in _Invoiceline.SubInvoiceLines do
       InternalAddInvoiceLine(subinvoiceline,_Node.AddChild('cac:SubInvoiceLine'));
   end;
@@ -511,6 +528,11 @@ begin
 
   for i := 0 to _Invoice.InvoiceLines.Count-1 do
     InternalAddInvoiceLine(_Invoice.InvoiceLines[i],xRoot.AddChild('cac:InvoiceLine'));
+end;
+
+class procedure TXRechnungInvoiceAdapter.SaveDocumentUNCEFACT(_Invoice: TInvoice; _Xml: IXMLDocument);
+begin
+  raise Exception.Create('XRechnung - UNCEFACT not implemented');
 end;
 
 { TXRechnungXMLHelper }
@@ -808,16 +830,27 @@ begin
   Result := XRechnungVersion_Unknown;
   if _XML = nil then
     exit;
-  if (not (SameText(_XML.DocumentElement.NodeName,'Invoice') or SameText(_XML.DocumentElement.NodeName,'ubl:Invoice'))) then
-    exit;
-  if not TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'cbc:CustomizationID',node) then
-    exit;
-
-  if node.Text.EndsWith('xrechnung_2.0',true) then
-    Result := XRechnungVersion_200
-  else
-  if node.Text.EndsWith('xrechnung_1.2',true) then
-    Result := XRechnungVersion_122;
+  if (SameText(_XML.DocumentElement.NodeName,'Invoice') or SameText(_XML.DocumentElement.NodeName,'ubl:Invoice')) then
+  begin
+    if not TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'cbc:CustomizationID',node) then
+      exit;
+    if node.Text.EndsWith('xrechnung_2.0',true) then
+      Result := XRechnungVersion_200_UBL
+    else
+    if node.Text.EndsWith('xrechnung_1.2',true) then
+      Result := XRechnungVersion_122;
+  end else
+  if (SameText(_XML.DocumentElement.NodeName,'CrossIndustryInvoice') or SameText(_XML.DocumentElement.NodeName,'rsm:CrossIndustryInvoice')) then
+  begin
+    if not TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'rsm:ExchangedDocumentContext',node) then
+      exit;
+    if not TXRechnungXMLHelper.FindChild(node,'ram:GuidelineSpecifiedDocumentContextParameter',node) then
+      exit;
+    if not TXRechnungXMLHelper.FindChild(node,'ram:ID',node) then
+      exit;
+    if node.Text.EndsWith('xrechnung_2.0',true) then
+      Result := XRechnungVersion_200_UNCEFACT;
+  end;
 end;
 
 class function TXRechnungValidationHelper.GetXRechnungVersion(const _Filename: String): TXRechnungVersion;

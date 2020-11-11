@@ -675,8 +675,8 @@ var
   hstr : String;
   Doc : Variant;
 begin
-  TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_200,hstr);
-  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_200,ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml');
+  TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_200_UBL,hstr);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_200_UBL,ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml');
   if FileExists(toolsPath+'validator\validationtool-1.4.0-java8-standalone.jar') then
   begin
     ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\validationtool-1.4.0-java8-standalone.jar -s '+toolsPath+'validator-configuration-200\scenarios.xml -h '+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml');

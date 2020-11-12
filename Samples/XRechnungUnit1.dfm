@@ -49,7 +49,7 @@ object Form1: TForm1
   end
   object Button3: TButton
     Left = 8
-    Top = 163
+    Top = 185
     Width = 129
     Height = 25
     Caption = 'Erzeugen'
@@ -167,5 +167,13 @@ object Form1: TForm1
     Caption = 'UStG '#167' 13b'
     TabOrder = 12
     OnClick = Button1Click
+  end
+  object cbAttachments: TCheckBox
+    Left = 8
+    Top = 162
+    Width = 97
+    Height = 17
+    Caption = 'Mit Anhaengen'
+    TabOrder = 19
   end
 end

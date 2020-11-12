@@ -58,6 +58,7 @@ type
     class function InvoiceAllowanceOrChargeIdentCodeToStr(_Val : TInvoiceAllowanceOrChargeIdentCode) : String;
     class function InvoiceSpecialServiceDescriptionCodeToStr(_Val : TInvoiceSpecialServiceDescriptionCode) : String;
     class function InvoiceDutyTaxFeeCategoryCodeToStr(_Val : TInvoiceDutyTaxFeeCategoryCode) : String;
+    class function InvoiceAttachmentTypeToStr(_Val : TInvoiceAttachmentType) : String;
   end;
 
   TXRechnungVersion = (XRechnungVersion_Unknown,
@@ -301,6 +302,33 @@ begin
   begin
     AddChild('cbc:ID').Text := precedingInvoiceReference.ID;
     AddChild('cbc:IssueDate').Text := TXRechnungHelper.DateToStr(precedingInvoiceReference.IssueDate);
+  end;
+
+  for i := 0 to _Invoice.Attachments.Count -1 do
+  begin
+    if _Invoice.Attachments[i].AttachmentType = TInvoiceAttachmentType.iat_application_xml then
+    if _Version = XRechnungVersion_122 then
+      continue; //xml attachment not allowed in v1.2.2');
+
+    with xRoot.AddChild('cac:AdditionalDocumentReference') do
+    begin
+      AddChild('cbc:ID').Text := _Invoice.Attachments[i].ID;
+      if not _Invoice.Attachments[i].DocumentDescription.IsEmpty then
+        AddChild('cbc:DocumentDescription').Text := _Invoice.Attachments[i].DocumentDescription;
+      with AddChild('cac:Attachment') do
+      begin
+        if not _Invoice.Attachments[i].ExternalReference.IsEmpty then
+        begin
+          AddChild('cac:ExternalReference').AddChild('cbc:URI').Text := _Invoice.Attachments[i].ExternalReference;
+        end else
+        with AddChild('cbc:EmbeddedDocumentBinaryObject') do
+        begin
+          Attributes['mimeCode'] := TXRechnungHelper.InvoiceAttachmentTypeToStr(_Invoice.Attachments[i].AttachmentType);
+          Attributes['filename'] := _Invoice.Attachments[i].Filename;
+          Text := _Invoice.Attachments[i].GetDataAsBase64;
+        end;
+      end;
+    end;
   end;
 
   with xRoot.AddChild('cac:AccountingSupplierParty').AddChild('cac:Party') do
@@ -702,6 +730,20 @@ begin
     iacic_Standard: Result :=                                          '104';
     //iacic_YearlyTurnover: Result :=                                    '105';
     //iacic_WithheldTaxesAndSocialSecurityContributions: Result :=       '106';
+    else Result := '';
+  end;
+end;
+
+class function TXRechnungHelper.InvoiceAttachmentTypeToStr(_Val: TInvoiceAttachmentType): String;
+begin
+  case _Val of
+    iat_application_pdf: Result := 'application/pdf';
+    iat_image_png: Result := 'image/png';
+    iat_image_jpeg: Result := 'image/jpeg';
+    iat_text_csv: Result := 'text/csv';
+    iat_application_vnd_openxmlformats_officedocument_spreadsheetml_sheet: Result := 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    iat_application_vnd_oasis_opendocument_spreadsheet: Result := 'application/vnd.oasis.opendocument.spreadsheet';
+    iat_application_xml: Result := 'application/xml';
     else Result := '';
   end;
 end;

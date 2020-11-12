@@ -28,6 +28,7 @@ type
     btX122ConvertHTML: TButton;
     btX200ConvertHTML: TButton;
     Button1: TButton;
+    cbAttachments: TCheckBox;
     procedure Button3Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button4Click(Sender: TObject);
@@ -281,6 +282,70 @@ begin
     else
       inv.PaymentTermsType := iptt_None;
   end;
+
+  // Der Dateiname des angehängten Dokuments muss innerhalb einer
+  //Rechnung eindeutig sein (nicht case-sensitiv). Die Dateinamenserweiterung (extension), in der meist der Typ der
+  //Datei angegeben wird, ist dabei Teil des Dateinamens und wird bei der Bestimmung der Eindeutigkeit einbezogen.
+
+  //Sofern das Binärobjekt vom Typ XML ist, darf das angehängte XML keine Elemente beinhalten, welche
+  //wiederum ein eigenständiges XML-Dokument beinhaltet. Rechnungssteller und Rechnungsempfänger sollten sich
+  //zur Sicherstellung der Verarbeitung bzgl. des zu nutzenden XML vorab abstimmen.
+  if cbAttachments.Checked then
+  begin
+    with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_application_pdf) do
+    begin
+      ID := 'attachment.pdf';
+      DocumentDescription := 'Eine PDF';
+      Filename := 'attachment.pdf';
+      EmbedDataFromFile(ExtractFilePath(ExtractFileDir(ExtractFileDir(Application.ExeName))) +'attachment.pdf');
+    end;
+    with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_image_png) do
+    begin
+      ID := 'attachment.png';
+      Filename := 'attachment.png';
+      EmbedDataFromFile(ExtractFilePath(ExtractFileDir(ExtractFileDir(Application.ExeName))) +'attachment.png');
+    end;
+    with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_image_jpeg) do
+    begin
+      ID := 'attachment.jpg';
+      Filename := 'attachment.jpg';
+      EmbedDataFromFile(ExtractFilePath(ExtractFileDir(ExtractFileDir(Application.ExeName))) +'attachment.jpg');
+    end;
+    with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_text_csv) do
+    begin
+      ID := 'attachment.csv';
+      Filename := 'attachment.csv';
+      EmbedDataFromFile(ExtractFilePath(ExtractFileDir(ExtractFileDir(Application.ExeName))) +'attachment.xlsx');
+    end;
+    //ohne Daten
+    with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_application_vnd_openxmlformats_officedocument_spreadsheetml_sheet) do
+    begin
+      ID := 'attachment.xlsx';
+      Filename := 'attachment.xlsx';
+    end;
+    //ohne Daten
+    with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_application_vnd_oasis_opendocument_spreadsheet) do
+    begin
+      ID := 'attachment.ods';
+      Filename := 'attachment.ods';
+    end;
+    //wird bei Ausgabe Version 1.2.2 nicht beachtet, da nicht unterstuetzt
+    //gibt nach aktuellem Validierungstool noch einen Fehler
+    //with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_application_xml) do
+    //begin
+    //  ID := 'attachment.xml';
+    //  Filename := 'attachment.xml';
+    //  EmbedDataFromFile(ExtractFilePath(ExtractFileDir(ExtractFileDir(Application.ExeName))) +'attachment.xml');
+    //end;
+    //Externer Anhang
+    with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_application_pdf) do
+    begin
+      ID := 'attachment-external.pdf';
+      Filename := 'attachment-external.pdf';
+      ExternalReference := 'http://meinserver.de/attachment-external.pdf'
+    end;
+  end;
+
 
   with inv.InvoiceLines.AddInvoiceLine do
   begin

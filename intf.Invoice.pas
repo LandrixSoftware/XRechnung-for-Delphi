@@ -24,7 +24,7 @@ interface
 
 uses
   System.SysUtils,System.Classes,System.Types,System.DateUtils,System.Rtti
-  ,System.Variants,System.Generics.Collections
+  ,System.Variants,System.Generics.Collections,System.NetEncoding
   ;
 
 type
@@ -72,6 +72,39 @@ type
                       );
   //mehr Einheiten in Res\intf.Invoice.unusedUnits.pas
   {$endregion}
+
+  TInvoiceAttachmentType = (iat_application_pdf,
+                      iat_image_png,
+                      iat_image_jpeg,
+                      iat_text_csv,
+                      iat_application_vnd_openxmlformats_officedocument_spreadsheetml_sheet,
+                      iat_application_vnd_oasis_opendocument_spreadsheet,
+                      iat_application_xml //ab XRechnung 2.0.0
+                      );
+
+  //Entweder externe Referenz oder eingebettetes Objekt
+  //Ob man die Daten als Base64 integriert oder separat mitliefert,
+  //haengt wahrscheinlich vom Empfaenger ab
+  TInvoiceAttachment = class(TObject)
+  public
+    ID : String;
+    DocumentDescription : String;
+    Filename : String;
+    AttachmentType : TInvoiceAttachmentType;
+    Data : TMemoryStream;         //https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/cac-AdditionalDocumentReference/cac-Attachment/cbc-EmbeddedDocumentBinaryObject/
+    ExternalReference : String;   //https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/cac-AdditionalDocumentReference/cac-Attachment/cac-ExternalReference/
+  public
+    constructor Create(_AttachmentType : TInvoiceAttachmentType);
+    destructor Destroy; override;
+    procedure EmbedDataFromStream(_Stream : TStream);
+    procedure EmbedDataFromFile(const _Filename : String);
+    function GetDataAsBase64 : String;
+  end;
+
+  TInvoiceAttachmentList = class(TObjectList<TInvoiceAttachment>)
+  public
+    function AddAttachment(_AttachmentType : TInvoiceAttachmentType) : TInvoiceAttachment;
+  end;
 
   TInvoiceUnitCodeHelper = class(TObject)
   public
@@ -322,6 +355,7 @@ type
     InvoiceCurrencyCode : String; //EUR
     TaxCurrencyCode : String;     //EUR
     BuyerReference : String; //Pflicht - Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
+    //TODO ContractDocumentReference
     Note : String; //Hinweise zur Rechnung allgemein
     PurchaseOrderReference : String; //Bestellnummer oder Vertragsnummer des Kaeufers
 
@@ -346,6 +380,8 @@ type
     PaymentTermCashDiscount2Base : Currency; //Anderer Betrag als der Rechnungsbetrag
 
     InvoiceLines : TInvoiceLines;
+
+    Attachments : TInvoiceAttachmentList;
 
     AllowanceCharges : TInvoiceAllowanceCharges; //Nachlaesse, Zuschlaege
     PrecedingInvoiceReferences : TInvoicePrecedingInvoiceReferences;
@@ -373,6 +409,7 @@ implementation
 constructor TInvoice.Create;
 begin
   InvoiceLines := TInvoiceLines.Create;
+  Attachments := TInvoiceAttachmentList.Create;
   AllowanceCharges := TInvoiceAllowanceCharges.Create;
   PrecedingInvoiceReferences := TInvoicePrecedingInvoiceReferences.Create;
   Clear;
@@ -381,6 +418,7 @@ end;
 destructor TInvoice.Destroy;
 begin
   if Assigned(InvoiceLines) then begin InvoiceLines.Free; InvoiceLines := nil; end;
+  if Assigned(Attachments) then begin Attachments.Free; Attachments := nil; end;
   if Assigned(AllowanceCharges) then begin AllowanceCharges.Free; AllowanceCharges := nil; end;
   if Assigned(PrecedingInvoiceReferences) then begin PrecedingInvoiceReferences.Free; PrecedingInvoiceReferences := nil; end;
   inherited;
@@ -539,6 +577,74 @@ begin
     _Success := true;
     exit;
   end;
+end;
+
+{ TInvoiceAttachment }
+
+constructor TInvoiceAttachment.Create(_AttachmentType: TInvoiceAttachmentType);
+begin
+  AttachmentType := _AttachmentType;
+  Data := TMemoryStream.Create;
+  ExternalReference := '';
+end;
+
+destructor TInvoiceAttachment.Destroy;
+begin
+  if Assigned(Data) then begin Data.Free; Data := nil; end;
+  inherited;
+end;
+
+procedure TInvoiceAttachment.EmbedDataFromFile(const _Filename: String);
+var
+  str : TFileStream;
+begin
+  if not FileExists(_Filename) then
+    exit;
+  str := TFileStream.Create(_Filename,fmOpenRead);
+  try
+    EmbedDataFromStream(str);
+  finally
+    str.Free;
+  end;
+end;
+
+procedure TInvoiceAttachment.EmbedDataFromStream(_Stream: TStream);
+begin
+  if _Stream = nil then
+    exit;
+  Data.Clear;
+  Data.LoadFromStream(_Stream);
+end;
+
+function TInvoiceAttachment.GetDataAsBase64: String;
+var
+  str : TMemoryStream;
+  internalResult : AnsiString;
+begin
+  Result := '';
+  Data.Seek(0,soFromBeginning);
+  if Data.Size = 0 then
+    exit;
+  str := TMemoryStream.Create;
+  try
+    System.NetEncoding.TBase64Encoding.Base64.Encode(Data,str);
+    str.Seek(0,soFromBeginning);
+    if str.Size = 0 then
+      exit;
+    SetLength(internalResult,str.Size);
+    str.Read(internalResult[1],str.Size);
+    Result := String(internalResult);
+  finally
+    str.Free;
+  end;
+end;
+
+{ TInvoiceAttachmentList }
+
+function TInvoiceAttachmentList.AddAttachment(_AttachmentType: TInvoiceAttachmentType): TInvoiceAttachment;
+begin
+  Result := TInvoiceAttachment.Create(_AttachmentType);
+  Add(Result);
 end;
 
 end.

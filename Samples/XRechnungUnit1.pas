@@ -578,6 +578,7 @@ begin
     UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
     TaxPercent := 19.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    PriceAmount := 400; //Einzelpreis
     BaseQuantity := 0; //Preiseinheit
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
     LineAmount := 400;
@@ -622,7 +623,7 @@ begin
       BaseAmount := 400.00;
       MultiplierFactorNumeric := 10; //10 Prozent auf 400 EUR
       Amount := 40.00;
-      LineAmount := LineAmount - Amount;
+      LineAmount := LineAmount - Amount; //Gesamtsumme der oberen InvoiceLine reduzieren
     end;
   end;
 

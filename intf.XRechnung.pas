@@ -172,6 +172,23 @@ var
   i : Integer;
   precedingInvoiceReference : TInvoicePrecedingInvoiceReference;
 
+  function InternalExtensionEnabled : Boolean;
+  var a : Integer;
+  begin
+    Result := false;
+    if _Invoice.InvoiceLines.Count > 0 then
+    begin
+      Result := true;
+      exit;
+    end;
+    //for a := 0 to _Invoice.Attachments.Count-1 do
+    //if _Invoice.Attachments[a].AttachmentType = TInvoiceAttachmentType.iat_application_xml then
+    //begin
+    //  Result := true;
+    //  exit;
+    //end;
+  end;
+
   procedure InternalAddInvoiceLine(_Invoiceline : TInvoiceLine; _Node : IXMLNode);
   var subinvoiceline : TInvoiceLine;
     allowanceCharge : TInvoiceAllowanceCharge;
@@ -277,7 +294,10 @@ begin
     xRoot.Attributes['xsi:schemaLocation'] := 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2 http://docs.oasis-open.org/ubl/os-UBL-2.1/xsd/maindoc/UBL-Invoice-2.1.xsd';
     xRoot.AddChild('cbc:CustomizationID').Text := 'urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_1.2';
   end else
-    xRoot.AddChild('cbc:CustomizationID').Text := 'urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.0';
+  begin
+    xRoot.AddChild('cbc:CustomizationID').Text := 'urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.0'+
+         IfThen(InternalExtensionEnabled,'#conformant#urn:xoev-de:kosit:extension:xrechnung_2.0','');
+  end;
 
   xRoot.AddChild('cbc:ID').Text := _Invoice.InvoiceNumber;
   xRoot.AddChild('cbc:IssueDate').Text := TXRechnungHelper.DateToStr(_Invoice.InvoiceIssueDate);

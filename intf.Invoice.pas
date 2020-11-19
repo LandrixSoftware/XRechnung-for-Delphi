@@ -104,6 +104,7 @@ type
   TInvoiceAttachmentList = class(TObjectList<TInvoiceAttachment>)
   public
     function AddAttachment(_AttachmentType : TInvoiceAttachmentType) : TInvoiceAttachment;
+    function TryAddAttachmentByExtension(const _Filename : String; out _Attachment : TInvoiceAttachment) : Boolean;
   end;
 
   TInvoiceUnitCodeHelper = class(TObject)
@@ -645,6 +646,42 @@ function TInvoiceAttachmentList.AddAttachment(_AttachmentType: TInvoiceAttachmen
 begin
   Result := TInvoiceAttachment.Create(_AttachmentType);
   Add(Result);
+end;
+
+function TInvoiceAttachmentList.TryAddAttachmentByExtension(const _Filename: String;
+  out _Attachment: TInvoiceAttachment): Boolean;
+var
+  fileExt : String;
+begin
+  Result := false;
+  if not FileExists(_Filename) then
+    exit;
+
+  fileExt := ExtractFileExt(_Filename);
+  if SameText(fileExt,'.xlsx') then
+    _Attachment := AddAttachment(iat_application_vnd_openxmlformats_officedocument_spreadsheetml_sheet)
+  else
+  if SameText(fileExt,'.ods') then
+    _Attachment := AddAttachment(iat_application_vnd_oasis_opendocument_spreadsheet)
+  else
+  if SameText(fileExt,'.csv') then
+    _Attachment := AddAttachment(iat_text_csv)
+  else
+  if SameText(fileExt,'.jpg') then
+    _Attachment := AddAttachment(iat_image_jpeg)
+  else
+  if SameText(fileExt,'.pdf') then
+    _Attachment := AddAttachment(iat_application_pdf)
+  else
+  if SameText(fileExt,'.png') then
+    _Attachment := AddAttachment(iat_image_png)
+  else
+  if SameText(fileExt,'.xml') then
+    _Attachment := AddAttachment(iat_application_xml)
+  else
+    exit;
+
+  Result := true;
 end;
 
 end.

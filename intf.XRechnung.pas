@@ -173,7 +173,7 @@ var
   precedingInvoiceReference : TInvoicePrecedingInvoiceReference;
 
   function InternalExtensionEnabled : Boolean;
-  var a : Integer;
+  //var a : Integer;
   begin
     Result := false;
     if _Invoice.InvoiceLines.Count > 0 then

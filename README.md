@@ -32,7 +32,7 @@ english version below
 
 Die Bibliothek "XRechnung-for-Delphi" unterliegt eine Doppellizenz. Sie können Sie kostenlos und
  ohne Einschränkungen unter der [GPL v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html) verwenden, oder Sie erwerben
-eine Lizenz zur kommerziellen Nutzung unter der [Landrix Software Commercial License] (commercial.license.md)
+eine Lizenz zur kommerziellen Nutzung unter der [Landrix Software Commercial License](commercial.license.md)
 
 Eine kommerzielle Lizenz gewährt Ihnen das Recht, XRechnung-for-Delphi 
 in Ihren eigenen Anwendungen zu verwenden. Lizenzfrei und ohne Verpflichtung zur 

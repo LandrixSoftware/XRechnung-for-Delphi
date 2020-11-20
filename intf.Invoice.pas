@@ -3,6 +3,7 @@ License XRechnung-for-Delphi
 
 Copyright (C) 2020 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
+Version 1.1.0
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -313,17 +314,24 @@ type
     TaxExemptionReason : String; //sollte gesetzt werden bei TaxCategory = AE,E,O,Z
   end;
 
+  TInvoiceAddress = record
+  public
+    StreetName : String;
+    AdditionalStreetName : String;
+    City : String;
+    PostalZone : String;
+    CountrySubentity : String;
+    AddressLine : String;
+    CountryCode : String;
+  end;
+
   TInvoiceAccountingParty = record
   public
     Name : String;
     RegistrationName : String;
     CompanyID : String;
-    StreetName : String;
-    //TODO <cbc:AdditionalStreetName>01129</cbc:AdditionalStreetName>
-    City : String;
-    PostalZone : String;
-    //TODO <cbc:CountrySubentity>Sachsen</cbc:CountrySubentity>
-    CountryCode : String;
+
+    Address : TInvoiceAddress;
 
     IdentifierSellerBuyer : String; //Kreditor-Nr AccountingSupplierParty / Debitor-Nr AccountingCustomerParty
 
@@ -332,6 +340,14 @@ type
     ContactName : String;
     ContactTelephone : String;
     ContactElectronicMail : String;
+  end;
+
+  TInvoiceDeliveryInformation = record
+  public
+    Name : String;
+    LocationIdentifier : String; //optional Ein Bezeichner für den Ort, an den die Waren geliefert oder an dem die Dienstleistungen erbracht werden.
+    Address : TInvoiceAddress;
+    ActualDeliveryDate : TDate; //Lieferdatum
   end;
 
   TInvoicePrecedingInvoiceReference = class(TObject)
@@ -362,6 +378,7 @@ type
 
     AccountingSupplierParty : TInvoiceAccountingParty;
     AccountingCustomerParty : TInvoiceAccountingParty;
+    DeliveryInformation : TInvoiceDeliveryInformation;
 
     //TODO weitere Zahlungswege
     PaymentMeansCode : TInvoicePaymentMeansCode;

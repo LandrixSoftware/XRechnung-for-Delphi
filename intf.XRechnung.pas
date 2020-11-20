@@ -3,6 +3,7 @@ License XRechnung-for-Delphi
 
 Copyright (C) 2020 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
+Version 1.1.0
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -364,10 +365,16 @@ begin
     end;
     with AddChild('cac:PostalAddress') do
     begin
-      AddChild('cbc:StreetName').Text := _Invoice.AccountingSupplierParty.StreetName;
-      AddChild('cbc:CityName').Text := _Invoice.AccountingSupplierParty.City;
-      AddChild('cbc:PostalZone').Text := _Invoice.AccountingSupplierParty.PostalZone;
-      AddChild('cac:Country').AddChild('cbc:IdentificationCode').Text := _Invoice.AccountingSupplierParty.CountryCode;
+      AddChild('cbc:StreetName').Text := _Invoice.AccountingSupplierParty.Address.StreetName;
+      if not _Invoice.AccountingSupplierParty.Address.AdditionalStreetName.IsEmpty then
+        AddChild('cbc:AdditionalStreetName').Text := _Invoice.AccountingSupplierParty.Address.AdditionalStreetName;
+      AddChild('cbc:CityName').Text := _Invoice.AccountingSupplierParty.Address.City;
+      AddChild('cbc:PostalZone').Text := _Invoice.AccountingSupplierParty.Address.PostalZone;
+      if not _Invoice.AccountingSupplierParty.Address.CountrySubentity.IsEmpty then
+        AddChild('cbc:CountrySubentity').Text := _Invoice.AccountingSupplierParty.Address.CountrySubentity;
+      if not _Invoice.AccountingSupplierParty.Address.AddressLine.IsEmpty then
+        AddChild('cac:AddressLine').AddChild('cbc:Line').Text := _Invoice.AccountingSupplierParty.Address.AddressLine;
+      AddChild('cac:Country').AddChild('cbc:IdentificationCode').Text := _Invoice.AccountingSupplierParty.Address.CountryCode;
     end;
     if not _Invoice.AccountingSupplierParty.VATCompanyID.IsEmpty then
     with AddChild('cac:PartyTaxScheme') do
@@ -401,10 +408,16 @@ begin
     end;
     with AddChild('cac:PostalAddress') do
     begin
-      AddChild('cbc:StreetName').Text := _Invoice.AccountingCustomerParty.StreetName;
-      AddChild('cbc:CityName').Text := _Invoice.AccountingCustomerParty.City;
-      AddChild('cbc:PostalZone').Text := _Invoice.AccountingCustomerParty.PostalZone;
-      AddChild('cac:Country').AddChild('cbc:IdentificationCode').Text := _Invoice.AccountingCustomerParty.CountryCode;
+      AddChild('cbc:StreetName').Text := _Invoice.AccountingCustomerParty.Address.StreetName;
+      if not _Invoice.AccountingCustomerParty.Address.AdditionalStreetName.IsEmpty then
+        AddChild('cbc:AdditionalStreetName').Text := _Invoice.AccountingCustomerParty.Address.AdditionalStreetName;
+      AddChild('cbc:CityName').Text := _Invoice.AccountingCustomerParty.Address.City;
+      AddChild('cbc:PostalZone').Text := _Invoice.AccountingCustomerParty.Address.PostalZone;
+      if not _Invoice.AccountingCustomerParty.Address.CountrySubentity.IsEmpty then
+        AddChild('cbc:CountrySubentity').Text := _Invoice.AccountingCustomerParty.Address.CountrySubentity;
+      if not _Invoice.AccountingCustomerParty.Address.AddressLine.IsEmpty then
+        AddChild('cac:AddressLine').AddChild('cbc:Line').Text := _Invoice.AccountingCustomerParty.Address.AddressLine;
+      AddChild('cac:Country').AddChild('cbc:IdentificationCode').Text := _Invoice.AccountingCustomerParty.Address.CountryCode;
     end;
     if not _Invoice.AccountingCustomerParty.VATCompanyID.IsEmpty then
     with AddChild('cac:PartyTaxScheme') do
@@ -423,6 +436,35 @@ begin
       AddChild('cbc:Telephone').Text := _Invoice.AccountingCustomerParty.ContactTelephone;
       AddChild('cbc:ElectronicMail').Text := _Invoice.AccountingCustomerParty.ContactElectronicMail;
     end;
+  end;
+
+  if (_Invoice.DeliveryInformation.ActualDeliveryDate > 0) or
+     (not _Invoice.DeliveryInformation.Address.CountryCode.IsEmpty) or
+     (not _Invoice.DeliveryInformation.Name.IsEmpty) then
+  with xRoot.AddChild('cac:Delivery') do
+  begin
+    if (_Invoice.DeliveryInformation.ActualDeliveryDate > 0) then
+      AddChild('cbc:ActualDeliveryDate').Text := TXRechnungHelper.DateToStr(_Invoice.DeliveryInformation.ActualDeliveryDate);
+    with AddChild('cac:DeliveryLocation') do
+    begin
+      if (not _Invoice.DeliveryInformation.LocationIdentifier.IsEmpty) then
+        AddChild('cbc:ID').Text := _Invoice.DeliveryInformation.LocationIdentifier; //TODO schemeID https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/cac-Delivery/cac-DeliveryLocation/cbc-ID/
+      with AddChild('cac:Address') do
+      begin
+        AddChild('cbc:StreetName').Text := _Invoice.DeliveryInformation.Address.StreetName;
+        if not _Invoice.DeliveryInformation.Address.AdditionalStreetName.IsEmpty then
+          AddChild('cbc:AdditionalStreetName').Text := _Invoice.DeliveryInformation.Address.AdditionalStreetName;
+        AddChild('cbc:CityName').Text := _Invoice.DeliveryInformation.Address.City;
+        AddChild('cbc:PostalZone').Text := _Invoice.DeliveryInformation.Address.PostalZone;
+        if not _Invoice.DeliveryInformation.Address.CountrySubentity.IsEmpty then
+          AddChild('cbc:CountrySubentity').Text := _Invoice.DeliveryInformation.Address.CountrySubentity;
+        if not _Invoice.DeliveryInformation.Address.AddressLine.IsEmpty then
+          AddChild('cac:AddressLine').AddChild('cbc:Line').Text := _Invoice.DeliveryInformation.Address.AddressLine;
+        AddChild('cac:Country').AddChild('cbc:IdentificationCode').Text := _Invoice.DeliveryInformation.Address.CountryCode;
+      end;
+    end;
+    if (not _Invoice.DeliveryInformation.Name.IsEmpty) then
+      AddChild('cac:DeliveryParty').AddChild('cac:PartyName').AddChild('cbc:Name').Text := _Invoice.DeliveryInformation.Name;
   end;
 
   if (_Invoice.PaymentMeansCode <> ipmc_None) and (not _Invoice.PayeeFinancialAccount.IsEmpty) then

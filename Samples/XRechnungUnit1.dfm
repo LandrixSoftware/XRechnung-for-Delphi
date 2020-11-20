@@ -49,7 +49,7 @@ object Form1: TForm1
   end
   object Button3: TButton
     Left = 8
-    Top = 185
+    Top = 208
     Width = 129
     Height = 25
     Caption = 'Erzeugen'
@@ -174,6 +174,14 @@ object Form1: TForm1
     Width = 97
     Height = 17
     Caption = 'Mit Anhaengen'
-    TabOrder = 19
+    TabOrder = 13
+  end
+  object cbDeliveriyInf: TCheckBox
+    Left = 8
+    Top = 185
+    Width = 97
+    Height = 17
+    Caption = 'Lieferanschrift'
+    TabOrder = 14
   end
 end

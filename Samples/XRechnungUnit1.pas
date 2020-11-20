@@ -29,6 +29,7 @@ type
     btX200ConvertHTML: TButton;
     Button1: TButton;
     cbAttachments: TCheckBox;
+    cbDeliveriyInf: TCheckBox;
     procedure Button3Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button4Click(Sender: TObject);
@@ -128,10 +129,10 @@ begin
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
-  inv.AccountingSupplierParty.StreetName := 'Verkaeuferstraße 1';
-  inv.AccountingSupplierParty.City := 'Verkaeuferstadt';
-  inv.AccountingSupplierParty.PostalZone := '01234';
-  inv.AccountingSupplierParty.CountryCode := 'DE';
+  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstraße 1';
+  inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
+  inv.AccountingSupplierParty.Address.PostalZone := '01234';
+  inv.AccountingSupplierParty.Address.CountryCode := 'DE';
   inv.AccountingSupplierParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
@@ -140,10 +141,10 @@ begin
   inv.AccountingCustomerParty.Name := 'Kaeufername';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefüllt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
-  inv.AccountingCustomerParty.StreetName := 'Kaeuferstraße 1';
-  inv.AccountingCustomerParty.City := 'Kaeuferstadt';
-  inv.AccountingCustomerParty.PostalZone := '05678';
-  inv.AccountingCustomerParty.CountryCode := 'DE';
+  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstraße 1';
+  inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
+  inv.AccountingCustomerParty.Address.PostalZone := '05678';
+  inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
   inv.AccountingCustomerParty.ContactName := 'Müller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
@@ -215,9 +216,9 @@ begin
   inv := TInvoice.Create;
   inv.InvoiceNumber := 'R2020-0815';
   inv.InvoiceIssueDate := Date;
-  inv.InvoiceDueDate := Date+30;
-  inv.InvoicePeriodStartDate := Date-30;
-  inv.InvoicePeriodEndDate := Date-1;
+  inv.InvoiceDueDate := Date+30;         //Rechnungsdatum
+  inv.InvoicePeriodStartDate := Date-30; //Leistungs-/Lieferzeitpunkt Beginn
+  inv.InvoicePeriodEndDate := Date-1;    //Leistungs-/Lieferzeitpunkt Ende
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
@@ -228,10 +229,13 @@ begin
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
-  inv.AccountingSupplierParty.StreetName := 'Verkaeuferstraße 1';
-  inv.AccountingSupplierParty.City := 'Verkaeuferstadt';
-  inv.AccountingSupplierParty.PostalZone := '01234';
-  inv.AccountingSupplierParty.CountryCode := 'DE';
+  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstraße 1';
+  inv.AccountingSupplierParty.Address.AdditionalStreetName := 'Hinterhaus'; //optional
+  inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
+  inv.AccountingSupplierParty.Address.PostalZone := '01234';
+  inv.AccountingSupplierParty.Address.CountrySubentity := 'Sachsen';     //optional
+  inv.AccountingSupplierParty.Address.AddressLine := 'Gate 64';  //optional
+  inv.AccountingSupplierParty.Address.CountryCode := 'DE';
   inv.AccountingSupplierParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
@@ -240,14 +244,29 @@ begin
   inv.AccountingCustomerParty.Name := 'Kaeufername';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefüllt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
-  inv.AccountingCustomerParty.StreetName := 'Kaeuferstraße 1';
-  inv.AccountingCustomerParty.City := 'Kaeuferstadt';
-  inv.AccountingCustomerParty.PostalZone := '05678';
-  inv.AccountingCustomerParty.CountryCode := 'DE';
+  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstraße 1';
+  inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
+  inv.AccountingCustomerParty.Address.PostalZone := '05678';
+  inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
   inv.AccountingCustomerParty.ContactName := 'Müller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
+
+  //Eine Gruppe von Informationselementen, die Informationen über die Anschrift liefern, an die
+  //die Waren geliefert oder an der die Dienstleistungen erbracht werden. Die Gruppe ist nur zu
+  //verwenden, wenn die Lieferanschrift von der Erwerberanschrift abweicht. Wenn die Waren
+  //abgeholt werden, ist die Abholadresse die Lieferadresse. Eine vollständige gültige Anschrift
+  //ist anzugeben.
+  if cbDeliveriyInf.Checked then
+  begin
+    inv.DeliveryInformation.Name := 'Firma die es bekommt';
+    inv.DeliveryInformation.Address.StreetName := 'Lieferstraße 1';
+    inv.DeliveryInformation.Address.City := 'Lieferstadt';
+    inv.DeliveryInformation.Address.PostalZone := '05678';
+    inv.DeliveryInformation.Address.CountryCode := 'DE';
+    inv.DeliveryInformation.ActualDeliveryDate := Date-1;
+  end;
 
   inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
   inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
@@ -539,10 +558,10 @@ begin
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
-  inv.AccountingSupplierParty.StreetName := 'Verkaeuferstraße 1';
-  inv.AccountingSupplierParty.City := 'Verkaeuferstadt';
-  inv.AccountingSupplierParty.PostalZone := '01234';
-  inv.AccountingSupplierParty.CountryCode := 'DE';
+  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstraße 1';
+  inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
+  inv.AccountingSupplierParty.Address.PostalZone := '01234';
+  inv.AccountingSupplierParty.Address.CountryCode := 'DE';
   inv.AccountingSupplierParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
@@ -551,10 +570,10 @@ begin
   inv.AccountingCustomerParty.Name := 'Kaeufername';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefüllt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
-  inv.AccountingCustomerParty.StreetName := 'Kaeuferstraße 1';
-  inv.AccountingCustomerParty.City := 'Kaeuferstadt';
-  inv.AccountingCustomerParty.PostalZone := '05678';
-  inv.AccountingCustomerParty.CountryCode := 'DE';
+  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstraße 1';
+  inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
+  inv.AccountingCustomerParty.Address.PostalZone := '05678';
+  inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
   inv.AccountingCustomerParty.ContactName := 'Müller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';

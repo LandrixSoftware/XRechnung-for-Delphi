@@ -34,7 +34,7 @@ object Form1: TForm1
   end
   object Label3: TLabel
     Left = 8
-    Top = 253
+    Top = 309
     Width = 82
     Height = 13
     Caption = 'Weitere Beispiele'
@@ -49,7 +49,7 @@ object Form1: TForm1
   end
   object Button3: TButton
     Left = 8
-    Top = 208
+    Top = 264
     Width = 129
     Height = 25
     Caption = 'Erzeugen'
@@ -102,7 +102,7 @@ object Form1: TForm1
   end
   object rbPaymentTerms: TRadioGroup
     Left = 8
-    Top = 11
+    Top = 67
     Width = 129
     Height = 99
     Caption = 'Zahlungsbedingungen'
@@ -116,7 +116,7 @@ object Form1: TForm1
   end
   object cbAllowanceCharges: TCheckBox
     Left = 8
-    Top = 116
+    Top = 172
     Width = 138
     Height = 17
     Caption = 'Nachlaesse/Zuschlaege'
@@ -124,7 +124,7 @@ object Form1: TForm1
   end
   object Button4: TButton
     Left = 8
-    Top = 279
+    Top = 335
     Width = 129
     Height = 25
     Caption = 'Titel / Positionsgruppen'
@@ -133,7 +133,7 @@ object Form1: TForm1
   end
   object cbPrepaidAmount: TCheckBox
     Left = 8
-    Top = 139
+    Top = 195
     Width = 129
     Height = 17
     Caption = 'Abschlagsrechnungen'
@@ -161,7 +161,7 @@ object Form1: TForm1
   end
   object Button1: TButton
     Left = 8
-    Top = 310
+    Top = 366
     Width = 129
     Height = 25
     Caption = 'UStG '#167' 13b'
@@ -170,7 +170,7 @@ object Form1: TForm1
   end
   object cbAttachments: TCheckBox
     Left = 8
-    Top = 162
+    Top = 218
     Width = 97
     Height = 17
     Caption = 'Mit Anhaengen'
@@ -178,10 +178,22 @@ object Form1: TForm1
   end
   object cbDeliveriyInf: TCheckBox
     Left = 8
-    Top = 185
+    Top = 241
     Width = 97
     Height = 17
     Caption = 'Lieferanschrift'
     TabOrder = 14
+  end
+  object rbFormat: TRadioGroup
+    Left = 8
+    Top = 8
+    Width = 129
+    Height = 53
+    Caption = 'Ausgabeformat'
+    ItemIndex = 1
+    Items.Strings = (
+      'UBL'
+      'ZUGFeRD')
+    TabOrder = 15
   end
 end

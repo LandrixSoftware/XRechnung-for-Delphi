@@ -26,7 +26,7 @@ interface
 uses
   System.SysUtils,System.Classes,System.Types,System.DateUtils,System.Rtti
   ,System.Variants,System.StrUtils,System.Generics.Collections
-  ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema//,intf.MSXML2_TLB
+  ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema,intf.MSXML2_TLB
   {$IFDEF USE_OXMLDomVendor},OXmlDOMVendor{$ENDIF}
   ,intf.Invoice
   ;
@@ -45,7 +45,8 @@ type
   TXRechnungHelper = class(TObject)
   public
 //    class function DateFromStr(const _Val : String) : TDateTime;
-    class function DateToStr(const _Val : TDateTime) : String;
+    class function DateToStrUBLFormat(const _Val : TDateTime) : String;
+    class function DateToStrUNCEFACTFormat(const _Val : TDateTime) : String;
 //    class function StrToCurr(_Val : String) : Currency;
 //    class function StrToFloat(_Val : String) : double;
     class function AmountToStr(_Val : Currency) : String;
@@ -301,8 +302,8 @@ begin
   end;
 
   xRoot.AddChild('cbc:ID').Text := _Invoice.InvoiceNumber;
-  xRoot.AddChild('cbc:IssueDate').Text := TXRechnungHelper.DateToStr(_Invoice.InvoiceIssueDate);
-  if _Invoice.InvoiceDueDate > 100 then xRoot.AddChild('cbc:DueDate').Text := TXRechnungHelper.DateToStr(_Invoice.InvoiceDueDate);
+  xRoot.AddChild('cbc:IssueDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoiceIssueDate);
+  if _Invoice.InvoiceDueDate > 100 then xRoot.AddChild('cbc:DueDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoiceDueDate);
   xRoot.AddChild('cbc:InvoiceTypeCode').Text := TXRechnungHelper.InvoiceTypeCodeToStr(_Invoice.InvoiceTypeCode);
   if not _Invoice.Note.IsEmpty then
     xRoot.AddChild('cbc:Note').Text := _Invoice.Note;
@@ -312,8 +313,8 @@ begin
   if (_Invoice.InvoicePeriodStartDate > 100) and (_Invoice.InvoicePeriodEndDate > 100) then
   with xRoot.AddChild('cac:InvoicePeriod') do
   begin
-    AddChild('cbc:StartDate').Text := TXRechnungHelper.DateToStr(_Invoice.InvoicePeriodStartDate);
-    AddChild('cbc:EndDate').Text := TXRechnungHelper.DateToStr(_Invoice.InvoicePeriodEndDate);
+    AddChild('cbc:StartDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoicePeriodStartDate);
+    AddChild('cbc:EndDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoicePeriodEndDate);
   end;
   if not _Invoice.PurchaseOrderReference.IsEmpty then
     xRoot.AddChild('cac:OrderReference').AddChild('cbc:ID').Text := _Invoice.PurchaseOrderReference;
@@ -322,7 +323,7 @@ begin
   with xRoot.AddChild('cac:BillingReference').AddChild('cac:InvoiceDocumentReference') do
   begin
     AddChild('cbc:ID').Text := precedingInvoiceReference.ID;
-    AddChild('cbc:IssueDate').Text := TXRechnungHelper.DateToStr(precedingInvoiceReference.IssueDate);
+    AddChild('cbc:IssueDate').Text := TXRechnungHelper.DateToStrUBLFormat(precedingInvoiceReference.IssueDate);
   end;
 
   for i := 0 to _Invoice.Attachments.Count -1 do
@@ -429,6 +430,7 @@ begin
     begin
       AddChild('cbc:RegistrationName').Text := _Invoice.AccountingCustomerParty.RegistrationName;
       AddChild('cbc:CompanyID').Text := _Invoice.AccountingCustomerParty.CompanyID;
+      //TODO <cbc:CompanyLegalForm>123/456/7890, HRA-Eintrag in […]</cbc:CompanyLegalForm>
     end;
     with AddChild('cac:Contact') do
     begin
@@ -444,11 +446,11 @@ begin
   with xRoot.AddChild('cac:Delivery') do
   begin
     if (_Invoice.DeliveryInformation.ActualDeliveryDate > 0) then
-      AddChild('cbc:ActualDeliveryDate').Text := TXRechnungHelper.DateToStr(_Invoice.DeliveryInformation.ActualDeliveryDate);
+      AddChild('cbc:ActualDeliveryDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.DeliveryInformation.ActualDeliveryDate);
     with AddChild('cac:DeliveryLocation') do
     begin
-      if (not _Invoice.DeliveryInformation.LocationIdentifier.IsEmpty) then
-        AddChild('cbc:ID').Text := _Invoice.DeliveryInformation.LocationIdentifier; //TODO schemeID https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/cac-Delivery/cac-DeliveryLocation/cbc-ID/
+      //if (not _Invoice.DeliveryInformation.LocationIdentifier.IsEmpty) then
+      //  AddChild('cbc:ID').Text := _Invoice.DeliveryInformation.LocationIdentifier; //TODO schemeID https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/cac-Delivery/cac-DeliveryLocation/cbc-ID/
       with AddChild('cac:Address') do
       begin
         AddChild('cbc:StreetName').Text := _Invoice.DeliveryInformation.Address.StreetName;
@@ -620,9 +622,393 @@ begin
     InternalAddInvoiceLine(_Invoice.InvoiceLines[i],xRoot.AddChild('cac:InvoiceLine'));
 end;
 
+//https://portal3.gefeg.com/projectdata/invoice/deliverables/installed/publishingproject/zugferd%202.0.1%20-%20facturx%201.03/en%2016931%20%E2%80%93%20facturx%201.03%20%E2%80%93%20zugferd%202.0.1%20-%20comfort.scm/html/de/021.htm?https://portal3.gefeg.com/projectdata/invoice/deliverables/installed/publishingproject/zugferd%202.0.1%20-%20facturx%201.03/en%2016931%20%E2%80%93%20facturx%201.03%20%E2%80%93%20zugferd%202.0.1%20-%20comfort.scm/html/de/02182.htm
 class procedure TXRechnungInvoiceAdapter.SaveDocumentUNCEFACT(_Invoice: TInvoice; _Xml: IXMLDocument);
+var
+  xRoot : IXMLNode;
+  allowanceCharge : TInvoiceAllowanceCharge;
+  taxSubtotal : TInvoiceTaxAmount;
+  i : Integer;
+  precedingInvoiceReference : TInvoicePrecedingInvoiceReference;
+
+  procedure InternalAddInvoiceLine(_Invoiceline : TInvoiceLine; _Node : IXMLNode);
+  var
+    allowanceCharge : TInvoiceAllowanceCharge;
+  begin
+  with _Node do
+  begin
+    with AddChild('ram:AssociatedDocumentLineDocument') do
+    begin
+      AddChild('ram:LineID').Text := _Invoiceline.ID;
+      if not _Invoiceline.Note.IsEmpty then
+        AddChild('ram:IncludedNote').AddChild('ram:Content').Text := _Invoiceline.Note;
+    end;
+    with AddChild('ram:SpecifiedTradeProduct') do
+    begin
+      AddChild('ram:SellerAssignedID').Text := _Invoiceline.SellersItemIdentification;
+      AddChild('ram:Name').Text := _Invoiceline.Name;
+      AddChild('ram:Description').Text := _Invoiceline.Description;
+    end;
+    with AddChild('ram:SpecifiedLineTradeAgreement') do
+    begin
+//        <ram:BuyerOrderReferencedDocument>
+//            <ram:LineID>6171175.1</ram:LineID>
+//        </ram:BuyerOrderReferencedDocument>
+//        <cac:OrderLineReference>
+//            <cbc:LineID>6171175.1</cbc:LineID>
+//        </cac:OrderLineReference>
+      with AddChild('ram:NetPriceProductTradePrice') do
+      begin
+        AddChild('ram:ChargeAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoiceline.PriceAmount);
+        if (_Invoiceline.BaseQuantity <> 0) and (_Invoiceline.BaseQuantityUnitCode <> iuc_None) then
+        with AddChild('ram:BaseQuantity') do
+        begin
+          Attributes['unitCode'] := TXRechnungHelper.InvoiceUnitCodeToStr(_Invoiceline.BaseQuantityUnitCode);
+          Text := IntToStr(_Invoiceline.BaseQuantity);
+        end;
+      end;
+    end;
+    with AddChild('ram:SpecifiedLineTradeDelivery').AddChild('ram:BilledQuantity') do
+    begin
+      Attributes['unitCode'] := TXRechnungHelper.InvoiceUnitCodeToStr(_Invoiceline.UnitCode);
+      Text := TXRechnungHelper.QuantityToStr(_Invoiceline.Quantity);
+    end;
+    with AddChild('ram:SpecifiedLineTradeSettlement') do
+    begin
+      with AddChild('ram:ApplicableTradeTax') do
+      begin
+        AddChild('ram:TypeCode').Text := 'VAT';
+        AddChild('ram:CategoryCode').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(_Invoiceline.TaxCategory);
+        AddChild('ram:RateApplicablePercent').Text := TXRechnungHelper.PercentageToStr(_Invoiceline.TaxPercent);
+      end;
+      for allowanceCharge in _Invoiceline.AllowanceCharges do
+      with AddChild('ram:SpecifiedTradeAllowanceCharge') do
+      begin
+        AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := LowerCase(BoolToStr(allowanceCharge.ChargeIndicator,true));
+        AddChild('ram:CalculationPercent').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
+        AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(allowanceCharge.BaseAmount);
+        AddChild('ram:ActualAmount').Text := TXRechnungHelper.AmountToStr(allowanceCharge.Amount);
+        AddChild('ram:ReasonCode').Text :=
+                 IfThen(allowanceCharge.ChargeIndicator,
+                 TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(allowanceCharge.ReasonCodeCharge),
+                 TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(allowanceCharge.ReasonCodeAllowance));
+        AddChild('ram:Reason').Text := allowanceCharge.Reason;
+      end;
+      with AddChild('ram:SpecifiedTradeSettlementLineMonetarySummation') do
+      begin
+        AddChild('ram:LineTotalAmount').Text := TXRechnungHelper.AmountToStr(_Invoiceline.LineAmount);
+      end;
+    end;
+    if _Invoiceline.SubInvoiceLines.Count > 0 then
+      raise Exception.Create('SubInvoiceLines in UNCEFACT not implemented');
+  end;
+  end;
+
 begin
-  raise Exception.Create('XRechnung - UNCEFACT not implemented');
+  {$IFDEF USE_OXMLDomVendor}TXMLDocument(_Xml).DOMVendor := Xml.xmldom.GetDOMVendor(sOXmlDOMVendor);{$ENDIF}
+  //Result := xmldoc.GetDocBinding('rsm:CrossIndustryInvoice', TXMLCrossIndustryDocumentType) as IXMLCrossIndustryDocumentType;
+  TXMLDocument(_Xml).Options := TXMLDocument(_Xml).Options + [doNodeAutoIndent];
+  _Xml.Active := True;
+  _Xml.Version := '1.0';
+  _Xml.StandAlone := 'yes';
+  _Xml.Encoding := 'UTF-8';
+
+  _Xml.Options := [doNodeAutoCreate, doNodeAutoIndent, doAttrNull];
+
+  xRoot := _Xml.AddChild('rsm:CrossIndustryInvoice');
+
+  xRoot.DeclareNamespace('rsm','urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100');
+  xRoot.DeclareNamespace('ram','urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100');
+  xRoot.DeclareNamespace('udt','urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100');
+  xRoot.DeclareNamespace('qdt','urn:un:unece:uncefact:data:standard:QualifiedDataType:100');
+
+  xRoot.AddChild('rsm:ExchangedDocumentContext')
+       .AddChild('ram:GuidelineSpecifiedDocumentContextParameter')
+       .AddChild('ram:ID').Text := 'urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.0';
+
+  with xRoot.AddChild('rsm:ExchangedDocument') do
+  begin
+    AddChild('ram:ID').Text := _Invoice.InvoiceNumber;
+    AddChild('ram:TypeCode').Text := TXRechnungHelper.InvoiceTypeCodeToStr(_Invoice.InvoiceTypeCode);
+    with AddChild('ram:IssueDateTime').AddChild('udt:DateTimeString') do
+    begin
+      Attributes['format'] := '102';
+      Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.InvoiceIssueDate);
+    end;
+    if not _Invoice.Note.IsEmpty then
+    with AddChild('ram:IncludedNote') do
+    begin
+      AddChild('ram:Content').Text := _Invoice.Note;
+      //TODO <ram:SubjectCode>ADU</ram:SubjectCode>, bei UBL auch
+    end;
+  end;
+
+  with xRoot.AddChild('rsm:SupplyChainTradeTransaction') do
+  begin
+    for i := 0 to _Invoice.InvoiceLines.Count-1 do
+      InternalAddInvoiceLine(_Invoice.InvoiceLines[i],AddChild('ram:IncludedSupplyChainTradeLineItem'));
+
+    with AddChild('ram:ApplicableHeaderTradeAgreement') do
+    begin
+      AddChild('ram:BuyerReference').Text := _Invoice.BuyerReference;
+
+      with AddChild('ram:SellerTradeParty') do
+      begin
+        if not _Invoice.AccountingSupplierParty.IdentifierSellerBuyer.IsEmpty then
+          AddChild('ram:ID').Text := _Invoice.AccountingSupplierParty.IdentifierSellerBuyer;
+        AddChild('ram:Name').Text := _Invoice.AccountingSupplierParty.RegistrationName;
+        //TODO <ram:Description>123/456/7890, HRA-Eintrag in […]</ram:Description>
+        //<cbc:CompanyLegalForm>123/456/7890, HRA-Eintrag in […]</cbc:CompanyLegalForm>
+        with AddChild('ram:SpecifiedLegalOrganization') do
+        begin
+          AddChild('ram:ID').Text := _Invoice.AccountingSupplierParty.CompanyID;
+          AddChild('ram:TradingBusinessName').Text := _Invoice.AccountingSupplierParty.Name;
+        end;
+        with AddChild('ram:DefinedTradeContact') do
+        begin
+          AddChild('ram:PersonName').Text := _Invoice.AccountingSupplierParty.ContactName;
+          AddChild('ram:TelephoneUniversalCommunication').AddChild('ram:CompleteNumber').Text := _Invoice.AccountingSupplierParty.ContactTelephone;
+          AddChild('ram:EmailURIUniversalCommunication').AddChild('ram:URIID').Text := _Invoice.AccountingSupplierParty.ContactElectronicMail;
+        end;
+        with AddChild('ram:PostalTradeAddress') do
+        begin
+          AddChild('ram:PostcodeCode').Text := _Invoice.AccountingSupplierParty.Address.PostalZone;
+          AddChild('ram:LineOne').Text := _Invoice.AccountingSupplierParty.Address.StreetName;
+          if not _Invoice.AccountingSupplierParty.Address.AdditionalStreetName.IsEmpty then
+            AddChild('ram:LineTwo').Text := _Invoice.AccountingSupplierParty.Address.AdditionalStreetName;
+          if not _Invoice.AccountingSupplierParty.Address.AddressLine.IsEmpty then
+            AddChild('ram:LineThree').Text := _Invoice.AccountingSupplierParty.Address.AddressLine;
+          AddChild('ram:CityName').Text := _Invoice.AccountingSupplierParty.Address.City;
+          AddChild('ram:CountryID').Text := _Invoice.AccountingSupplierParty.Address.CountryCode;
+          if not _Invoice.AccountingSupplierParty.Address.CountrySubentity.IsEmpty then
+            AddChild('ram:CountrySubDivisionName').Text := _Invoice.AccountingSupplierParty.Address.CountrySubentity;
+        end;
+        if not _Invoice.AccountingSupplierParty.VATCompanyID.IsEmpty then
+        with AddChild('ram:SpecifiedTaxRegistration').AddChild('ram:ID') do
+        begin
+          Attributes['schemeID'] := 'VA';
+          Text := _Invoice.AccountingSupplierParty.VATCompanyID;
+        end;
+        //TODO FC bei Steuernummer
+      end;
+      with AddChild('ram:BuyerTradeParty') do
+      begin
+        if not _Invoice.AccountingCustomerParty.IdentifierSellerBuyer.IsEmpty then
+          AddChild('ram:ID').Text := _Invoice.AccountingCustomerParty.IdentifierSellerBuyer;
+        AddChild('ram:Name').Text := _Invoice.AccountingCustomerParty.RegistrationName;
+
+        with AddChild('ram:SpecifiedLegalOrganization') do
+        begin
+          AddChild('ram:ID').Text := _Invoice.AccountingCustomerParty.CompanyID;
+          AddChild('ram:TradingBusinessName').Text := _Invoice.AccountingCustomerParty.Name;
+        end;
+        with AddChild('ram:DefinedTradeContact') do
+        begin
+          AddChild('ram:PersonName').Text := _Invoice.AccountingCustomerParty.ContactName;
+          AddChild('ram:TelephoneUniversalCommunication').AddChild('ram:CompleteNumber').Text := _Invoice.AccountingCustomerParty.ContactTelephone;
+          AddChild('ram:EmailURIUniversalCommunication').AddChild('ram:URIID').Text := _Invoice.AccountingCustomerParty.ContactElectronicMail;
+        end;
+        with AddChild('ram:PostalTradeAddress') do
+        begin
+          AddChild('ram:PostcodeCode').Text := _Invoice.AccountingCustomerParty.Address.PostalZone;
+          AddChild('ram:LineOne').Text := _Invoice.AccountingCustomerParty.Address.StreetName;
+          if not _Invoice.AccountingCustomerParty.Address.AdditionalStreetName.IsEmpty then
+            AddChild('ram:LineTwo').Text := _Invoice.AccountingCustomerParty.Address.AdditionalStreetName;
+          if not _Invoice.AccountingCustomerParty.Address.AddressLine.IsEmpty then
+            AddChild('ram:LineThree').Text := _Invoice.AccountingCustomerParty.Address.AddressLine;
+          AddChild('ram:CityName').Text := _Invoice.AccountingCustomerParty.Address.City;
+          AddChild('ram:CountryID').Text := _Invoice.AccountingCustomerParty.Address.CountryCode;
+          if not _Invoice.AccountingCustomerParty.Address.CountrySubentity.IsEmpty then
+            AddChild('ram:CountrySubDivisionName').Text := _Invoice.AccountingCustomerParty.Address.CountrySubentity;
+        end;
+        if not _Invoice.AccountingCustomerParty.VATCompanyID.IsEmpty then
+        with AddChild('ram:SpecifiedTaxRegistration').AddChild('ram:ID') do
+        begin
+          Attributes['schemeID'] := 'VA';
+          Text := _Invoice.AccountingCustomerParty.VATCompanyID;
+        end;
+      end;
+      if not _Invoice.PurchaseOrderReference.IsEmpty then
+        AddChild('ram:BuyerOrderReferencedDocument').AddChild('ram:IssuerAssignedID').Text := _Invoice.PurchaseOrderReference;
+      for i := 0 to _Invoice.Attachments.Count -1 do
+      begin
+        with AddChild('ram:AdditionalReferencedDocument') do
+        begin
+          AddChild('ram:IssuerAssignedID').Text := _Invoice.Attachments[i].ID;
+          if not _Invoice.Attachments[i].ExternalReference.IsEmpty then
+            AddChild('ram:URIID').Text := _Invoice.Attachments[i].ExternalReference;
+          //ram:TypeCode
+          if not _Invoice.Attachments[i].DocumentDescription.IsEmpty then
+            AddChild('ram:Name').Text := _Invoice.Attachments[i].DocumentDescription;
+          if _Invoice.Attachments[i].ExternalReference.IsEmpty then
+          with AddChild('ram:AttachmentBinaryObject') do
+          begin
+            Attributes['mimeCode'] := TXRechnungHelper.InvoiceAttachmentTypeToStr(_Invoice.Attachments[i].AttachmentType);
+            Attributes['filename'] := _Invoice.Attachments[i].Filename;
+            Text := _Invoice.Attachments[i].GetDataAsBase64;
+          end;
+        end;
+      end;
+    end;
+    with AddChild('ram:ApplicableHeaderTradeDelivery') do
+    if (_Invoice.DeliveryInformation.ActualDeliveryDate > 0) or
+       (not _Invoice.DeliveryInformation.Address.CountryCode.IsEmpty) or
+       (not _Invoice.DeliveryInformation.Name.IsEmpty) then
+    begin
+      with AddChild('ram:ShipToTradeParty') do
+      begin
+        AddChild('ram:Name').Text := _Invoice.DeliveryInformation.Name;
+        with AddChild('ram:PostalTradeAddress') do
+        begin
+          AddChild('ram:PostcodeCode').Text := _Invoice.DeliveryInformation.Address.PostalZone;
+          AddChild('ram:LineOne').Text := _Invoice.DeliveryInformation.Address.StreetName;
+          if not _Invoice.DeliveryInformation.Address.AdditionalStreetName.IsEmpty then
+            AddChild('ram:LineTwo').Text := _Invoice.DeliveryInformation.Address.AdditionalStreetName;
+          if not _Invoice.DeliveryInformation.Address.AddressLine.IsEmpty then
+            AddChild('ram:LineThree').Text := _Invoice.DeliveryInformation.Address.AddressLine;
+          AddChild('ram:CityName').Text := _Invoice.DeliveryInformation.Address.City;
+          AddChild('ram:CountryID').Text := _Invoice.DeliveryInformation.Address.CountryCode;
+          if not _Invoice.DeliveryInformation.Address.CountrySubentity.IsEmpty then
+            AddChild('ram:CountrySubDivisionName').Text := _Invoice.DeliveryInformation.Address.CountrySubentity;
+        end;
+      end;
+      if (_Invoice.DeliveryInformation.ActualDeliveryDate > 0) then
+      with AddChild('ram:ActualDeliverySupplyChainEvent')
+           .AddChild('ram:OccurrenceDateTime')
+           .AddChild('udt:DateTimeString') do
+      begin
+        Attributes['format'] := '102';
+        Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.DeliveryInformation.ActualDeliveryDate);
+      end;
+    end;
+    with AddChild('ram:ApplicableHeaderTradeSettlement') do
+    begin
+      if not _Invoice.PaymentID.IsEmpty then
+        AddChild('ram:PaymentReference').Text := _Invoice.PaymentID;
+      AddChild('ram:TaxCurrencyCode').Text := _Invoice.TaxCurrencyCode;
+      AddChild('ram:InvoiceCurrencyCode').Text := _Invoice.InvoiceCurrencyCode;
+      if (_Invoice.PaymentMeansCode <> ipmc_None) and (not _Invoice.PayeeFinancialAccount.IsEmpty) then
+      with AddChild('ram:SpecifiedTradeSettlementPaymentMeans') do
+      begin
+        AddChild('ram:TypeCode').Text := TXRechnungHelper.InvoicePaymentMeansCodeToStr(_Invoice.PaymentMeansCode);
+        with AddChild('ram:PayeePartyCreditorFinancialAccount') do
+        begin
+          AddChild('ram:IBANID').Text := _Invoice.PayeeFinancialAccount;
+          if not _Invoice.PayeeFinancialAccountName.IsEmpty then
+            AddChild('ram:AccountName').Text := _Invoice.PayeeFinancialAccountName;
+        end;
+        if not _Invoice.PayeeFinancialInstitutionBranch.IsEmpty then
+        with AddChild('ram:PayerSpecifiedDebtorFinancialInstitution') do
+        begin
+          AddChild('ram:BICID').Text := _Invoice.PayeeFinancialInstitutionBranch;
+          //TODO <ram:Name>Name der Bank</ram:Name>
+        end;      end;
+      for taxSubtotal in _Invoice.TaxAmountSubtotals do
+      with AddChild('ram:ApplicableTradeTax') do
+      begin
+        AddChild('ram:CalculatedAmount').Text := TXRechnungHelper.AmountToStr(taxSubtotal.TaxAmount);
+        AddChild('ram:TypeCode').Text := 'VAT';
+        if not taxSubtotal.TaxExemptionReason.isEmpty then
+          AddChild('ram:ExemptionReason').Text := taxSubtotal.TaxExemptionReason;
+        AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(taxSubtotal.TaxableAmount);
+        AddChild('ram:CategoryCode').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(taxSubtotal.TaxCategory);
+        AddChild('ram:RateApplicablePercent').Text := TXRechnungHelper.PercentageToStr(taxSubtotal.TaxPercent);
+      end;
+      if (_Invoice.InvoicePeriodStartDate > 100) and (_Invoice.InvoicePeriodEndDate > 100) then
+      with AddChild('ram:BillingSpecifiedPeriod') do
+      begin
+        with AddChild('ram:StartDateTime').AddChild('udt:DateTimeString') do
+        begin
+          Attributes['format'] := '102';
+          Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.InvoicePeriodStartDate);
+        end;
+        with AddChild('ram:EndDateTime').AddChild('udt:DateTimeString') do
+        begin
+          Attributes['format'] := '102';
+          Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.InvoicePeriodEndDate);
+        end;
+      end;
+      for allowanceCharge in _Invoice.AllowanceCharges do
+      with AddChild('ram:SpecifiedTradeAllowanceCharge') do
+      begin
+        AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := LowerCase(BoolToStr(allowanceCharge.ChargeIndicator,true));
+        AddChild('ram:CalculationPercent').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
+        AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(allowanceCharge.BaseAmount);
+        AddChild('ram:ActualAmount').Text := TXRechnungHelper.AmountToStr(allowanceCharge.Amount);
+        AddChild('ram:ReasonCode').Text :=
+                 IfThen(allowanceCharge.ChargeIndicator,
+                 TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(allowanceCharge.ReasonCodeCharge),
+                 TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(allowanceCharge.ReasonCodeAllowance));
+        AddChild('ram:Reason').Text := allowanceCharge.Reason;
+        with AddChild('ram:CategoryTradeTax') do
+        begin
+          AddChild('ram:TypeCode').Text := 'VAT';
+          AddChild('ram:CategoryCode').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(allowanceCharge.TaxCategory);
+          AddChild('ram:RateApplicablePercent').Text := TXRechnungHelper.PercentageToStr(allowanceCharge.TaxPercent);
+        end;
+      end;
+      with AddChild('ram:SpecifiedTradePaymentTerms') do
+      begin
+        case _Invoice.PaymentTermsType of
+          iptt_Net:
+            AddChild('ram:Description').Text := System.StrUtils.ReplaceText(_Invoice.PaymentTermNetNote,'#',' ');
+          iptt_CashDiscount1:
+            AddChild('ram:Description').Text := Format('#SKONTO#TAGE=%d#PROZENT=%s#',
+                [_Invoice.PaymentTermCashDiscount1Days,
+                 TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount1Percent)])+
+                IfThen(_Invoice.PaymentTermCashDiscount1Base <> 0,'BASISBETRAG='+
+                  TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount1Base)+'#','');
+          iptt_CashDiscount2:
+          begin
+            AddChild('ram:Description').Text := Format('#SKONTO#TAGE=%d#PROZENT=%s#',
+                [_Invoice.PaymentTermCashDiscount1Days,
+                 TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount1Percent)])+
+                IfThen(_Invoice.PaymentTermCashDiscount1Base <> 0,'BASISBETRAG='+
+                  TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount1Base)+'#','')+
+                #13#10+
+                Format('#SKONTO#TAGE=%d#PROZENT=%s#',
+                [_Invoice.PaymentTermCashDiscount2Days,
+                 TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount2Percent)])+
+                IfThen(_Invoice.PaymentTermCashDiscount2Base <> 0,'BASISBETRAG='+
+                  TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount2Base)+'#','');
+            end;
+        end;
+        if _Invoice.InvoiceDueDate > 100 then
+        with AddChild('ram:DueDateDateTime').AddChild('udt:DateTimeString') do
+        begin
+          Attributes['format'] := '102';
+          Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.InvoiceDueDate);
+        end;
+      end;
+      with AddChild('ram:SpecifiedTradeSettlementHeaderMonetarySummation') do
+      begin
+        AddChild('ram:LineTotalAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.LineAmount);
+        AddChild('ram:ChargeTotalAmount').Text :=  TXRechnungHelper.AmountToStr(_Invoice.ChargeTotalAmount);
+        AddChild('ram:AllowanceTotalAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.AllowanceTotalAmount);
+        AddChild('ram:TaxBasisTotalAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.TaxExclusiveAmount);
+        with AddChild('ram:TaxTotalAmount') do
+        begin
+          Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+          Text :=  TXRechnungHelper.AmountToStr(_Invoice.TaxAmountTotal);
+        end;
+        //        <ram:RoundingAmount>0</ram:RoundingAmount>
+        AddChild('ram:GrandTotalAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.TaxInclusiveAmount);
+        AddChild('ram:TotalPrepaidAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.PrepaidAmount);
+        AddChild('ram:DuePayableAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.PayableAmount);
+      end;
+      for precedingInvoiceReference in _Invoice.PrecedingInvoiceReferences do
+      with AddChild('ram:InvoiceReferencedDocument') do
+      begin
+        AddChild('ram:IssuerAssignedID').Text := precedingInvoiceReference.ID;
+        with AddChild('ram:FormattedIssueDateTime').AddChild('qdt:DateTimeString') do
+        begin
+          Attributes['format'] := '102';
+          Text := TXRechnungHelper.DateToStrUNCEFACTFormat(precedingInvoiceReference.IssueDate);
+        end;
+      end;
+
+    end;
+  end;
 end;
 
 { TXRechnungXMLHelper }
@@ -671,10 +1057,16 @@ end;
 //  Result := EncodeDate(StrToIntDef(Copy(_Val,1,4),1999),StrToIntDef(Copy(_Val,5,2),1),StrToIntDef(Copy(_Val,7,2),1));
 //end;
 
-class function TXRechnungHelper.DateToStr(
+class function TXRechnungHelper.DateToStrUBLFormat(
   const _Val: TDateTime): String;
 begin
   Result := FormatDateTime('yyyy-mm-dd',_Val);
+end;
+
+class function TXRechnungHelper.DateToStrUNCEFACTFormat(
+  const _Val: TDateTime): String;
+begin
+  Result := FormatDateTime('yyyymmdd',_Val);
 end;
 
 class function TXRechnungHelper.FloatToStr(

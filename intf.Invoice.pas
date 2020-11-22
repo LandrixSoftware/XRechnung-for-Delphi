@@ -345,7 +345,7 @@ type
   TInvoiceDeliveryInformation = record
   public
     Name : String;
-    LocationIdentifier : String; //optional Ein Bezeichner für den Ort, an den die Waren geliefert oder an dem die Dienstleistungen erbracht werden.
+    //LocationIdentifier : String; //optional Ein Bezeichner für den Ort, an den die Waren geliefert oder an dem die Dienstleistungen erbracht werden.
     Address : TInvoiceAddress;
     ActualDeliveryDate : TDate; //Lieferdatum
   end;

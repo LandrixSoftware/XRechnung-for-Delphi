@@ -2,15 +2,24 @@
 
 # XRechnung-for-Delphi
 
-Erstellen von Rechnungen im XRechnung-UBL-Format (Universal Business Language)
+Erstellen von Rechnungen im 
+
+- XRechnung-UBL-Format (Universal Business Language)
+- XRechnung-CII-Format (Cross Industrie Invoice ZUGFeRD 2.1.1)
 
 ## TODO
-
-Offener Issue zur Validierungswarnung bei Positionsgruppen, falls wer eine Erklärung hat...
 
 UBL-CR-646 A UBL invoice should not include the InvoiceLine SubInvoiceLine
 
 https://github.com/itplr-kosit/validator-configuration-xrechnung/issues/36
+
+Validation error [BR-53]-If the VAT accounting currency code (BT-6) is present, then the Invoice total VAT amount in accounting currency (BT-111) shall be provided.
+
+https://github.com/itplr-kosit/validator-configuration-xrechnung/issues/43
+
+False positive validation warning [BR-DEX-02] when using SubInvoiceLine and AllowanceCharge.
+
+https://github.com/itplr-kosit/validator-configuration-xrechnung/issues/41
 
 ## Version
 

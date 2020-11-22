@@ -622,7 +622,7 @@ begin
     InternalAddInvoiceLine(_Invoice.InvoiceLines[i],xRoot.AddChild('cac:InvoiceLine'));
 end;
 
-//https://portal3.gefeg.com/projectdata/invoice/deliverables/installed/publishingproject/zugferd%202.0.1%20-%20facturx%201.03/en%2016931%20%E2%80%93%20facturx%201.03%20%E2%80%93%20zugferd%202.0.1%20-%20comfort.scm/html/de/021.htm?https://portal3.gefeg.com/projectdata/invoice/deliverables/installed/publishingproject/zugferd%202.0.1%20-%20facturx%201.03/en%2016931%20%E2%80%93%20facturx%201.03%20%E2%80%93%20zugferd%202.0.1%20-%20comfort.scm/html/de/02182.htm
+//https://portal3.gefeg.com/invoice/tthome/index/617afdc4-623f-44e0-a05b-5b878840e508
 class procedure TXRechnungInvoiceAdapter.SaveDocumentUNCEFACT(_Invoice: TInvoice; _Xml: IXMLDocument);
 var
   xRoot : IXMLNode;
@@ -837,7 +837,7 @@ begin
           AddChild('ram:IssuerAssignedID').Text := _Invoice.Attachments[i].ID;
           if not _Invoice.Attachments[i].ExternalReference.IsEmpty then
             AddChild('ram:URIID').Text := _Invoice.Attachments[i].ExternalReference;
-          //ram:TypeCode
+          AddChild('ram:TypeCode').Text := '916';
           if not _Invoice.Attachments[i].DocumentDescription.IsEmpty then
             AddChild('ram:Name').Text := _Invoice.Attachments[i].DocumentDescription;
           if _Invoice.Attachments[i].ExternalReference.IsEmpty then
@@ -885,7 +885,7 @@ begin
     begin
       if not _Invoice.PaymentID.IsEmpty then
         AddChild('ram:PaymentReference').Text := _Invoice.PaymentID;
-      AddChild('ram:TaxCurrencyCode').Text := _Invoice.TaxCurrencyCode;
+      //zuviel AddChild('ram:TaxCurrencyCode').Text := _Invoice.TaxCurrencyCode;
       AddChild('ram:InvoiceCurrencyCode').Text := _Invoice.InvoiceCurrencyCode;
       if (_Invoice.PaymentMeansCode <> ipmc_None) and (not _Invoice.PayeeFinancialAccount.IsEmpty) then
       with AddChild('ram:SpecifiedTradeSettlementPaymentMeans') do

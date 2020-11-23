@@ -26,7 +26,7 @@ interface
 uses
   System.SysUtils,System.Classes,System.Types,System.DateUtils,System.Rtti
   ,System.Variants,System.StrUtils,System.Generics.Collections
-  ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema,intf.MSXML2_TLB
+  ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema//,intf.MSXML2_TLB
   {$IFDEF USE_OXMLDomVendor},OXmlDOMVendor{$ENDIF}
   ,intf.Invoice
   ;

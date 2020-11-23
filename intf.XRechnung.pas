@@ -140,7 +140,7 @@ var
 begin
   if _Invoice = nil then
     exit;
-  if _Filename.IsEmpty then
+  if _Filename = '' then
     exit;
   if not System.SysUtils.DirectoryExists(ExtractFilePath(_Filename)) then
     exit;
@@ -198,7 +198,7 @@ var
   with _Node do
   begin
     AddChild('cbc:ID').Text := _Invoiceline.ID;
-    if not _Invoiceline.Note.IsEmpty then
+    if _Invoiceline.Note <> '' then
       AddChild('cbc:Note').Text := _Invoiceline.Note;
     with AddChild('cbc:InvoicedQuantity') do
     begin
@@ -305,7 +305,7 @@ begin
   xRoot.AddChild('cbc:IssueDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoiceIssueDate);
   if _Invoice.InvoiceDueDate > 100 then xRoot.AddChild('cbc:DueDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoiceDueDate);
   xRoot.AddChild('cbc:InvoiceTypeCode').Text := TXRechnungHelper.InvoiceTypeCodeToStr(_Invoice.InvoiceTypeCode);
-  if not _Invoice.Note.IsEmpty then
+  if _Invoice.Note <> '' then
     xRoot.AddChild('cbc:Note').Text := _Invoice.Note;
   xRoot.AddChild('cbc:DocumentCurrencyCode').Text := _Invoice.InvoiceCurrencyCode;
   xRoot.AddChild('cbc:TaxCurrencyCode').Text := _Invoice.TaxCurrencyCode;
@@ -316,7 +316,7 @@ begin
     AddChild('cbc:StartDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoicePeriodStartDate);
     AddChild('cbc:EndDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoicePeriodEndDate);
   end;
-  if not _Invoice.PurchaseOrderReference.IsEmpty then
+  if _Invoice.PurchaseOrderReference <> '' then
     xRoot.AddChild('cac:OrderReference').AddChild('cbc:ID').Text := _Invoice.PurchaseOrderReference;
 
   for precedingInvoiceReference in _Invoice.PrecedingInvoiceReferences do
@@ -335,11 +335,11 @@ begin
     with xRoot.AddChild('cac:AdditionalDocumentReference') do
     begin
       AddChild('cbc:ID').Text := _Invoice.Attachments[i].ID;
-      if not _Invoice.Attachments[i].DocumentDescription.IsEmpty then
+      if _Invoice.Attachments[i].DocumentDescription <> '' then
         AddChild('cbc:DocumentDescription').Text := _Invoice.Attachments[i].DocumentDescription;
       with AddChild('cac:Attachment') do
       begin
-        if not _Invoice.Attachments[i].ExternalReference.IsEmpty then
+        if _Invoice.Attachments[i].ExternalReference <> '' then
         begin
           AddChild('cac:ExternalReference').AddChild('cbc:URI').Text := _Invoice.Attachments[i].ExternalReference;
         end else
@@ -355,7 +355,7 @@ begin
 
   with xRoot.AddChild('cac:AccountingSupplierParty').AddChild('cac:Party') do
   begin
-    if not _Invoice.AccountingSupplierParty.IdentifierSellerBuyer.IsEmpty then
+    if _Invoice.AccountingSupplierParty.IdentifierSellerBuyer <> '' then
     with AddChild('cac:PartyIdentification') do
     begin
       AddChild('cbc:ID').Text := _Invoice.AccountingSupplierParty.IdentifierSellerBuyer;
@@ -367,17 +367,17 @@ begin
     with AddChild('cac:PostalAddress') do
     begin
       AddChild('cbc:StreetName').Text := _Invoice.AccountingSupplierParty.Address.StreetName;
-      if not _Invoice.AccountingSupplierParty.Address.AdditionalStreetName.IsEmpty then
+      if _Invoice.AccountingSupplierParty.Address.AdditionalStreetName <> '' then
         AddChild('cbc:AdditionalStreetName').Text := _Invoice.AccountingSupplierParty.Address.AdditionalStreetName;
       AddChild('cbc:CityName').Text := _Invoice.AccountingSupplierParty.Address.City;
       AddChild('cbc:PostalZone').Text := _Invoice.AccountingSupplierParty.Address.PostalZone;
-      if not _Invoice.AccountingSupplierParty.Address.CountrySubentity.IsEmpty then
+      if _Invoice.AccountingSupplierParty.Address.CountrySubentity <> '' then
         AddChild('cbc:CountrySubentity').Text := _Invoice.AccountingSupplierParty.Address.CountrySubentity;
-      if not _Invoice.AccountingSupplierParty.Address.AddressLine.IsEmpty then
+      if _Invoice.AccountingSupplierParty.Address.AddressLine <> '' then
         AddChild('cac:AddressLine').AddChild('cbc:Line').Text := _Invoice.AccountingSupplierParty.Address.AddressLine;
       AddChild('cac:Country').AddChild('cbc:IdentificationCode').Text := _Invoice.AccountingSupplierParty.Address.CountryCode;
     end;
-    if not _Invoice.AccountingSupplierParty.VATCompanyID.IsEmpty then
+    if _Invoice.AccountingSupplierParty.VATCompanyID <> '' then
     with AddChild('cac:PartyTaxScheme') do
     begin
       AddChild('cbc:CompanyID').Text := _Invoice.AccountingSupplierParty.VATCompanyID;
@@ -398,7 +398,7 @@ begin
 
   with xRoot.AddChild('cac:AccountingCustomerParty').AddChild('cac:Party') do
   begin
-    if not _Invoice.AccountingCustomerParty.IdentifierSellerBuyer.IsEmpty then
+    if _Invoice.AccountingCustomerParty.IdentifierSellerBuyer <> '' then
     with AddChild('cac:PartyIdentification') do
     begin
       AddChild('cbc:ID').Text := _Invoice.AccountingCustomerParty.IdentifierSellerBuyer;
@@ -410,17 +410,17 @@ begin
     with AddChild('cac:PostalAddress') do
     begin
       AddChild('cbc:StreetName').Text := _Invoice.AccountingCustomerParty.Address.StreetName;
-      if not _Invoice.AccountingCustomerParty.Address.AdditionalStreetName.IsEmpty then
+      if _Invoice.AccountingCustomerParty.Address.AdditionalStreetName <> '' then
         AddChild('cbc:AdditionalStreetName').Text := _Invoice.AccountingCustomerParty.Address.AdditionalStreetName;
       AddChild('cbc:CityName').Text := _Invoice.AccountingCustomerParty.Address.City;
       AddChild('cbc:PostalZone').Text := _Invoice.AccountingCustomerParty.Address.PostalZone;
-      if not _Invoice.AccountingCustomerParty.Address.CountrySubentity.IsEmpty then
+      if _Invoice.AccountingCustomerParty.Address.CountrySubentity <> '' then
         AddChild('cbc:CountrySubentity').Text := _Invoice.AccountingCustomerParty.Address.CountrySubentity;
-      if not _Invoice.AccountingCustomerParty.Address.AddressLine.IsEmpty then
+      if _Invoice.AccountingCustomerParty.Address.AddressLine <> '' then
         AddChild('cac:AddressLine').AddChild('cbc:Line').Text := _Invoice.AccountingCustomerParty.Address.AddressLine;
       AddChild('cac:Country').AddChild('cbc:IdentificationCode').Text := _Invoice.AccountingCustomerParty.Address.CountryCode;
     end;
-    if not _Invoice.AccountingCustomerParty.VATCompanyID.IsEmpty then
+    if _Invoice.AccountingCustomerParty.VATCompanyID <> '' then
     with AddChild('cac:PartyTaxScheme') do
     begin
       AddChild('cbc:CompanyID').Text := _Invoice.AccountingCustomerParty.VATCompanyID;
@@ -441,46 +441,46 @@ begin
   end;
 
   if (_Invoice.DeliveryInformation.ActualDeliveryDate > 0) or
-     (not _Invoice.DeliveryInformation.Address.CountryCode.IsEmpty) or
-     (not _Invoice.DeliveryInformation.Name.IsEmpty) then
+     (_Invoice.DeliveryInformation.Address.CountryCode <> '') or
+     (_Invoice.DeliveryInformation.Name <> '') then
   with xRoot.AddChild('cac:Delivery') do
   begin
     if (_Invoice.DeliveryInformation.ActualDeliveryDate > 0) then
       AddChild('cbc:ActualDeliveryDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.DeliveryInformation.ActualDeliveryDate);
     with AddChild('cac:DeliveryLocation') do
     begin
-      //if (not _Invoice.DeliveryInformation.LocationIdentifier.IsEmpty) then
+      //if (_Invoice.DeliveryInformation.LocationIdentifier <> '') then
       //  AddChild('cbc:ID').Text := _Invoice.DeliveryInformation.LocationIdentifier; //TODO schemeID https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/cac-Delivery/cac-DeliveryLocation/cbc-ID/
       with AddChild('cac:Address') do
       begin
         AddChild('cbc:StreetName').Text := _Invoice.DeliveryInformation.Address.StreetName;
-        if not _Invoice.DeliveryInformation.Address.AdditionalStreetName.IsEmpty then
+        if _Invoice.DeliveryInformation.Address.AdditionalStreetName <> '' then
           AddChild('cbc:AdditionalStreetName').Text := _Invoice.DeliveryInformation.Address.AdditionalStreetName;
         AddChild('cbc:CityName').Text := _Invoice.DeliveryInformation.Address.City;
         AddChild('cbc:PostalZone').Text := _Invoice.DeliveryInformation.Address.PostalZone;
-        if not _Invoice.DeliveryInformation.Address.CountrySubentity.IsEmpty then
+        if _Invoice.DeliveryInformation.Address.CountrySubentity <> '' then
           AddChild('cbc:CountrySubentity').Text := _Invoice.DeliveryInformation.Address.CountrySubentity;
-        if not _Invoice.DeliveryInformation.Address.AddressLine.IsEmpty then
+        if _Invoice.DeliveryInformation.Address.AddressLine <> '' then
           AddChild('cac:AddressLine').AddChild('cbc:Line').Text := _Invoice.DeliveryInformation.Address.AddressLine;
         AddChild('cac:Country').AddChild('cbc:IdentificationCode').Text := _Invoice.DeliveryInformation.Address.CountryCode;
       end;
     end;
-    if (not _Invoice.DeliveryInformation.Name.IsEmpty) then
+    if (_Invoice.DeliveryInformation.Name <> '') then
       AddChild('cac:DeliveryParty').AddChild('cac:PartyName').AddChild('cbc:Name').Text := _Invoice.DeliveryInformation.Name;
   end;
 
-  if (_Invoice.PaymentMeansCode <> ipmc_None) and (not _Invoice.PayeeFinancialAccount.IsEmpty) then
+  if (_Invoice.PaymentMeansCode <> ipmc_None) and (_Invoice.PayeeFinancialAccount <> '') then
   with xRoot.AddChild('cac:PaymentMeans') do
   begin
     AddChild('cbc:PaymentMeansCode').Text := TXRechnungHelper.InvoicePaymentMeansCodeToStr(_Invoice.PaymentMeansCode);
-    if not _Invoice.PaymentID.IsEmpty then
+    if _Invoice.PaymentID <> '' then
       AddChild('cbc:PaymentID').Text := _Invoice.PaymentID;
     with AddChild('cac:PayeeFinancialAccount') do
     begin
       AddChild('cbc:ID').Text := _Invoice.PayeeFinancialAccount;
-      if not _Invoice.PayeeFinancialAccountName.IsEmpty then
+      if _Invoice.PayeeFinancialAccountName <> '' then
         AddChild('cbc:Name').Text := _Invoice.PayeeFinancialAccountName;
-      if not _Invoice.PayeeFinancialInstitutionBranch.IsEmpty then
+      if _Invoice.PayeeFinancialInstitutionBranch <> '' then
         AddChild('cac:FinancialInstitutionBranch').AddChild('cbc:ID').Text := _Invoice.PayeeFinancialInstitutionBranch;
     end;
   end;
@@ -571,7 +571,7 @@ begin
       begin
         AddChild('cbc:ID').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(taxSubtotal.TaxCategory);
         AddChild('cbc:Percent').Text := TXRechnungHelper.PercentageToStr(taxSubtotal.TaxPercent);
-        if not taxSubtotal.TaxExemptionReason.isEmpty then
+        if taxSubtotal.TaxExemptionReason <> '' then
           AddChild('cbc:TaxExemptionReason').Text := taxSubtotal.TaxExemptionReason;
         AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
       end;
@@ -640,7 +640,7 @@ var
     with AddChild('ram:AssociatedDocumentLineDocument') do
     begin
       AddChild('ram:LineID').Text := _Invoiceline.ID;
-      if not _Invoiceline.Note.IsEmpty then
+      if _Invoiceline.Note <> '' then
         AddChild('ram:IncludedNote').AddChild('ram:Content').Text := _Invoiceline.Note;
     end;
     with AddChild('ram:SpecifiedTradeProduct') do
@@ -735,7 +735,7 @@ begin
       Attributes['format'] := '102';
       Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.InvoiceIssueDate);
     end;
-    if not _Invoice.Note.IsEmpty then
+    if _Invoice.Note <> '' then
     with AddChild('ram:IncludedNote') do
     begin
       AddChild('ram:Content').Text := _Invoice.Note;
@@ -754,7 +754,7 @@ begin
 
       with AddChild('ram:SellerTradeParty') do
       begin
-        if not _Invoice.AccountingSupplierParty.IdentifierSellerBuyer.IsEmpty then
+        if _Invoice.AccountingSupplierParty.IdentifierSellerBuyer <> '' then
           AddChild('ram:ID').Text := _Invoice.AccountingSupplierParty.IdentifierSellerBuyer;
         AddChild('ram:Name').Text := _Invoice.AccountingSupplierParty.RegistrationName;
         //TODO <ram:Description>123/456/7890, HRA-Eintrag in […]</ram:Description>
@@ -774,16 +774,16 @@ begin
         begin
           AddChild('ram:PostcodeCode').Text := _Invoice.AccountingSupplierParty.Address.PostalZone;
           AddChild('ram:LineOne').Text := _Invoice.AccountingSupplierParty.Address.StreetName;
-          if not _Invoice.AccountingSupplierParty.Address.AdditionalStreetName.IsEmpty then
+          if _Invoice.AccountingSupplierParty.Address.AdditionalStreetName <> '' then
             AddChild('ram:LineTwo').Text := _Invoice.AccountingSupplierParty.Address.AdditionalStreetName;
-          if not _Invoice.AccountingSupplierParty.Address.AddressLine.IsEmpty then
+          if _Invoice.AccountingSupplierParty.Address.AddressLine <> '' then
             AddChild('ram:LineThree').Text := _Invoice.AccountingSupplierParty.Address.AddressLine;
           AddChild('ram:CityName').Text := _Invoice.AccountingSupplierParty.Address.City;
           AddChild('ram:CountryID').Text := _Invoice.AccountingSupplierParty.Address.CountryCode;
-          if not _Invoice.AccountingSupplierParty.Address.CountrySubentity.IsEmpty then
+          if _Invoice.AccountingSupplierParty.Address.CountrySubentity <> '' then
             AddChild('ram:CountrySubDivisionName').Text := _Invoice.AccountingSupplierParty.Address.CountrySubentity;
         end;
-        if not _Invoice.AccountingSupplierParty.VATCompanyID.IsEmpty then
+        if _Invoice.AccountingSupplierParty.VATCompanyID <> '' then
         with AddChild('ram:SpecifiedTaxRegistration').AddChild('ram:ID') do
         begin
           Attributes['schemeID'] := 'VA';
@@ -793,7 +793,7 @@ begin
       end;
       with AddChild('ram:BuyerTradeParty') do
       begin
-        if not _Invoice.AccountingCustomerParty.IdentifierSellerBuyer.IsEmpty then
+        if _Invoice.AccountingCustomerParty.IdentifierSellerBuyer <> '' then
           AddChild('ram:ID').Text := _Invoice.AccountingCustomerParty.IdentifierSellerBuyer;
         AddChild('ram:Name').Text := _Invoice.AccountingCustomerParty.RegistrationName;
 
@@ -812,35 +812,35 @@ begin
         begin
           AddChild('ram:PostcodeCode').Text := _Invoice.AccountingCustomerParty.Address.PostalZone;
           AddChild('ram:LineOne').Text := _Invoice.AccountingCustomerParty.Address.StreetName;
-          if not _Invoice.AccountingCustomerParty.Address.AdditionalStreetName.IsEmpty then
+          if _Invoice.AccountingCustomerParty.Address.AdditionalStreetName <> '' then
             AddChild('ram:LineTwo').Text := _Invoice.AccountingCustomerParty.Address.AdditionalStreetName;
-          if not _Invoice.AccountingCustomerParty.Address.AddressLine.IsEmpty then
+          if _Invoice.AccountingCustomerParty.Address.AddressLine <> '' then
             AddChild('ram:LineThree').Text := _Invoice.AccountingCustomerParty.Address.AddressLine;
           AddChild('ram:CityName').Text := _Invoice.AccountingCustomerParty.Address.City;
           AddChild('ram:CountryID').Text := _Invoice.AccountingCustomerParty.Address.CountryCode;
-          if not _Invoice.AccountingCustomerParty.Address.CountrySubentity.IsEmpty then
+          if _Invoice.AccountingCustomerParty.Address.CountrySubentity <> '' then
             AddChild('ram:CountrySubDivisionName').Text := _Invoice.AccountingCustomerParty.Address.CountrySubentity;
         end;
-        if not _Invoice.AccountingCustomerParty.VATCompanyID.IsEmpty then
+        if _Invoice.AccountingCustomerParty.VATCompanyID <> '' then
         with AddChild('ram:SpecifiedTaxRegistration').AddChild('ram:ID') do
         begin
           Attributes['schemeID'] := 'VA';
           Text := _Invoice.AccountingCustomerParty.VATCompanyID;
         end;
       end;
-      if not _Invoice.PurchaseOrderReference.IsEmpty then
+      if _Invoice.PurchaseOrderReference <> '' then
         AddChild('ram:BuyerOrderReferencedDocument').AddChild('ram:IssuerAssignedID').Text := _Invoice.PurchaseOrderReference;
       for i := 0 to _Invoice.Attachments.Count -1 do
       begin
         with AddChild('ram:AdditionalReferencedDocument') do
         begin
           AddChild('ram:IssuerAssignedID').Text := _Invoice.Attachments[i].ID;
-          if not _Invoice.Attachments[i].ExternalReference.IsEmpty then
+          if _Invoice.Attachments[i].ExternalReference <> '' then
             AddChild('ram:URIID').Text := _Invoice.Attachments[i].ExternalReference;
           AddChild('ram:TypeCode').Text := '916';
-          if not _Invoice.Attachments[i].DocumentDescription.IsEmpty then
+          if _Invoice.Attachments[i].DocumentDescription <> '' then
             AddChild('ram:Name').Text := _Invoice.Attachments[i].DocumentDescription;
-          if _Invoice.Attachments[i].ExternalReference.IsEmpty then
+          if _Invoice.Attachments[i].ExternalReference = '' then
           with AddChild('ram:AttachmentBinaryObject') do
           begin
             Attributes['mimeCode'] := TXRechnungHelper.InvoiceAttachmentTypeToStr(_Invoice.Attachments[i].AttachmentType);
@@ -852,8 +852,8 @@ begin
     end;
     with AddChild('ram:ApplicableHeaderTradeDelivery') do
     if (_Invoice.DeliveryInformation.ActualDeliveryDate > 0) or
-       (not _Invoice.DeliveryInformation.Address.CountryCode.IsEmpty) or
-       (not _Invoice.DeliveryInformation.Name.IsEmpty) then
+       (_Invoice.DeliveryInformation.Address.CountryCode <> '') or
+       (_Invoice.DeliveryInformation.Name <> '') then
     begin
       with AddChild('ram:ShipToTradeParty') do
       begin
@@ -862,13 +862,13 @@ begin
         begin
           AddChild('ram:PostcodeCode').Text := _Invoice.DeliveryInformation.Address.PostalZone;
           AddChild('ram:LineOne').Text := _Invoice.DeliveryInformation.Address.StreetName;
-          if not _Invoice.DeliveryInformation.Address.AdditionalStreetName.IsEmpty then
+          if _Invoice.DeliveryInformation.Address.AdditionalStreetName <> '' then
             AddChild('ram:LineTwo').Text := _Invoice.DeliveryInformation.Address.AdditionalStreetName;
-          if not _Invoice.DeliveryInformation.Address.AddressLine.IsEmpty then
+          if _Invoice.DeliveryInformation.Address.AddressLine <> '' then
             AddChild('ram:LineThree').Text := _Invoice.DeliveryInformation.Address.AddressLine;
           AddChild('ram:CityName').Text := _Invoice.DeliveryInformation.Address.City;
           AddChild('ram:CountryID').Text := _Invoice.DeliveryInformation.Address.CountryCode;
-          if not _Invoice.DeliveryInformation.Address.CountrySubentity.IsEmpty then
+          if _Invoice.DeliveryInformation.Address.CountrySubentity <> '' then
             AddChild('ram:CountrySubDivisionName').Text := _Invoice.DeliveryInformation.Address.CountrySubentity;
         end;
       end;
@@ -883,22 +883,22 @@ begin
     end;
     with AddChild('ram:ApplicableHeaderTradeSettlement') do
     begin
-      if not _Invoice.PaymentID.IsEmpty then
+      if _Invoice.PaymentID <> '' then
         AddChild('ram:PaymentReference').Text := _Invoice.PaymentID;
       //zuviel AddChild('ram:TaxCurrencyCode').Text := _Invoice.TaxCurrencyCode;
       AddChild('ram:InvoiceCurrencyCode').Text := _Invoice.InvoiceCurrencyCode;
-      if (_Invoice.PaymentMeansCode <> ipmc_None) and (not _Invoice.PayeeFinancialAccount.IsEmpty) then
+      if (_Invoice.PaymentMeansCode <> ipmc_None) and (_Invoice.PayeeFinancialAccount <> '') then
       with AddChild('ram:SpecifiedTradeSettlementPaymentMeans') do
       begin
         AddChild('ram:TypeCode').Text := TXRechnungHelper.InvoicePaymentMeansCodeToStr(_Invoice.PaymentMeansCode);
         with AddChild('ram:PayeePartyCreditorFinancialAccount') do
         begin
           AddChild('ram:IBANID').Text := _Invoice.PayeeFinancialAccount;
-          if not _Invoice.PayeeFinancialAccountName.IsEmpty then
+          if _Invoice.PayeeFinancialAccountName <> '' then
             AddChild('ram:AccountName').Text := _Invoice.PayeeFinancialAccountName;
         end;
-        if not _Invoice.PayeeFinancialInstitutionBranch.IsEmpty then
-        with AddChild('ram:PayerSpecifiedDebtorFinancialInstitution') do
+        if _Invoice.PayeeFinancialInstitutionBranch <> '' then
+        with AddChild('ram:PayeeSpecifiedCreditorFinancialInstitution') do
         begin
           AddChild('ram:BICID').Text := _Invoice.PayeeFinancialInstitutionBranch;
           //TODO <ram:Name>Name der Bank</ram:Name>
@@ -908,7 +908,7 @@ begin
       begin
         AddChild('ram:CalculatedAmount').Text := TXRechnungHelper.AmountToStr(taxSubtotal.TaxAmount);
         AddChild('ram:TypeCode').Text := 'VAT';
-        if not taxSubtotal.TaxExemptionReason.isEmpty then
+        if taxSubtotal.TaxExemptionReason <> '' then
           AddChild('ram:ExemptionReason').Text := taxSubtotal.TaxExemptionReason;
         AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(taxSubtotal.TaxableAmount);
         AddChild('ram:CategoryCode').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(taxSubtotal.TaxCategory);

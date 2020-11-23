@@ -497,7 +497,7 @@ class function TInvoiceUnitCodeHelper.MapUnitOfMeasure(const _UnitOfMeasure: Str
 begin
   Result := _DefaultOnFailure;
   _Success := false;
-  if _UnitOfMeasure.IsEmpty then
+  if _UnitOfMeasure = '' then
     exit;
   if SameText(_UnitOfMeasure,'st') or SameText(_UnitOfMeasure,'stk.') or SameText(_UnitOfMeasure,'stk') then
   begin

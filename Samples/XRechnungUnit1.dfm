@@ -190,7 +190,7 @@ object Form1: TForm1
     Width = 129
     Height = 53
     Caption = 'Ausgabeformat'
-    ItemIndex = 1
+    ItemIndex = 0
     Items.Strings = (
       'UBL'
       'ZUGFeRD')

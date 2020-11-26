@@ -8,6 +8,7 @@ uses
   ,System.IOUtils,System.Win.COMObj,System.UITypes
   ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema
   ,intf.XRechnung,intf.Invoice, Vcl.OleCtrls, SHDocVw, Vcl.ExtCtrls
+  ,intf.XRechnungValidationHelperJava
   ;
 
 type
@@ -38,11 +39,14 @@ type
     procedure btX200ConvertHTMLClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
   private
-    function ExecAndWait(Filename, Params: string): Boolean;
     procedure Generate122(inv : TInvoice);
     procedure Generate200(inv : TInvoice);
   public
-    toolsPath : String;
+    JavaRuntimeEnvironmentPath : String;
+    ValidatorLibPath : String;
+    ValidatorConfiguration122Path : String;
+    ValidatorConfiguration200Path : String;
+    VisualizationLibPath : String;
   end;
 
 var
@@ -52,68 +56,19 @@ implementation
 
 {$R *.dfm}
 
-procedure TForm1.btX122ConvertHTMLClick(Sender: TObject);
+procedure TForm1.FormCreate(Sender: TObject);
 var
-  Doc : Variant;
+  hstr : String;
 begin
-  Memo3.Clear;
-  if FileExists(toolsPath+'validator\libs\Saxon-HE-9.9.1-7.jar') then
-  begin
-    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\libs\Saxon-HE-9.9.1-7.jar '+
-               '-s:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml '+
-               '-xsl:'+toolsPath+'visualization\xsl\ubl-invoice-xr.xsl '+
-               '-o:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122-xr.xml');
-    ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\libs\Saxon-HE-9.9.1-7.jar '+
-               '-s:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122-xr.xml '+
-               '-xsl:'+toolsPath+'visualization\xsl\xrechnung-html.xsl '+
-               '-o:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.html');
-    WebBrowser1.Navigate2('file:\\\'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.html');
-  end else
-  begin
-    Doc := WebBrowser1.Document;
-    Doc.Clear;
-    Doc.Write('<html><body>Validation Tool nicht installiert. Siehe Verzeichnis ./Tools/Read.Me</body></html>');
-    Doc.Close;
-  end;
-end;
-
-procedure TForm1.btX200ConvertHTMLClick(Sender: TObject);
-var
-  Doc : Variant;
-begin
-  Memo3.Clear;
-  if FileExists(toolsPath+'validator\libs\Saxon-HE-9.9.1-7.jar') then
-  begin
-    if rbFormat.ItemIndex = 0 then
-    begin
-      ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\libs\Saxon-HE-9.9.1-7.jar '+
-                 '-s:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml '+
-                 '-xsl:'+toolsPath+'visualization\xsl\ubl-invoice-xr.xsl '+
-                 '-o:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200-xr.xml');
-      ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\libs\Saxon-HE-9.9.1-7.jar '+
-                 '-s:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200-xr.xml '+
-                 '-xsl:'+toolsPath+'visualization\xsl\xrechnung-html.xsl '+
-                 '-o:'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.html');
-      WebBrowser2.Navigate2('file:\\\'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.html');
-    end
-    else begin
-      ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\libs\Saxon-HE-9.9.1-7.jar '+
-                 '-s:'+ExtractFilePath(Application.ExeName)+'XRechnung-UNCEFACT.xml '+
-                 '-xsl:'+toolsPath+'visualization\xsl\cii-xr.xsl '+
-                 '-o:'+ExtractFilePath(Application.ExeName)+'XRechnung-UNCEFACT-xr.xml');
-      ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\libs\Saxon-HE-9.9.1-7.jar '+
-                 '-s:'+ExtractFilePath(Application.ExeName)+'XRechnung-UNCEFACT-xr.xml '+
-                 '-xsl:'+toolsPath+'visualization\xsl\xrechnung-html.xsl '+
-                 '-o:'+ExtractFilePath(Application.ExeName)+'XRechnung-UNCEFACT.html');
-      WebBrowser2.Navigate2('file:\\\'+ExtractFilePath(Application.ExeName)+'XRechnung-UNCEFACT.html');
-    end;
-  end else
-  begin
-    Doc := WebBrowser2.Document;
-    Doc.Clear;
-    Doc.Write('<html><body>Validation Tool nicht installiert. Siehe Verzeichnis ./Tools/Read.Me</body></html>');
-    Doc.Close;
-  end;
+  hstr := ExtractFileDir(Application.ExeName);
+  hstr := ExtractFileDir(hstr);
+  hstr := ExtractFileDir(hstr);
+  hstr := ExtractFileDir(hstr)+PathDelim+'Distribution'+PathDelim;
+  JavaRuntimeEnvironmentPath := hstr +'java'+PathDelim;
+  ValidatorLibPath := hstr +'validator'+PathDelim;
+  ValidatorConfiguration122Path := hstr +'validator-configuration-122'+PathDelim;
+  ValidatorConfiguration200Path := hstr +'validator-configuration-200'+PathDelim;
+  VisualizationLibPath := hstr +'visualization'+PathDelim;
 end;
 
 procedure TForm1.Button1Click(Sender: TObject);
@@ -683,136 +638,130 @@ begin
   end;
 end;
 
-function TForm1.ExecAndWait(Filename, Params: string): Boolean;
-var
-  SA: TSecurityAttributes;
-  SI: TStartupInfoA;
-  PI: TProcessInformation;
-  StdOutPipeRead, StdOutPipeWrite: THandle;
-  WasOK: Boolean;
-  Buffer: array[0..255] of AnsiChar;
-  BytesRead: Cardinal;
-  Handle:Boolean;
-  ProcessExitCode : DWORD;
-  ReadLine : AnsiString;
-begin
-  Result := false;
-
-  SA.nLength := SizeOf(SA);
-  SA.bInheritHandle := True;
-  SA.lpSecurityDescriptor := nil;
-
-  CreatePipe(StdOutPipeRead, StdOutPipeWrite, @SA, 0);
-  try
-
-    FillChar(SI, SizeOf(SI), 0);
-    SI.cb := SizeOf(SI);
-    SI.dwFlags := STARTF_USESHOWWINDOW or STARTF_USESTDHANDLES;
-    SI.wShowWindow := SW_HIDE;
-    SI.hStdInput := GetStdHandle(STD_INPUT_HANDLE); // don't redirect stdin
-    SI.hStdOutput := StdOutPipeWrite;
-    SI.hStdError := StdOutPipeWrite;
-
-    Handle := CreateProcessA(nil, PAnsiChar(AnsiString(Filename+ ' ' + Params)),
-                            nil, nil, True, 0, nil,
-                            PAnsiChar(AnsiString(ExtractFileDir(Application.ExeName))), SI, PI);
-    CloseHandle(StdOutPipeWrite);
-    if Handle then
-      try
-        repeat
-          WasOK := ReadFile(StdOutPipeRead, Buffer, 255, BytesRead, nil);
-          if BytesRead > 0 then
-          begin
-            ReadLine := Copy(Buffer,0,BytesRead);
-            Memo3.Lines.add(Trim(String(ReadLine)));
-          end;
-        until not WasOK or (BytesRead = 0);
-        WaitForSingleObject(PI.hProcess, INFINITE);
-        Result := GetExitCodeProcess(pi.hProcess, ProcessExitCode);
-        if Result then
-          Result := ProcessExitCode = 0;
-      finally
-        CloseHandle(PI.hThread);
-        CloseHandle(PI.hProcess);
-      end;
-  finally
-    CloseHandle(StdOutPipeRead);
-  end;
-end;
-
-procedure TForm1.FormCreate(Sender: TObject);
-begin
-  toolsPath := ExtractFileDir(Application.ExeName);
-  toolsPath := ExtractFileDir(toolsPath);
-  toolsPath := ExtractFileDir(toolsPath);
-  toolsPath := ExtractFileDir(toolsPath)+PathDelim+'Tools'+PathDelim;
-end;
-
 procedure TForm1.Generate122(inv: TInvoice);
 var
-  hstr : String;
+  xml,cmdoutput,xmlresult,htmlresult : String;
   Doc : Variant;
 begin
-  if rbFormat.itemindex = 0 then
-  begin
-    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_122,hstr);
-    TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_122,ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml');
-    if FileExists(toolsPath+'validator\validationtool-1.4.0-java8-standalone.jar') then
-    begin
-      ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\validationtool-1.4.0-java8-standalone.jar -s '+toolsPath+'validator-configuration-122\scenarios.xml -h '+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml');
-      WebBrowser1.Navigate2('file:\\\'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122-report.html');
-    end else
-    begin
-      Doc := WebBrowser1.Document;
-      Doc.Clear;
-      Doc.Write('<html><body>Validation Tool nicht installiert. Siehe Verzeichnis ./Tools/Read.Me</body></html>');
-      Doc.Close;
-    end;
-    Memo1.Lines.Text := hstr;
-    btX122ConvertHTML.Visible := FileExists(ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml');
-  end;
+  Memo3.Clear;
+  if rbFormat.itemindex <> 0 then
+    exit;
+
+  TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_122,xml);
+
+  GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+      .SetValidatorLibPath(ValidatorLibPath)
+      .SetValidatorConfigurationPath(ValidatorConfiguration122Path)
+      .Validate(xml,cmdoutput,xmlresult,htmlresult);
+
+  Doc := WebBrowser1.Document;
+  Doc.Clear;
+  if htmlresult <> '' then
+    Doc.Write(htmlresult)
+  else
+    Doc.Write('<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>');
+  Doc.Close;
+
+  Memo1.Lines.Text := xml;
+  btX122ConvertHTML.Visible := true;
 end;
 
 procedure TForm1.Generate200(inv: TInvoice);
 var
-  hstr : String;
+  xml,cmdoutput,xmlresult,htmlresult : String;
   Doc : Variant;
 begin
+  Memo3.Clear;
   if rbFormat.itemindex = 0 then
   begin
-    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_200_UBL,hstr);
-    TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_200_UBL,ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml');
-    if FileExists(toolsPath+'validator\validationtool-1.4.0-java8-standalone.jar') then
-    begin
-      ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\validationtool-1.4.0-java8-standalone.jar -s '+toolsPath+'validator-configuration-200\scenarios.xml -h '+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml');
-      WebBrowser2.Navigate2('file:\\\'+ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200-report.html');
-    end else
-    begin
-      Doc := WebBrowser2.Document;
-      Doc.Clear;
-      Doc.Write('<html><body>Validation Tool nicht installiert. Siehe Verzeichnis ./Tools/Read.Me</body></html>');
-      Doc.Close;
-    end;
-    Memo2.Lines.Text := hstr;
-    btX200ConvertHTML.Visible := FileExists(ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml');
-  end else
+    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_200_UBL,xml);
+
+    GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+        .SetValidatorLibPath(ValidatorLibPath)
+        .SetValidatorConfigurationPath(ValidatorConfiguration200Path)
+        .Validate(xml,cmdoutput,xmlresult,htmlresult);
+
+    Memo3.Lines.Text := cmdoutput;
+
+    Doc := WebBrowser2.Document;
+    Doc.Clear;
+    if htmlresult <> '' then
+      Doc.Write(htmlresult)
+    else
+      Doc.Write('<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>');
+    Doc.Close;
+
+    Memo2.Lines.Text := xml;
+    btX200ConvertHTML.Visible := true;
+  end
+  else
   begin
-    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_200_UNCEFACT,hstr);
-    TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_200_UNCEFACT,ExtractFilePath(Application.ExeName)+'XRechnung-UNCEFACT.xml');
-    if FileExists(toolsPath+'validator\validationtool-1.4.0-java8-standalone.jar') then
-    begin
-      ExecAndWait(toolsPath+'jre\jdk8u265-b01-jre\bin\java','-jar '+toolsPath+'validator\validationtool-1.4.0-java8-standalone.jar -s '+toolsPath+'validator-configuration-200\scenarios.xml -h '+ExtractFilePath(Application.ExeName)+'XRechnung-UNCEFACT.xml');
-      WebBrowser2.Navigate2('file:\\\'+ExtractFilePath(Application.ExeName)+'XRechnung-UNCEFACT-report.html');
-    end else
-    begin
-      Doc := WebBrowser2.Document;
-      Doc.Clear;
-      Doc.Write('<html><body>Validation Tool nicht installiert. Siehe Verzeichnis ./Tools/Read.Me</body></html>');
-      Doc.Close;
-    end;
-    Memo2.Lines.Text := hstr;
-    btX200ConvertHTML.Visible := FileExists(ExtractFilePath(Application.ExeName)+'XRechnung-UNCEFACT.xml');
+    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_200_UNCEFACT,xml);
+
+    GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+        .SetValidatorLibPath(ValidatorLibPath)
+        .SetValidatorConfigurationPath(ValidatorConfiguration200Path)
+        .Validate(xml,cmdoutput,xmlresult,htmlresult);
+
+    Memo3.Lines.Text := cmdoutput;
+
+    Doc := WebBrowser2.Document;
+    Doc.Clear;
+    if htmlresult <> '' then
+      Doc.Write(htmlresult)
+    else
+      Doc.Write('<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>');
+    Doc.Close;
+
+    Memo2.Lines.Text := xml;
+    btX200ConvertHTML.Visible := true;
   end;
+end;
+
+procedure TForm1.btX122ConvertHTMLClick(Sender: TObject);
+var
+  xml,cmdoutput,htmlresult : String;
+  Doc : Variant;
+begin
+  xml := Memo1.Lines.Text;
+
+  GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+      .SetValidatorLibPath(ValidatorLibPath)
+      .SetVisualizationLibPath(VisualizationLibPath)
+      .Visualize(xml,true,cmdoutput,htmlresult);
+
+  Memo3.Lines.Text := cmdoutput;
+
+  Doc := WebBrowser1.Document;
+  Doc.Clear;
+  if htmlresult <> '' then
+    Doc.Write(htmlresult)
+  else
+    Doc.Write('<html><body>Visualisierung nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>');
+  Doc.Close;
+end;
+
+procedure TForm1.btX200ConvertHTMLClick(Sender: TObject);
+var
+  xml,cmdoutput,htmlresult : String;
+  Doc : Variant;
+begin
+  xml := Memo2.Lines.Text;
+
+  GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+      .SetValidatorLibPath(ValidatorLibPath)
+      .SetVisualizationLibPath(VisualizationLibPath)
+      .Visualize(xml,rbFormat.itemindex=0,cmdoutput,htmlresult);
+
+  Memo3.Lines.Text := cmdoutput;
+
+  Doc := WebBrowser2.Document;
+  Doc.Clear;
+  if htmlresult <> '' then
+    Doc.Write(htmlresult)
+  else
+    Doc.Write('<html><body>Visualisierung nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>');
+  Doc.Close;
 end;
 
 end.

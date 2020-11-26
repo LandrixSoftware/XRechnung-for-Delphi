@@ -30,13 +30,11 @@ Dokumentation
 Samples/Win32
 Samples/Win64
 SaxonHE-Unmanaged
-Tools/openxrechnungtoolbox
-Tools/validator
-Tools/validator-configuration-122
-Tools/validator-configuration-200
-Tools/jre
-Tools/visualization
-Tools/saxon
+Distribution/validator
+Distribution/validator-configuration-122
+Distribution/validator-configuration-200
+Distribution/visualization
+Distribution/java
 Schema
 
 # Delphi compiler-generated binaries (safe to delete)

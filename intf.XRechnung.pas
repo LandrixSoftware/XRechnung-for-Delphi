@@ -88,15 +88,88 @@ type
     class procedure SaveDocument(_Invoice: TInvoice;_Version : TXRechnungVersion; _Xml : IXMLDocument);
     class procedure SaveDocumentUNCEFACT(_Invoice: TInvoice;_Xml : IXMLDocument);
     class procedure SaveDocumentUBL(_Invoice: TInvoice;_Version : TXRechnungVersion; _Xml : IXMLDocument);
+    class function LoadDocumentUNCEFACT(_Invoice: TInvoice;_Xml : IXMLDocument; out _Error : String) : Boolean;
+    class function LoadDocumentUBL(_Invoice: TInvoice;_Version : TXRechnungVersion; _Xml : IXMLDocument; out _Error : String) : Boolean;
   public
     class procedure SaveToStream(_Invoice : TInvoice; _Version : TXRechnungVersion; _Stream : TStream);
     class procedure SaveToFile(_Invoice : TInvoice; _Version : TXRechnungVersion; const _Filename : String);
     class procedure SaveToXMLStr(_Invoice : TInvoice; _Version : TXRechnungVersion; out _XML : String);
+    class function LoadFromStream(_Invoice : TInvoice; _Stream : TStream; out _Error : String) : Boolean;
+    class function LoadFromFile(_Invoice : TInvoice; const _Filename : String; out _Error : String) : Boolean;
+    class function LoadFromXMLStr(_Invoice : TInvoice; const _XML : String; out _Error : String) : Boolean;
   end;
 
 implementation
 
 //{$R intf.XRechnungSchema.res}
+
+type
+  TXpathHelper = class
+  public
+    class function SelectNode(xnRoot: IXmlNode; const nodePath: String): IXmlNode;
+    class function SelectNodes(xnRoot: IXmlNode; const nodePath: String): IXMLNodeList;
+  end;
+
+class function TXPathHelper.SelectNodes(xnRoot: IXmlNode; const nodePath: String): IXMLNodeList;
+var
+  intfSelect: IDomNodeSelect;
+  intfAccess: IXmlNodeAccess;
+  dnlResult: IDomNodeList;
+  intfDocAccess: IXmlDocumentAccess;
+  doc: TXmlDocument;
+  i: Integer;
+  dn: IDomNode;
+begin
+  Result := nil;
+
+  if not Assigned(xnRoot) then
+    exit;
+  if not Supports(xnRoot, IXmlNodeAccess, intfAccess)
+     or not Supports(xnRoot.DOMNode, IDomNodeSelect, intfSelect) then
+    exit;
+
+  dnlResult := intfSelect.SelectNodes(nodePath);
+  if Assigned(dnlResult) then
+  begin
+     Result := TXmlNodeList.Create(intfAccess.GetNodeObject, '', nil);
+
+     if Supports(xnRoot.OwnerDocument, IXmlDocumentAccess, intfDocAccess) then
+       doc := intfDocAccess.DocumentObject
+     else
+       doc := nil;
+
+     for i := 0 to dnlResult.length - 1 do
+     begin
+       dn := dnlResult.item[i];
+       Result.Add(TXmlNode.Create(dn, nil, doc));
+     end;
+  end;
+end;
+
+class function TXPathHelper.SelectNode(xnRoot: IXmlNode; const nodePath: String): IXmlNode;
+var
+  intfSelect : IDomNodeSelect;
+  dnResult : IDomNode;
+  intfDocAccess : IXmlDocumentAccess;
+  doc: TXmlDocument;
+begin
+  Result := nil;
+  if not Assigned(xnRoot) then
+    exit;
+  if not Supports(xnRoot.DOMNode, IDomNodeSelect, intfSelect) then
+    exit;
+
+  dnResult := intfSelect.selectNode(nodePath);
+
+  if Assigned(dnResult) then
+  begin
+    if Supports(xnRoot.OwnerDocument, IXmlDocumentAccess, intfDocAccess) then
+      doc := intfDocAccess.DocumentObject
+    else
+      doc := nil;
+    Result := TXmlNode.Create(dnResult, nil, doc);
+  end;
+end;
 
 { TXRechnungInvoiceAdapter }
 
@@ -149,6 +222,109 @@ begin
   try
     TXRechnungInvoiceAdapter.SaveDocument(_Invoice,_Version,xml);
     xml.SaveToFile(_Filename);
+  finally
+    xml := nil;
+  end;
+end;
+
+class function TXRechnungInvoiceAdapter.LoadDocumentUBL(_Invoice: TInvoice;
+  _Version: TXRechnungVersion; _Xml: IXMLDocument; out _Error : String) : Boolean;
+begin
+  Result := false;
+  _Error := '';
+  try
+
+    Result := true;
+  except
+    on E:Exception do _Error := E.ClassName+' '+E.Message;
+  end;
+end;
+
+class function TXRechnungInvoiceAdapter.LoadDocumentUNCEFACT(_Invoice: TInvoice;
+  _Xml: IXMLDocument; out _Error : String) : Boolean;
+begin
+  Result := false;
+  _Error := '';
+  try
+
+    Result := true;
+  except
+    on E:Exception do _Error := E.ClassName+' '+E.Message;
+  end;
+end;
+
+class function TXRechnungInvoiceAdapter.LoadFromFile(_Invoice: TInvoice;
+  const _Filename: String; out _Error : String) : Boolean;
+var
+  xml : IXMLDocument;
+begin
+  Result := false;
+  if _Invoice = nil then
+    exit;
+  if _Filename = '' then
+    exit;
+  if not System.SysUtils.FileExists(_Filename) then
+    exit;
+
+  xml := TXMLDocument.Create(nil);
+  try
+    xml.LoadFromFile(_Filename);
+    case TXRechnungValidationHelper.GetXRechnungVersion(xml) of
+      XRechnungVersion_122          : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_122,xml,_Error);
+      XRechnungVersion_200_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_122,xml,_Error);
+      XRechnungVersion_200_UNCEFACT : Result := LoadDocumentUNCEFACT(_Invoice,xml,_Error);
+      else exit;
+    end;
+  finally
+    xml := nil;
+  end;
+end;
+
+class function TXRechnungInvoiceAdapter.LoadFromStream(_Invoice: TInvoice;
+  _Stream: TStream; out _Error : String) : Boolean;
+var
+  xml : IXMLDocument;
+begin
+  Result := false;
+  if _Invoice = nil then
+    exit;
+  if _Stream = nil then
+    exit;
+
+  xml := TXMLDocument.Create(nil);
+  try
+    xml.LoadFromStream(_Stream);
+    case TXRechnungValidationHelper.GetXRechnungVersion(xml) of
+      XRechnungVersion_122          : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_122,xml,_Error);
+      XRechnungVersion_200_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_122,xml,_Error);
+      XRechnungVersion_200_UNCEFACT : Result := LoadDocumentUNCEFACT(_Invoice,xml,_Error);
+      else exit;
+    end;
+  finally
+    xml := nil;
+  end;
+end;
+
+class function TXRechnungInvoiceAdapter.LoadFromXMLStr(_Invoice: TInvoice;
+  const _XML: String; out _Error : String) : Boolean;
+var
+  xml : IXMLDocument;
+begin
+  Result := false;
+  if _Invoice = nil then
+    exit;
+  if _XML = '' then
+    exit;
+
+  xml := TXMLDocument.Create(nil);
+  try
+    xml.LoadFromXML(_XML);
+    case TXRechnungValidationHelper.GetXRechnungVersion(xml) of
+      XRechnungVersion_122          : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_122,xml,_Error);
+      XRechnungVersion_200_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_122,xml,_Error);
+      XRechnungVersion_200_UNCEFACT : Result := LoadDocumentUNCEFACT(_Invoice,xml,_Error);
+      else exit;
+    end;
   finally
     xml := nil;
   end;

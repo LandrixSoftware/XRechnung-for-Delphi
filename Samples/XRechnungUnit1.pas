@@ -7,7 +7,7 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs,Vcl.StdCtrls,Winapi.ShellApi,Winapi.ShlObj,WinApi.ActiveX
   ,System.IOUtils,System.Win.COMObj,System.UITypes
   ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema
-  ,intf.XRechnung,intf.Invoice, Vcl.OleCtrls, SHDocVw, Vcl.ExtCtrls
+  ,intf.XRechnung, intf.Invoice, Vcl.OleCtrls, SHDocVw, Vcl.ExtCtrls
   ,intf.XRechnungValidationHelperJava
   ;
 

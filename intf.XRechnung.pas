@@ -34,14 +34,6 @@ uses
 //https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/tree/
 
 type
-  TXRechnungXMLHelper = class(TObject)
-  public type
-    TXMLLoadCallback = procedure(Node : IXMLNode) of object;
-  public
-    class procedure LoadFromChilds(const _NodeName : String; _Node : IXMLNode; _Callback : TXMLLoadCallback);
-    class function FindChild(_Node : IXMLNode; const _NodeName : String; out _Result : IXMLNode) : Boolean;
-  end;
-
   TXRechnungHelper = class(TObject)
   public
 //    class function DateFromStr(const _Val : String) : TDateTime;
@@ -104,72 +96,15 @@ implementation
 //{$R intf.XRechnungSchema.res}
 
 type
-  TXpathHelper = class
+  TXRechnungXMLHelper = class(TObject)
+  public type
+    TXMLLoadCallback = procedure(Node : IXMLNode) of object;
   public
-    class function SelectNode(xnRoot: IXmlNode; const nodePath: String): IXmlNode;
-    class function SelectNodes(xnRoot: IXmlNode; const nodePath: String): IXMLNodeList;
+    class procedure LoadFromChilds(const _NodeName : String; _Node : IXMLNode; _Callback : TXMLLoadCallback);
+    class function FindChild(_Node : IXMLNode; const _NodeName : String; out _Result : IXMLNode) : Boolean;
+    class function SelectNode(_XnRoot: IXmlNode; const _NodePath: String; out _Result : IXmlNode): Boolean;
+    class function SelectNodes(_XnRoot: IXmlNode; const _NodePath: String; out _Result : IXmlNodeList): Boolean;
   end;
-
-class function TXPathHelper.SelectNodes(xnRoot: IXmlNode; const nodePath: String): IXMLNodeList;
-var
-  intfSelect: IDomNodeSelect;
-  intfAccess: IXmlNodeAccess;
-  dnlResult: IDomNodeList;
-  intfDocAccess: IXmlDocumentAccess;
-  doc: TXmlDocument;
-  i: Integer;
-  dn: IDomNode;
-begin
-  Result := nil;
-
-  if not Assigned(xnRoot) then
-    exit;
-  if not Supports(xnRoot, IXmlNodeAccess, intfAccess)
-     or not Supports(xnRoot.DOMNode, IDomNodeSelect, intfSelect) then
-    exit;
-
-  dnlResult := intfSelect.SelectNodes(nodePath);
-  if Assigned(dnlResult) then
-  begin
-     Result := TXmlNodeList.Create(intfAccess.GetNodeObject, '', nil);
-
-     if Supports(xnRoot.OwnerDocument, IXmlDocumentAccess, intfDocAccess) then
-       doc := intfDocAccess.DocumentObject
-     else
-       doc := nil;
-
-     for i := 0 to dnlResult.length - 1 do
-     begin
-       dn := dnlResult.item[i];
-       Result.Add(TXmlNode.Create(dn, nil, doc));
-     end;
-  end;
-end;
-
-class function TXPathHelper.SelectNode(xnRoot: IXmlNode; const nodePath: String): IXmlNode;
-var
-  intfSelect : IDomNodeSelect;
-  dnResult : IDomNode;
-  intfDocAccess : IXmlDocumentAccess;
-  doc: TXmlDocument;
-begin
-  Result := nil;
-  if not Assigned(xnRoot) then
-    exit;
-  if not Supports(xnRoot.DOMNode, IDomNodeSelect, intfSelect) then
-    exit;
-
-  dnResult := intfSelect.selectNode(nodePath);
-
-  if Assigned(dnResult) then
-  begin
-    if Supports(xnRoot.OwnerDocument, IXmlDocumentAccess, intfDocAccess) then
-      doc := intfDocAccess.DocumentObject
-    else
-      doc := nil;
-    Result := TXmlNode.Create(dnResult, nil, doc);
-  end;
-end;
 
 { TXRechnungInvoiceAdapter }
 
@@ -606,7 +541,7 @@ begin
     begin
       AddChild('cbc:RegistrationName').Text := _Invoice.AccountingCustomerParty.RegistrationName;
       AddChild('cbc:CompanyID').Text := _Invoice.AccountingCustomerParty.CompanyID;
-      //TODO <cbc:CompanyLegalForm>123/456/7890, HRA-Eintrag in […]</cbc:CompanyLegalForm>
+      //TODO <cbc:CompanyLegalForm>123/456/7890, HRA-Eintrag in [ï¿½]</cbc:CompanyLegalForm>
     end;
     with AddChild('cac:Contact') do
     begin
@@ -933,8 +868,8 @@ begin
         if _Invoice.AccountingSupplierParty.IdentifierSellerBuyer <> '' then
           AddChild('ram:ID').Text := _Invoice.AccountingSupplierParty.IdentifierSellerBuyer;
         AddChild('ram:Name').Text := _Invoice.AccountingSupplierParty.RegistrationName;
-        //TODO <ram:Description>123/456/7890, HRA-Eintrag in […]</ram:Description>
-        //<cbc:CompanyLegalForm>123/456/7890, HRA-Eintrag in […]</cbc:CompanyLegalForm>
+        //TODO <ram:Description>123/456/7890, HRA-Eintrag in [ï¿½]</ram:Description>
+        //<cbc:CompanyLegalForm>123/456/7890, HRA-Eintrag in [ï¿½]</cbc:CompanyLegalForm>
         with AddChild('ram:SpecifiedLegalOrganization') do
         begin
           AddChild('ram:ID').Text := _Invoice.AccountingSupplierParty.CompanyID;
@@ -1188,6 +1123,73 @@ begin
 end;
 
 { TXRechnungXMLHelper }
+
+class function TXRechnungXMLHelper.SelectNodes(_XnRoot: IXmlNode;
+  const _NodePath: String; out _Result : IXmlNodeList): Boolean;
+var
+  intfSelect: IDomNodeSelect;
+  intfAccess: IXmlNodeAccess;
+  dnlResult: IDomNodeList;
+  intfDocAccess: IXmlDocumentAccess;
+  doc: TXmlDocument;
+  i: Integer;
+  dn: IDomNode;
+begin
+  Result := false;
+  _Result := nil;
+
+  if not Assigned(_XnRoot) then
+    exit;
+  if not Supports(_XnRoot, IXmlNodeAccess, intfAccess)
+     or not Supports(_XnRoot.DOMNode, IDomNodeSelect, intfSelect) then
+    exit;
+
+  dnlResult := intfSelect.SelectNodes(_NodePath);
+  if Assigned(dnlResult) then
+  begin
+     _Result := TXmlNodeList.Create(intfAccess.GetNodeObject, '', nil);
+     Result := true;
+
+     if Supports(_XnRoot.OwnerDocument, IXmlDocumentAccess, intfDocAccess) then
+       doc := intfDocAccess.DocumentObject
+     else
+       doc := nil;
+
+     for i := 0 to dnlResult.length - 1 do
+     begin
+       dn := dnlResult.item[i];
+       _Result.Add(TXmlNode.Create(dn, nil, doc));
+     end;
+  end;
+end;
+
+class function TXRechnungXMLHelper.SelectNode(_XnRoot: IXmlNode;
+  const _NodePath: String; out _Result : IXmlNode): Boolean;
+var
+  intfSelect : IDomNodeSelect;
+  dnResult : IDomNode;
+  intfDocAccess : IXmlDocumentAccess;
+  doc: TXmlDocument;
+begin
+  Result := false;
+  _Result := nil;
+  if not Assigned(_XnRoot) then
+    exit;
+  if not Supports(_XnRoot.DOMNode, IDomNodeSelect, intfSelect) then
+    exit;
+
+  dnResult := intfSelect.selectNode(_NodePath);
+
+  if Assigned(dnResult) then
+  begin
+    if Supports(_XnRoot.OwnerDocument, IXmlDocumentAccess, intfDocAccess) then
+      doc := intfDocAccess.DocumentObject
+    else
+      doc := nil;
+    _Result := TXmlNode.Create(dnResult, nil, doc);
+    Result := true;
+  end;
+end;
 
 class function TXRechnungXMLHelper.FindChild(_Node: IXMLNode; const _NodeName: String;
   out _Result: IXMLNode): Boolean;

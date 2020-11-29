@@ -1,4 +1,4 @@
-{
+﻿{
 License XRechnung-for-Delphi
 
 Copyright (C) 2020 Landrix Software GmbH & Co. KG
@@ -26,7 +26,7 @@ interface
 uses
   System.SysUtils,System.Classes,System.Types,System.DateUtils,System.Rtti
   ,System.Variants,System.StrUtils,System.Generics.Collections
-  ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema//,intf.MSXML2_TLB
+  ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema,intf.MSXML2_TLB
   {$IFDEF USE_OXMLDomVendor},OXmlDOMVendor{$ENDIF}
   ,intf.Invoice
   ;
@@ -36,7 +36,8 @@ uses
 type
   TXRechnungHelper = class(TObject)
   public
-//    class function DateFromStr(const _Val : String) : TDateTime;
+    class function DateFromStrUBLFormat(const _Val : String) : TDateTime;
+    class function DateFromStrUNCEFACTFormat(const _Val : String) : TDateTime;
     class function DateToStrUBLFormat(const _Val : TDateTime) : String;
     class function DateToStrUNCEFACTFormat(const _Val : TDateTime) : String;
 //    class function StrToCurr(_Val : String) : Currency;
@@ -47,6 +48,7 @@ type
     class function PercentageToStr(_Val : double) : String;
     class function QuantityToStr(_Val : double) : String;
     class function InvoiceTypeCodeToStr(_Val : TInvoiceTypeCode) : String;
+    class function InvoiceTypeCodeFromStr(const _Val : String) : TInvoiceTypeCode;
     class function InvoicePaymentMeansCodeToStr(_Val : TInvoicePaymentMeansCode) : String;
     class function InvoiceUnitCodeToStr(_Val : TInvoiceUnitCode) : String;   //mehr Konvertierungen in Res\intf.XRechnung.unusedUnits.pas
     class function InvoiceAllowanceOrChargeIdentCodeToStr(_Val : TInvoiceAllowanceOrChargeIdentCode) : String;
@@ -102,8 +104,10 @@ type
   public
     class procedure LoadFromChilds(const _NodeName : String; _Node : IXMLNode; _Callback : TXMLLoadCallback);
     class function FindChild(_Node : IXMLNode; const _NodeName : String; out _Result : IXMLNode) : Boolean;
-    class function SelectNode(_XnRoot: IXmlNode; const _NodePath: String; out _Result : IXmlNode): Boolean;
-    class function SelectNodes(_XnRoot: IXmlNode; const _NodePath: String; out _Result : IXmlNodeList): Boolean;
+    class function SelectNode(_XnRoot: IXMLDOMNode; const _NodePath: String; out _Result : IXMLDOMNode): Boolean;
+    class function SelectNodes(_XnRoot: IXMLDOMNode; const _NodePath: String; out _Result : IXMLDOMNodeList): Boolean;
+    class function SelectNodeText(_XnRoot: IXMLDOMNode; const _NodePath: String): String;
+    class function PrepareDocumentForXPathQuerys(_Xml : IXMLDocument) : IXMLDOMDocument2;
   end;
 
 { TXRechnungInvoiceAdapter }
@@ -164,10 +168,339 @@ end;
 
 class function TXRechnungInvoiceAdapter.LoadDocumentUBL(_Invoice: TInvoice;
   _Version: TXRechnungVersion; _Xml: IXMLDocument; out _Error : String) : Boolean;
+var
+  xml : IXMLDOMDocument2;
+  node : IXMLDOMNode;
 begin
   Result := false;
   _Error := '';
   try
+    xml := TXRechnungXMLHelper.PrepareDocumentForXPathQuerys(_Xml);
+    if TXRechnungXMLHelper.SelectNode(xml,'//cbc:ID',node) then
+      _Invoice.InvoiceNumber := node.Text;
+    if TXRechnungXMLHelper.SelectNode(xml,'//cbc:IssueDate',node) then
+      _Invoice.InvoiceIssueDate := TXRechnungHelper.DateFromStrUBLFormat(node.Text);
+    if TXRechnungXMLHelper.SelectNode(xml,'//cbc:DueDate',node) then
+      _Invoice.InvoiceDueDate := TXRechnungHelper.DateFromStrUBLFormat(node.Text);
+    if TXRechnungXMLHelper.SelectNode(xml,'//cbc:InvoiceTypeCode',node) then
+      _Invoice.InvoiceTypeCode := TXRechnungHelper.InvoiceTypeCodeFromStr(node.Text);
+    if TXRechnungXMLHelper.SelectNode(xml,'//cbc:Note',node) then
+      _Invoice.Note := node.Text;
+    if TXRechnungXMLHelper.SelectNode(xml,'//cbc:DocumentCurrencyCode',node) then
+      _Invoice.InvoiceCurrencyCode := node.Text;
+    if TXRechnungXMLHelper.SelectNode(xml,'//cbc:TaxCurrencyCode',node) then
+      _Invoice.TaxCurrencyCode := node.Text;
+    if TXRechnungXMLHelper.SelectNode(xml,'//cbc:BuyerReference',node) then
+      _Invoice.BuyerReference := node.Text;
+    if TXRechnungXMLHelper.SelectNode(xml,'//cac:InvoicePeriod',node) then
+    begin
+      _Invoice.InvoicePeriodStartDate := TXRechnungHelper.DateFromStrUBLFormat(TXRechnungXMLHelper.SelectNodeText(node,'//cbc:StartDate'));
+      _Invoice.InvoicePeriodEndDate := TXRechnungHelper.DateFromStrUBLFormat(TXRechnungXMLHelper.SelectNodeText(node,'//cbc:EndDate'));
+    end;
+    if TXRechnungXMLHelper.SelectNode(xml,'//cac:OrderReference/cbc:ID',node) then
+      _Invoice.PurchaseOrderReference := node.Text;
+
+//  for precedingInvoiceReference in _Invoice.PrecedingInvoiceReferences do
+//  with xRoot.AddChild('cac:BillingReference').AddChild('cac:InvoiceDocumentReference') do
+//  begin
+//    AddChild('cbc:ID').Text := precedingInvoiceReference.ID;
+//    AddChild('cbc:IssueDate').Text := TXRechnungHelper.DateToStrUBLFormat(precedingInvoiceReference.IssueDate);
+//  end;
+//
+//  for i := 0 to _Invoice.Attachments.Count -1 do
+//  begin
+//    if _Invoice.Attachments[i].AttachmentType = TInvoiceAttachmentType.iat_application_xml then
+//    if _Version = XRechnungVersion_122 then
+//      continue; //xml attachment not allowed in v1.2.2');
+//
+//    with xRoot.AddChild('cac:AdditionalDocumentReference') do
+//    begin
+//      AddChild('cbc:ID').Text := _Invoice.Attachments[i].ID;
+//      if _Invoice.Attachments[i].DocumentDescription <> '' then
+//        AddChild('cbc:DocumentDescription').Text := _Invoice.Attachments[i].DocumentDescription;
+//      with AddChild('cac:Attachment') do
+//      begin
+//        if _Invoice.Attachments[i].ExternalReference <> '' then
+//        begin
+//          AddChild('cac:ExternalReference').AddChild('cbc:URI').Text := _Invoice.Attachments[i].ExternalReference;
+//        end else
+//        with AddChild('cbc:EmbeddedDocumentBinaryObject') do
+//        begin
+//          Attributes['mimeCode'] := TXRechnungHelper.InvoiceAttachmentTypeToStr(_Invoice.Attachments[i].AttachmentType);
+//          Attributes['filename'] := _Invoice.Attachments[i].Filename;
+//          Text := _Invoice.Attachments[i].GetDataAsBase64;
+//        end;
+//      end;
+//    end;
+//  end;
+//
+//  with xRoot.AddChild('cac:AccountingSupplierParty').AddChild('cac:Party') do
+//  begin
+//    if _Invoice.AccountingSupplierParty.IdentifierSellerBuyer <> '' then
+//    with AddChild('cac:PartyIdentification') do
+//    begin
+//      AddChild('cbc:ID').Text := _Invoice.AccountingSupplierParty.IdentifierSellerBuyer;
+//    end;
+//    with AddChild('cac:PartyName') do
+//    begin
+//      AddChild('cbc:Name').Text := _Invoice.AccountingSupplierParty.Name;
+//    end;
+//    with AddChild('cac:PostalAddress') do
+//    begin
+//      AddChild('cbc:StreetName').Text := _Invoice.AccountingSupplierParty.Address.StreetName;
+//      if _Invoice.AccountingSupplierParty.Address.AdditionalStreetName <> '' then
+//        AddChild('cbc:AdditionalStreetName').Text := _Invoice.AccountingSupplierParty.Address.AdditionalStreetName;
+//      AddChild('cbc:CityName').Text := _Invoice.AccountingSupplierParty.Address.City;
+//      AddChild('cbc:PostalZone').Text := _Invoice.AccountingSupplierParty.Address.PostalZone;
+//      if _Invoice.AccountingSupplierParty.Address.CountrySubentity <> '' then
+//        AddChild('cbc:CountrySubentity').Text := _Invoice.AccountingSupplierParty.Address.CountrySubentity;
+//      if _Invoice.AccountingSupplierParty.Address.AddressLine <> '' then
+//        AddChild('cac:AddressLine').AddChild('cbc:Line').Text := _Invoice.AccountingSupplierParty.Address.AddressLine;
+//      AddChild('cac:Country').AddChild('cbc:IdentificationCode').Text := _Invoice.AccountingSupplierParty.Address.CountryCode;
+//    end;
+//    if _Invoice.AccountingSupplierParty.VATCompanyID <> '' then
+//    with AddChild('cac:PartyTaxScheme') do
+//    begin
+//      AddChild('cbc:CompanyID').Text := _Invoice.AccountingSupplierParty.VATCompanyID;
+//      AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
+//    end;
+//    with AddChild('cac:PartyLegalEntity') do
+//    begin
+//      AddChild('cbc:RegistrationName').Text := _Invoice.AccountingSupplierParty.RegistrationName;
+//      AddChild('cbc:CompanyID').Text := _Invoice.AccountingSupplierParty.CompanyID;
+//    end;
+//    with AddChild('cac:Contact') do
+//    begin
+//      AddChild('cbc:Name').Text := _Invoice.AccountingSupplierParty.ContactName;
+//      AddChild('cbc:Telephone').Text := _Invoice.AccountingSupplierParty.ContactTelephone;
+//      AddChild('cbc:ElectronicMail').Text := _Invoice.AccountingSupplierParty.ContactElectronicMail;
+//    end;
+//  end;
+//
+//  with xRoot.AddChild('cac:AccountingCustomerParty').AddChild('cac:Party') do
+//  begin
+//    if _Invoice.AccountingCustomerParty.IdentifierSellerBuyer <> '' then
+//    with AddChild('cac:PartyIdentification') do
+//    begin
+//      AddChild('cbc:ID').Text := _Invoice.AccountingCustomerParty.IdentifierSellerBuyer;
+//    end;
+//    with AddChild('cac:PartyName') do
+//    begin
+//      AddChild('cbc:Name').Text := _Invoice.AccountingCustomerParty.Name;
+//    end;
+//    with AddChild('cac:PostalAddress') do
+//    begin
+//      AddChild('cbc:StreetName').Text := _Invoice.AccountingCustomerParty.Address.StreetName;
+//      if _Invoice.AccountingCustomerParty.Address.AdditionalStreetName <> '' then
+//        AddChild('cbc:AdditionalStreetName').Text := _Invoice.AccountingCustomerParty.Address.AdditionalStreetName;
+//      AddChild('cbc:CityName').Text := _Invoice.AccountingCustomerParty.Address.City;
+//      AddChild('cbc:PostalZone').Text := _Invoice.AccountingCustomerParty.Address.PostalZone;
+//      if _Invoice.AccountingCustomerParty.Address.CountrySubentity <> '' then
+//        AddChild('cbc:CountrySubentity').Text := _Invoice.AccountingCustomerParty.Address.CountrySubentity;
+//      if _Invoice.AccountingCustomerParty.Address.AddressLine <> '' then
+//        AddChild('cac:AddressLine').AddChild('cbc:Line').Text := _Invoice.AccountingCustomerParty.Address.AddressLine;
+//      AddChild('cac:Country').AddChild('cbc:IdentificationCode').Text := _Invoice.AccountingCustomerParty.Address.CountryCode;
+//    end;
+//    if _Invoice.AccountingCustomerParty.VATCompanyID <> '' then
+//    with AddChild('cac:PartyTaxScheme') do
+//    begin
+//      AddChild('cbc:CompanyID').Text := _Invoice.AccountingCustomerParty.VATCompanyID;
+//      AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
+//    end;
+//    with AddChild('cac:PartyLegalEntity') do
+//    begin
+//      AddChild('cbc:RegistrationName').Text := _Invoice.AccountingCustomerParty.RegistrationName;
+//      AddChild('cbc:CompanyID').Text := _Invoice.AccountingCustomerParty.CompanyID;
+//      //TODO <cbc:CompanyLegalForm>123/456/7890, HRA-Eintrag in [�]</cbc:CompanyLegalForm>
+//    end;
+//    with AddChild('cac:Contact') do
+//    begin
+//      AddChild('cbc:Name').Text := _Invoice.AccountingCustomerParty.ContactName;
+//      AddChild('cbc:Telephone').Text := _Invoice.AccountingCustomerParty.ContactTelephone;
+//      AddChild('cbc:ElectronicMail').Text := _Invoice.AccountingCustomerParty.ContactElectronicMail;
+//    end;
+//  end;
+//
+//  if (_Invoice.DeliveryInformation.ActualDeliveryDate > 0) or
+//     (_Invoice.DeliveryInformation.Address.CountryCode <> '') or
+//     (_Invoice.DeliveryInformation.Name <> '') then
+//  with xRoot.AddChild('cac:Delivery') do
+//  begin
+//    if (_Invoice.DeliveryInformation.ActualDeliveryDate > 0) then
+//      AddChild('cbc:ActualDeliveryDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.DeliveryInformation.ActualDeliveryDate);
+//    with AddChild('cac:DeliveryLocation') do
+//    begin
+//      //if (_Invoice.DeliveryInformation.LocationIdentifier <> '') then
+//      //  AddChild('cbc:ID').Text := _Invoice.DeliveryInformation.LocationIdentifier; //TODO schemeID https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/cac-Delivery/cac-DeliveryLocation/cbc-ID/
+//      with AddChild('cac:Address') do
+//      begin
+//        AddChild('cbc:StreetName').Text := _Invoice.DeliveryInformation.Address.StreetName;
+//        if _Invoice.DeliveryInformation.Address.AdditionalStreetName <> '' then
+//          AddChild('cbc:AdditionalStreetName').Text := _Invoice.DeliveryInformation.Address.AdditionalStreetName;
+//        AddChild('cbc:CityName').Text := _Invoice.DeliveryInformation.Address.City;
+//        AddChild('cbc:PostalZone').Text := _Invoice.DeliveryInformation.Address.PostalZone;
+//        if _Invoice.DeliveryInformation.Address.CountrySubentity <> '' then
+//          AddChild('cbc:CountrySubentity').Text := _Invoice.DeliveryInformation.Address.CountrySubentity;
+//        if _Invoice.DeliveryInformation.Address.AddressLine <> '' then
+//          AddChild('cac:AddressLine').AddChild('cbc:Line').Text := _Invoice.DeliveryInformation.Address.AddressLine;
+//        AddChild('cac:Country').AddChild('cbc:IdentificationCode').Text := _Invoice.DeliveryInformation.Address.CountryCode;
+//      end;
+//    end;
+//    if (_Invoice.DeliveryInformation.Name <> '') then
+//      AddChild('cac:DeliveryParty').AddChild('cac:PartyName').AddChild('cbc:Name').Text := _Invoice.DeliveryInformation.Name;
+//  end;
+//
+//  if (_Invoice.PaymentMeansCode <> ipmc_None) and (_Invoice.PayeeFinancialAccount <> '') then
+//  with xRoot.AddChild('cac:PaymentMeans') do
+//  begin
+//    AddChild('cbc:PaymentMeansCode').Text := TXRechnungHelper.InvoicePaymentMeansCodeToStr(_Invoice.PaymentMeansCode);
+//    if _Invoice.PaymentID <> '' then
+//      AddChild('cbc:PaymentID').Text := _Invoice.PaymentID;
+//    with AddChild('cac:PayeeFinancialAccount') do
+//    begin
+//      AddChild('cbc:ID').Text := _Invoice.PayeeFinancialAccount;
+//      if _Invoice.PayeeFinancialAccountName <> '' then
+//        AddChild('cbc:Name').Text := _Invoice.PayeeFinancialAccountName;
+//      if _Invoice.PayeeFinancialInstitutionBranch <> '' then
+//        AddChild('cac:FinancialInstitutionBranch').AddChild('cbc:ID').Text := _Invoice.PayeeFinancialInstitutionBranch;
+//    end;
+//  end;
+//
+//  case _Invoice.PaymentTermsType of
+//    iptt_Net:
+//      with xRoot.AddChild('cac:PaymentTerms') do
+//      begin
+//        AddChild('cbc:Note').Text := System.StrUtils.ReplaceText(_Invoice.PaymentTermNetNote,'#',' ');
+//      end;
+//    iptt_CashDiscount1:
+//      with xRoot.AddChild('cac:PaymentTerms') do
+//      begin
+//        AddChild('cbc:Note').Text := Format('#SKONTO#TAGE=%d#PROZENT=%s#',
+//          [_Invoice.PaymentTermCashDiscount1Days,
+//           TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount1Percent)])+
+//          IfThen(_Invoice.PaymentTermCashDiscount1Base <> 0,'BASISBETRAG='+
+//            TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount1Base)+'#','');
+//      end;
+//    iptt_CashDiscount2:
+//    begin
+//      with xRoot.AddChild('cac:PaymentTerms') do
+//      begin
+//        AddChild('cbc:Note').Text := Format('#SKONTO#TAGE=%d#PROZENT=%s#',
+//          [_Invoice.PaymentTermCashDiscount1Days,
+//           TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount1Percent)])+
+//          IfThen(_Invoice.PaymentTermCashDiscount1Base <> 0,'BASISBETRAG='+
+//            TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount1Base)+'#','')+
+//          #13#10+
+//          Format('#SKONTO#TAGE=%d#PROZENT=%s#',
+//          [_Invoice.PaymentTermCashDiscount2Days,
+//           TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount2Percent)])+
+//          IfThen(_Invoice.PaymentTermCashDiscount2Base <> 0,'BASISBETRAG='+
+//            TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount2Base)+'#','');
+//      end;
+//    end;
+//  end;
+//
+//  for allowanceCharge in _Invoice.AllowanceCharges do
+//  with xRoot.AddChild('cac:AllowanceCharge') do
+//  begin
+//    AddChild('cbc:ChargeIndicator').Text := LowerCase(BoolToStr(allowanceCharge.ChargeIndicator,true));
+//    AddChild('cbc:AllowanceChargeReasonCode').Text :=
+//             IfThen(allowanceCharge.ChargeIndicator,
+//             TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(allowanceCharge.ReasonCodeCharge),
+//             TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(allowanceCharge.ReasonCodeAllowance));
+//    AddChild('cbc:AllowanceChargeReason').Text := allowanceCharge.Reason;
+//    AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
+//    with AddChild('cbc:Amount') do
+//    begin
+//      Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+//      Text := TXRechnungHelper.AmountToStr(allowanceCharge.Amount);
+//    end;
+//    with AddChild('cbc:BaseAmount') do
+//    begin
+//      Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+//      Text := TXRechnungHelper.AmountToStr(allowanceCharge.BaseAmount);
+//    end;
+//    with AddChild('cac:TaxCategory') do
+//    begin
+//      AddChild('cbc:ID').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(allowanceCharge.TaxCategory);
+//      AddChild('cbc:Percent').Text := TXRechnungHelper.PercentageToStr(allowanceCharge.TaxPercent);
+//      AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
+//    end;
+//  end;
+//
+//  with xRoot.AddChild('cac:TaxTotal') do
+//  begin
+//    with AddChild('cbc:TaxAmount') do
+//    begin
+//      Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+//      Text := TXRechnungHelper.AmountToStr(_Invoice.TaxAmountTotal);
+//    end;
+//    for taxSubtotal in _Invoice.TaxAmountSubtotals do
+//    with AddChild('cac:TaxSubtotal') do
+//    begin
+//      with AddChild('cbc:TaxableAmount') do
+//      begin
+//        Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+//        Text := TXRechnungHelper.AmountToStr(taxSubtotal.TaxableAmount);
+//      end;
+//      with AddChild('cbc:TaxAmount') do
+//      begin
+//        Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+//        Text := TXRechnungHelper.AmountToStr(taxSubtotal.TaxAmount);
+//      end;
+//      with AddChild('cac:TaxCategory') do
+//      begin
+//        AddChild('cbc:ID').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(taxSubtotal.TaxCategory);
+//        AddChild('cbc:Percent').Text := TXRechnungHelper.PercentageToStr(taxSubtotal.TaxPercent);
+//        if taxSubtotal.TaxExemptionReason <> '' then
+//          AddChild('cbc:TaxExemptionReason').Text := taxSubtotal.TaxExemptionReason;
+//        AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
+//      end;
+//    end;
+//  end;
+//
+//  with xRoot.AddChild('cac:LegalMonetaryTotal') do
+//  begin
+//      with AddChild('cbc:LineExtensionAmount') do
+//      begin
+//        Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+//        Text := TXRechnungHelper.AmountToStr(_Invoice.LineAmount);
+//      end;
+//      with AddChild('cbc:TaxExclusiveAmount') do
+//      begin
+//        Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+//        Text := TXRechnungHelper.AmountToStr(_Invoice.TaxExclusiveAmount);
+//      end;
+//      with AddChild('cbc:TaxInclusiveAmount') do
+//      begin
+//        Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+//        Text := TXRechnungHelper.AmountToStr(_Invoice.TaxInclusiveAmount);
+//      end;
+//      with AddChild('cbc:AllowanceTotalAmount') do
+//      begin
+//        Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+//        Text := TXRechnungHelper.AmountToStr(_Invoice.AllowanceTotalAmount);
+//      end;
+//      with AddChild('cbc:ChargeTotalAmount') do
+//      begin
+//        Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+//        Text := TXRechnungHelper.AmountToStr(_Invoice.ChargeTotalAmount);
+//      end;
+//      with AddChild('cbc:PrepaidAmount') do
+//      begin
+//        Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+//        Text := TXRechnungHelper.AmountToStr(_Invoice.PrepaidAmount);
+//      end;
+//      //      <cbc:PayableRoundingAmount currencyID="EUR">0</cbc:PayableRoundingAmount>
+//      with AddChild('cbc:PayableAmount') do
+//      begin
+//        Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+//        Text := TXRechnungHelper.AmountToStr(_Invoice.PayableAmount);
+//      end;
+//  end;
+//
+//  for i := 0 to _Invoice.InvoiceLines.Count-1 do
+//    InternalAddInvoiceLine(_Invoice.InvoiceLines[i],xRoot.AddChild('cac:InvoiceLine'));
 
     Result := true;
   except
@@ -1124,71 +1457,35 @@ end;
 
 { TXRechnungXMLHelper }
 
-class function TXRechnungXMLHelper.SelectNodes(_XnRoot: IXmlNode;
-  const _NodePath: String; out _Result : IXmlNodeList): Boolean;
-var
-  intfSelect: IDomNodeSelect;
-  intfAccess: IXmlNodeAccess;
-  dnlResult: IDomNodeList;
-  intfDocAccess: IXmlDocumentAccess;
-  doc: TXmlDocument;
-  i: Integer;
-  dn: IDomNode;
+class function TXRechnungXMLHelper.SelectNodes(_XnRoot: IXMLDOMNode;
+  const _NodePath: String; out _Result : IXMLDOMNodeList): Boolean;
 begin
   Result := false;
   _Result := nil;
-
   if not Assigned(_XnRoot) then
     exit;
-  if not Supports(_XnRoot, IXmlNodeAccess, intfAccess)
-     or not Supports(_XnRoot.DOMNode, IDomNodeSelect, intfSelect) then
-    exit;
-
-  dnlResult := intfSelect.SelectNodes(_NodePath);
-  if Assigned(dnlResult) then
-  begin
-     _Result := TXmlNodeList.Create(intfAccess.GetNodeObject, '', nil);
-     Result := true;
-
-     if Supports(_XnRoot.OwnerDocument, IXmlDocumentAccess, intfDocAccess) then
-       doc := intfDocAccess.DocumentObject
-     else
-       doc := nil;
-
-     for i := 0 to dnlResult.length - 1 do
-     begin
-       dn := dnlResult.item[i];
-       _Result.Add(TXmlNode.Create(dn, nil, doc));
-     end;
-  end;
+  _Result := _XnRoot.selectNodes(_NodePath);
+  Result := _Result <> nil;
 end;
 
-class function TXRechnungXMLHelper.SelectNode(_XnRoot: IXmlNode;
-  const _NodePath: String; out _Result : IXmlNode): Boolean;
+class function TXRechnungXMLHelper.SelectNodeText(_XnRoot: IXMLDOMNode; const _NodePath: String): String;
 var
-  intfSelect : IDomNodeSelect;
-  dnResult : IDomNode;
-  intfDocAccess : IXmlDocumentAccess;
-  doc: TXmlDocument;
+  node : IXMLDOMNode;
+begin
+  Result := '';
+  if TXRechnungXMLHelper.SelectNode(_XnRoot,_NodePath,node) then
+    Result := node.Text;
+end;
+
+class function TXRechnungXMLHelper.SelectNode(_XnRoot: IXMLDOMNode;
+  const _NodePath: String; out _Result : IXMLDOMNode): Boolean;
 begin
   Result := false;
   _Result := nil;
   if not Assigned(_XnRoot) then
     exit;
-  if not Supports(_XnRoot.DOMNode, IDomNodeSelect, intfSelect) then
-    exit;
-
-  dnResult := intfSelect.selectNode(_NodePath);
-
-  if Assigned(dnResult) then
-  begin
-    if Supports(_XnRoot.OwnerDocument, IXmlDocumentAccess, intfDocAccess) then
-      doc := intfDocAccess.DocumentObject
-    else
-      doc := nil;
-    _Result := TXmlNode.Create(dnResult, nil, doc);
-    Result := true;
-  end;
+  _Result := _XnRoot.selectSingleNode(_NodePath);
+  Result := _Result <> nil;
 end;
 
 class function TXRechnungXMLHelper.FindChild(_Node: IXMLNode; const _NodeName: String;
@@ -1212,6 +1509,54 @@ begin
   _Callback(Node);
 end;
 
+class function TXRechnungXMLHelper.PrepareDocumentForXPathQuerys(_Xml: IXMLDocument): IXMLDOMDocument2;
+var
+  hList: IDOMNodeList;
+  i: Integer;
+  s, sNSN, sNSUri: string;
+  sNsLine: string;
+begin
+  Result := nil;
+  if not _Xml.Active then
+    exit;
+
+  hList := (_Xml.DOMDocument as IDOMNodeSelect).selectNodes('//namespace::*');
+  try
+    for i := 0 to hList.length - 1 do
+    begin
+      sNSN := StringReplace(hList.item[i].nodeName, 'xmlns:', '', []);
+      if sNSN = 'xml' then
+      begin  // wenn es als xmlns:xml hinzugef�gt wird bekommt man die meldung das der Namespacename xml nicht verwendet werden darf...
+        sNSN := 'xmlns:MyXml';
+        sNSUri := hList.item[i].nodeValue;
+      end
+      else
+      if sNSN = 'xmlns' then
+      begin  // den Default Namespace mit einem Namen versehen, damit XPath drauf zugreifen kann.
+        sNSN := 'xmlns:dn';
+        sNSUri := hList.item[i].nodeValue;
+      end
+      else
+      begin  // alle anderen Namespace auch f�r XPath bekannt machen
+        sNSN := hList.item[i].nodeName;
+        sNSUri := hList.item[i].nodeValue;
+      end;
+      s := sNSN + '="'+sNSUri+'"';
+      if ContainsText(sNsLine, s) then
+        continue;
+      sNsLine := ' '+s + sNsLine;
+    end;
+    sNsLine := trim(sNsLine);
+  finally
+    hList := nil;
+  end;
+
+  Result := CoDOMDocument60.Create;
+  Result.loadXML(_Xml.XML.Text);
+  Result.setProperty('SelectionLanguage', 'XPath');  // ab 4.0 ist SelectionLanguage eh immer XPath
+  Result.setProperty('SelectionNamespaces', sNsLine) ;
+end;
+
 { TXRechnungHelper }
 
 class function TXRechnungHelper.AmountToStr(
@@ -1226,14 +1571,21 @@ begin
   Result := System.StrUtils.ReplaceText(Format('%.4f',[_Val]),',','.');
 end;
 
-//class function TXRechnungHelper.DateFromStr(
-//  const _Val: String): TDateTime;
-//begin
-//  Result := 0;
-//  if Length(_Val) <> 8 then
-//    exit;
-//  Result := EncodeDate(StrToIntDef(Copy(_Val,1,4),1999),StrToIntDef(Copy(_Val,5,2),1),StrToIntDef(Copy(_Val,7,2),1));
-//end;
+class function TXRechnungHelper.DateFromStrUBLFormat(const _Val : String) : TDateTime;
+begin
+  Result := 0;
+  if Length(_Val) <> 10 then
+    exit;
+  Result := EncodeDate(StrToIntDef(Copy(_Val,1,4),1899),StrToIntDef(Copy(_Val,6,2),12),StrToIntDef(Copy(_Val,9,2),30));
+end;
+
+class function TXRechnungHelper.DateFromStrUNCEFACTFormat(const _Val : String) : TDateTime;
+begin
+  Result := 0;
+  if Length(_Val) <> 8 then
+    exit;
+  Result := EncodeDate(StrToIntDef(Copy(_Val,1,4),1899),StrToIntDef(Copy(_Val,5,2),12),StrToIntDef(Copy(_Val,7,2),30));
+end;
 
 class function TXRechnungHelper.DateToStrUBLFormat(
   const _Val: TDateTime): String;
@@ -1425,6 +1777,35 @@ begin
     issdc_PC_Packing: Result := 'PC';
     else Result := '';
   end;
+end;
+
+class function TXRechnungHelper.InvoiceTypeCodeFromStr(const _Val: String): TInvoiceTypeCode;
+begin
+  if SameText(_Val,'326') then
+    Result := itc_PartialInvoice
+  else
+  if SameText(_Val,'380') then
+    Result := itc_CommercialInvoice
+  else
+  if SameText(_Val,'384') then
+    Result := itc_CorrectedInvoice
+  else
+  if SameText(_Val,'389') then
+    Result := itc_SelfbilledInvoice
+  else
+  if SameText(_Val,'381') then
+    Result := itc_CreditNote
+  else
+  if SameText(_Val,'875') then
+    Result := itc_PartialConstructionInvoice
+  else
+  if SameText(_Val,'876') then
+    Result := itc_PartialFinalConstructionInvoice
+  else
+  if SameText(_Val,'877') then
+    Result := itc_FinalConstructionInvoice
+  else
+    Result := itc_None;
 end;
 
 class function TXRechnungHelper.InvoiceTypeCodeToStr(_Val: TInvoiceTypeCode): String;

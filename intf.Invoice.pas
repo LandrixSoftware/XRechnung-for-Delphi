@@ -314,6 +314,14 @@ type
     TaxExemptionReason : String; //sollte gesetzt werden bei TaxCategory = AE,E,O,Z
   end;
 
+  TInvoiceTaxAmountArray = TArray<TInvoiceTaxAmount>;
+
+  TInvoiceTaxAmountArrayHelper = record helper for TInvoiceTaxAmountArray
+  public
+    function AddTaxAmountIfTaxExists(_TaxPercent : double; _TaxableAmount,_TaxAmount : Currency) : Boolean;
+    procedure SetCapacity(_Capacity : Integer);
+  end;
+
   TInvoiceAddress = record
   public
     StreetName : String;
@@ -359,6 +367,7 @@ type
   TInvoicePrecedingInvoiceReferences = class(TObjectList<TInvoicePrecedingInvoiceReference>)
   public
     function AddPrecedingInvoiceReference : TInvoicePrecedingInvoiceReference;
+    function IndexOfPrecedingInvoiceReference(const _ID : String) : Integer;
   end;
 
   TInvoice = class(TObject)
@@ -405,7 +414,7 @@ type
     PrecedingInvoiceReferences : TInvoicePrecedingInvoiceReferences;
 
     TaxAmountTotal : Currency;
-    TaxAmountSubtotals : TArray<TInvoiceTaxAmount>;
+    TaxAmountSubtotals : TInvoiceTaxAmountArray;
 
     LineAmount : Currency;
     TaxExclusiveAmount : Currency;
@@ -447,7 +456,7 @@ begin
   InvoiceLines.Clear;
   AllowanceCharges.Clear;
   PrecedingInvoiceReferences.Clear;
-  SetLength(TaxAmountSubtotals,0);
+  TaxAmountSubtotals.SetCapacity(0);
   PaymentTermsType := iptt_None;
 end;
 
@@ -473,6 +482,20 @@ function TInvoicePrecedingInvoiceReferences.AddPrecedingInvoiceReference: TInvoi
 begin
   Result := TInvoicePrecedingInvoiceReference.Create;
   Add(Result);
+end;
+
+function TInvoicePrecedingInvoiceReferences.IndexOfPrecedingInvoiceReference(
+  const _ID: String): Integer;
+var
+  i : Integer;
+begin
+  Result := -1;
+  for i := 0 to Count-1 do
+  if SameText(_ID,Items[i].ID) then
+  begin
+    Result := i;
+    break;
+  end;
 end;
 
 { TInvoiceLine }
@@ -699,6 +722,29 @@ begin
     exit;
 
   Result := true;
+end;
+
+{ TInvoiceTaxAmountArrayHelper }
+
+function TInvoiceTaxAmountArrayHelper.AddTaxAmountIfTaxExists(
+  _TaxPercent: double; _TaxableAmount, _TaxAmount: Currency): Boolean;
+var
+  i : Integer;
+begin
+  Result := false;
+  for i := 0 to Length(self)-1 do
+  if self[i].TaxPercent = _TaxPercent then
+  begin
+    self[i].TaxableAmount := self[i].TaxableAmount + _TaxableAmount;
+    self[i].TaxAmount := self[i].TaxAmount + _TaxAmount;
+    Result := true;
+    break;
+  end;
+end;
+
+procedure TInvoiceTaxAmountArrayHelper.SetCapacity(_Capacity: Integer);
+begin
+  SetLength(self,_Capacity);
 end;
 
 end.

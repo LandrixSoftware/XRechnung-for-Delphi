@@ -1,4 +1,4 @@
-﻿unit XRechnungUnit1;
+unit XRechnungUnit1;
 
 interface
 
@@ -147,7 +147,7 @@ begin
   end;
 
   inv.TaxAmountTotal := 0.0;
-  SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
+  inv.TaxAmountSubtotals.SetCapacity(1); //1 MwSt-Saetze
   inv.TaxAmountSubtotals[0].TaxPercent := 0;
   inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_AE_VATReverseCharge;
   inv.TaxAmountSubtotals[0].TaxExemptionReason := 'Hiermit erlaube ich mir folgende Rechnung für Bauleistungen zu stellen. Die Umsatzsteuer für diese Leistung schuldet nach §13b UStG der Leistungsempfänger.';
@@ -445,7 +445,7 @@ begin
   end;
 
   inv.TaxAmountTotal := 26.0;
-  SetLength(inv.TaxAmountSubtotals,2); //2 MwSt-Saetze
+  inv.TaxAmountSubtotals.SetCapacity(2); //2 MwSt-Saetze
   inv.TaxAmountSubtotals[0].TaxPercent := 7.0;
   inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
   inv.TaxAmountSubtotals[0].TaxableAmount := 100.0;
@@ -617,7 +617,7 @@ begin
   end;
 
   inv.TaxAmountTotal := 68.40;
-  SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
+  inv.TaxAmountSubtotals.SetCapacity(1); //1 MwSt-Saetze
   inv.TaxAmountSubtotals[0].TaxPercent := 19.0;
   inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
   inv.TaxAmountSubtotals[0].TaxableAmount := 360.0;

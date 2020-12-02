@@ -211,6 +211,7 @@ begin
 
   finally
     hstrl.Free;
+    cmd.Free;
   end;
 end;
 
@@ -281,6 +282,7 @@ begin
 
   finally
     hstrl.Free;
+    cmd.Free;
   end;
 end;
 

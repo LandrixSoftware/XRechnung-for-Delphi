@@ -522,9 +522,17 @@ begin
   _Success := false;
   if _UnitOfMeasure = '' then
     exit;
-  if SameText(_UnitOfMeasure,'st') or SameText(_UnitOfMeasure,'stk.') or SameText(_UnitOfMeasure,'stk') then
+  if SameText(_UnitOfMeasure,'st') or
+     SameText(_UnitOfMeasure,'stk.') or
+     SameText(_UnitOfMeasure,'stk') then
   begin
     result := iuc_piece;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'mal') then
+  begin
+    result := iuc_one;
     _Success := true;
     exit;
   end;

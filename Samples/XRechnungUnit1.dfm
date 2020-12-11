@@ -2,7 +2,7 @@ object Form1: TForm1
   Left = 0
   Top = 0
   Caption = 'XRechnung for Delphi v1.2.0'
-  ClientHeight = 1183
+  ClientHeight = 1185
   ClientWidth = 1910
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -15,7 +15,7 @@ object Form1: TForm1
   OnCreate = FormCreate
   DesignSize = (
     1910
-    1183)
+    1185)
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
@@ -195,5 +195,14 @@ object Form1: TForm1
       'UBL'
       'ZUGFeRD')
     TabOrder = 15
+  end
+  object Button2: TButton
+    Left = 8
+    Top = 1142
+    Width = 129
+    Height = 25
+    Caption = 'Laden'
+    TabOrder = 16
+    OnClick = Button2Click
   end
 end

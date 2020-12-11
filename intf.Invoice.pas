@@ -74,7 +74,8 @@ type
   //mehr Einheiten in Res\intf.Invoice.unusedUnits.pas
   {$endregion}
 
-  TInvoiceAttachmentType = (iat_application_pdf,
+  TInvoiceAttachmentType = (iat_application_None,
+                      iat_application_pdf,
                       iat_image_png,
                       iat_image_jpeg,
                       iat_text_csv,

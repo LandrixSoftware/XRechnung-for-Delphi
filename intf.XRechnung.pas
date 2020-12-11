@@ -171,6 +171,8 @@ class function TXRechnungInvoiceAdapter.LoadDocumentUBL(_Invoice: TInvoice;
 var
   xml : IXMLDOMDocument2;
   node : IXMLDOMNode;
+  nodes : IXMLDOMNodeList;
+  i : Integer;
 begin
   Result := false;
   _Error := '';
@@ -199,25 +201,20 @@ begin
     end;
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:OrderReference/cbc:ID',node) then
       _Invoice.PurchaseOrderReference := node.Text;
+    if TXRechnungXMLHelper.SelectNodes(xml,'//cac:BillingReference/cac:InvoiceDocumentReference',nodes) then
+    for i := 0  to nodes.length-1 do
+    with _Invoice.PrecedingInvoiceReferences.AddPrecedingInvoiceReference do
+    begin
+      ID := TXRechnungXMLHelper.SelectNodeText(nodes[i],'//cbc:ID');
+      IssueDate := TXRechnungHelper.DateFromStrUBLFormat(TXRechnungXMLHelper.SelectNodeText(nodes[i],'//cbc:IssueDate'));
+    end;
+    if TXRechnungXMLHelper.SelectNodes(xml,'//cac:AdditionalDocumentReference',nodes) then
+    for i := 0  to nodes.length-1 do
+    with _Invoice.Attachments.AddAttachment(iat_application_None) do
+    begin
+      ID := TXRechnungXMLHelper.SelectNodeText(nodes[i],'//cbc:ID');
+      DocumentDescription := TXRechnungXMLHelper.SelectNodeText(nodes[i],'//cbc:DocumentDescription');
 
-//  for precedingInvoiceReference in _Invoice.PrecedingInvoiceReferences do
-//  with xRoot.AddChild('cac:BillingReference').AddChild('cac:InvoiceDocumentReference') do
-//  begin
-//    AddChild('cbc:ID').Text := precedingInvoiceReference.ID;
-//    AddChild('cbc:IssueDate').Text := TXRechnungHelper.DateToStrUBLFormat(precedingInvoiceReference.IssueDate);
-//  end;
-//
-//  for i := 0 to _Invoice.Attachments.Count -1 do
-//  begin
-//    if _Invoice.Attachments[i].AttachmentType = TInvoiceAttachmentType.iat_application_xml then
-//    if _Version = XRechnungVersion_122 then
-//      continue; //xml attachment not allowed in v1.2.2');
-//
-//    with xRoot.AddChild('cac:AdditionalDocumentReference') do
-//    begin
-//      AddChild('cbc:ID').Text := _Invoice.Attachments[i].ID;
-//      if _Invoice.Attachments[i].DocumentDescription <> '' then
-//        AddChild('cbc:DocumentDescription').Text := _Invoice.Attachments[i].DocumentDescription;
 //      with AddChild('cac:Attachment') do
 //      begin
 //        if _Invoice.Attachments[i].ExternalReference <> '' then
@@ -232,7 +229,7 @@ begin
 //        end;
 //      end;
 //    end;
-//  end;
+    end;
 //
 //  with xRoot.AddChild('cac:AccountingSupplierParty').AddChild('cac:Party') do
 //  begin

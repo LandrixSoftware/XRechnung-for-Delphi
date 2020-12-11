@@ -1,4 +1,4 @@
-unit XRechnungUnit1;
+﻿unit XRechnungUnit1;
 
 interface
 
@@ -32,12 +32,14 @@ type
     cbAttachments: TCheckBox;
     cbDeliveriyInf: TCheckBox;
     rbFormat: TRadioGroup;
+    Button2: TButton;
     procedure Button3Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button4Click(Sender: TObject);
     procedure btX122ConvertHTMLClick(Sender: TObject);
     procedure btX200ConvertHTMLClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
   private
     procedure Generate122(inv : TInvoice);
     procedure Generate200(inv : TInvoice);
@@ -165,6 +167,20 @@ begin
   try
     Generate122(inv);
     Generate200(inv);
+  finally
+    inv.Free;
+  end;
+end;
+
+procedure TForm1.Button2Click(Sender: TObject);
+var
+  inv : TInvoice;
+  error : String;
+begin
+  inv := TInvoice.Create;
+  try
+    if not TXRechnungInvoiceAdapter.LoadFromFile(inv, ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml',error) then
+      memo3.Lines.Text := error;
   finally
     inv.Free;
   end;

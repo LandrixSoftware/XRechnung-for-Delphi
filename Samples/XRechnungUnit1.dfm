@@ -1,7 +1,7 @@
 object Form1: TForm1
   Left = 0
   Top = 0
-  Caption = 'XRechnung for Delphi v1.2.0'
+  Caption = 'XRechnung for Delphi v2.0.1'
   ClientHeight = 1185
   ClientWidth = 1910
   Color = clBtnFace
@@ -30,7 +30,7 @@ object Form1: TForm1
     Top = 506
     Width = 83
     Height = 13
-    Caption = 'XRechnung 2.0.0'
+    Caption = 'XRechnung 2.0.1'
   end
   object Label3: TLabel
     Left = 8
@@ -139,7 +139,7 @@ object Form1: TForm1
     Caption = 'Abschlagsrechnungen'
     TabOrder = 9
   end
-  object btX122ConvertHTML: TButton
+  object btX1ConvertHTML: TButton
     Left = 632
     Top = 440
     Width = 137
@@ -147,9 +147,9 @@ object Form1: TForm1
     Caption = 'XRechnung nach HTML'
     TabOrder = 10
     Visible = False
-    OnClick = btX122ConvertHTMLClick
+    OnClick = btX1ConvertHTMLClick
   end
-  object btX200ConvertHTML: TButton
+  object btX2ConvertHTML: TButton
     Left = 632
     Top = 937
     Width = 137
@@ -157,7 +157,7 @@ object Form1: TForm1
     Caption = 'XRechnung nach HTML'
     TabOrder = 11
     Visible = False
-    OnClick = btX200ConvertHTMLClick
+    OnClick = btX2ConvertHTMLClick
   end
   object Button1: TButton
     Left = 8

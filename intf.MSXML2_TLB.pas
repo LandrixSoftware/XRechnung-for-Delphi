@@ -1,4 +1,16 @@
-﻿unit intf.MSXML2_TLB;
+﻿{
+Copyright (C) 2020 Landrix Software GmbH & Co. KG
+Sven Harazim, info@landrix.de
+Version 1.3.0
+
+License
+This file is not official part of the package XRechnung-for-Delphi.
+
+This is provided as is, expressly without a warranty of any kind.
+You use it at your own risc.
+}
+
+unit intf.MSXML2_TLB;
 
 // ************************************************************************ //
 // WARNUNG

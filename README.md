@@ -14,12 +14,13 @@ UBL-CR-646 A UBL invoice should not include the InvoiceLine SubInvoiceLine
 https://github.com/itplr-kosit/validator-configuration-xrechnung/issues/36
 
 False positive validation warning [BR-DEX-02] when using SubInvoiceLine and AllowanceCharge.
+Die Warnung existiert immer noch.
 
 https://github.com/itplr-kosit/validator-configuration-xrechnung/issues/41
 
 ## Version
 
-Aktuelle XRechnung-Versionen 1.2.2 und 2.0.0
+Aktuelle XRechnung-Versionen 1.2.2 und 2.0.1
 
 ## Weitere Informationen zu XRechnung
 

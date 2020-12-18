@@ -26,8 +26,8 @@ type
     Button4: TButton;
     Label3: TLabel;
     cbPrepaidAmount: TCheckBox;
-    btX122ConvertHTML: TButton;
-    btX200ConvertHTML: TButton;
+    btX1ConvertHTML: TButton;
+    btX2ConvertHTML: TButton;
     Button1: TButton;
     cbAttachments: TCheckBox;
     cbDeliveriyInf: TCheckBox;
@@ -36,18 +36,18 @@ type
     procedure Button3Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button4Click(Sender: TObject);
-    procedure btX122ConvertHTMLClick(Sender: TObject);
-    procedure btX200ConvertHTMLClick(Sender: TObject);
+    procedure btX1ConvertHTMLClick(Sender: TObject);
+    procedure btX2ConvertHTMLClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
   private
     procedure Generate122(inv : TInvoice);
-    procedure Generate200(inv : TInvoice);
+    procedure Generate201(inv : TInvoice);
   public
     JavaRuntimeEnvironmentPath : String;
     ValidatorLibPath : String;
     ValidatorConfiguration122Path : String;
-    ValidatorConfiguration200Path : String;
+    ValidatorConfiguration201Path : String;
     VisualizationLibPath : String;
   end;
 
@@ -69,7 +69,7 @@ begin
   JavaRuntimeEnvironmentPath := hstr +'java'+PathDelim;
   ValidatorLibPath := hstr +'validator'+PathDelim;
   ValidatorConfiguration122Path := hstr +'validator-configuration-122'+PathDelim;
-  ValidatorConfiguration200Path := hstr +'validator-configuration-200'+PathDelim;
+  ValidatorConfiguration201Path := hstr +'validator-configuration-201'+PathDelim;
   VisualizationLibPath := hstr +'visualization'+PathDelim;
 end;
 
@@ -83,8 +83,8 @@ begin
   Memo1.Clear;
   Memo2.Clear;
   Memo3.Clear;
-  btX122ConvertHTML.Visible := false;
-  btX200ConvertHTML.Visible := false;
+  btX1ConvertHTML.Visible := false;
+  btX2ConvertHTML.Visible := false;
 
   inv := TInvoice.Create;
   inv.InvoiceNumber := 'R2020-0815';
@@ -166,7 +166,7 @@ begin
 
   try
     Generate122(inv);
-    Generate200(inv);
+    Generate201(inv);
   finally
     inv.Free;
   end;
@@ -179,7 +179,7 @@ var
 begin
   inv := TInvoice.Create;
   try
-    if not TXRechnungInvoiceAdapter.LoadFromFile(inv, ExtractFilePath(Application.ExeName)+'XRechnung-UBL-200.xml',error) then
+    if not TXRechnungInvoiceAdapter.LoadFromFile(inv, ExtractFilePath(Application.ExeName)+'XRechnung-UBL-201.xml',error) then
       memo3.Lines.Text := error;
   finally
     inv.Free;
@@ -196,8 +196,8 @@ begin
   Memo1.Clear;
   Memo2.Clear;
   Memo3.Clear;
-  btX122ConvertHTML.Visible := false;
-  btX200ConvertHTML.Visible := false;
+  btX1ConvertHTML.Visible := false;
+  btX2ConvertHTML.Visible := false;
 
   inv := TInvoice.Create;
   inv.InvoiceNumber := 'R2020-0815';
@@ -508,7 +508,7 @@ begin
     //TODO PayableRoundingAmount
   try
     Generate122(inv);
-    Generate200(inv);
+    Generate201(inv);
   finally
     inv.Free;
   end;
@@ -526,8 +526,8 @@ begin
   Memo1.Clear;
   Memo2.Clear;
   Memo3.Clear;
-  btX122ConvertHTML.Visible := false;
-  btX200ConvertHTML.Visible := false;
+  btX1ConvertHTML.Visible := false;
+  btX2ConvertHTML.Visible := false;
 
   inv := TInvoice.Create;
   inv.InvoiceNumber := 'R2020-0815';
@@ -648,7 +648,7 @@ begin
   inv.PayableAmount := 428.40;      //Summe Zahlbar MwSt
 
   try
-    Generate200(inv);
+    Generate201(inv);
   finally
     inv.Free;
   end;
@@ -679,10 +679,10 @@ begin
   Doc.Close;
 
   Memo1.Lines.Text := xml;
-  btX122ConvertHTML.Visible := true;
+  btX1ConvertHTML.Visible := true;
 end;
 
-procedure TForm1.Generate200(inv: TInvoice);
+procedure TForm1.Generate201(inv: TInvoice);
 var
   xml,cmdoutput,xmlresult,htmlresult : String;
   Doc : Variant;
@@ -690,11 +690,11 @@ begin
   Memo3.Clear;
   if rbFormat.itemindex = 0 then
   begin
-    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_200_UBL,xml);
+    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_201_UBL,xml);
 
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetValidatorLibPath(ValidatorLibPath)
-        .SetValidatorConfigurationPath(ValidatorConfiguration200Path)
+        .SetValidatorConfigurationPath(ValidatorConfiguration201Path)
         .Validate(xml,cmdoutput,xmlresult,htmlresult);
 
     Memo3.Lines.Text := cmdoutput;
@@ -708,15 +708,15 @@ begin
     Doc.Close;
 
     Memo2.Lines.Text := xml;
-    btX200ConvertHTML.Visible := true;
+    btX2ConvertHTML.Visible := true;
   end
   else
   begin
-    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_200_UNCEFACT,xml);
+    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_201_UNCEFACT,xml);
 
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetValidatorLibPath(ValidatorLibPath)
-        .SetValidatorConfigurationPath(ValidatorConfiguration200Path)
+        .SetValidatorConfigurationPath(ValidatorConfiguration201Path)
         .Validate(xml,cmdoutput,xmlresult,htmlresult);
 
     Memo3.Lines.Text := cmdoutput;
@@ -730,11 +730,11 @@ begin
     Doc.Close;
 
     Memo2.Lines.Text := xml;
-    btX200ConvertHTML.Visible := true;
+    btX2ConvertHTML.Visible := true;
   end;
 end;
 
-procedure TForm1.btX122ConvertHTMLClick(Sender: TObject);
+procedure TForm1.btX1ConvertHTMLClick(Sender: TObject);
 var
   xml,cmdoutput,htmlresult : String;
   Doc : Variant;
@@ -757,7 +757,7 @@ begin
   Doc.Close;
 end;
 
-procedure TForm1.btX200ConvertHTMLClick(Sender: TObject);
+procedure TForm1.btX2ConvertHTMLClick(Sender: TObject);
 var
   xml,cmdoutput,htmlresult : String;
   Doc : Variant;

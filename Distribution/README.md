@@ -18,7 +18,7 @@ https://adoptopenjdk.net
 
 ## Versionen
 
-https://github.com/itplr-kosit/validator/releases/tag/v1.4.0
+https://github.com/itplr-kosit/validator/releases/tag/v1.4.1
 
 https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/tag/release-2020-12-31
 

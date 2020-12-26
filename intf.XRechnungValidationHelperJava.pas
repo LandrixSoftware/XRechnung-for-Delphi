@@ -168,7 +168,7 @@ begin
     exit;
   if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
     exit;
-  if not FileExists(ValidatorLibPath+'validationtool-1.4.0-java8-standalone.jar') then
+  if not FileExists(ValidatorLibPath+'validationtool-1.4.1-java8-standalone.jar') then
     exit;
   if not FileExists(ValidatorConfigurationPath+'scenarios.xml') then
     exit;
@@ -183,7 +183,7 @@ begin
 
     cmd.Add('pushd '+ExtractFilePath(tmpFilename));
     cmd.Add(JavaRuntimeEnvironmentPath+'bin\java -jar '+
-             ValidatorLibPath+'validationtool-1.4.0-java8-standalone.jar -s '+
+             ValidatorLibPath+'validationtool-1.4.1-java8-standalone.jar -s '+
              ValidatorConfigurationPath+'scenarios.xml -h '+
              tmpFilename);
     cmd.SaveToFile(tmpFilename+'.bat',TEncoding.ANSI);

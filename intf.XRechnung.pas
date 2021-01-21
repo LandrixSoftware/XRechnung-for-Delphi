@@ -1,9 +1,9 @@
 ﻿{
 License XRechnung-for-Delphi
 
-Copyright (C) 2020 Landrix Software GmbH & Co. KG
+Copyright (C) 2021 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
-Version 1.3.0
+Version 1.3.1
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -32,6 +32,8 @@ uses
   ;
 
 //https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/tree/
+
+//https://portal3.gefeg.com/invoice/tthome/index/617afdc4-623f-44e0-a05b-5b878840e508
 
 type
   TXRechnungHelper = class(TObject)
@@ -201,6 +203,10 @@ begin
     end;
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:OrderReference/cbc:ID',node) then
       _Invoice.PurchaseOrderReference := node.Text;
+    if TXRechnungXMLHelper.SelectNode(xml,'//cac:ContractDocumentReference/cbc:ID',node) then
+      _Invoice.ContractDocumentReference := node.Text;
+    if TXRechnungXMLHelper.SelectNode(xml,'//cac:ProjectReference/cbc:ID',node) then
+      _Invoice.ProjectReference := node.Text;
     if TXRechnungXMLHelper.SelectNodes(xml,'//cac:BillingReference/cac:InvoiceDocumentReference',nodes) then
     for i := 0  to nodes.length-1 do
     with _Invoice.PrecedingInvoiceReferences.AddPrecedingInvoiceReference do
@@ -759,7 +765,10 @@ begin
   end;
   if _Invoice.PurchaseOrderReference <> '' then
     xRoot.AddChild('cac:OrderReference').AddChild('cbc:ID').Text := _Invoice.PurchaseOrderReference;
-
+  if _Invoice.ContractDocumentReference <> '' then
+    xRoot.AddChild('cac:ContractDocumentReference').AddChild('cbc:ID').Text := _Invoice.ContractDocumentReference;
+  if _Invoice.ProjectReference <> '' then
+    xRoot.AddChild('cac:ProjectReference').AddChild('cbc:ID').Text := _Invoice.ProjectReference;
   for precedingInvoiceReference in _Invoice.PrecedingInvoiceReferences do
   with xRoot.AddChild('cac:BillingReference').AddChild('cac:InvoiceDocumentReference') do
   begin
@@ -1063,7 +1072,6 @@ begin
     InternalAddInvoiceLine(_Invoice.InvoiceLines[i],xRoot.AddChild('cac:InvoiceLine'));
 end;
 
-//https://portal3.gefeg.com/invoice/tthome/index/617afdc4-623f-44e0-a05b-5b878840e508
 class procedure TXRechnungInvoiceAdapter.SaveDocumentUNCEFACT(_Invoice: TInvoice; _Xml: IXMLDocument);
 var
   xRoot : IXMLNode;
@@ -1271,6 +1279,14 @@ begin
       end;
       if _Invoice.PurchaseOrderReference <> '' then
         AddChild('ram:BuyerOrderReferencedDocument').AddChild('ram:IssuerAssignedID').Text := _Invoice.PurchaseOrderReference;
+      if _Invoice.ContractDocumentReference <> '' then
+        AddChild('ram:ContractReferencedDocument').AddChild('ram:IssuerAssignedID').Text := _Invoice.ContractDocumentReference;
+      if _Invoice.ProjectReference <> '' then
+      with AddChild('ram:SpecifiedProcuringProject') do
+      begin
+        AddChild('ram:ID').Text := _Invoice.ProjectReference;
+        AddChild('ram:Name').Text := 'Project reference';
+      end;
       for i := 0 to _Invoice.Attachments.Count -1 do
       begin
         with AddChild('ram:AdditionalReferencedDocument') do

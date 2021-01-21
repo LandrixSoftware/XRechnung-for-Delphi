@@ -211,6 +211,8 @@ begin
   inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
   inv.Note := 'keine';
   inv.PurchaseOrderReference := 'B0815'; //Bestell-Nr. optional
+  inv.ProjectReference := 'PR456789';
+  inv.ContractDocumentReference := 'V876543210';
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden

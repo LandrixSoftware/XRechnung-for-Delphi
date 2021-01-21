@@ -1,9 +1,9 @@
 {
 License XRechnung-for-Delphi
 
-Copyright (C) 2020 Landrix Software GmbH & Co. KG
+Copyright (C) 2021 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
-Version 1.3.0
+Version 1.3.1
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -382,9 +382,10 @@ type
     InvoiceCurrencyCode : String; //EUR
     TaxCurrencyCode : String;     //EUR
     BuyerReference : String; //Pflicht - Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
-    //TODO ContractDocumentReference
     Note : String; //Hinweise zur Rechnung allgemein
     PurchaseOrderReference : String; //Bestellnummer oder Vertragsnummer des Kaeufers
+    ProjectReference : String;
+    ContractDocumentReference : String;
 
     AccountingSupplierParty : TInvoiceAccountingParty;
     AccountingCustomerParty : TInvoiceAccountingParty;

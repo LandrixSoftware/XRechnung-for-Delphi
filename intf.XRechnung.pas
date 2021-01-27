@@ -542,7 +542,7 @@ begin
     xml.LoadFromFile(_Filename);
     case TXRechnungValidationHelper.GetXRechnungVersion(xml) of
       XRechnungVersion_122          : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_122,xml,_Error);
-      XRechnungVersion_201_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_122,xml,_Error);
+      XRechnungVersion_201_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_201_UBL,xml,_Error);
       XRechnungVersion_201_UNCEFACT : Result := LoadDocumentUNCEFACT(_Invoice,xml,_Error);
       else exit;
     end;

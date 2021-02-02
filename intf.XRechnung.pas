@@ -3,7 +3,7 @@ License XRechnung-for-Delphi
 
 Copyright (C) 2021 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
-Version 1.3.1
+Version 1.3.2
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

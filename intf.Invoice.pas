@@ -3,7 +3,7 @@ License XRechnung-for-Delphi
 
 Copyright (C) 2021 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
-Version 1.3.1
+Version 1.3.2
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -317,12 +317,6 @@ type
 
   TInvoiceTaxAmountArray = TArray<TInvoiceTaxAmount>;
 
-  TInvoiceTaxAmountArrayHelper = record helper for TInvoiceTaxAmountArray
-  public
-    function AddTaxAmountIfTaxExists(_TaxPercent : double; _TaxableAmount,_TaxAmount : Currency) : Boolean;
-    procedure SetCapacity(_Capacity : Integer);
-  end;
-
   TInvoiceAddress = record
   public
     StreetName : String;
@@ -458,7 +452,7 @@ begin
   InvoiceLines.Clear;
   AllowanceCharges.Clear;
   PrecedingInvoiceReferences.Clear;
-  TaxAmountSubtotals.SetCapacity(0);
+  SetLength(TaxAmountSubtotals,0);
   PaymentTermsType := iptt_None;
 end;
 
@@ -732,29 +726,6 @@ begin
     exit;
 
   Result := true;
-end;
-
-{ TInvoiceTaxAmountArrayHelper }
-
-function TInvoiceTaxAmountArrayHelper.AddTaxAmountIfTaxExists(
-  _TaxPercent: double; _TaxableAmount, _TaxAmount: Currency): Boolean;
-var
-  i : Integer;
-begin
-  Result := false;
-  for i := 0 to Length(self)-1 do
-  if self[i].TaxPercent = _TaxPercent then
-  begin
-    self[i].TaxableAmount := self[i].TaxableAmount + _TaxableAmount;
-    self[i].TaxAmount := self[i].TaxAmount + _TaxAmount;
-    Result := true;
-    break;
-  end;
-end;
-
-procedure TInvoiceTaxAmountArrayHelper.SetCapacity(_Capacity: Integer);
-begin
-  SetLength(self,_Capacity);
 end;
 
 end.

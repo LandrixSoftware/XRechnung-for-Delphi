@@ -35,6 +35,9 @@ uses
 
 //https://portal3.gefeg.com/invoice/tthome/index/617afdc4-623f-44e0-a05b-5b878840e508
 
+//validieren von XRechnung
+//https://ecosio.com/de/peppol-und-xml-dokumente-online-validieren/
+
 type
   TXRechnungHelper = class(TObject)
   public
@@ -948,7 +951,8 @@ begin
           [_Invoice.PaymentTermCashDiscount1Days,
            TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount1Percent)])+
           IfThen(_Invoice.PaymentTermCashDiscount1Base <> 0,'BASISBETRAG='+
-            TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount1Base)+'#','');
+            TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount1Base)+'#','')+
+          IfThen(_Version = XRechnungVersion_201_UBL,#13#10,'');
       end;
     iptt_CashDiscount2:
     begin
@@ -964,7 +968,8 @@ begin
           [_Invoice.PaymentTermCashDiscount2Days,
            TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount2Percent)])+
           IfThen(_Invoice.PaymentTermCashDiscount2Base <> 0,'BASISBETRAG='+
-            TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount2Base)+'#','');
+            TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount2Base)+'#','')+
+          IfThen(_Version = XRechnungVersion_201_UBL,#13#10,'');
       end;
     end;
   end;
@@ -1414,7 +1419,8 @@ begin
                 [_Invoice.PaymentTermCashDiscount1Days,
                  TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount1Percent)])+
                 IfThen(_Invoice.PaymentTermCashDiscount1Base <> 0,'BASISBETRAG='+
-                  TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount1Base)+'#','');
+                  TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount1Base)+'#','')+
+                #13#10;
           iptt_CashDiscount2:
           begin
             AddChild('ram:Description').Text := Format('#SKONTO#TAGE=%d#PROZENT=%s#',
@@ -1427,7 +1433,8 @@ begin
                 [_Invoice.PaymentTermCashDiscount2Days,
                  TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount2Percent)])+
                 IfThen(_Invoice.PaymentTermCashDiscount2Base <> 0,'BASISBETRAG='+
-                  TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount2Base)+'#','');
+                  TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount2Base)+'#','')+
+                #13#10;
             end;
         end;
         if _Invoice.InvoiceDueDate > 100 then

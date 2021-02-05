@@ -236,6 +236,14 @@ type
 
   {$region 'TInvoiceDutyTaxFeeCategoryCode'}
   //Nur ein Teil der Codes ist erlaubt
+  //Die Codes fuer die Umsatzsteuerkategorie sind Folgende:
+  //- S = Umsatzsteuer faellt mit Normalsatz an
+  //- Z = nach dem Nullsatz zu versteuernde Waren
+  //- E = Steuerbefreit
+  //- AE = Umkehrung der Steuerschuldnerschaft
+  //- K = Kein Ausweis der Umsatzsteuer bei innergemeinschaftlichen Lieferungen
+  //- G = Steuer nicht erhoben aufgrund von Export ausserhalb der EU
+  //Bei gewerblichen Endkunden im Reverse-Charge ist hier "AE" anzugeben.
   TInvoiceDutyTaxFeeCategoryCode = (idtfcc_None, //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:untdid.5305_2
           //idtfcc_A_MixedTaxRate, //	Code specifying that the rate is based on mixed tax.
           //idtfcc_AA_LowerRate, //	Tax rate is lower than standard rate.

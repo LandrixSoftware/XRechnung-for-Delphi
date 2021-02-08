@@ -1,4 +1,4 @@
-﻿{
+{
 License XRechnung-for-Delphi
 
 Copyright (C) 2021 Landrix Software GmbH & Co. KG
@@ -768,16 +768,14 @@ begin
   end;
   if _Invoice.PurchaseOrderReference <> '' then
     xRoot.AddChild('cac:OrderReference').AddChild('cbc:ID').Text := _Invoice.PurchaseOrderReference;
-  if _Invoice.ContractDocumentReference <> '' then
-    xRoot.AddChild('cac:ContractDocumentReference').AddChild('cbc:ID').Text := _Invoice.ContractDocumentReference;
-  if _Invoice.ProjectReference <> '' then
-    xRoot.AddChild('cac:ProjectReference').AddChild('cbc:ID').Text := _Invoice.ProjectReference;
   for precedingInvoiceReference in _Invoice.PrecedingInvoiceReferences do
   with xRoot.AddChild('cac:BillingReference').AddChild('cac:InvoiceDocumentReference') do
   begin
     AddChild('cbc:ID').Text := precedingInvoiceReference.ID;
     AddChild('cbc:IssueDate').Text := TXRechnungHelper.DateToStrUBLFormat(precedingInvoiceReference.IssueDate);
   end;
+  if _Invoice.ContractDocumentReference <> '' then
+    xRoot.AddChild('cac:ContractDocumentReference').AddChild('cbc:ID').Text := _Invoice.ContractDocumentReference;
 
   for i := 0 to _Invoice.Attachments.Count -1 do
   begin
@@ -805,6 +803,9 @@ begin
       end;
     end;
   end;
+
+  if _Invoice.ProjectReference <> '' then
+    xRoot.AddChild('cac:ProjectReference').AddChild('cbc:ID').Text := _Invoice.ProjectReference;
 
   with xRoot.AddChild('cac:AccountingSupplierParty').AddChild('cac:Party') do
   begin
@@ -1287,11 +1288,6 @@ begin
       if _Invoice.ContractDocumentReference <> '' then
         AddChild('ram:ContractReferencedDocument').AddChild('ram:IssuerAssignedID').Text := _Invoice.ContractDocumentReference;
       if _Invoice.ProjectReference <> '' then
-      with AddChild('ram:SpecifiedProcuringProject') do
-      begin
-        AddChild('ram:ID').Text := _Invoice.ProjectReference;
-        AddChild('ram:Name').Text := 'Project reference';
-      end;
       for i := 0 to _Invoice.Attachments.Count -1 do
       begin
         with AddChild('ram:AdditionalReferencedDocument') do
@@ -1310,6 +1306,11 @@ begin
             Text := _Invoice.Attachments[i].GetDataAsBase64;
           end;
         end;
+      end;
+      with AddChild('ram:SpecifiedProcuringProject') do
+      begin
+        AddChild('ram:ID').Text := _Invoice.ProjectReference;
+        AddChild('ram:Name').Text := 'Project reference';
       end;
     end;
     with AddChild('ram:ApplicableHeaderTradeDelivery') do

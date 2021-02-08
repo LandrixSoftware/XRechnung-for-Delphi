@@ -101,6 +101,7 @@ type
     procedure EmbedDataFromStream(_Stream : TStream);
     procedure EmbedDataFromFile(const _Filename : String);
     function GetDataAsBase64 : String;
+    procedure SetDataFromBase64(const _Val : String);
   end;
 
   TInvoiceAttachmentList = class(TObjectList<TInvoiceAttachment>)
@@ -687,6 +688,26 @@ begin
     SetLength(internalResult,str.Size);
     str.Read(internalResult[1],str.Size);
     Result := String(internalResult);
+  finally
+    str.Free;
+  end;
+end;
+
+procedure TInvoiceAttachment.SetDataFromBase64(const _Val: String);
+var
+  str : TMemoryStream;
+  internalValue : AnsiString;
+begin
+  Data.Clear;
+  if _Val = '' then
+    exit;
+  internalValue := AnsiString(_Val);
+  str := TMemoryStream.Create;
+  try
+    str.Write(internalValue[1],Length(internalValue));
+    str.Seek(0,soFromBeginning);
+    System.NetEncoding.TBase64Encoding.Base64.Decode(str,Data);
+    Data.Seek(0,soFromBeginning);
   finally
     str.Free;
   end;

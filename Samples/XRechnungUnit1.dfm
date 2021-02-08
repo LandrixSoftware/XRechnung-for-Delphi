@@ -47,14 +47,14 @@ object Form1: TForm1
     ScrollBars = ssBoth
     TabOrder = 0
   end
-  object Button3: TButton
+  object btCreateInvoice: TButton
     Left = 8
     Top = 264
     Width = 129
     Height = 25
     Caption = 'Erzeugen'
     TabOrder = 1
-    OnClick = Button3Click
+    OnClick = btCreateInvoiceClick
   end
   object Memo2: TMemo
     Left = 152

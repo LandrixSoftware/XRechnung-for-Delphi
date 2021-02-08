@@ -1,4 +1,4 @@
-{
+﻿{
 License XRechnung-for-Delphi
 
 Copyright (C) 2021 Landrix Software GmbH & Co. KG
@@ -60,6 +60,7 @@ type
     class function InvoiceSpecialServiceDescriptionCodeToStr(_Val : TInvoiceSpecialServiceDescriptionCode) : String;
     class function InvoiceDutyTaxFeeCategoryCodeToStr(_Val : TInvoiceDutyTaxFeeCategoryCode) : String;
     class function InvoiceAttachmentTypeToStr(_Val : TInvoiceAttachmentType) : String;
+    class function InvoiceAttachmentTypeFromStr(_Val : String) : TInvoiceAttachmentType;
   end;
 
   TXRechnungVersion = (XRechnungVersion_Unknown,
@@ -112,6 +113,7 @@ type
     class function SelectNode(_XnRoot: IXMLDOMNode; const _NodePath: String; out _Result : IXMLDOMNode): Boolean;
     class function SelectNodes(_XnRoot: IXMLDOMNode; const _NodePath: String; out _Result : IXMLDOMNodeList): Boolean;
     class function SelectNodeText(_XnRoot: IXMLDOMNode; const _NodePath: String): String;
+    class function FindNode(_XnRoot: IXMLDOMNode; const _NodePath: String): Boolean;
     class function PrepareDocumentForXPathQuerys(_Xml : IXMLDocument) : IXMLDOMDocument2;
   end;
 
@@ -175,7 +177,7 @@ class function TXRechnungInvoiceAdapter.LoadDocumentUBL(_Invoice: TInvoice;
   _Version: TXRechnungVersion; _Xml: IXMLDocument; out _Error : String) : Boolean;
 var
   xml : IXMLDOMDocument2;
-  node : IXMLDOMNode;
+  node,node2 : IXMLDOMNode;
   nodes : IXMLDOMNodeList;
   i : Integer;
 begin
@@ -206,40 +208,37 @@ begin
     end;
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:OrderReference/cbc:ID',node) then
       _Invoice.PurchaseOrderReference := node.Text;
-    if TXRechnungXMLHelper.SelectNode(xml,'//cac:ContractDocumentReference/cbc:ID',node) then
-      _Invoice.ContractDocumentReference := node.Text;
-    if TXRechnungXMLHelper.SelectNode(xml,'//cac:ProjectReference/cbc:ID',node) then
-      _Invoice.ProjectReference := node.Text;
     if TXRechnungXMLHelper.SelectNodes(xml,'//cac:BillingReference/cac:InvoiceDocumentReference',nodes) then
     for i := 0  to nodes.length-1 do
     with _Invoice.PrecedingInvoiceReferences.AddPrecedingInvoiceReference do
     begin
-      ID := TXRechnungXMLHelper.SelectNodeText(nodes[i],'//cbc:ID');
-      IssueDate := TXRechnungHelper.DateFromStrUBLFormat(TXRechnungXMLHelper.SelectNodeText(nodes[i],'//cbc:IssueDate'));
+      ID := TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//cbc:ID');
+      IssueDate := TXRechnungHelper.DateFromStrUBLFormat(TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//cbc:IssueDate'));
     end;
+    if TXRechnungXMLHelper.SelectNode(xml,'//cac:ContractDocumentReference/cbc:ID',node) then
+      _Invoice.ContractDocumentReference := node.Text;
     if TXRechnungXMLHelper.SelectNodes(xml,'//cac:AdditionalDocumentReference',nodes) then
     for i := 0  to nodes.length-1 do
     with _Invoice.Attachments.AddAttachment(iat_application_None) do
     begin
-      ID := TXRechnungXMLHelper.SelectNodeText(nodes[i],'//cbc:ID');
-      DocumentDescription := TXRechnungXMLHelper.SelectNodeText(nodes[i],'//cbc:DocumentDescription');
-
-//      with AddChild('cac:Attachment') do
-//      begin
-//        if _Invoice.Attachments[i].ExternalReference <> '' then
-//        begin
-//          AddChild('cac:ExternalReference').AddChild('cbc:URI').Text := _Invoice.Attachments[i].ExternalReference;
-//        end else
-//        with AddChild('cbc:EmbeddedDocumentBinaryObject') do
-//        begin
-//          Attributes['mimeCode'] := TXRechnungHelper.InvoiceAttachmentTypeToStr(_Invoice.Attachments[i].AttachmentType);
-//          Attributes['filename'] := _Invoice.Attachments[i].Filename;
-//          Text := _Invoice.Attachments[i].GetDataAsBase64;
-//        end;
-//      end;
-//    end;
+      ID := TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//cbc:ID');
+      DocumentDescription := TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//cbc:DocumentDescription');
+      if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//cac:Attachment',node) then
+      begin
+        if TXRechnungXMLHelper.FindNode(node,'.//cac:ExternalReference/cbc:URI') then
+          ExternalReference := TXRechnungXMLHelper.SelectNodeText(node,'.//cac:ExternalReference/cbc:URI')
+        else
+        if TXRechnungXMLHelper.SelectNode(node,'.//cbc:EmbeddedDocumentBinaryObject',node2) then
+        begin
+          AttachmentType := TXRechnungHelper.InvoiceAttachmentTypeFromStr(node2.Attributes.getNamedItem('mimeCode').Text);
+          Filename := node2.Attributes.getNamedItem('filename').Text;
+          SetDataFromBase64(node2.Text);
+        end;
+      end;
     end;
-//
+    if TXRechnungXMLHelper.SelectNode(xml,'//cac:ProjectReference/cbc:ID',node) then
+      _Invoice.ProjectReference := node.Text;
+
 //  with xRoot.AddChild('cac:AccountingSupplierParty').AddChild('cac:Party') do
 //  begin
 //    if _Invoice.AccountingSupplierParty.IdentifierSellerBuyer <> '' then
@@ -385,7 +384,8 @@ begin
 //          [_Invoice.PaymentTermCashDiscount1Days,
 //           TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount1Percent)])+
 //          IfThen(_Invoice.PaymentTermCashDiscount1Base <> 0,'BASISBETRAG='+
-//            TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount1Base)+'#','');
+//            TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount1Base)+'#','')+
+//          IfThen(_Version = XRechnungVersion_201_UBL,#13#10,'');
 //      end;
 //    iptt_CashDiscount2:
 //    begin
@@ -401,7 +401,8 @@ begin
 //          [_Invoice.PaymentTermCashDiscount2Days,
 //           TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount2Percent)])+
 //          IfThen(_Invoice.PaymentTermCashDiscount2Base <> 0,'BASISBETRAG='+
-//            TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount2Base)+'#','');
+//            TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount2Base)+'#','')+
+//          IfThen(_Version = XRechnungVersion_201_UBL,#13#10,'');
 //      end;
 //    end;
 //  end;
@@ -1578,6 +1579,13 @@ begin
   Result.setProperty('SelectionNamespaces', sNsLine) ;
 end;
 
+class function TXRechnungXMLHelper.FindNode(_XnRoot: IXMLDOMNode; const _NodePath: String): Boolean;
+var
+  Node : IXMLDOMNode;
+begin
+  Result := TXRechnungXMLHelper.SelectNode(_XnRoot,_NodePath,Node);
+end;
+
 { TXRechnungHelper }
 
 class function TXRechnungHelper.AmountToStr(
@@ -1751,6 +1759,24 @@ begin
     iat_application_xml: Result := 'application/xml';
     else Result := '';
   end;
+end;
+
+class function TXRechnungHelper.InvoiceAttachmentTypeFromStr(_Val: String): TInvoiceAttachmentType;
+begin
+  if SameText(_Val,'application/pdf') then
+    Result := iat_application_pdf else
+  if SameText(_Val,'image/png') then
+    Result := iat_image_png else
+  if SameText(_Val,'image/jpeg') then
+    Result := iat_image_jpeg else
+  if SameText(_Val,'text/csv') then
+    Result := iat_text_csv else
+  if SameText(_Val,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') then
+    Result := iat_application_vnd_openxmlformats_officedocument_spreadsheetml_sheet else
+  if SameText(_Val,'application/vnd.oasis.opendocument.spreadsheet') then
+    Result := iat_application_vnd_oasis_opendocument_spreadsheet else
+  if SameText(_Val,'application/xml') then Result := iat_application_xml else
+    Result := iat_application_None
 end;
 
 class function TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(_Val: TInvoiceDutyTaxFeeCategoryCode): String;

@@ -14,7 +14,7 @@ uses
 type
   TForm1 = class(TForm)
     Memo1: TMemo;
-    Button3: TButton;
+    btCreateInvoice: TButton;
     Memo2: TMemo;
     WebBrowser1: TWebBrowser;
     Memo3: TMemo;
@@ -33,7 +33,7 @@ type
     cbDeliveriyInf: TCheckBox;
     rbFormat: TRadioGroup;
     Button2: TButton;
-    procedure Button3Click(Sender: TObject);
+    procedure btCreateInvoiceClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button4Click(Sender: TObject);
     procedure btX1ConvertHTMLClick(Sender: TObject);
@@ -186,7 +186,7 @@ begin
   end;
 end;
 
-procedure TForm1.Button3Click(Sender: TObject);
+procedure TForm1.btCreateInvoiceClick(Sender: TObject);
 var
   inv : TInvoice;
   suc : Boolean;
@@ -507,7 +507,7 @@ begin
     inv.PayableAmount := inv.PayableAmount - inv.PrepaidAmount;
   end;
 
-    //TODO PayableRoundingAmount
+  //TODO PayableRoundingAmount
   try
     Generate122(inv);
     Generate201(inv);
@@ -658,8 +658,9 @@ end;
 
 procedure TForm1.Generate122(inv: TInvoice);
 var
-  xml,cmdoutput,xmlresult,htmlresult : String;
+  xml,cmdoutput,xmlresult,htmlresult,error : String;
   Doc : Variant;
+  invtest : TInvoice;
 begin
   Memo3.Clear;
   if rbFormat.itemindex <> 0 then
@@ -681,13 +682,24 @@ begin
   Doc.Close;
 
   Memo1.Lines.Text := xml;
+
+  invtest := TInvoice.Create;
+  try
+    TXRechnungInvoiceAdapter.LoadFromXMLStr(invtest,xml,error);
+    if error <> '' then
+      MessageDlg('error loading XRechnung'+#10+error, mtError, [mbOK], 0);
+  finally
+    invtest.Free;
+  end;
+
   btX1ConvertHTML.Visible := true;
 end;
 
 procedure TForm1.Generate201(inv: TInvoice);
 var
-  xml,cmdoutput,xmlresult,htmlresult : String;
+  xml,cmdoutput,xmlresult,htmlresult,error : String;
   Doc : Variant;
+  invtest : TInvoice;
 begin
   Memo3.Clear;
   if rbFormat.itemindex = 0 then
@@ -710,6 +722,16 @@ begin
     Doc.Close;
 
     Memo2.Lines.Text := xml;
+
+    invtest := TInvoice.Create;
+    try
+      TXRechnungInvoiceAdapter.LoadFromXMLStr(invtest,xml,error);
+      if error <> '' then
+        MessageDlg('error loading XRechnung'+#10+error, mtError, [mbOK], 0);
+    finally
+      invtest.Free;
+    end;
+
     btX2ConvertHTML.Visible := true;
   end
   else
@@ -732,6 +754,16 @@ begin
     Doc.Close;
 
     Memo2.Lines.Text := xml;
+
+    invtest := TInvoice.Create;
+    try
+      TXRechnungInvoiceAdapter.LoadFromXMLStr(invtest,xml,error);
+      if error <> '' then
+        MessageDlg('error loading XRechnung'+#10+error, mtError, [mbOK], 0);
+    finally
+      invtest.Free;
+    end;
+
     btX2ConvertHTML.Visible := true;
   end;
 end;

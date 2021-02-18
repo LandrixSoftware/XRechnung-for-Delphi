@@ -673,6 +673,7 @@ end;
 function TInvoiceAttachment.GetDataAsBase64: String;
 var
   str : TMemoryStream;
+  base64 : System.NetEncoding.TBase64Encoding;
   internalResult : AnsiString;
 begin
   Result := '';
@@ -680,8 +681,9 @@ begin
   if Data.Size = 0 then
     exit;
   str := TMemoryStream.Create;
+  base64 := System.NetEncoding.TBase64Encoding.Create(0); // CharsPerLine = 0 means no line breaks
   try
-    System.NetEncoding.TBase64Encoding.Base64.Encode(Data,str);
+    base64.Encode(Data,str);
     str.Seek(0,soFromBeginning);
     if str.Size = 0 then
       exit;
@@ -689,6 +691,7 @@ begin
     str.Read(internalResult[1],str.Size);
     Result := String(internalResult);
   finally
+    base64.Free;
     str.Free;
   end;
 end;

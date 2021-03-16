@@ -44,6 +44,7 @@ type
     VisualizationLibPath : String;
     CmdOutput : TStringList;
     function ExecAndWait(_Filename, _Params: string): Boolean;
+    function QuoteIfContainsSpace(const _Value : String) : String;
   public
     constructor Create;
     destructor Destroy; override;
@@ -88,6 +89,8 @@ var
 begin
   Result := false;
   CmdOutput.Clear;
+
+  _Filename := QuoteIfContainsSpace(_Filename);
 
   SA.nLength := SizeOf(SA);
   SA.bInheritHandle := True;
@@ -181,10 +184,10 @@ begin
     hstrl.Text := _InvoiceXMLData;
     hstrl.SaveToFile(tmpFilename,TEncoding.UTF8);
 
-    cmd.Add('pushd '+ExtractFilePath(tmpFilename));
-    cmd.Add(JavaRuntimeEnvironmentPath+'bin\java -jar '+
-             ValidatorLibPath+'validationtool-1.4.1-java8-standalone.jar -s '+
-             ValidatorConfigurationPath+'scenarios.xml -h '+
+    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
+    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -jar '+
+             QuoteIfContainsSpace(ValidatorLibPath+'validationtool-1.4.1-java8-standalone.jar')+' -s '+
+             QuoteIfContainsSpace(ValidatorConfigurationPath+'scenarios.xml')+' -h '+
              tmpFilename);
     cmd.SaveToFile(tmpFilename+'.bat',TEncoding.ANSI);
 
@@ -247,20 +250,20 @@ begin
     hstrl.Text := _InvoiceXMLData;
     hstrl.SaveToFile(tmpFilename,TEncoding.UTF8);
 
-    cmd.Add('pushd '+ExtractFilePath(tmpFilename));
+    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
     if _TrueIfUBL_FalseIfCII then
-      cmd.Add(JavaRuntimeEnvironmentPath+'bin\java -jar '+
-             ValidatorLibPath+'libs\Saxon-HE-9.9.1-7.jar -s:'+tmpFilename+
-             ' -xsl:'+VisualizationLibPath+'xsl\ubl-invoice-xr.xsl'+
+      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -jar '+
+             QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-9.9.1-7.jar')+' -s:'+tmpFilename+
+             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl')+
              ' -o:'+ChangeFileExt(tmpFilename,'-xr.xml'))
     else
-      cmd.Add(JavaRuntimeEnvironmentPath+'bin\java -jar '+
-             ValidatorLibPath+'libs\Saxon-HE-9.9.1-7.jar -s:'+tmpFilename+
-             ' -xsl:'+VisualizationLibPath+'xsl\cii-xr.xsl'+
+      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -jar '+
+             QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-9.9.1-7.jar')+' -s:'+tmpFilename+
+             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\cii-xr.xsl')+
              ' -o:'+ChangeFileExt(tmpFilename,'-xr.xml'));
-    cmd.Add(JavaRuntimeEnvironmentPath+'bin\java -jar '+
-             ValidatorLibPath+'libs\Saxon-HE-9.9.1-7.jar -s:'+ChangeFileExt(tmpFilename,'-xr.xml')+
-             ' -xsl:'+VisualizationLibPath+'xsl\xrechnung-html.xsl'+
+    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -jar '+
+             QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-9.9.1-7.jar')+' -s:'+ChangeFileExt(tmpFilename,'-xr.xml')+
+             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\xrechnung-html.xsl')+
              ' -o:'+ChangeFileExt(tmpFilename,'-.html'));
 
     cmd.SaveToFile(tmpFilename+'.bat',TEncoding.ANSI);
@@ -284,6 +287,14 @@ begin
     hstrl.Free;
     cmd.Free;
   end;
+end;
+
+function TXRechnungValidationHelperJava.QuoteIfContainsSpace(const _Value: String): String;
+begin
+  if Pos(' ',_Value)>0 then
+    Result := '"'+_Value+'"'
+  else
+    Result := _Value;
 end;
 
 end.

@@ -509,8 +509,10 @@ begin
 
   //TODO PayableRoundingAmount
   try
-    Generate122(inv);
-    Generate201(inv);
+
+    Generate122(inv);
+
+    Generate201(inv);
   finally
     inv.Free;
   end;

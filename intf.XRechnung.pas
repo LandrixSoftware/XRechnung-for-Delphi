@@ -1,4 +1,4 @@
-﻿{
+{
 License XRechnung-for-Delphi
 
 Copyright (C) 2021 Landrix Software GmbH & Co. KG
@@ -316,7 +316,7 @@ begin
 //    begin
 //      AddChild('cbc:RegistrationName').Text := _Invoice.AccountingCustomerParty.RegistrationName;
 //      AddChild('cbc:CompanyID').Text := _Invoice.AccountingCustomerParty.CompanyID;
-//      //TODO <cbc:CompanyLegalForm>123/456/7890, HRA-Eintrag in [�]</cbc:CompanyLegalForm>
+//      //TODO <cbc:CompanyLegalForm>123/456/7890, HRA-Eintrag in []</cbc:CompanyLegalForm>
 //    end;
 //    with AddChild('cac:Contact') do
 //    begin
@@ -885,7 +885,7 @@ begin
     begin
       AddChild('cbc:RegistrationName').Text := _Invoice.AccountingCustomerParty.RegistrationName;
       AddChild('cbc:CompanyID').Text := _Invoice.AccountingCustomerParty.CompanyID;
-      //TODO <cbc:CompanyLegalForm>123/456/7890, HRA-Eintrag in [�]</cbc:CompanyLegalForm>
+      //TODO <cbc:CompanyLegalForm>123/456/7890, HRA-Eintrag in []</cbc:CompanyLegalForm>
     end;
     with AddChild('cac:Contact') do
     begin
@@ -1213,8 +1213,8 @@ begin
         if _Invoice.AccountingSupplierParty.IdentifierSellerBuyer <> '' then
           AddChild('ram:ID').Text := _Invoice.AccountingSupplierParty.IdentifierSellerBuyer;
         AddChild('ram:Name').Text := _Invoice.AccountingSupplierParty.RegistrationName;
-        //TODO <ram:Description>123/456/7890, HRA-Eintrag in [�]</ram:Description>
-        //<cbc:CompanyLegalForm>123/456/7890, HRA-Eintrag in [�]</cbc:CompanyLegalForm>
+        //TODO <ram:Description>123/456/7890, HRA-Eintrag in []</ram:Description>
+        //<cbc:CompanyLegalForm>123/456/7890, HRA-Eintrag in []</cbc:CompanyLegalForm>
         with AddChild('ram:SpecifiedLegalOrganization') do
         begin
           AddChild('ram:ID').Text := _Invoice.AccountingSupplierParty.CompanyID;
@@ -1366,7 +1366,8 @@ begin
         begin
           AddChild('ram:BICID').Text := _Invoice.PayeeFinancialInstitutionBranch;
           //TODO <ram:Name>Name der Bank</ram:Name>
-        end;      end;
+        end;
+      end;
       for taxSubtotal in _Invoice.TaxAmountSubtotals do
       with AddChild('ram:ApplicableTradeTax') do
       begin
@@ -1548,7 +1549,7 @@ begin
     begin
       sNSN := StringReplace(hList.item[i].nodeName, 'xmlns:', '', []);
       if sNSN = 'xml' then
-      begin  // wenn es als xmlns:xml hinzugef�gt wird bekommt man die meldung das der Namespacename xml nicht verwendet werden darf...
+      begin  // wenn es als xmlns:xml hinzugefuegt wird bekommt man die meldung das der Namespacename xml nicht verwendet werden darf...
         sNSN := 'xmlns:MyXml';
         sNSUri := hList.item[i].nodeValue;
       end
@@ -1559,7 +1560,7 @@ begin
         sNSUri := hList.item[i].nodeValue;
       end
       else
-      begin  // alle anderen Namespace auch f�r XPath bekannt machen
+      begin  // alle anderen Namespace auch fuer XPath bekannt machen
         sNSN := hList.item[i].nodeName;
         sNSUri := hList.item[i].nodeValue;
       end;

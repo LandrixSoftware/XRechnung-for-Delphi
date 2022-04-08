@@ -5,9 +5,10 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs,Vcl.StdCtrls,Winapi.ShellApi,Winapi.ShlObj,WinApi.ActiveX
+  ,Vcl.OleCtrls, SHDocVw, Vcl.ExtCtrls
   ,System.IOUtils,System.Win.COMObj,System.UITypes
   ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema
-  ,intf.XRechnung, intf.Invoice, Vcl.OleCtrls, SHDocVw, Vcl.ExtCtrls
+  ,intf.XRechnung, intf.Invoice
   ,intf.XRechnungValidationHelperJava
   ;
 
@@ -42,12 +43,12 @@ type
     procedure Button2Click(Sender: TObject);
   private
     procedure Generate122(inv : TInvoice);
-    procedure Generate201(inv : TInvoice);
+    procedure Generate211(inv : TInvoice);
   public
     JavaRuntimeEnvironmentPath : String;
     ValidatorLibPath : String;
     ValidatorConfiguration122Path : String;
-    ValidatorConfiguration201Path : String;
+    ValidatorConfiguration211Path : String;
     VisualizationLibPath : String;
   end;
 
@@ -69,7 +70,7 @@ begin
   JavaRuntimeEnvironmentPath := hstr +'java'+PathDelim;
   ValidatorLibPath := hstr +'validator'+PathDelim;
   ValidatorConfiguration122Path := hstr +'validator-configuration-122'+PathDelim;
-  ValidatorConfiguration201Path := hstr +'validator-configuration-201'+PathDelim;
+  ValidatorConfiguration211Path := hstr +'validator-configuration-211'+PathDelim;
   VisualizationLibPath := hstr +'visualization'+PathDelim;
 end;
 
@@ -166,7 +167,7 @@ begin
 
   try
     Generate122(inv);
-    Generate201(inv);
+    Generate211(inv);
   finally
     inv.Free;
   end;
@@ -176,12 +177,19 @@ procedure TForm1.Button2Click(Sender: TObject);
 var
   inv : TInvoice;
   error : String;
+  od : TOpenDialog;
 begin
   inv := TInvoice.Create;
+  od := TOpenDialog.Create(nil);
   try
-    if not TXRechnungInvoiceAdapter.LoadFromFile(inv, ExtractFilePath(Application.ExeName)+'XRechnung-UBL-201.xml',error) then
-      memo3.Lines.Text := error;
+    if not od.Execute then
+      exit;
+    if not TXRechnungInvoiceAdapter.LoadFromFile(inv, od.FileName,error) then
+      memo3.Lines.Text := error
+    else
+      ShowMessage('Eingelesen');
   finally
+    od.Free;
     inv.Free;
   end;
 end;
@@ -512,7 +520,7 @@ begin
 
     Generate122(inv);
 
-    Generate201(inv);
+    Generate211(inv);
   finally
     inv.Free;
   end;
@@ -652,7 +660,7 @@ begin
   inv.PayableAmount := 428.40;      //Summe Zahlbar MwSt
 
   try
-    Generate201(inv);
+    Generate211(inv);
   finally
     inv.Free;
   end;
@@ -684,6 +692,7 @@ begin
   Doc.Close;
 
   Memo1.Lines.Text := xml;
+  Memo1.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml',TEncoding.UTF8);
 
   invtest := TInvoice.Create;
   try
@@ -697,7 +706,7 @@ begin
   btX1ConvertHTML.Visible := true;
 end;
 
-procedure TForm1.Generate201(inv: TInvoice);
+procedure TForm1.Generate211(inv: TInvoice);
 var
   xml,cmdoutput,xmlresult,htmlresult,error : String;
   Doc : Variant;
@@ -706,11 +715,11 @@ begin
   Memo3.Clear;
   if rbFormat.itemindex = 0 then
   begin
-    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_201_UBL,xml);
+    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_211_UBL,xml);
 
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetValidatorLibPath(ValidatorLibPath)
-        .SetValidatorConfigurationPath(ValidatorConfiguration201Path)
+        .SetValidatorConfigurationPath(ValidatorConfiguration211Path)
         .Validate(xml,cmdoutput,xmlresult,htmlresult);
 
     Memo3.Lines.Text := cmdoutput;
@@ -724,6 +733,7 @@ begin
     Doc.Close;
 
     Memo2.Lines.Text := xml;
+    Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UBL-211.xml',TEncoding.UTF8);
 
     invtest := TInvoice.Create;
     try
@@ -738,11 +748,11 @@ begin
   end
   else
   begin
-    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_201_UNCEFACT,xml);
+    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_211_UNCEFACT,xml);
 
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetValidatorLibPath(ValidatorLibPath)
-        .SetValidatorConfigurationPath(ValidatorConfiguration201Path)
+        .SetValidatorConfigurationPath(ValidatorConfiguration211Path)
         .Validate(xml,cmdoutput,xmlresult,htmlresult);
 
     Memo3.Lines.Text := cmdoutput;
@@ -756,6 +766,7 @@ begin
     Doc.Close;
 
     Memo2.Lines.Text := xml;
+    Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UNCEFACT-211.xml',TEncoding.UTF8);
 
     invtest := TInvoice.Create;
     try

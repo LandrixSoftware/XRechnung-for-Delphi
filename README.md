@@ -20,7 +20,10 @@ https://github.com/itplr-kosit/validator-configuration-xrechnung/issues/41
 
 ## Version
 
-Aktuelle XRechnung-Versionen 1.2.2 und 2.0.1
+Aktuelle XRechnung-Versionen
+
+- 1.2.2 (Gültigkeitszeitraum 01.07.2020 - 31.12.2020)
+- 2.1.1 (Gültigkeitszeitraum 01.02.2022 - 31.07.2022)
 
 ## Weitere Informationen zu XRechnung
 
@@ -36,7 +39,7 @@ https://cranesoftwrights.github.io/resources/Crane-UBL-2.2-Skeleton/Crane-UBL-In
 
 english version below
 
-Die Bibliothek "XRechnung-for-Delphi" unterliegt eine Doppellizenz. Sie können Sie kostenlos und
+Die Bibliothek "XRechnung-for-Delphi" unterliegt eine Doppellizenz. Sie können sie kostenlos und
  ohne Einschränkungen unter der [GPL v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html) verwenden, oder Sie erwerben
 eine Lizenz zur kommerziellen Nutzung unter der [Landrix Software Commercial License](commercial.license.md)
 
@@ -71,4 +74,3 @@ Please send an e-mail to info@landrix.de to request an invoice which will contai
 
 Support and enhancement requests submitted by users that pay for 
 support will be prioritised. New developments may incur additional costs depending on time required for implementation.
-ß

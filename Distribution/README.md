@@ -4,7 +4,11 @@ Das Skript installtools.ps1 mit PowerShell ausführen, um die Tools zu installier
 
 ## Historie
 
-- 02.02.2020 Neues Release XRechnung Visualization 2020-12-31 compatible with XRechnung 2.0.1
+- 05.04.2022 Update xrechnung-2.1.1-xrechnung-visualization-2021-11-15 validator-configuration-xrechnung_2.1.1_2021-11-15
+
+- 01.10.2021 Update validationtool-1.4.2 validator-configuration-xrechnung_2.1.1_2021-07-31 xrechnung-2.1.1-xrechnung-visualization-2021-07-31
+
+- 02.02.2021 Neues Release XRechnung Visualization 2020-12-31 compatible with XRechnung 2.0.1
 
 - 18.12.2020 Neues Release validator-configuration-xrechnung release-2020-12-31
 

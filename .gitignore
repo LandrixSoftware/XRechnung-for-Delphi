@@ -26,13 +26,13 @@
 #*.obj
 #
 
-Dokumentation
+Documentation
 Samples/Win32
 Samples/Win64
 SaxonHE-Unmanaged
 Distribution/validator
 Distribution/validator-configuration-122
-Distribution/validator-configuration-201
+Distribution/validator-configuration-211
 Distribution/visualization
 Distribution/java
 Schema

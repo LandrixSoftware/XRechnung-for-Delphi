@@ -1,7 +1,7 @@
 object Form1: TForm1
   Left = 0
   Top = 0
-  Caption = 'XRechnung for Delphi v1.3.2'
+  Caption = 'XRechnung for Delphi v1.3.3'
   ClientHeight = 1185
   ClientWidth = 1910
   Color = clBtnFace
@@ -10,13 +10,11 @@ object Form1: TForm1
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
   DesignSize = (
     1910
     1185)
-  PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
     Left = 152
@@ -30,7 +28,7 @@ object Form1: TForm1
     Top = 506
     Width = 83
     Height = 13
-    Caption = 'XRechnung 2.0.1'
+    Caption = 'XRechnung 2.1.1'
   end
   object Label3: TLabel
     Left = 8
@@ -201,7 +199,7 @@ object Form1: TForm1
     Top = 1142
     Width = 129
     Height = 25
-    Caption = 'Laden'
+    Caption = 'Datei laden'
     TabOrder = 16
     OnClick = Button2Click
   end

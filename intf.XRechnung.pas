@@ -1,9 +1,9 @@
 {
 License XRechnung-for-Delphi
 
-Copyright (C) 2021 Landrix Software GmbH & Co. KG
+Copyright (C) 2022 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
-Version 1.3.2
+Version 1.4.0
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -74,9 +74,8 @@ type
   end;
 
   TXRechnungVersion = (XRechnungVersion_Unknown,
-                       XRechnungVersion_122,
-                       XRechnungVersion_211_UBL,
-                       XRechnungVersion_211_UNCEFACT,
+                       XRechnungVersion_220_UBL,
+                       XRechnungVersion_220_UNCEFACT,
                        XRechnungVersion_ReadingSupport_ZUGFeRDFacturX_2xx);
 
   TXRechnungValidationHelper = class(TObject)
@@ -969,9 +968,8 @@ begin
   try
     xml.LoadFromFile(_Filename);
     case TXRechnungValidationHelper.GetXRechnungVersion(xml) of
-      XRechnungVersion_122          : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_122,xml,_Error);
-      XRechnungVersion_211_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_211_UBL,xml,_Error);
-      XRechnungVersion_211_UNCEFACT,
+      XRechnungVersion_220_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_220_UBL,xml,_Error);
+      XRechnungVersion_220_UNCEFACT,
       XRechnungVersion_ReadingSupport_ZUGFeRDFacturX_2xx : Result := LoadDocumentUNCEFACT(_Invoice,xml,_Error);
       else exit;
     end;
@@ -995,9 +993,8 @@ begin
   try
     xml.LoadFromStream(_Stream);
     case TXRechnungValidationHelper.GetXRechnungVersion(xml) of
-      XRechnungVersion_122          : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_122,xml,_Error);
-      XRechnungVersion_211_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_211_UBL,xml,_Error);
-      XRechnungVersion_211_UNCEFACT,
+      XRechnungVersion_220_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_220_UBL,xml,_Error);
+      XRechnungVersion_220_UNCEFACT,
       XRechnungVersion_ReadingSupport_ZUGFeRDFacturX_2xx : Result := LoadDocumentUNCEFACT(_Invoice,xml,_Error);
       else exit;
     end;
@@ -1021,9 +1018,8 @@ begin
   try
     xml.LoadFromXML(_XML);
     case TXRechnungValidationHelper.GetXRechnungVersion(xml) of
-      XRechnungVersion_122          : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_122,xml,_Error);
-      XRechnungVersion_211_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_211_UBL,xml,_Error);
-      XRechnungVersion_211_UNCEFACT,
+      XRechnungVersion_220_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_220_UBL,xml,_Error);
+      XRechnungVersion_220_UNCEFACT,
       XRechnungVersion_ReadingSupport_ZUGFeRDFacturX_2xx : Result := LoadDocumentUNCEFACT(_Invoice,xml,_Error);
       else exit;
     end;
@@ -1036,9 +1032,8 @@ class procedure TXRechnungInvoiceAdapter.SaveDocument(_Invoice: TInvoice;
   _Version : TXRechnungVersion; _Xml: IXMLDocument);
 begin
   case _Version of
-    XRechnungVersion_122,
-    XRechnungVersion_211_UBL : SaveDocumentUBL(_Invoice,_Version,_Xml);
-    XRechnungVersion_211_UNCEFACT : SaveDocumentUNCEFACT(_Invoice,_Xml);
+    XRechnungVersion_220_UBL : SaveDocumentUBL(_Invoice,_Version,_Xml);
+    XRechnungVersion_220_UNCEFACT : SaveDocumentUNCEFACT(_Invoice,_Xml);
     else raise Exception.Create('XRechnung - wrong version');
   end;
 end;
@@ -1145,7 +1140,7 @@ var
         Text := IntToStr(_Invoiceline.BaseQuantity);
       end;
     end;
-    if _Version = XRechnungVersion_211_UBL then
+    //if _Version = XRechnungVersion_220_UBL then
     for subinvoiceline in _Invoiceline.SubInvoiceLines do
       InternalAddInvoiceLine(subinvoiceline,_Node.AddChild('cac:SubInvoiceLine'));
   end;
@@ -1168,16 +1163,8 @@ begin
   xRoot.DeclareNamespace('cac','urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
   xRoot.DeclareNamespace('cbc','urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
 
-  if _Version = XRechnungVersion_122 then
-  begin
-    xRoot.DeclareNamespace('xsi','http://www.w3.org/2001/XMLSchema-instance');
-    xRoot.Attributes['xsi:schemaLocation'] := 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2 http://docs.oasis-open.org/ubl/os-UBL-2.1/xsd/maindoc/UBL-Invoice-2.1.xsd';
-    xRoot.AddChild('cbc:CustomizationID').Text := 'urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_1.2';
-  end else
-  begin
-    xRoot.AddChild('cbc:CustomizationID').Text := 'urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.1'+
-         IfThen(InternalExtensionEnabled,'#conformant#urn:xoev-de:kosit:extension:xrechnung_2.1','');
-  end;
+  xRoot.AddChild('cbc:CustomizationID').Text := 'urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.2'+
+       IfThen(InternalExtensionEnabled,'#conformant#urn:xoev-de:kosit:extension:xrechnung_2.2','');
 
   xRoot.AddChild('cbc:ID').Text := _Invoice.InvoiceNumber;
   xRoot.AddChild('cbc:IssueDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoiceIssueDate);
@@ -1207,10 +1194,6 @@ begin
 
   for i := 0 to _Invoice.Attachments.Count -1 do
   begin
-    if _Invoice.Attachments[i].AttachmentType = TInvoiceAttachmentType.iat_application_xml then
-    if _Version = XRechnungVersion_122 then
-      continue; //xml attachment not allowed in v1.2.2');
-
     with xRoot.AddChild('cac:AdditionalDocumentReference') do
     begin
       AddChild('cbc:ID').Text := _Invoice.Attachments[i].ID;
@@ -1381,7 +1364,7 @@ begin
            TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount1Percent)])+
           IfThen(_Invoice.PaymentTermCashDiscount1Base <> 0,'BASISBETRAG='+
             TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount1Base)+'#','')+
-          IfThen(_Version = XRechnungVersion_211_UBL,#13#10,'');
+          IfThen(_Version = XRechnungVersion_220_UBL,#13#10,'');
       end;
     iptt_CashDiscount2:
     begin
@@ -1398,7 +1381,7 @@ begin
            TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount2Percent)])+
           IfThen(_Invoice.PaymentTermCashDiscount2Base <> 0,'BASISBETRAG='+
             TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount2Base)+'#','')+
-          IfThen(_Version = XRechnungVersion_211_UBL,#13#10,'');
+          IfThen(_Version = XRechnungVersion_220_UBL,#13#10,'');
       end;
     end;
   end;
@@ -1607,7 +1590,7 @@ begin
 
   xRoot.AddChild('rsm:ExchangedDocumentContext')
        .AddChild('ram:GuidelineSpecifiedDocumentContextParameter')
-       .AddChild('ram:ID').Text := 'urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.1';
+       .AddChild('ram:ID').Text := 'urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.2';
 
   with xRoot.AddChild('rsm:ExchangedDocument') do
   begin
@@ -2550,11 +2533,8 @@ begin
   begin
     if not TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'cbc:CustomizationID',node) then
       exit;
-    if node.Text.EndsWith('xrechnung_2.1',true) then
-      Result := XRechnungVersion_211_UBL
-    else
-    if node.Text.EndsWith('xrechnung_1.2',true) then
-      Result := XRechnungVersion_122;
+    if node.Text.EndsWith('xrechnung_2.2',true) then
+      Result := XRechnungVersion_220_UBL;
   end else
   if (SameText(_XML.DocumentElement.NodeName,'CrossIndustryInvoice') or SameText(_XML.DocumentElement.NodeName,'rsm:CrossIndustryInvoice')) then
   begin
@@ -2564,8 +2544,8 @@ begin
       exit;
     if not TXRechnungXMLHelper.FindChild(node2,'ram:ID',node) then
       exit;
-    if node.Text.EndsWith('xrechnung_2.1',true) then
-      Result := XRechnungVersion_211_UNCEFACT
+    if node.Text.EndsWith('xrechnung_2.2',true) then
+      Result := XRechnungVersion_220_UNCEFACT
     else
     if node.Text.StartsWith('urn:cen.eu:en16931:2017',true) then
       Result := XRechnungVersion_ReadingSupport_ZUGFeRDFacturX_2xx;

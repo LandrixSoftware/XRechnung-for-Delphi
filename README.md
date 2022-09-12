@@ -5,7 +5,7 @@
 Erstellen von Rechnungen im 
 
 - XRechnung-UBL-Format (Universal Business Language)
-- XRechnung-CII-Format (Cross Industrie Invoice ZUGFeRD 2.1.1)
+- XRechnung-CII-Format (Cross Industrie Invoice)
 
 ## TODO
 
@@ -22,8 +22,7 @@ https://github.com/itplr-kosit/validator-configuration-xrechnung/issues/41
 
 Aktuelle XRechnung-Versionen
 
-- 1.2.2 (Gültigkeitszeitraum 01.07.2020 - 31.12.2020)
-- 2.1.1 (Gültigkeitszeitraum 01.02.2022 - 31.07.2022)
+- 2.2.0
 
 ## Weitere Informationen zu XRechnung
 

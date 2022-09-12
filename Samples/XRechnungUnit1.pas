@@ -14,12 +14,9 @@ uses
 
 type
   TForm1 = class(TForm)
-    Memo1: TMemo;
     btCreateInvoice: TButton;
     Memo2: TMemo;
-    WebBrowser1: TWebBrowser;
     Memo3: TMemo;
-    Label1: TLabel;
     Label2: TLabel;
     WebBrowser2: TWebBrowser;
     rbPaymentTerms: TRadioGroup;
@@ -27,28 +24,25 @@ type
     Button4: TButton;
     Label3: TLabel;
     cbPrepaidAmount: TCheckBox;
-    btX1ConvertHTML: TButton;
     btX2ConvertHTML: TButton;
     Button1: TButton;
     cbAttachments: TCheckBox;
     cbDeliveriyInf: TCheckBox;
     rbFormat: TRadioGroup;
     Button2: TButton;
+    Panel1: TPanel;
     procedure btCreateInvoiceClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button4Click(Sender: TObject);
-    procedure btX1ConvertHTMLClick(Sender: TObject);
     procedure btX2ConvertHTMLClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
   private
-    procedure Generate122(inv : TInvoice);
-    procedure Generate211(inv : TInvoice);
+    procedure Generate220(inv : TInvoice);
   public
     JavaRuntimeEnvironmentPath : String;
     ValidatorLibPath : String;
-    ValidatorConfiguration122Path : String;
-    ValidatorConfiguration211Path : String;
+    ValidatorConfiguration220Path : String;
     VisualizationLibPath : String;
   end;
 
@@ -69,9 +63,12 @@ begin
   hstr := ExtractFileDir(hstr)+PathDelim+'Distribution'+PathDelim;
   JavaRuntimeEnvironmentPath := hstr +'java'+PathDelim;
   ValidatorLibPath := hstr +'validator'+PathDelim;
-  ValidatorConfiguration122Path := hstr +'validator-configuration-122'+PathDelim;
-  ValidatorConfiguration211Path := hstr +'validator-configuration-211'+PathDelim;
+  ValidatorConfiguration220Path := hstr +'validator-configuration-220'+PathDelim;
   VisualizationLibPath := hstr +'visualization'+PathDelim;
+  Width := 50;
+  Top := 50;
+  Width := Screen.WorkAreaWidth-100;
+  Height := Screen.WorkAreaHeight-100;
 end;
 
 procedure TForm1.Button1Click(Sender: TObject);
@@ -79,12 +76,9 @@ var
   inv : TInvoice;
   suc : Boolean;
 begin
-  WebBrowser1.Navigate2('about:blank');
   WebBrowser2.Navigate2('about:blank');
-  Memo1.Clear;
   Memo2.Clear;
   Memo3.Clear;
-  btX1ConvertHTML.Visible := false;
   btX2ConvertHTML.Visible := false;
 
   inv := TInvoice.Create;
@@ -166,8 +160,7 @@ begin
   inv.PayableAmount := 200.00;      //Summe Zahlbar MwSt
 
   try
-    Generate122(inv);
-    Generate211(inv);
+    Generate220(inv);
   finally
     inv.Free;
   end;
@@ -199,12 +192,9 @@ var
   inv : TInvoice;
   suc : Boolean;
 begin
-  WebBrowser1.Navigate2('about:blank');
   WebBrowser2.Navigate2('about:blank');
-  Memo1.Clear;
   Memo2.Clear;
   Memo3.Clear;
-  btX1ConvertHTML.Visible := false;
   btX2ConvertHTML.Visible := false;
 
   inv := TInvoice.Create;
@@ -517,10 +507,7 @@ begin
 
   //TODO PayableRoundingAmount
   try
-
-    Generate122(inv);
-
-    Generate211(inv);
+    Generate220(inv);
   finally
     inv.Free;
   end;
@@ -533,12 +520,9 @@ var
 begin
   ShowMessage('Die Validierungswarnung scheint derzeit noch normal zu sein.'+#10+'[UBL-CR-646]-A UBL invoice should not include the InvoiceLine SubInvoiceLine');
 
-  WebBrowser1.Navigate2('about:blank');
   WebBrowser2.Navigate2('about:blank');
-  Memo1.Clear;
   Memo2.Clear;
   Memo3.Clear;
-  btX1ConvertHTML.Visible := false;
   btX2ConvertHTML.Visible := false;
 
   inv := TInvoice.Create;
@@ -660,53 +644,13 @@ begin
   inv.PayableAmount := 428.40;      //Summe Zahlbar MwSt
 
   try
-    Generate211(inv);
+    Generate220(inv);
   finally
     inv.Free;
   end;
 end;
 
-procedure TForm1.Generate122(inv: TInvoice);
-var
-  xml,cmdoutput,xmlresult,htmlresult,error : String;
-  Doc : Variant;
-  invtest : TInvoice;
-begin
-  Memo3.Clear;
-  if rbFormat.itemindex <> 0 then
-    exit;
-
-  TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_122,xml);
-
-  GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
-      .SetValidatorLibPath(ValidatorLibPath)
-      .SetValidatorConfigurationPath(ValidatorConfiguration122Path)
-      .Validate(xml,cmdoutput,xmlresult,htmlresult);
-
-  Doc := WebBrowser1.Document;
-  Doc.Clear;
-  if htmlresult <> '' then
-    Doc.Write(htmlresult)
-  else
-    Doc.Write('<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>');
-  Doc.Close;
-
-  Memo1.Lines.Text := xml;
-  Memo1.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UBL-122.xml',TEncoding.UTF8);
-
-  invtest := TInvoice.Create;
-  try
-    TXRechnungInvoiceAdapter.LoadFromXMLStr(invtest,xml,error);
-    if error <> '' then
-      MessageDlg('error loading XRechnung'+#10+error, mtError, [mbOK], 0);
-  finally
-    invtest.Free;
-  end;
-
-  btX1ConvertHTML.Visible := true;
-end;
-
-procedure TForm1.Generate211(inv: TInvoice);
+procedure TForm1.Generate220(inv: TInvoice);
 var
   xml,cmdoutput,xmlresult,htmlresult,error : String;
   Doc : Variant;
@@ -715,11 +659,11 @@ begin
   Memo3.Clear;
   if rbFormat.itemindex = 0 then
   begin
-    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_211_UBL,xml);
+    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_220_UBL,xml);
 
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetValidatorLibPath(ValidatorLibPath)
-        .SetValidatorConfigurationPath(ValidatorConfiguration211Path)
+        .SetValidatorConfigurationPath(ValidatorConfiguration220Path)
         .Validate(xml,cmdoutput,xmlresult,htmlresult);
 
     Memo3.Lines.Text := cmdoutput;
@@ -733,7 +677,7 @@ begin
     Doc.Close;
 
     Memo2.Lines.Text := xml;
-    Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UBL-211.xml',TEncoding.UTF8);
+    Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UBL-220.xml',TEncoding.UTF8);
 
     invtest := TInvoice.Create;
     try
@@ -748,11 +692,11 @@ begin
   end
   else
   begin
-    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_211_UNCEFACT,xml);
+    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_220_UNCEFACT,xml);
 
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetValidatorLibPath(ValidatorLibPath)
-        .SetValidatorConfigurationPath(ValidatorConfiguration211Path)
+        .SetValidatorConfigurationPath(ValidatorConfiguration220Path)
         .Validate(xml,cmdoutput,xmlresult,htmlresult);
 
     Memo3.Lines.Text := cmdoutput;
@@ -766,7 +710,7 @@ begin
     Doc.Close;
 
     Memo2.Lines.Text := xml;
-    Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UNCEFACT-211.xml',TEncoding.UTF8);
+    Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UNCEFACT-220.xml',TEncoding.UTF8);
 
     invtest := TInvoice.Create;
     try
@@ -779,29 +723,6 @@ begin
 
     btX2ConvertHTML.Visible := true;
   end;
-end;
-
-procedure TForm1.btX1ConvertHTMLClick(Sender: TObject);
-var
-  xml,cmdoutput,htmlresult : String;
-  Doc : Variant;
-begin
-  xml := Memo1.Lines.Text;
-
-  GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
-      .SetValidatorLibPath(ValidatorLibPath)
-      .SetVisualizationLibPath(VisualizationLibPath)
-      .Visualize(xml,true,cmdoutput,htmlresult);
-
-  Memo3.Lines.Text := cmdoutput;
-
-  Doc := WebBrowser1.Document;
-  Doc.Clear;
-  if htmlresult <> '' then
-    Doc.Write(htmlresult)
-  else
-    Doc.Write('<html><body>Visualisierung nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>');
-  Doc.Close;
 end;
 
 procedure TForm1.btX2ConvertHTMLClick(Sender: TObject);

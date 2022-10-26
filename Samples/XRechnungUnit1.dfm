@@ -3,7 +3,7 @@ object Form1: TForm1
   Top = 0
   Caption = 'XRechnung for Delphi v1.4.0'
   ClientHeight = 692
-  ClientWidth = 1910
+  ClientWidth = 1668
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -13,7 +13,7 @@ object Form1: TForm1
   Position = poScreenCenter
   OnCreate = FormCreate
   DesignSize = (
-    1910
+    1668
     692)
   TextHeight = 13
   object Label2: TLabel

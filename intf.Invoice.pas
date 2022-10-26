@@ -360,6 +360,7 @@ type
     ContactName : String;
     ContactTelephone : String;
     ContactElectronicMail : String;
+    ElectronicAddressSellerBuyer : String; //BT-34, BT-49
   end;
 
   TInvoiceDeliveryInformation = record

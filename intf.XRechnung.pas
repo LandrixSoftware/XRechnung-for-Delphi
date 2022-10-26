@@ -251,6 +251,12 @@ begin
 
 //  with xRoot.AddChild('cac:AccountingSupplierParty').AddChild('cac:Party') do
 //  begin
+//    if _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer <> '' then
+//    with AddChild('cbc:EndpointID') do
+//    begin
+//      Attributes['schemeID'] := 'EM';
+//      Text := _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer;
+//    end;
 //    if _Invoice.AccountingSupplierParty.IdentifierSellerBuyer <> '' then
 //    with AddChild('cac:PartyIdentification') do
 //    begin
@@ -294,6 +300,12 @@ begin
 //
 //  with xRoot.AddChild('cac:AccountingCustomerParty').AddChild('cac:Party') do
 //  begin
+//    if _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer <> '' then
+//    with AddChild('cbc:EndpointID') do
+//    begin
+//      Attributes['schemeID'] := 'EM';
+//      Text := _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer;
+//    end;
 //    if _Invoice.AccountingCustomerParty.IdentifierSellerBuyer <> '' then
 //    with AddChild('cac:PartyIdentification') do
 //    begin
@@ -1220,6 +1232,12 @@ begin
 
   with xRoot.AddChild('cac:AccountingSupplierParty').AddChild('cac:Party') do
   begin
+    if _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer <> '' then
+    with AddChild('cbc:EndpointID') do
+    begin
+      Attributes['schemeID'] := 'EM';
+      Text := _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer;
+    end;
     if _Invoice.AccountingSupplierParty.IdentifierSellerBuyer <> '' then
     with AddChild('cac:PartyIdentification') do
     begin
@@ -1263,6 +1281,12 @@ begin
 
   with xRoot.AddChild('cac:AccountingCustomerParty').AddChild('cac:Party') do
   begin
+    if _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer <> '' then
+    with AddChild('cbc:EndpointID') do
+    begin
+      Attributes['schemeID'] := 'EM';
+      Text := _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer;
+    end;
     if _Invoice.AccountingCustomerParty.IdentifierSellerBuyer <> '' then
     with AddChild('cac:PartyIdentification') do
     begin
@@ -1620,6 +1644,7 @@ begin
 
       with AddChild('ram:SellerTradeParty') do
       begin
+        //TODO if _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer <> ''
         if _Invoice.AccountingSupplierParty.IdentifierSellerBuyer <> '' then
           AddChild('ram:ID').Text := _Invoice.AccountingSupplierParty.IdentifierSellerBuyer;
         AddChild('ram:Name').Text := _Invoice.AccountingSupplierParty.RegistrationName;
@@ -1659,6 +1684,7 @@ begin
       end;
       with AddChild('ram:BuyerTradeParty') do
       begin
+        //TODO if _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer <> ''
         if _Invoice.AccountingCustomerParty.IdentifierSellerBuyer <> '' then
           AddChild('ram:ID').Text := _Invoice.AccountingCustomerParty.IdentifierSellerBuyer;
         AddChild('ram:Name').Text := _Invoice.AccountingCustomerParty.RegistrationName;

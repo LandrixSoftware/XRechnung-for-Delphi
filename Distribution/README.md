@@ -4,6 +4,10 @@ Das Skript installtools.ps1 mit PowerShell ausfuehren, um die Tools zu installie
 
 ## Historie
 
+- 17.11.2022 Update\
+  validator-configuration-xrechnung_2.2.0_2022-11-15.zip
+  xrechnung-2.2.0-xrechnung-visualization-2022-11-15.zip
+
 - 12.09.2022 Update\
   validator-configuration-xrechnung_2.2.0_2022-07-15.zip\
   xrechnung-2.2.0-xrechnung-visualization-2022-07-31.zip\

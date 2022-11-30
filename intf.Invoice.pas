@@ -534,11 +534,16 @@ class function TInvoiceUnitCodeHelper.MapUnitOfMeasure(const _UnitOfMeasure: Str
 begin
   Result := _DefaultOnFailure;
   _Success := false;
-  if _UnitOfMeasure = '' then
+  if Trim(_UnitOfMeasure) = '' then
+  begin
+    _Success := true;
     exit;
+  end;
   if SameText(_UnitOfMeasure,'st') or
      SameText(_UnitOfMeasure,'stk.') or
-     SameText(_UnitOfMeasure,'stk') then
+     SameText(_UnitOfMeasure,'stk') or
+     SameText(_UnitOfMeasure,'stck') or
+     SameText(_UnitOfMeasure,'psch') then
   begin
     result := iuc_piece;
     _Success := true;
@@ -598,7 +603,8 @@ begin
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'qm') then
+  if SameText(_UnitOfMeasure,'qm') or
+     SameText(_UnitOfMeasure,'m2') then
   begin
     result := iuc_square_metre;
     _Success := true;

@@ -1,7 +1,7 @@
 object Form1: TForm1
   Left = 0
   Top = 0
-  Caption = 'XRechnung for Delphi v1.4.0'
+  Caption = 'XRechnung for Delphi v2.3.1'
   ClientHeight = 692
   ClientWidth = 1668
   Color = clBtnFace
@@ -21,7 +21,7 @@ object Form1: TForm1
     Top = 10
     Width = 83
     Height = 13
-    Caption = 'XRechnung 2.2.0'
+    Caption = 'XRechnung 2.3.1'
   end
   object Label3: TLabel
     Left = 8
@@ -51,7 +51,7 @@ object Form1: TForm1
   object Memo3: TMemo
     Left = 144
     Top = 508
-    Width = 1745
+    Width = 1368
     Height = 169
     Anchors = [akLeft, akRight, akBottom]
     ScrollBars = ssBoth
@@ -156,19 +156,19 @@ object Form1: TForm1
   object Panel1: TPanel
     Left = 808
     Top = 29
-    Width = 1081
+    Width = 705
     Height = 473
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 13
     object WebBrowser2: TWebBrowser
       Left = 1
       Top = 1
-      Width = 1079
+      Width = 703
       Height = 471
       Align = alClient
       TabOrder = 0
       ControlData = {
-        4C000000856F0000AE3000000000000000000000000000000000000000000000
+        4C000000A8480000AE3000000000000000000000000000000000000000000000
         000000004C000000000000000000000001000000E0D057007335CF11AE690800
         2B2E126208000000000000004C0000000114020000000000C000000000000046
         8000000000000000000000000000000000000000000000000000000000000000

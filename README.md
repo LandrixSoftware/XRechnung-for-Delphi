@@ -20,15 +20,17 @@ https://github.com/itplr-kosit/validator-configuration-xrechnung/issues/41
 
 ## Version
 
-Aktuelle XRechnung-Versionen
+Aktuelle XRechnung-Version
 
-- 2.2.0
+- 2.3.1 gültig ab 1.8.2023
 
 ## Weitere Informationen zu XRechnung
 
 https://www.verband-e-rechnung.org/xrechnung/
 
-https://www.xoev.de/xrechnung-16828
+https://xeinkauf.de/
+
+https://xeinkauf.de/xrechnung/versionen-und-bundles/
 
 https://github.com/itplr-kosit
 

@@ -1,7 +1,7 @@
 {
-Copyright (C) 2022 Landrix Software GmbH & Co. KG
+Copyright (C) 2023 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
-Version 1.4.0
+Version 2.3.1
 
 License
 This file is not official part of the package XRechnung-for-Delphi.
@@ -171,7 +171,7 @@ begin
     exit;
   if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
     exit;
-  if not FileExists(ValidatorLibPath+'validationtool-1.4.2-java8-standalone.jar') then
+  if not FileExists(ValidatorLibPath+'validationtool-1.5.0-java8-standalone.jar') then
     exit;
   if not FileExists(ValidatorConfigurationPath+'scenarios.xml') then
     exit;
@@ -185,9 +185,11 @@ begin
     hstrl.SaveToFile(tmpFilename,TEncoding.UTF8);
 
     cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
-    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -jar '+
-             QuoteIfContainsSpace(ValidatorLibPath+'validationtool-1.4.2-java8-standalone.jar')+' -s '+
-             QuoteIfContainsSpace(ValidatorConfigurationPath+'scenarios.xml')+' -h '+
+    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -classpath '+
+             QuoteIfContainsSpace(ValidatorLibPath+'libs')+' -jar '+
+             QuoteIfContainsSpace(ValidatorLibPath+'validationtool-1.5.0-standalone.jar')+' -s '+
+             QuoteIfContainsSpace(ValidatorConfigurationPath+'scenarios.xml')+' -r '+
+             QuoteIfContainsSpace(ValidatorConfigurationPath)+' -h '+
              QuoteIfContainsSpace(tmpFilename));
     cmd.SaveToFile(tmpFilename+'.bat',TEncoding.ANSI);
 
@@ -230,7 +232,7 @@ begin
     exit;
   if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
     exit;
-  if not FileExists(ValidatorLibPath+'libs\Saxon-HE-9.9.1-7.jar') then
+  if not FileExists(ValidatorLibPath+'libs\Saxon-HE-11.4.jar') then
     exit;
   if _TrueIfUBL_FalseIfCII then
   if not FileExists(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl') then
@@ -252,17 +254,20 @@ begin
 
     cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
     if _TrueIfUBL_FalseIfCII then
-      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -jar '+
-             QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-9.9.1-7.jar')+' -s:'+QuoteIfContainsSpace(tmpFilename)+
+      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
+             QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
+             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(tmpFilename)+
              ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl')+
              ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')))
     else
-      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -jar '+
-             QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-9.9.1-7.jar')+' -s:'+QuoteIfContainsSpace(tmpFilename)+
+      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
+             QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
+             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(tmpFilename)+
              ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\cii-xr.xsl')+
              ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')));
-    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -jar '+
-             QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-9.9.1-7.jar')+' -s:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml'))+
+    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
+             QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
+             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml'))+
              ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\xrechnung-html.xsl')+
              ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-.html')));
 

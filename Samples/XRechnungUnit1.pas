@@ -1,4 +1,16 @@
-﻿unit XRechnungUnit1;
+﻿{
+Copyright (C) 2023 Landrix Software GmbH & Co. KG
+Sven Harazim, info@landrix.de
+Version 2.3.1
+
+License
+This file is not official part of the package XRechnung-for-Delphi.
+
+This is provided as is, expressly without a warranty of any kind.
+You use it at your own risc.
+}
+
+unit XRechnungUnit1;
 
 interface
 
@@ -38,11 +50,11 @@ type
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
   private
-    procedure Generate220(inv : TInvoice);
+    procedure Generate231(inv : TInvoice);
   public
     JavaRuntimeEnvironmentPath : String;
     ValidatorLibPath : String;
-    ValidatorConfiguration220Path : String;
+    ValidatorConfigurationPath : String;
     VisualizationLibPath : String;
   end;
 
@@ -63,7 +75,7 @@ begin
   hstr := ExtractFileDir(hstr)+PathDelim+'Distribution'+PathDelim;
   JavaRuntimeEnvironmentPath := hstr +'java'+PathDelim;
   ValidatorLibPath := hstr +'validator'+PathDelim;
-  ValidatorConfiguration220Path := hstr +'validator-configuration-220'+PathDelim;
+  ValidatorConfigurationPath := hstr +'validator-configuration'+PathDelim;
   VisualizationLibPath := hstr +'visualization'+PathDelim;
   Width := 50;
   Top := 50;
@@ -166,7 +178,7 @@ begin
   inv.PayableAmount := 200.00;      //Summe Zahlbar MwSt
 
   try
-    Generate220(inv);
+    Generate231(inv);
   finally
     inv.Free;
   end;
@@ -519,7 +531,7 @@ begin
 
   //TODO PayableRoundingAmount
   try
-    Generate220(inv);
+    Generate231(inv);
   finally
     inv.Free;
   end;
@@ -662,13 +674,13 @@ begin
   inv.PayableAmount := 428.40;      //Summe Zahlbar MwSt
 
   try
-    Generate220(inv);
+    Generate231(inv);
   finally
     inv.Free;
   end;
 end;
 
-procedure TForm1.Generate220(inv: TInvoice);
+procedure TForm1.Generate231(inv: TInvoice);
 var
   xml,cmdoutput,xmlresult,htmlresult,error : String;
   Doc : Variant;
@@ -677,11 +689,11 @@ begin
   Memo3.Clear;
   if rbFormat.itemindex = 0 then
   begin
-    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_220_UBL,xml);
+    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_230_UBL,xml);
 
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetValidatorLibPath(ValidatorLibPath)
-        .SetValidatorConfigurationPath(ValidatorConfiguration220Path)
+        .SetValidatorConfigurationPath(ValidatorConfigurationPath)
         .Validate(xml,cmdoutput,xmlresult,htmlresult);
 
     Memo3.Lines.Text := cmdoutput;
@@ -695,7 +707,7 @@ begin
     Doc.Close;
 
     Memo2.Lines.Text := xml;
-    Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UBL-220.xml',TEncoding.UTF8);
+    Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UBL-230.xml',TEncoding.UTF8);
 
     invtest := TInvoice.Create;
     try
@@ -710,11 +722,11 @@ begin
   end
   else
   begin
-    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_220_UNCEFACT,xml);
+    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_230_UNCEFACT,xml);
 
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetValidatorLibPath(ValidatorLibPath)
-        .SetValidatorConfigurationPath(ValidatorConfiguration220Path)
+        .SetValidatorConfigurationPath(ValidatorConfigurationPath)
         .Validate(xml,cmdoutput,xmlresult,htmlresult);
 
     Memo3.Lines.Text := cmdoutput;
@@ -728,7 +740,7 @@ begin
     Doc.Close;
 
     Memo2.Lines.Text := xml;
-    Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UNCEFACT-220.xml',TEncoding.UTF8);
+    Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UNCEFACT-230.xml',TEncoding.UTF8);
 
     invtest := TInvoice.Create;
     try

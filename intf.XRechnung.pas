@@ -982,8 +982,10 @@ begin
   try
     xml.LoadFromFile(_Filename);
     case TXRechnungValidationHelper.GetXRechnungVersion(xml) of
-      XRechnungVersion_220_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_220_UBL,xml,_Error);
+      XRechnungVersion_220_UBL,
+      XRechnungVersion_230_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_220_UBL,xml,_Error);
       XRechnungVersion_220_UNCEFACT,
+      XRechnungVersion_230_UNCEFACT,
       XRechnungVersion_ReadingSupport_ZUGFeRDFacturX_2xx : Result := LoadDocumentUNCEFACT(_Invoice,xml,_Error);
       else exit;
     end;
@@ -1007,8 +1009,10 @@ begin
   try
     xml.LoadFromStream(_Stream);
     case TXRechnungValidationHelper.GetXRechnungVersion(xml) of
-      XRechnungVersion_220_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_220_UBL,xml,_Error);
+      XRechnungVersion_220_UBL,
+      XRechnungVersion_230_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_220_UBL,xml,_Error);
       XRechnungVersion_220_UNCEFACT,
+      XRechnungVersion_230_UNCEFACT,
       XRechnungVersion_ReadingSupport_ZUGFeRDFacturX_2xx : Result := LoadDocumentUNCEFACT(_Invoice,xml,_Error);
       else exit;
     end;
@@ -1032,8 +1036,10 @@ begin
   try
     xml.LoadFromXML(_XML);
     case TXRechnungValidationHelper.GetXRechnungVersion(xml) of
-      XRechnungVersion_220_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_220_UBL,xml,_Error);
+      XRechnungVersion_220_UBL,
+      XRechnungVersion_230_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_220_UBL,xml,_Error);
       XRechnungVersion_220_UNCEFACT,
+      XRechnungVersion_230_UNCEFACT,
       XRechnungVersion_ReadingSupport_ZUGFeRDFacturX_2xx : Result := LoadDocumentUNCEFACT(_Invoice,xml,_Error);
       else exit;
     end;

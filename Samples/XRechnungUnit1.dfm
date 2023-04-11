@@ -2,8 +2,8 @@ object Form1: TForm1
   Left = 0
   Top = 0
   Caption = 'XRechnung for Delphi v2.3.1'
-  ClientHeight = 692
-  ClientWidth = 1668
+  ClientHeight = 695
+  ClientWidth = 1605
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -13,8 +13,8 @@ object Form1: TForm1
   Position = poScreenCenter
   OnCreate = FormCreate
   DesignSize = (
-    1668
-    692)
+    1605
+    695)
   TextHeight = 13
   object Label2: TLabel
     Left = 144
@@ -43,15 +43,15 @@ object Form1: TForm1
     Left = 144
     Top = 29
     Width = 649
-    Height = 473
+    Height = 476
     Anchors = [akLeft, akTop, akBottom]
     ScrollBars = ssBoth
     TabOrder = 1
   end
   object Memo3: TMemo
     Left = 144
-    Top = 508
-    Width = 1368
+    Top = 511
+    Width = 1440
     Height = 169
     Anchors = [akLeft, akRight, akBottom]
     ScrollBars = ssBoth
@@ -98,7 +98,7 @@ object Form1: TForm1
   end
   object btX2ConvertHTML: TButton
     Left = 624
-    Top = 441
+    Top = 444
     Width = 137
     Height = 33
     Anchors = [akLeft, akBottom]
@@ -145,8 +145,8 @@ object Form1: TForm1
     TabOrder = 11
   end
   object Button2: TButton
-    Left = 9
-    Top = 652
+    Left = 8
+    Top = 500
     Width = 129
     Height = 25
     Caption = 'Datei laden'
@@ -156,23 +156,41 @@ object Form1: TForm1
   object Panel1: TPanel
     Left = 808
     Top = 29
-    Width = 705
-    Height = 473
+    Width = 777
+    Height = 476
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 13
     object WebBrowser2: TWebBrowser
       Left = 1
       Top = 1
-      Width = 703
-      Height = 471
+      Width = 775
+      Height = 474
       Align = alClient
       TabOrder = 0
       ControlData = {
-        4C000000A8480000AE3000000000000000000000000000000000000000000000
+        4C00000019500000FD3000000000000000000000000000000000000000000000
         000000004C000000000000000000000001000000E0D057007335CF11AE690800
         2B2E126208000000000000004C0000000114020000000000C000000000000046
         8000000000000000000000000000000000000000000000000000000000000000
         00000000000000000100000000000000000000000000000000000000}
     end
+  end
+  object Button3: TButton
+    Left = 8
+    Top = 624
+    Width = 130
+    Height = 25
+    Caption = 'XRechnung validieren'
+    TabOrder = 14
+    OnClick = Button3Click
+  end
+  object Button5: TButton
+    Left = 8
+    Top = 655
+    Width = 130
+    Height = 25
+    Caption = 'XRechnung visualisieren'
+    TabOrder = 15
+    OnClick = Button5Click
   end
 end

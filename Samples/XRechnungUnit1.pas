@@ -43,12 +43,16 @@ type
     rbFormat: TRadioGroup;
     Button2: TButton;
     Panel1: TPanel;
+    Button3: TButton;
+    Button5: TButton;
     procedure btCreateInvoiceClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button4Click(Sender: TObject);
     procedure btX2ConvertHTMLClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
+    procedure Button5Click(Sender: TObject);
   private
     procedure Generate231(inv : TInvoice);
   public
@@ -202,6 +206,40 @@ begin
   finally
     od.Free;
     inv.Free;
+  end;
+end;
+
+procedure TForm1.Button3Click(Sender: TObject);
+var
+  od : TOpenDialog;
+  cmdoutput,xmlresult,htmlresult : String;
+  Doc : Variant;
+begin
+  btX2ConvertHTML.Visible := false;
+  WebBrowser2.Navigate2('about:blank');
+
+  od := TOpenDialog.Create(nil);
+  try
+    if not od.Execute then
+      exit;
+
+    GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+        .SetValidatorLibPath(ValidatorLibPath)
+        .SetValidatorConfigurationPath(ValidatorConfigurationPath)
+        .ValidateFile(od.FileName,cmdoutput,xmlresult,htmlresult);
+
+    Memo3.Lines.Text := cmdoutput;
+
+    Doc := WebBrowser2.Document;
+    Doc.Clear;
+    if htmlresult <> '' then
+      Doc.Write(htmlresult)
+    else
+      Doc.Write('<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>');
+    Doc.Close;
+
+  finally
+    od.Free;
   end;
 end;
 
@@ -677,6 +715,40 @@ begin
     Generate231(inv);
   finally
     inv.Free;
+  end;
+end;
+
+procedure TForm1.Button5Click(Sender: TObject);
+var
+  od : TOpenDialog;
+  cmdoutput,xmlresult,htmlresult : String;
+  Doc : Variant;
+begin
+  btX2ConvertHTML.Visible := false;
+  WebBrowser2.Navigate2('about:blank');
+
+  od := TOpenDialog.Create(nil);
+  try
+    if not od.Execute then
+      exit;
+
+
+    GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+        .SetValidatorLibPath(ValidatorLibPath)
+        .SetVisualizationLibPath(VisualizationLibPath)
+        .VisualizeFile(od.FileName, (TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) in [XRechnungVersion_220_UBL,XRechnungVersion_230_UBL]),cmdoutput,htmlresult);
+
+    Memo3.Lines.Text := cmdoutput;
+
+    Doc := WebBrowser2.Document;
+    Doc.Clear;
+    if htmlresult <> '' then
+      Doc.Write(htmlresult)
+    else
+      Doc.Write('<html><body>Visualisierung nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>');
+    Doc.Close;
+  finally
+    od.Free;
   end;
 end;
 

@@ -34,6 +34,7 @@ Distribution/validator
 Distribution/validator-configuration
 Distribution/visualization
 Distribution/java
+Distribution/apache-fop
 Schema
 
 # Delphi compiler-generated binaries (safe to delete)

@@ -4,6 +4,12 @@ Das Skript installtools.ps1 mit PowerShell ausfuehren, um die Tools zu installie
 
 ## Historie
 
+12.05.2023 Update\
+  validator-configuration-xrechnung_2.3.1_2023-05-12.zip\
+  xrechnung-2.3.1-xrechnung-visualization-2023-05-12.zip
+
+- 14.04.2023 Apache FOP added - experimental
+
 - 24.03.2023 Update\
   validator-configuration-xrechnung_2.3.1_2023-02-17.zip\
   xrechnung-2.3.1-xrechnung-visualization-2023-01-31.zip\
@@ -44,6 +50,8 @@ https://github.com/itplr-kosit/xrechnung-visualization
 
 https://adoptopenjdk.net
 
+https://xmlgraphics.apache.org/fop/2.8/running.html
+
 ## Versionen
 
 https://github.com/itplr-kosit/validator/releases/tag/v1.4.2
@@ -53,3 +61,5 @@ https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/tag/re
 https://github.com/itplr-kosit/xrechnung-visualization/releases/tag/v2022-07-31
 
 https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10_openj9-0.26.0/OpenJDK8U-jre_x64_windows_openj9_8u292b10_openj9-0.26.0.zip
+
+https://www.apache.org/dyn/closer.cgi?filename=/xmlgraphics/fop/binaries/fop-2.8-bin.zip&action=download

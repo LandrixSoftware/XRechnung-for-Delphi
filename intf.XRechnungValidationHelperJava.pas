@@ -31,6 +31,7 @@ type
     function ValidateFile(const _InvoiceXMLFilename : String; out _CmdOutput,_ValidationResultAsXML,_ValidationResultAsHTML : String) : Boolean;
     function Visualize(const _InvoiceXMLData : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
     function VisualizeFile(const _InvoiceXMLFilename : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
+    function VisualizeFileAsPdf(const _InvoiceXMLFilename : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
   end;
 
   function GetXRechnungValidationHelperJava : IXRechnungValidationHelperJava;
@@ -58,6 +59,7 @@ type
     function ValidateFile(const _InvoiceXMLFilename : String; out _CmdOutput,_ValidationResultAsXML,_ValidationResultAsHTML : String) : Boolean;
     function Visualize(const _InvoiceXMLData : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
     function VisualizeFile(const _InvoiceXMLFilename : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
+    function VisualizeFileAsPdf(const _InvoiceXMLFilename : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
   end;
 
 function GetXRechnungValidationHelperJava : IXRechnungValidationHelperJava;
@@ -423,6 +425,78 @@ begin
       _VisualizationAsHTML := hstrl.Text;
       DeleteFile(ChangeFileExt(_InvoiceXMLFilename,'-.html'));
     end;
+
+  finally
+    hstrl.Free;
+    cmd.Free;
+  end;
+end;
+
+function TXRechnungValidationHelperJava.VisualizeFileAsPdf(
+  const _InvoiceXMLFilename: String; _TrueIfUBL_FalseIfCII: Boolean;
+  out _CmdOutput: String; out _VisualizationAsPdf: TMemoryStream): Boolean;
+var
+  hstrl,cmd: TStringList;
+begin
+  //Experimental - it does not work
+  Result := false;
+  if _InvoiceXMLFilename = '' then
+    exit;
+  if not FileExists(_InvoiceXMLFilename) then
+    exit;
+  if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
+    exit;
+  if not FileExists(ValidatorLibPath+'libs\Saxon-HE-11.4.jar') then
+    exit;
+  if _TrueIfUBL_FalseIfCII then
+  if not FileExists(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl') then
+    exit;
+  if not _TrueIfUBL_FalseIfCII then
+  if not FileExists(VisualizationLibPath+'xsl\cii-xr.xsl') then
+    exit;
+
+  if not FileExists(VisualizationLibPath+'xsl\xrechnung-html.xsl') then
+    exit;
+
+  hstrl := TStringList.Create;
+  cmd := TStringList.Create;
+  try
+    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(_InvoiceXMLFilename)));
+    if _TrueIfUBL_FalseIfCII then
+      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
+             QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
+             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(_InvoiceXMLFilename)+
+             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl')+
+             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-xr.xml')))
+    else
+      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
+             QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
+             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(_InvoiceXMLFilename)+
+             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\cii-xr.xsl')+
+             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-xr.xml')));
+    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
+             QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
+             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-xr.xml'))+
+             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\xr-pdf.xsl')+
+             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-.pdf')));
+
+    cmd.SaveToFile(_InvoiceXMLFilename+'.bat',TEncoding.ANSI);
+
+    Result := ExecAndWait(_InvoiceXMLFilename+'.bat','');
+
+    _CmdOutput := CmdOutput.Text;
+
+    DeleteFile(_InvoiceXMLFilename+'.bat');
+    //DeleteFile(ChangeFileExt(_InvoiceXMLFilename,'-xr.xml'));
+
+    if FileExists(ChangeFileExt(_InvoiceXMLFilename,'-.pdf')) then
+    begin
+      _VisualizationAsPdf := TMemoryStream.Create;
+      _VisualizationAsPdf.LoadFromFile(ChangeFileExt(_InvoiceXMLFilename,'-.pdf'));
+      _VisualizationAsPdf.Position := 0;
+      //DeleteFile(ChangeFileExt(_InvoiceXMLFilename,'-.pdf'));
+    end else
+      Result := false;
 
   finally
     hstrl.Free;

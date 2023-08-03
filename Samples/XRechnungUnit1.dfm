@@ -177,7 +177,7 @@ object Form1: TForm1
   end
   object Button3: TButton
     Left = 8
-    Top = 624
+    Top = 592
     Width = 130
     Height = 25
     Caption = 'XRechnung validieren'
@@ -186,11 +186,21 @@ object Form1: TForm1
   end
   object Button5: TButton
     Left = 8
-    Top = 655
+    Top = 623
     Width = 130
     Height = 25
-    Caption = 'XRechnung visualisieren'
+    Caption = 'XRechnung als HTML'
     TabOrder = 15
     OnClick = Button5Click
+  end
+  object Button6: TButton
+    Left = 8
+    Top = 654
+    Width = 130
+    Height = 25
+    Caption = 'XRechnung als PDF'
+    Enabled = False
+    TabOrder = 16
+    OnClick = Button6Click
   end
 end

@@ -22,7 +22,11 @@ https://github.com/itplr-kosit/validator-configuration-xrechnung/issues/41
 
 Aktuelle XRechnung-Version
 
-- 2.3.1 gültig ab 1.8.2023
+- 2.3.1 gültig ab 1.8.2023 https://github.com/LandrixSoftware/XRechnung-for-Delphi/releases
+
+Nächste XRechnung-Version
+
+- 3.0.0 gültig ab 1.2.2024 im aktuellen Branch in Arbeit
 
 ## Weitere Informationen zu XRechnung
 

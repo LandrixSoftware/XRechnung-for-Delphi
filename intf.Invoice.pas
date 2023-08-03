@@ -112,7 +112,7 @@ type
 
   TInvoiceUnitCodeHelper = class(TObject)
   public
-    class function MapUnitOfMeasure(const _UnitOfMeasure : String; out _Success : Boolean; _DefaultOnFailure : TInvoiceUnitCode = TInvoiceUnitCode.iuc_piece) : TInvoiceUnitCode;
+    class function MapUnitOfMeasure(_UnitOfMeasure : String; out _Success : Boolean; _DefaultOnFailure : TInvoiceUnitCode = TInvoiceUnitCode.iuc_piece) : TInvoiceUnitCode;
   end;
 
   {$region 'TInvoiceAllowanceOrChargeIdentCode'}
@@ -529,12 +529,13 @@ end;
 
 { TInvoiceUnitCodeHelper }
 
-class function TInvoiceUnitCodeHelper.MapUnitOfMeasure(const _UnitOfMeasure: String; out _Success: Boolean;
+class function TInvoiceUnitCodeHelper.MapUnitOfMeasure(_UnitOfMeasure: String; out _Success: Boolean;
   _DefaultOnFailure: TInvoiceUnitCode): TInvoiceUnitCode;
 begin
   Result := _DefaultOnFailure;
   _Success := false;
-  if Trim(_UnitOfMeasure) = '' then
+  _UnitOfMeasure := Trim(_UnitOfMeasure);
+  if _UnitOfMeasure = '' then
   begin
     _Success := true;
     exit;

@@ -74,9 +74,7 @@ type
   end;
 
   TXRechnungVersion = (XRechnungVersion_Unknown,
-                       XRechnungVersion_220_UBL,
                        XRechnungVersion_230_UBL,
-                       XRechnungVersion_220_UNCEFACT,
                        XRechnungVersion_230_UNCEFACT,
                        XRechnungVersion_ReadingSupport_ZUGFeRDFacturX_2xx);
 
@@ -982,9 +980,7 @@ begin
   try
     xml.LoadFromFile(_Filename);
     case TXRechnungValidationHelper.GetXRechnungVersion(xml) of
-      XRechnungVersion_220_UBL,
-      XRechnungVersion_230_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_220_UBL,xml,_Error);
-      XRechnungVersion_220_UNCEFACT,
+      XRechnungVersion_230_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_230_UBL,xml,_Error);
       XRechnungVersion_230_UNCEFACT,
       XRechnungVersion_ReadingSupport_ZUGFeRDFacturX_2xx : Result := LoadDocumentUNCEFACT(_Invoice,xml,_Error);
       else exit;
@@ -1009,9 +1005,7 @@ begin
   try
     xml.LoadFromStream(_Stream);
     case TXRechnungValidationHelper.GetXRechnungVersion(xml) of
-      XRechnungVersion_220_UBL,
-      XRechnungVersion_230_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_220_UBL,xml,_Error);
-      XRechnungVersion_220_UNCEFACT,
+      XRechnungVersion_230_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_230_UBL,xml,_Error);
       XRechnungVersion_230_UNCEFACT,
       XRechnungVersion_ReadingSupport_ZUGFeRDFacturX_2xx : Result := LoadDocumentUNCEFACT(_Invoice,xml,_Error);
       else exit;
@@ -1036,9 +1030,7 @@ begin
   try
     xml.LoadFromXML(_XML);
     case TXRechnungValidationHelper.GetXRechnungVersion(xml) of
-      XRechnungVersion_220_UBL,
-      XRechnungVersion_230_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_220_UBL,xml,_Error);
-      XRechnungVersion_220_UNCEFACT,
+      XRechnungVersion_230_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_230_UBL,xml,_Error);
       XRechnungVersion_230_UNCEFACT,
       XRechnungVersion_ReadingSupport_ZUGFeRDFacturX_2xx : Result := LoadDocumentUNCEFACT(_Invoice,xml,_Error);
       else exit;
@@ -1052,9 +1044,7 @@ class procedure TXRechnungInvoiceAdapter.SaveDocument(_Invoice: TInvoice;
   _Version : TXRechnungVersion; _Xml: IXMLDocument);
 begin
   case _Version of
-    XRechnungVersion_220_UBL,
     XRechnungVersion_230_UBL : SaveDocumentUBL(_Invoice,_Version,_Xml);
-    XRechnungVersion_220_UNCEFACT,
     XRechnungVersion_230_UNCEFACT : SaveDocumentUNCEFACT(_Invoice,_Xml);
     else raise Exception.Create('XRechnung - wrong version');
   end;
@@ -1398,7 +1388,7 @@ begin
            TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount1Percent)])+
           IfThen(_Invoice.PaymentTermCashDiscount1Base <> 0,'BASISBETRAG='+
             TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount1Base)+'#','')+
-          IfThen(_Version in [XRechnungVersion_220_UBL,XRechnungVersion_230_UBL],#13#10,'');
+          IfThen(_Version in [XRechnungVersion_230_UBL],#13#10,'');
       end;
     iptt_CashDiscount2:
     begin
@@ -1415,7 +1405,7 @@ begin
            TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount2Percent)])+
           IfThen(_Invoice.PaymentTermCashDiscount2Base <> 0,'BASISBETRAG='+
             TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount2Base)+'#','')+
-          IfThen(_Version in [XRechnungVersion_220_UBL,XRechnungVersion_230_UBL],#13#10,'');
+          IfThen(_Version in [XRechnungVersion_230_UBL],#13#10,'');
       end;
     end;
   end;
@@ -2569,9 +2559,9 @@ begin
   begin
     if not TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'cbc:CustomizationID',node) then
       exit;
-    if node.Text.EndsWith('xrechnung_2.2',true) then
-      Result := XRechnungVersion_220_UBL
-    else
+    //if node.Text.EndsWith('xrechnung_2.2',true) then
+    //  Result := XRechnungVersion_220_UBL
+    //else
     if node.Text.EndsWith('xrechnung_2.3',true) then
       Result := XRechnungVersion_230_UBL;
   end else
@@ -2583,9 +2573,9 @@ begin
       exit;
     if not TXRechnungXMLHelper.FindChild(node2,'ram:ID',node) then
       exit;
-    if node.Text.EndsWith('xrechnung_2.2',true) then
-      Result := XRechnungVersion_220_UNCEFACT
-    else
+    //if node.Text.EndsWith('xrechnung_2.2',true) then
+    //  Result := XRechnungVersion_220_UNCEFACT
+    //else
     if node.Text.EndsWith('xrechnung_2.3',true) then
       Result := XRechnungVersion_230_UNCEFACT
     else

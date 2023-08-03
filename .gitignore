@@ -26,7 +26,15 @@
 #*.obj
 #
 
-Documentation
+Documentation/*/*.zip
+Documentation/*/*.xml
+Documentation/*.txt
+Documentation/*.bat
+Documentation/*.rc
+Documentation/*.res
+Documentation/*.eml
+Documentation/*.md
+Documentation/More
 Samples/Win32
 Samples/Win64
 SaxonHE-Unmanaged

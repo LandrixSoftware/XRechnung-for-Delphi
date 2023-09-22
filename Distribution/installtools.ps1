@@ -19,8 +19,8 @@ If (Test-Path apache-fop){
 }
 
 Invoke-WebRequest -Uri https://github.com/itplr-kosit/validator/releases/download/v1.5.0/validator-1.5.0-distribution.zip -OutFile validator.zip
-Invoke-WebRequest -Uri https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/release-2023-05-12/validator-configuration-xrechnung_2.3.1_2023-05-12.zip -OutFile validator-configuration.zip
-Invoke-WebRequest -Uri https://github.com/itplr-kosit/xrechnung-visualization/releases/download/v2023-05-12/xrechnung-2.3.1-xrechnung-visualization-2023-05-12.zip -OutFile visualization.zip
+Invoke-WebRequest -Uri https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/release-2023-09-22/validator-configuration-xrechnung_3.0.1_2023-09-22.zip -OutFile validator-configuration.zip
+Invoke-WebRequest -Uri https://github.com/itplr-kosit/xrechnung-visualization/releases/download/v2023-09-22/xrechnung-3.0.1-xrechnung-visualization-2023-09-22.zip -OutFile visualization.zip
 Invoke-WebRequest -Uri https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.6%2B10/OpenJDK17U-jre_x64_windows_hotspot_17.0.6_10.zip -OutFile jre.zip
 #Invoke-WebRequest -Uri "https://www.apache.org/dyn/closer.cgi?filename=/xmlgraphics/fop/binaries/fop-2.8-bin.zip&action=download" -OutFile fop.zip
 

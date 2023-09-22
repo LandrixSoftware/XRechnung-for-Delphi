@@ -1,7 +1,7 @@
 object Form1: TForm1
   Left = 0
   Top = 0
-  Caption = 'XRechnung for Delphi v2.3.1'
+  Caption = 'XRechnung for Delphi v3.0.x'
   ClientHeight = 695
   ClientWidth = 1605
   Color = clBtnFace
@@ -21,7 +21,7 @@ object Form1: TForm1
     Top = 10
     Width = 83
     Height = 13
-    Caption = 'XRechnung 2.3.1'
+    Caption = 'XRechnung 3.0.x'
   end
   object Label3: TLabel
     Left = 8

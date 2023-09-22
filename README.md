@@ -26,7 +26,7 @@ Aktuelle XRechnung-Version
 
 Nächste XRechnung-Version
 
-- 3.0.0 gültig ab 1.2.2024 im aktuellen Branch in Arbeit
+- 3.0.1 gültig ab 1.2.2024 im aktuellen Branch in Arbeit
 
 ## Weitere Informationen zu XRechnung
 

@@ -738,7 +738,7 @@ begin
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetValidatorLibPath(ValidatorLibPath)
         .SetVisualizationLibPath(VisualizationLibPath)
-        .VisualizeFile(od.FileName, (TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) in [XRechnungVersion_230_UBL]),cmdoutput,htmlresult);
+        .VisualizeFile(od.FileName, (TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) in [XRechnungVersion_300_UBL]),cmdoutput,htmlresult);
 
     Memo3.Lines.Text := cmdoutput;
 
@@ -774,7 +774,7 @@ begin
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetValidatorLibPath(ValidatorLibPath)
         .SetVisualizationLibPath(VisualizationLibPath)
-        .VisualizeFileAsPdf(od.FileName, (TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) in [XRechnungVersion_230_UBL]),cmdoutput,pdfresult);
+        .VisualizeFileAsPdf(od.FileName, (TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) in [XRechnungVersion_300_UBL]),cmdoutput,pdfresult);
 
     Memo3.Lines.Text := cmdoutput;
 
@@ -801,7 +801,7 @@ begin
   Memo3.Clear;
   if rbFormat.itemindex = 0 then
   begin
-    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_230_UBL,xml);
+    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_300_UBL,xml);
 
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetValidatorLibPath(ValidatorLibPath)
@@ -834,7 +834,7 @@ begin
   end
   else
   begin
-    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_230_UNCEFACT,xml);
+    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_300_UNCEFACT,xml);
 
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetValidatorLibPath(ValidatorLibPath)

@@ -39,8 +39,10 @@ Samples/Win32
 Samples/Win64
 SaxonHE-Unmanaged
 Distribution/validator
-Distribution/validator-configuration
-Distribution/visualization
+Distribution/validator-configuration23x
+Distribution/validator-configuration30x
+Distribution/visualization23x
+Distribution/visualization30x
 Distribution/java
 Distribution/apache-fop
 Schema

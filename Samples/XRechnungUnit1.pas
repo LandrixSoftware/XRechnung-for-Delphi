@@ -1,7 +1,7 @@
 ﻿{
 Copyright (C) 2023 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
-Version 2.3.1
+Version 3.0.1
 
 License
 This file is not official part of the package XRechnung-for-Delphi.
@@ -17,7 +17,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs,Vcl.StdCtrls,Winapi.ShellApi,Winapi.ShlObj,WinApi.ActiveX
-  ,Vcl.OleCtrls, SHDocVw, Vcl.ExtCtrls
+  ,Vcl.OleCtrls, SHDocVw, Vcl.ExtCtrls, System.StrUtils
   ,System.IOUtils,System.Win.COMObj,System.UITypes
   ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema
   ,intf.XRechnung, intf.Invoice
@@ -29,7 +29,6 @@ type
     btCreateInvoice: TButton;
     Memo2: TMemo;
     Memo3: TMemo;
-    Label2: TLabel;
     WebBrowser2: TWebBrowser;
     rbPaymentTerms: TRadioGroup;
     cbAllowanceCharges: TCheckBox;
@@ -46,6 +45,7 @@ type
     Button3: TButton;
     Button5: TButton;
     Button6: TButton;
+    rbVersion: TRadioGroup;
     procedure btCreateInvoiceClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button4Click(Sender: TObject);
@@ -55,9 +55,14 @@ type
     procedure Button3Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
     procedure Button6Click(Sender: TObject);
+    procedure rbVersionClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
-    procedure Generate231(inv : TInvoice);
+    WebBrowserContent : TStringList;
+    WebBrowserContentFilename : String;
+    procedure Generate(inv : TInvoice);
   public
+    DistributionBasePath : String;
     JavaRuntimeEnvironmentPath : String;
     ValidatorLibPath : String;
     ValidatorConfigurationPath : String;
@@ -72,21 +77,28 @@ implementation
 {$R *.dfm}
 
 procedure TForm1.FormCreate(Sender: TObject);
-var
-  hstr : String;
 begin
-  hstr := ExtractFileDir(Application.ExeName);
-  hstr := ExtractFileDir(hstr);
-  hstr := ExtractFileDir(hstr);
-  hstr := ExtractFileDir(hstr)+PathDelim+'Distribution'+PathDelim;
-  JavaRuntimeEnvironmentPath := hstr +'java'+PathDelim;
-  ValidatorLibPath := hstr +'validator'+PathDelim;
-  ValidatorConfigurationPath := hstr +'validator-configuration'+PathDelim;
-  VisualizationLibPath := hstr +'visualization'+PathDelim;
+  DistributionBasePath := ExtractFileDir(Application.ExeName);
+  DistributionBasePath := ExtractFileDir(DistributionBasePath);
+  DistributionBasePath := ExtractFileDir(DistributionBasePath);
+  DistributionBasePath := ExtractFileDir(DistributionBasePath)+PathDelim+'Distribution'+PathDelim;
+  JavaRuntimeEnvironmentPath := DistributionBasePath +'java'+PathDelim;
+  ValidatorLibPath := DistributionBasePath +'validator'+PathDelim;
+  ValidatorConfigurationPath := DistributionBasePath +'validator-configuration'+ifthen(rbVersion.ItemIndex = 0,'23x','30x')+PathDelim;
+  VisualizationLibPath := DistributionBasePath +'visualization'+ifthen(rbVersion.ItemIndex = 0,'23x','30x')+PathDelim;
+
   Width := 50;
   Top := 50;
   Width := Screen.WorkAreaWidth-100;
   Height := Screen.WorkAreaHeight-100;
+
+  WebBrowserContent := TStringList.Create;
+  WebBrowserContentFilename := ExtractFilePath(Application.ExeName)+'content.html';
+end;
+
+procedure TForm1.FormDestroy(Sender: TObject);
+begin
+  if Assigned(WebBrowserContent) then begin WebBrowserContent.Free; WebBrowserContent := nil; end;
 end;
 
 procedure TForm1.Button1Click(Sender: TObject);
@@ -184,7 +196,7 @@ begin
   inv.PayableAmount := 200.00;      //Summe Zahlbar MwSt
 
   try
-    Generate231(inv);
+    Generate(inv);
   finally
     inv.Free;
   end;
@@ -215,7 +227,6 @@ procedure TForm1.Button3Click(Sender: TObject);
 var
   od : TOpenDialog;
   cmdoutput,xmlresult,htmlresult : String;
-  Doc : Variant;
 begin
   btX2ConvertHTML.Visible := false;
   WebBrowser2.Navigate2('about:blank');
@@ -232,13 +243,12 @@ begin
 
     Memo3.Lines.Text := cmdoutput;
 
-    Doc := WebBrowser2.Document;
-    Doc.Clear;
     if htmlresult <> '' then
-      Doc.Write(htmlresult)
+      WebBrowserContent.Text := htmlresult
     else
-      Doc.Write('<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>');
-    Doc.Close;
+      WebBrowserContent.Text := '<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
+    WebBrowserContent.SaveToFile(WebBrowserContentFilename,TEncoding.UTF8);
+    WebBrowser2.Navigate2('file:///'+WebBrowserContentFilename);
 
   finally
     od.Free;
@@ -269,6 +279,7 @@ begin
   inv.PurchaseOrderReference := 'B0815'; //Bestell-Nr. optional
   inv.ProjectReference := 'PR456789';
   inv.ContractDocumentReference := 'V876543210';
+  inv.DeliveryReceiptNumber := 'Lieferschein123';
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
@@ -571,7 +582,7 @@ begin
 
   //TODO PayableRoundingAmount
   try
-    Generate231(inv);
+    Generate(inv);
   finally
     inv.Free;
   end;
@@ -714,7 +725,7 @@ begin
   inv.PayableAmount := 428.40;      //Summe Zahlbar MwSt
 
   try
-    Generate231(inv);
+    Generate(inv);
   finally
     inv.Free;
   end;
@@ -724,7 +735,6 @@ procedure TForm1.Button5Click(Sender: TObject);
 var
   od : TOpenDialog;
   cmdoutput,htmlresult : String;
-  Doc : Variant;
 begin
   btX2ConvertHTML.Visible := false;
   WebBrowser2.Navigate2('about:blank');
@@ -734,21 +744,19 @@ begin
     if not od.Execute then
       exit;
 
-
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetValidatorLibPath(ValidatorLibPath)
         .SetVisualizationLibPath(VisualizationLibPath)
-        .VisualizeFile(od.FileName, (TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) in [XRechnungVersion_300_UBL]),cmdoutput,htmlresult);
+        .VisualizeFile(od.FileName, (TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) in [XRechnungVersion_230_UBL,XRechnungVersion_30x_UBL]),cmdoutput,htmlresult);
 
     Memo3.Lines.Text := cmdoutput;
 
-    Doc := WebBrowser2.Document;
-    Doc.Clear;
     if htmlresult <> '' then
-      Doc.Write(htmlresult)
+      WebBrowserContent.Text := htmlresult
     else
-      Doc.Write('<html><body>Visualisierung nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>');
-    Doc.Close;
+      WebBrowserContent.Text := '<html><body>Visualisierung nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
+    WebBrowserContent.SaveToFile(WebBrowserContentFilename,TEncoding.UTF8);
+    WebBrowser2.Navigate2('file:///'+WebBrowserContentFilename);
   finally
     od.Free;
   end;
@@ -758,7 +766,6 @@ procedure TForm1.Button6Click(Sender: TObject);
 var
   od : TOpenDialog;
   cmdoutput : String;
-  Doc : Variant;
   pdfresult : TMemoryStream;
 begin
   //Experimental - it does not work
@@ -774,35 +781,37 @@ begin
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetValidatorLibPath(ValidatorLibPath)
         .SetVisualizationLibPath(VisualizationLibPath)
-        .VisualizeFileAsPdf(od.FileName, (TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) in [XRechnungVersion_300_UBL]),cmdoutput,pdfresult);
+        .VisualizeFileAsPdf(od.FileName, (TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) in [XRechnungVersion_230_UBL,XRechnungVersion_30x_UBL]),cmdoutput,pdfresult);
 
     Memo3.Lines.Text := cmdoutput;
 
-    Doc := WebBrowser2.Document;
-    Doc.Clear;
-    if pdfresult <> nil then
-    begin
-      //pdfresult.SaveToFile();
-      pdfresult.Free;
-    end else
-      Doc.Write('<html><body>Visualisierung nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>');
-    Doc.Close;
+//    Doc := WebBrowser2.Document;
+//    Doc.Clear;
+//    if pdfresult <> nil then
+//    begin
+//      //pdfresult.SaveToFile();
+//      pdfresult.Free;
+//    end else
+//      Doc.Write('<html><body>Visualisierung nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>');
+//    Doc.Close;
   finally
     od.Free;
   end;
 end;
 
-procedure TForm1.Generate231(inv: TInvoice);
+procedure TForm1.Generate(inv: TInvoice);
 var
   xml,cmdoutput,xmlresult,htmlresult,error : String;
-  Doc : Variant;
   invtest : TInvoice;
 begin
+  WebBrowser2.Navigate2('about:blank');
   Memo3.Clear;
   if rbFormat.itemindex = 0 then
   begin
-    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_300_UBL,xml);
-
+    case rbVersion.ItemIndex of
+      0 : TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_230_UBL,xml);
+      else TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_30x_UBL,xml);
+    end;
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetValidatorLibPath(ValidatorLibPath)
         .SetValidatorConfigurationPath(ValidatorConfigurationPath)
@@ -810,16 +819,15 @@ begin
 
     Memo3.Lines.Text := cmdoutput;
 
-    Doc := WebBrowser2.Document;
-    Doc.Clear;
     if htmlresult <> '' then
-      Doc.Write(htmlresult)
+      WebBrowserContent.Text := htmlresult
     else
-      Doc.Write('<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>');
-    Doc.Close;
+      WebBrowserContent.Text := '<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
+    WebBrowserContent.SaveToFile(WebBrowserContentFilename,TEncoding.UTF8);
+    WebBrowser2.Navigate2('file:///'+WebBrowserContentFilename);
 
     Memo2.Lines.Text := xml;
-    Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UBL-230.xml',TEncoding.UTF8);
+    Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UBL.xml',TEncoding.UTF8);
 
     invtest := TInvoice.Create;
     try
@@ -834,7 +842,10 @@ begin
   end
   else
   begin
-    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_300_UNCEFACT,xml);
+    case rbVersion.ItemIndex of
+      0 : TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_230_UNCEFACT,xml);
+      else TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_30x_UNCEFACT,xml);
+    end;
 
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetValidatorLibPath(ValidatorLibPath)
@@ -843,16 +854,15 @@ begin
 
     Memo3.Lines.Text := cmdoutput;
 
-    Doc := WebBrowser2.Document;
-    Doc.Clear;
     if htmlresult <> '' then
-      Doc.Write(htmlresult)
+      WebBrowserContent.Text := htmlresult
     else
-      Doc.Write('<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>');
-    Doc.Close;
+      WebBrowserContent.Text := '<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
+    WebBrowserContent.SaveToFile(WebBrowserContentFilename,TEncoding.UTF8);
+    WebBrowser2.Navigate2('file:///'+WebBrowserContentFilename);
 
     Memo2.Lines.Text := xml;
-    Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UNCEFACT-230.xml',TEncoding.UTF8);
+    Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UNCEFACT.xml',TEncoding.UTF8);
 
     invtest := TInvoice.Create;
     try
@@ -867,11 +877,21 @@ begin
   end;
 end;
 
+procedure TForm1.rbVersionClick(Sender: TObject);
+begin
+  ValidatorConfigurationPath := DistributionBasePath +'validator-configuration'+ifthen(rbVersion.ItemIndex = 0,'23x','30x')+PathDelim;
+  VisualizationLibPath := DistributionBasePath +'visualization'+ifthen(rbVersion.ItemIndex = 0,'23x','30x')+PathDelim;
+
+  if rbVersion.ItemIndex = 1 then
+    MessageDlg('Version 3.0.x noch nicht einsatzbereit!', mtWarning, [mbOK], 0);
+end;
+
 procedure TForm1.btX2ConvertHTMLClick(Sender: TObject);
 var
   xml,cmdoutput,htmlresult : String;
-  Doc : Variant;
 begin
+  WebBrowser2.Navigate2('about:blank');
+  Memo3.Clear;
   xml := Memo2.Lines.Text;
 
   GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
@@ -881,13 +901,12 @@ begin
 
   Memo3.Lines.Text := cmdoutput;
 
-  Doc := WebBrowser2.Document;
-  Doc.Clear;
   if htmlresult <> '' then
-    Doc.Write(htmlresult)
+    WebBrowserContent.Text := htmlresult
   else
-    Doc.Write('<html><body>Visualisierung nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>');
-  Doc.Close;
+    WebBrowserContent.Text := '<html><body>Visualisierung nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
+  WebBrowserContent.SaveToFile(WebBrowserContentFilename,TEncoding.UTF8);
+  WebBrowser2.Navigate2('file:///'+WebBrowserContentFilename);
 end;
 
 end.

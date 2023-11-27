@@ -12,27 +12,21 @@ object Form1: TForm1
   Font.Style = []
   Position = poScreenCenter
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   DesignSize = (
     1605
     695)
   TextHeight = 13
-  object Label2: TLabel
-    Left = 144
-    Top = 10
-    Width = 83
-    Height = 13
-    Caption = 'XRechnung 3.0.x'
-  end
   object Label3: TLabel
-    Left = 8
-    Top = 309
+    Left = 9
+    Top = 368
     Width = 82
     Height = 13
     Caption = 'Weitere Beispiele'
   end
   object btCreateInvoice: TButton
-    Left = 8
-    Top = 264
+    Left = 9
+    Top = 323
     Width = 129
     Height = 25
     Caption = 'Erzeugen'
@@ -41,9 +35,9 @@ object Form1: TForm1
   end
   object Memo2: TMemo
     Left = 144
-    Top = 29
+    Top = 8
     Width = 649
-    Height = 476
+    Height = 497
     Anchors = [akLeft, akTop, akBottom]
     ScrollBars = ssBoth
     TabOrder = 1
@@ -58,8 +52,8 @@ object Form1: TForm1
     TabOrder = 2
   end
   object rbPaymentTerms: TRadioGroup
-    Left = 8
-    Top = 67
+    Left = 9
+    Top = 126
     Width = 129
     Height = 99
     Caption = 'Zahlungsbedingungen'
@@ -72,16 +66,16 @@ object Form1: TForm1
     TabOrder = 3
   end
   object cbAllowanceCharges: TCheckBox
-    Left = 8
-    Top = 172
+    Left = 9
+    Top = 231
     Width = 138
     Height = 17
     Caption = 'Nachlaesse/Zuschlaege'
     TabOrder = 4
   end
   object Button4: TButton
-    Left = 8
-    Top = 335
+    Left = 9
+    Top = 394
     Width = 129
     Height = 25
     Caption = 'Titel / Positionsgruppen'
@@ -89,8 +83,8 @@ object Form1: TForm1
     OnClick = Button4Click
   end
   object cbPrepaidAmount: TCheckBox
-    Left = 8
-    Top = 195
+    Left = 9
+    Top = 254
     Width = 129
     Height = 17
     Caption = 'Abschlagsrechnungen'
@@ -108,8 +102,8 @@ object Form1: TForm1
     OnClick = btX2ConvertHTMLClick
   end
   object Button1: TButton
-    Left = 8
-    Top = 366
+    Left = 9
+    Top = 425
     Width = 129
     Height = 25
     Caption = 'UStG '#167' 13b'
@@ -117,16 +111,16 @@ object Form1: TForm1
     OnClick = Button1Click
   end
   object cbAttachments: TCheckBox
-    Left = 8
-    Top = 218
+    Left = 9
+    Top = 277
     Width = 97
     Height = 17
     Caption = 'Mit Anhaengen'
     TabOrder = 9
   end
   object cbDeliveriyInf: TCheckBox
-    Left = 8
-    Top = 241
+    Left = 9
+    Top = 300
     Width = 97
     Height = 17
     Caption = 'Lieferanschrift'
@@ -155,20 +149,20 @@ object Form1: TForm1
   end
   object Panel1: TPanel
     Left = 808
-    Top = 29
+    Top = 8
     Width = 777
-    Height = 476
+    Height = 497
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 13
     object WebBrowser2: TWebBrowser
       Left = 1
       Top = 1
       Width = 775
-      Height = 474
+      Height = 495
       Align = alClient
       TabOrder = 0
       ControlData = {
-        4C00000019500000FD3000000000000000000000000000000000000000000000
+        4C00000019500000293300000000000000000000000000000000000000000000
         000000004C000000000000000000000001000000E0D057007335CF11AE690800
         2B2E126208000000000000004C0000000114020000000000C000000000000046
         8000000000000000000000000000000000000000000000000000000000000000
@@ -202,5 +196,18 @@ object Form1: TForm1
     Enabled = False
     TabOrder = 16
     OnClick = Button6Click
+  end
+  object rbVersion: TRadioGroup
+    Left = 8
+    Top = 67
+    Width = 129
+    Height = 53
+    Caption = 'Ausgabeversion'
+    ItemIndex = 0
+    Items.Strings = (
+      '2.3.1'
+      '3.0.x')
+    TabOrder = 17
+    OnClick = rbVersionClick
   end
 end

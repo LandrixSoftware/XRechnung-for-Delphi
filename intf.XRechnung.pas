@@ -100,6 +100,7 @@ type
     class procedure SaveDocument(_Invoice: TInvoice;_Version : TXRechnungVersion; _Xml : IXMLDocument);
     class procedure SaveDocumentUNCEFACT(_Invoice: TInvoice;_Version : TXRechnungVersion; _Xml : IXMLDocument);
     class procedure SaveDocumentUBL(_Invoice: TInvoice;_Version : TXRechnungVersion; _Xml : IXMLDocument);
+    class function LoadFromXMLDocument(_Invoice: TInvoice; _XmlDocument: IXMLDocument; out _Error : String) : Boolean;
     class function LoadDocumentUNCEFACT(_Invoice: TInvoice;_Xml : IXMLDocument; out _Error : String) : Boolean;
     class function LoadDocumentUBL(_Invoice: TInvoice;_Version : TXRechnungVersion; _Xml : IXMLDocument; out _Error : String) : Boolean;
   public
@@ -986,14 +987,7 @@ begin
   xml := TXMLDocument.Create(nil);
   try
     xml.LoadFromFile(_Filename);
-    case TXRechnungValidationHelper.GetXRechnungVersion(xml) of
-      XRechnungVersion_230_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_230_UBL,xml,_Error);
-      XRechnungVersion_30x_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_30x_UBL,xml,_Error);
-      XRechnungVersion_230_UNCEFACT,
-      XRechnungVersion_30x_UNCEFACT,
-      XRechnungVersion_ReadingSupport_ZUGFeRDFacturX : Result := LoadDocumentUNCEFACT(_Invoice,xml,_Error);
-      else exit;
-    end;
+    Result := TXRechnungInvoiceAdapter.LoadFromXMLDocument(_Invoice,xml,_Error);
   finally
     xml := nil;
   end;
@@ -1013,16 +1007,29 @@ begin
   xml := TXMLDocument.Create(nil);
   try
     xml.LoadFromStream(_Stream);
-    case TXRechnungValidationHelper.GetXRechnungVersion(xml) of
-      XRechnungVersion_230_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_230_UBL,xml,_Error);
-      XRechnungVersion_230_UNCEFACT,
-      XRechnungVersion_30x_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_30x_UBL,xml,_Error);
-      XRechnungVersion_30x_UNCEFACT,
-      XRechnungVersion_ReadingSupport_ZUGFeRDFacturX : Result := LoadDocumentUNCEFACT(_Invoice,xml,_Error);
-      else exit;
-    end;
+    Result := TXRechnungInvoiceAdapter.LoadFromXMLDocument(_Invoice,xml,_Error);
   finally
     xml := nil;
+  end;
+end;
+
+class function TXRechnungInvoiceAdapter.LoadFromXMLDocument(
+  _Invoice: TInvoice; _XmlDocument: IXMLDocument;
+  out _Error: String): Boolean;
+begin
+  Result := false;
+  if _Invoice = nil then
+    exit;
+  if _XmlDocument = nil then
+    exit;
+
+  case TXRechnungValidationHelper.GetXRechnungVersion(_XmlDocument) of
+    XRechnungVersion_230_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_230_UBL,_XmlDocument,_Error);
+    XRechnungVersion_30x_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_30x_UBL,_XmlDocument,_Error);
+    XRechnungVersion_230_UNCEFACT,
+    XRechnungVersion_30x_UNCEFACT,
+    XRechnungVersion_ReadingSupport_ZUGFeRDFacturX : Result := LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
+    else exit;
   end;
 end;
 
@@ -1040,14 +1047,7 @@ begin
   xml := TXMLDocument.Create(nil);
   try
     xml.LoadFromXML(_XML);
-    case TXRechnungValidationHelper.GetXRechnungVersion(xml) of
-      XRechnungVersion_230_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_230_UBL,xml,_Error);
-      XRechnungVersion_230_UNCEFACT,
-      XRechnungVersion_30x_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_30x_UBL,xml,_Error);
-      XRechnungVersion_30x_UNCEFACT,
-      XRechnungVersion_ReadingSupport_ZUGFeRDFacturX : Result := LoadDocumentUNCEFACT(_Invoice,xml,_Error);
-      else exit;
-    end;
+    Result := TXRechnungInvoiceAdapter.LoadFromXMLDocument(_Invoice,xml,_Error);
   finally
     xml := nil;
   end;

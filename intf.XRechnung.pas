@@ -988,8 +988,8 @@ begin
     xml.LoadFromFile(_Filename);
     case TXRechnungValidationHelper.GetXRechnungVersion(xml) of
       XRechnungVersion_230_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_230_UBL,xml,_Error);
-      XRechnungVersion_230_UNCEFACT,
       XRechnungVersion_30x_UBL      : Result := LoadDocumentUBL(_Invoice,XRechnungVersion_30x_UBL,xml,_Error);
+      XRechnungVersion_230_UNCEFACT,
       XRechnungVersion_30x_UNCEFACT,
       XRechnungVersion_ReadingSupport_ZUGFeRDFacturX : Result := LoadDocumentUNCEFACT(_Invoice,xml,_Error);
       else exit;

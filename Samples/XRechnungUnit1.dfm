@@ -203,10 +203,10 @@ object Form1: TForm1
     Width = 129
     Height = 53
     Caption = 'Ausgabeversion'
-    ItemIndex = 0
+    ItemIndex = 1
     Items.Strings = (
       '2.3.1'
-      '3.0.x')
+      '3.0.1')
     TabOrder = 17
     OnClick = rbVersionClick
   end

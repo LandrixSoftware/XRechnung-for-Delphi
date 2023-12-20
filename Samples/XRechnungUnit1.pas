@@ -395,15 +395,17 @@ begin
     begin
       ID := 'attachment.csv';
       Filename := 'attachment.csv';
-      EmbedDataFromFile(ExtractFilePath(ExtractFileDir(ExtractFileDir(Application.ExeName))) +'attachment.xlsx');
+      EmbedDataFromFile(ExtractFilePath(ExtractFileDir(ExtractFileDir(Application.ExeName))) +'attachment.csv');
     end;
-    //ohne Daten
+    //ohne Daten nur bis XRechnung 2.3.1 erlaubt
+    if rbVersion.ItemIndex = 0 then
     with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_application_vnd_openxmlformats_officedocument_spreadsheetml_sheet) do
     begin
       ID := 'attachment.xlsx';
       Filename := 'attachment.xlsx';
     end;
-    //ohne Daten
+    //ohne Daten nur bis XRechnung 2.3.1 erlaubt
+    if rbVersion.ItemIndex = 0 then
     with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_application_vnd_oasis_opendocument_spreadsheet) do
     begin
       ID := 'attachment.ods';
@@ -881,9 +883,6 @@ procedure TForm1.rbVersionClick(Sender: TObject);
 begin
   ValidatorConfigurationPath := DistributionBasePath +'validator-configuration'+ifthen(rbVersion.ItemIndex = 0,'23x','30x')+PathDelim;
   VisualizationLibPath := DistributionBasePath +'visualization'+ifthen(rbVersion.ItemIndex = 0,'23x','30x')+PathDelim;
-
-  if rbVersion.ItemIndex = 1 then
-    MessageDlg('Version 3.0.x noch nicht einsatzbereit!', mtWarning, [mbOK], 0);
 end;
 
 procedure TForm1.btX2ConvertHTMLClick(Sender: TObject);

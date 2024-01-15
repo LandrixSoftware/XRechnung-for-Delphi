@@ -47,6 +47,7 @@ type
     Button6: TButton;
     rbVersion: TRadioGroup;
     Button7: TButton;
+    Button8: TButton;
     procedure btCreateInvoiceClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button4Click(Sender: TObject);
@@ -59,6 +60,7 @@ type
     procedure rbVersionClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure Button7Click(Sender: TObject);
+    procedure Button8Click(Sender: TObject);
   private
     WebBrowserContent : TStringList;
     WebBrowserContentFilename : String;
@@ -947,6 +949,108 @@ begin
   inv.ChargeTotalAmount := 0; //Zuschlaege
   inv.PrepaidAmount := 0; //Anzahlungen
   inv.PayableAmount := 1804.00;      //Summe Zahlbar MwSt
+
+  try
+    Generate(inv);
+  finally
+    inv.Free;
+  end;
+end;
+
+procedure TForm1.Button8Click(Sender: TObject);
+var
+  inv : TInvoice;
+  suc : Boolean;
+begin
+  WebBrowser2.Navigate2('about:blank');
+  Memo2.Clear;
+  Memo3.Clear;
+  btX2ConvertHTML.Visible := false;
+
+  MessageDlg('Das Beispiel für eine Differenzbesteuerung ist ein Vorschlag und wurde offiziell nicht validiert.', mtWarning, [mbOK], 0);
+
+  inv := TInvoice.Create;
+  inv.InvoiceNumber := 'R2020-0815';
+  inv.InvoiceIssueDate := Date;
+  inv.InvoiceDueDate := Date+30;
+  inv.InvoicePeriodStartDate := Date-30;
+  inv.InvoicePeriodEndDate := Date-1;
+  inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
+  inv.InvoiceCurrencyCode := 'EUR';
+  inv.TaxCurrencyCode := 'EUR';
+  inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
+  inv.Note := 'Das Fahrzeug/der Artikel ist differenzbesteuert nach §25a UStG Sonderregelung für Gebrauchtgegenstände';
+
+  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingSupplierParty.CompanyID :=  '';
+  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstraße 1';
+  inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
+  inv.AccountingSupplierParty.Address.PostalZone := '01234';
+  inv.AccountingSupplierParty.Address.CountryCode := 'DE';
+  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingSupplierParty.ContactName := 'Meier';
+  inv.AccountingSupplierParty.ContactTelephone := '030 0815';
+  inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
+  //BT-34 Gibt die elektronische Adresse des Verkäufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
+  //Aktuell nur Unterstuetzung fuer schemeID=EM ElectronicMail
+  //Weitere Codes auf Anfrage
+  //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+
+  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
+  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstraße 1';
+  inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
+  inv.AccountingCustomerParty.Address.PostalZone := '05678';
+  inv.AccountingCustomerParty.Address.CountryCode := 'DE';
+  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingCustomerParty.ContactName := 'Müller';
+  inv.AccountingCustomerParty.ContactTelephone := '030 1508';
+  inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+
+  inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
+  inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
+  inv.PayeeFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+  inv.PayeeFinancialAccountName := 'Fa. XY';
+  //inv.PayeeFinancialInstitutionBranch := 'DEU...'; //BIC
+
+  inv.PaymentTermsType := iptt_Net;
+  inv.PaymentTermNetNote := 'Zahlbar sofort ohne Abzug.';
+
+  with inv.InvoiceLines.AddInvoiceLine do
+  begin
+    ID := '01'; //Positionsnummer
+    Name := 'Fahrzeug mit Differenzbesteuerung'; //Kurztext
+    Description := 'Fahrzeug mit Differenzbesteuerung'+#13#10+'Einkauf 4000,00 EUR'+#13#10+'Marge 840,34 EUR'+#13#10+'Verkauf Brutto 5000,00 EUR'+#13#10+'Enthaltene MwSt. 159,66'; //Laengere Beschreibung
+    Quantity := 1; //Menge
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    TaxPercent := 0.0; //MwSt
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
+    PriceAmount := 5000; //Einzelpreis
+    //TODO Preiseinheiten
+    BaseQuantity := 0; //Preiseinheit
+    BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
+    LineAmount := 5000;
+  end;
+
+  inv.TaxAmountTotal := 0.00; //Summe der gesamten MwSt
+  SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
+  inv.TaxAmountSubtotals[0].TaxPercent := 0.0;
+  inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
+  inv.TaxAmountSubtotals[0].TaxExemptionReason := '';
+  inv.TaxAmountSubtotals[0].TaxableAmount := 5000.00;
+  inv.TaxAmountSubtotals[0].TaxAmount     := 00.00;
+
+  inv.LineAmount := 5000.00;         //Summe
+  inv.TaxExclusiveAmount := 5000.00; //Summe ohne MwSt
+  inv.TaxInclusiveAmount := 5000.00; //Summe inkl MwSt
+  inv.AllowanceTotalAmount := 0; //Abzuege
+  inv.ChargeTotalAmount := 0; //Zuschlaege
+  inv.PrepaidAmount := 0; //Anzahlungen
+  inv.PayableAmount := 5000.00;      //Summe Zahlbar MwSt
 
   try
     Generate(inv);

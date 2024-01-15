@@ -219,4 +219,13 @@ object Form1: TForm1
     TabOrder = 18
     OnClick = Button7Click
   end
+  object Button8: TButton
+    Left = 8
+    Top = 487
+    Width = 130
+    Height = 25
+    Caption = 'Differenzbesteuerung'
+    TabOrder = 19
+    OnClick = Button8Click
+  end
 end

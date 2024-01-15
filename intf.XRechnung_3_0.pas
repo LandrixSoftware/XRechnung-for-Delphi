@@ -1324,7 +1324,8 @@ var
     end;
     with AddChild('ram:SpecifiedTradeProduct') do
     begin
-      AddChild('ram:SellerAssignedID').Text := _Invoiceline.SellersItemIdentification;
+      if not _Invoiceline.SellersItemIdentification.IsEmpty then
+        AddChild('ram:SellerAssignedID').Text := _Invoiceline.SellersItemIdentification;
       AddChild('ram:Name').Text := _Invoiceline.Name;
       AddChild('ram:Description').Text := _Invoiceline.Description;
     end;

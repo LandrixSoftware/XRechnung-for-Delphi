@@ -46,6 +46,7 @@ type
     Button5: TButton;
     Button6: TButton;
     rbVersion: TRadioGroup;
+    Button7: TButton;
     procedure btCreateInvoiceClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button4Click(Sender: TObject);
@@ -57,6 +58,7 @@ type
     procedure Button6Click(Sender: TObject);
     procedure rbVersionClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure Button7Click(Sender: TObject);
   private
     WebBrowserContent : TStringList;
     WebBrowserContentFilename : String;
@@ -179,7 +181,7 @@ begin
     LineAmount := 200;
   end;
 
-  inv.TaxAmountTotal := 0.0;
+  inv.TaxAmountTotal := 0.0; //Summe der gesamten MwSt
   SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
   inv.TaxAmountSubtotals[0].TaxPercent := 0;
   inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_AE_VATReverseCharge;
@@ -537,7 +539,7 @@ begin
     end;
   end;
 
-  inv.TaxAmountTotal := 26.0;
+  inv.TaxAmountTotal := 26.0; //Summe der gesamten MwSt
   SetLength(inv.TaxAmountSubtotals,2); //2 MwSt-Saetze
   inv.TaxAmountSubtotals[0].TaxPercent := 7.0;
   inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
@@ -711,7 +713,7 @@ begin
     end;
   end;
 
-  inv.TaxAmountTotal := 68.40;
+  inv.TaxAmountTotal := 68.40; //Summe der gesamten MwSt
   SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
   inv.TaxAmountSubtotals[0].TaxPercent := 19.0;
   inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
@@ -798,6 +800,158 @@ begin
 //    Doc.Close;
   finally
     od.Free;
+  end;
+end;
+
+procedure TForm1.Button7Click(Sender: TObject);
+var
+  inv : TInvoice;
+  suc : Boolean;
+begin
+  WebBrowser2.Navigate2('about:blank');
+  Memo2.Clear;
+  Memo3.Clear;
+  btX2ConvertHTML.Visible := false;
+
+  inv := TInvoice.Create;
+  inv.InvoiceNumber := 'R2020-0815';
+  inv.InvoiceIssueDate := Date;
+  inv.InvoiceDueDate := Date+30;
+  inv.InvoicePeriodStartDate := Date-30;
+  inv.InvoicePeriodEndDate := Date-1;
+  inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
+  inv.InvoiceCurrencyCode := 'EUR';
+  inv.TaxCurrencyCode := 'EUR';
+  inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
+  inv.Note := '#ADU#Rechnung enthält 100 EUR (Umsatz)Steuer auf Altteile gem. Abschn. 10.5 Abs. 3 UStAE';
+
+  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingSupplierParty.CompanyID :=  '';
+  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstraße 1';
+  inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
+  inv.AccountingSupplierParty.Address.PostalZone := '01234';
+  inv.AccountingSupplierParty.Address.CountryCode := 'DE';
+  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingSupplierParty.ContactName := 'Meier';
+  inv.AccountingSupplierParty.ContactTelephone := '030 0815';
+  inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
+  //BT-34 Gibt die elektronische Adresse des Verkäufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
+  //Aktuell nur Unterstuetzung fuer schemeID=EM ElectronicMail
+  //Weitere Codes auf Anfrage
+  //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+
+  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
+  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstraße 1';
+  inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
+  inv.AccountingCustomerParty.Address.PostalZone := '05678';
+  inv.AccountingCustomerParty.Address.CountryCode := 'DE';
+  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingCustomerParty.ContactName := 'Müller';
+  inv.AccountingCustomerParty.ContactTelephone := '030 1508';
+  inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+
+  inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
+  inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
+  inv.PayeeFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+  inv.PayeeFinancialAccountName := 'Fa. XY';
+  //inv.PayeeFinancialInstitutionBranch := 'DEU...'; //BIC
+
+  inv.PaymentTermsType := iptt_Net;
+  inv.PaymentTermNetNote := 'Zahlbar sofort ohne Abzug.';
+
+  with inv.InvoiceLines.AddInvoiceLine do
+  begin
+    ID := '01'; //Positionsnummer
+    Name := 'Austauschteil'; //Kurztext
+    Description := 'Langtext Austauschteil'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
+    Quantity := 1; //Menge
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    SellersItemIdentification := 'A0815'; //Artikelnummer
+    TaxPercent := 19.0; //MwSt
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    PriceAmount := 1000; //Einzelpreis
+    //TODO Preiseinheiten
+    BaseQuantity := 0; //Preiseinheit
+    BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
+    LineAmount := 1000;
+  end;
+  //10% AT-Steuer auf das Austauschteil
+  with inv.InvoiceLines.AddInvoiceLine do
+  begin
+    ID := '02'; //Positionsnummer
+    Name := 'Bemessungsgrundlage und Umsatzsteuer auf Altteil'; //Kurztext
+    Description := 'Bemessungsgrundlage und Umsatzsteuer auf Altteil'; //Laengere Beschreibung
+    Quantity := 1; //Menge
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    TaxPercent := 19.0; //MwSt
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    PriceAmount := 100; //Einzelpreis
+    //TODO Preiseinheiten
+    BaseQuantity := 0; //Preiseinheit
+    BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
+    LineAmount := 100;
+  end;
+  with inv.InvoiceLines.AddInvoiceLine do
+  begin
+    ID := '03'; //Positionsnummer
+    Name := 'Korrektur/Stornierung Bemessungsgrundlage der Umsatzsteuer auf Altteil'; //Kurztext
+    Description := 'Korrektur/Stornierung Bemessungsgrundlage der Umsatzsteuer auf Altteil'; //Laengere Beschreibung
+    Quantity := -1; //Menge
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    TaxPercent := 0.0; //MwSt
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_Z_ZeroRatedGoods;
+    PriceAmount := 100; //Einzelpreis
+    //TODO Preiseinheiten
+    BaseQuantity := 0; //Preiseinheit
+    BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
+    LineAmount := -100;
+  end;
+  with inv.InvoiceLines.AddInvoiceLine do
+  begin
+    ID := '04'; //Positionsnummer
+    Name := 'Montage'; //Kurztext
+    Description := 'Montage'; //Laengere Beschreibung
+    Quantity := 1; //Menge
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Std',suc); //Mengeneinheit
+    TaxPercent := 19.0; //MwSt
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    PriceAmount := 500; //Einzelpreis
+    //TODO Preiseinheiten
+    BaseQuantity := 0; //Preiseinheit
+    BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
+    LineAmount := 500;
+  end;
+
+  inv.TaxAmountTotal := 304.00; //Summe der gesamten MwSt
+  SetLength(inv.TaxAmountSubtotals,2); //2 MwSt-Saetze
+  inv.TaxAmountSubtotals[0].TaxPercent := 19.0;
+  inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+  inv.TaxAmountSubtotals[0].TaxExemptionReason := '';
+  inv.TaxAmountSubtotals[0].TaxableAmount := 1000.00+100.00+500.00;
+  inv.TaxAmountSubtotals[0].TaxAmount     := 190.00 +19.00 +95.00;
+  inv.TaxAmountSubtotals[1].TaxPercent := 0.0;
+  inv.TaxAmountSubtotals[1].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_Z_ZeroRatedGoods;
+  inv.TaxAmountSubtotals[1].TaxExemptionReason := '';
+  inv.TaxAmountSubtotals[1].TaxableAmount := -100.0;
+  inv.TaxAmountSubtotals[1].TaxAmount := 0.0;
+
+  inv.LineAmount := 1000.00+100.00-100.00+500.00;         //Summe
+  inv.TaxExclusiveAmount := 1000.00+100.00-100.00+500.00; //Summe ohne MwSt
+  inv.TaxInclusiveAmount := inv.TaxExclusiveAmount + 190.00 +19.00 +95.00; //Summe inkl MwSt
+  inv.AllowanceTotalAmount := 0; //Abzuege
+  inv.ChargeTotalAmount := 0; //Zuschlaege
+  inv.PrepaidAmount := 0; //Anzahlungen
+  inv.PayableAmount := 1804.00;      //Summe Zahlbar MwSt
+
+  try
+    Generate(inv);
+  finally
+    inv.Free;
   end;
 end;
 

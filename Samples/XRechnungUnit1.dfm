@@ -140,7 +140,7 @@ object Form1: TForm1
   end
   object Button2: TButton
     Left = 8
-    Top = 500
+    Top = 532
     Width = 129
     Height = 25
     Caption = 'Datei laden'
@@ -209,5 +209,14 @@ object Form1: TForm1
       '3.0.1')
     TabOrder = 17
     OnClick = rbVersionClick
+  end
+  object Button7: TButton
+    Left = 8
+    Top = 456
+    Width = 130
+    Height = 25
+    Caption = 'Austauschteilesteuer'
+    TabOrder = 18
+    OnClick = Button7Click
   end
 end

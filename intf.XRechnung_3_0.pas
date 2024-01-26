@@ -491,16 +491,16 @@ begin
   _Error := '';
   try
     xml := TXRechnungXMLHelper.PrepareDocumentForXPathQuerys(_Xml);
-    if TXRechnungXMLHelper.SelectNode(xml,'//rsm:ExchangedDocument/ram:ID',node) then
+    if TXRechnungXMLHelper.SelectNode(xml,'//*[local-name()="ExchangedDocument"]/ram:ID',node) then
       _Invoice.InvoiceNumber := node.Text;
-    if TXRechnungXMLHelper.SelectNode(xml,'//rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString',node) then
+    if TXRechnungXMLHelper.SelectNode(xml,'//*[local-name()="ExchangedDocument"]/ram:IssueDateTime/udt:DateTimeString',node) then
       _Invoice.InvoiceIssueDate := TXRechnungHelper.DateFromStrUNCEFACTFormat(node.Text);
-    if TXRechnungXMLHelper.SelectNode(xml,'//rsm:ExchangedDocument/ram:TypeCode',node) then
+    if TXRechnungXMLHelper.SelectNode(xml,'//*[local-name()="ExchangedDocument"]/ram:TypeCode',node) then
       _Invoice.InvoiceTypeCode := TXRechnungHelper.InvoiceTypeCodeFromStr(node.Text);
-    if TXRechnungXMLHelper.SelectNode(xml,'//rsm:ExchangedDocument/ram:IncludedNote/ram:Content',node) then
+    if TXRechnungXMLHelper.SelectNode(xml,'//*[local-name()="ExchangedDocument"]/ram:IncludedNote/ram:Content',node) then
       _Invoice.Note := node.Text;
 
-    if not TXRechnungXMLHelper.SelectNode(xml,'//rsm:SupplyChainTradeTransaction',nodeSupplyChainTradeTransaction) then
+    if not TXRechnungXMLHelper.SelectNode(xml,'//*[local-name()="SupplyChainTradeTransaction"]',nodeSupplyChainTradeTransaction) then
       exit;
 
     if TXRechnungXMLHelper.SelectNodes(nodeSupplyChainTradeTransaction,'.//ram:IncludedSupplyChainTradeLineItem',nodes) then

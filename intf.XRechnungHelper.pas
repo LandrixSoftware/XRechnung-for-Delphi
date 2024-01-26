@@ -134,6 +134,8 @@ begin
       s := sNSN + '="'+sNSUri+'"';
       if ContainsText(sNsLine, s) then
         continue;
+      if ContainsText(sNsLine,sNSN+'="') then
+        continue;
       sNsLine := ' '+s + sNsLine;
     end;
     sNsLine := trim(sNsLine);

@@ -1105,7 +1105,8 @@ begin
     with AddChild('cac:PartyLegalEntity') do
     begin
       AddChild('cbc:RegistrationName').Text := _Invoice.AccountingCustomerParty.RegistrationName;
-      AddChild('cbc:CompanyID').Text := _Invoice.AccountingCustomerParty.CompanyID;
+      if _Invoice.AccountingCustomerParty.CompanyID <> '' then
+        AddChild('cbc:CompanyID').Text := _Invoice.AccountingCustomerParty.CompanyID;
       //TODO <cbc:CompanyLegalForm>123/456/7890, HRA-Eintrag in []</cbc:CompanyLegalForm>
     end;
     with AddChild('cac:Contact') do
@@ -1492,7 +1493,8 @@ begin
 
         with AddChild('ram:SpecifiedLegalOrganization') do
         begin
-          AddChild('ram:ID').Text := _Invoice.AccountingCustomerParty.CompanyID;
+          if _Invoice.AccountingCustomerParty.CompanyID <> '' then
+            AddChild('ram:ID').Text := _Invoice.AccountingCustomerParty.CompanyID;
           AddChild('ram:TradingBusinessName').Text := _Invoice.AccountingCustomerParty.Name;
         end;
         with AddChild('ram:DefinedTradeContact') do

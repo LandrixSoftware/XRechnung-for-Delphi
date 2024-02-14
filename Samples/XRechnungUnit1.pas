@@ -1,5 +1,5 @@
 ﻿{
-Copyright (C) 2023 Landrix Software GmbH & Co. KG
+Copyright (C) 2024 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
 Version 3.0.1
 
@@ -64,6 +64,7 @@ type
   private
     WebBrowserContent : TStringList;
     WebBrowserContentFilename : String;
+    WebBrowserContentFilenamePdf : String;
     procedure Generate(inv : TInvoice);
   public
     DistributionBasePath : String;
@@ -71,6 +72,7 @@ type
     ValidatorLibPath : String;
     ValidatorConfigurationPath : String;
     VisualizationLibPath : String;
+    FopLibPath : String;
   end;
 
 var
@@ -90,6 +92,7 @@ begin
   ValidatorLibPath := DistributionBasePath +'validator'+PathDelim;
   ValidatorConfigurationPath := DistributionBasePath +'validator-configuration'+ifthen(rbVersion.ItemIndex = 0,'23x','30x')+PathDelim;
   VisualizationLibPath := DistributionBasePath +'visualization'+ifthen(rbVersion.ItemIndex = 0,'23x','30x')+PathDelim;
+  FopLibPath := DistributionBasePath + 'apache-fop'+PathDelim;
 
   Width := 50;
   Top := 50;
@@ -98,6 +101,7 @@ begin
 
   WebBrowserContent := TStringList.Create;
   WebBrowserContentFilename := ExtractFilePath(Application.ExeName)+'content.html';
+  WebBrowserContentFilenamePdf := ExtractFilePath(Application.ExeName)+'content.pdf';
 end;
 
 procedure TForm1.FormDestroy(Sender: TObject);
@@ -774,8 +778,6 @@ var
   cmdoutput : String;
   pdfresult : TMemoryStream;
 begin
-  //Experimental - it does not work
-
   btX2ConvertHTML.Visible := false;
   WebBrowser2.Navigate2('about:blank');
 
@@ -787,19 +789,23 @@ begin
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetValidatorLibPath(ValidatorLibPath)
         .SetVisualizationLibPath(VisualizationLibPath)
+        .SetFopLibPath(FopLibPath)
         .VisualizeFileAsPdf(od.FileName, (TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) in [XRechnungVersion_230_UBL,XRechnungVersion_30x_UBL]),cmdoutput,pdfresult);
 
     Memo3.Lines.Text := cmdoutput;
 
-//    Doc := WebBrowser2.Document;
-//    Doc.Clear;
-//    if pdfresult <> nil then
-//    begin
-//      //pdfresult.SaveToFile();
-//      pdfresult.Free;
-//    end else
-//      Doc.Write('<html><body>Visualisierung nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>');
-//    Doc.Close;
+    if pdfresult <> nil then
+    begin
+      pdfresult.SaveToFile(WebBrowserContentFilenamePdf);
+      pdfresult.Free;
+      WebBrowser2.Navigate2('file:///'+WebBrowserContentFilenamePdf);
+    end else
+    begin
+      WebBrowserContent.Text := '<html><body>Visualisierung nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
+      WebBrowserContent.SaveToFile(WebBrowserContentFilename,TEncoding.UTF8);
+      WebBrowser2.Navigate2('file:///'+WebBrowserContentFilename);
+    end;
+
   finally
     od.Free;
   end;

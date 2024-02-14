@@ -193,7 +193,6 @@ object Form1: TForm1
     Width = 130
     Height = 25
     Caption = 'XRechnung als PDF'
-    Enabled = False
     TabOrder = 16
     OnClick = Button6Click
   end

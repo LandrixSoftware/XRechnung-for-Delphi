@@ -56,6 +56,8 @@ begin
     exit;
   _Result := _XnRoot.selectNodes(_NodePath);
   Result := _Result <> nil;
+  if Result then
+    Result := _Result.length > 0;
 end;
 
 class function TXRechnungXMLHelper.SelectNodeText(_XnRoot: IXMLDOMNode; const _NodePath: String): String;

@@ -121,8 +121,8 @@ begin
 
   inv := TInvoice.Create;
   inv.InvoiceNumber := 'R2020-0815';
-  inv.InvoiceIssueDate := Date;
-  inv.InvoiceDueDate := Date+30;
+  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
+  inv.InvoiceDueDate := Date+30;         //Fälligkeitsdatum
   inv.InvoicePeriodStartDate := Date-30;
   inv.InvoicePeriodEndDate := Date-1;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
@@ -168,7 +168,7 @@ begin
   //inv.PayeeFinancialInstitutionBranch := 'DEU...'; //BIC
 
   inv.PaymentTermsType := iptt_Net;
-  inv.PaymentTermNetNote := 'Zahlbar sofort ohne Abzug.';
+  inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceIssueDate)]);
 
   with inv.InvoiceLines.AddInvoiceLine do
   begin
@@ -275,8 +275,8 @@ begin
 
   inv := TInvoice.Create;
   inv.InvoiceNumber := 'R2020-0815';
-  inv.InvoiceIssueDate := Date;
-  inv.InvoiceDueDate := Date+30;         //Rechnungsdatum
+  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
+  inv.InvoiceDueDate := Date+30;         //Fälligkeitsdatum
   inv.InvoicePeriodStartDate := Date-30; //Leistungs-/Lieferzeitpunkt Beginn
   inv.InvoicePeriodEndDate := Date-1;    //Leistungs-/Lieferzeitpunkt Ende
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
@@ -348,7 +348,7 @@ begin
     1 :
     begin
       inv.PaymentTermsType := iptt_Net;
-      inv.PaymentTermNetNote := 'Zahlbar sofort ohne Abzug.';
+      inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceIssueDate)]);
     end;
     2 :
     begin
@@ -612,8 +612,8 @@ begin
 
   inv := TInvoice.Create;
   inv.InvoiceNumber := 'R2020-0815';
-  inv.InvoiceIssueDate := Date;
-  inv.InvoiceDueDate := Date+30;
+  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
+  inv.InvoiceDueDate := Date+30;         //Fälligkeitsdatum
   inv.InvoicePeriodStartDate := Date-30;
   inv.InvoicePeriodEndDate := Date-1;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
@@ -659,7 +659,7 @@ begin
   //inv.PayeeFinancialInstitutionBranch := 'DEU...'; //BIC
 
   inv.PaymentTermsType := iptt_Net;
-  inv.PaymentTermNetNote := 'Zahlbar sofort ohne Abzug.';
+  inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceIssueDate)]);
 
   with inv.InvoiceLines.AddInvoiceLine do
   begin
@@ -823,8 +823,8 @@ begin
 
   inv := TInvoice.Create;
   inv.InvoiceNumber := 'R2020-0815';
-  inv.InvoiceIssueDate := Date;
-  inv.InvoiceDueDate := Date+30;
+  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
+  inv.InvoiceDueDate := Date+30;         //Fälligkeitsdatum
   inv.InvoicePeriodStartDate := Date-30;
   inv.InvoicePeriodEndDate := Date-1;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
@@ -870,7 +870,7 @@ begin
   //inv.PayeeFinancialInstitutionBranch := 'DEU...'; //BIC
 
   inv.PaymentTermsType := iptt_Net;
-  inv.PaymentTermNetNote := 'Zahlbar sofort ohne Abzug.';
+  inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceIssueDate)]);
 
   with inv.InvoiceLines.AddInvoiceLine do
   begin
@@ -977,8 +977,8 @@ begin
 
   inv := TInvoice.Create;
   inv.InvoiceNumber := 'R2020-0815';
-  inv.InvoiceIssueDate := Date;
-  inv.InvoiceDueDate := Date+30;
+  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
+  inv.InvoiceDueDate := Date+30;         //Fälligkeitsdatum
   inv.InvoicePeriodStartDate := Date-30;
   inv.InvoicePeriodEndDate := Date-1;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
@@ -1024,7 +1024,7 @@ begin
   //inv.PayeeFinancialInstitutionBranch := 'DEU...'; //BIC
 
   inv.PaymentTermsType := iptt_Net;
-  inv.PaymentTermNetNote := 'Zahlbar sofort ohne Abzug.';
+  inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceIssueDate)]);
 
   with inv.InvoiceLines.AddInvoiceLine do
   begin

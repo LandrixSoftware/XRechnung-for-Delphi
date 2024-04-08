@@ -205,7 +205,7 @@ begin
              QuoteIfContainsSpace(ValidatorLibPath+'libs')+' -jar '+
              QuoteIfContainsSpace(ValidatorLibPath+'validationtool-1.5.0-standalone.jar')+' -s '+
              QuoteIfContainsSpace(ValidatorConfigurationPath+'scenarios.xml')+' -r '+
-             QuoteIfContainsSpace(ValidatorConfigurationPath)+' -h '+
+             QuoteIfContainsSpace(ExcludeTrailingPathDelimiter(ValidatorConfigurationPath))+' -h '+
              QuoteIfContainsSpace(tmpFilename));
     cmd.SaveToFile(tmpFilename+'.bat',TEncoding.ANSI);
 
@@ -263,7 +263,7 @@ begin
              QuoteIfContainsSpace(ValidatorLibPath+'libs')+' -jar '+
              QuoteIfContainsSpace(ValidatorLibPath+'validationtool-1.5.0-standalone.jar')+' -s '+
              QuoteIfContainsSpace(ValidatorConfigurationPath+'scenarios.xml')+' -r '+
-             QuoteIfContainsSpace(ValidatorConfigurationPath)+' -h '+
+             QuoteIfContainsSpace(ExcludeTrailingPathDelimiter(ValidatorConfigurationPath))+' -h '+
              QuoteIfContainsSpace(_InvoiceXMLFilename));
     cmd.SaveToFile(_InvoiceXMLFilename+'.bat',TEncoding.ANSI);
 
@@ -273,26 +273,19 @@ begin
 
     DeleteFile(_InvoiceXMLFilename+'.bat');
 
-    tmpFilename := ChangeFileExt(_InvoiceXMLFilename,'-report.xml');
-    if Pos(' ',tmpFilename)>0 then
-      tmpFilename := StringReplace(tmpFilename,' ','%20',[rfReplaceAll]);
-    if FileExists(tmpFilename) then
+    if FileExists(ChangeFileExt(_InvoiceXMLFilename,'-report.xml')) then
     begin
-      hstrl.LoadFromFile(tmpFilename,TEncoding.UTF8);
+      hstrl.LoadFromFile(ChangeFileExt(_InvoiceXMLFilename,'-report.xml'),TEncoding.UTF8);
       _ValidationResultAsXML := hstrl.Text;
-      DeleteFile(tmpFilename);
+      DeleteFile(ChangeFileExt(_InvoiceXMLFilename,'-report.xml'));
     end;
 
-    tmpFilename := ChangeFileExt(_InvoiceXMLFilename,'-report.html');
-    if Pos(' ',tmpFilename)>0 then
-      tmpFilename := StringReplace(tmpFilename,' ','%20',[rfReplaceAll]);
-    if FileExists(tmpFilename) then
+    if FileExists(ChangeFileExt(_InvoiceXMLFilename,'-report.html')) then
     begin
-      hstrl.LoadFromFile(tmpFilename,TEncoding.UTF8);
+      hstrl.LoadFromFile(ChangeFileExt(_InvoiceXMLFilename,'-report.html'),TEncoding.UTF8);
       _ValidationResultAsHTML := hstrl.Text;
-      DeleteFile(tmpFilename);
+      DeleteFile(ChangeFileExt(_InvoiceXMLFilename,'-report.html'));
     end;
-
   finally
     hstrl.Free;
     cmd.Free;

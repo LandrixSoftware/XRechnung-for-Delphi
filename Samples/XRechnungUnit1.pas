@@ -590,6 +590,10 @@ begin
     inv.PayableAmount := inv.PayableAmount - inv.PrepaidAmount;
   end;
 
+  if (inv.DeliveryReceiptNumber <> '') and
+     (rbFormat.ItemIndex = 1) then
+    ShowMessage('inv.DeliveryReceiptNumber / Lieferscheinnummer ist im ZUGFeRD Format XRechnung nicht vorgesehen');
+
   //TODO PayableRoundingAmount
   try
     Generate(inv);
@@ -1046,7 +1050,7 @@ begin
   SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
   inv.TaxAmountSubtotals[0].TaxPercent := 0.0;
   inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
-  inv.TaxAmountSubtotals[0].TaxExemptionReason := '';
+  inv.TaxAmountSubtotals[0].TaxExemptionReason := 'Differenzbesteuerung';
   inv.TaxAmountSubtotals[0].TaxableAmount := 5000.00;
   inv.TaxAmountSubtotals[0].TaxAmount     := 00.00;
 

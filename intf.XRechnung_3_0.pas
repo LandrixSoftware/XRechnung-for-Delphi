@@ -1,4 +1,4 @@
-{
+﻿{
 License XRechnung-for-Delphi
 
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
@@ -1139,6 +1139,8 @@ begin
       AddChild('cbc:RegistrationName').Text := _Invoice.AccountingSupplierParty.RegistrationName;
       if not _Invoice.AccountingSupplierParty.CompanyID.IsEmpty then
         AddChild('cbc:CompanyID').Text := _Invoice.AccountingSupplierParty.CompanyID;
+      if not _Invoice.AccountingSupplierParty.AdditionalLegalInformationSeller.IsEmpty then
+        AddChild('cbc:CompanyLegalForm').Text := _Invoice.AccountingSupplierParty.AdditionalLegalInformationSeller;
     end;
     with AddChild('cac:Contact') do
     begin
@@ -1189,7 +1191,6 @@ begin
       AddChild('cbc:RegistrationName').Text := _Invoice.AccountingCustomerParty.RegistrationName;
       if _Invoice.AccountingCustomerParty.CompanyID <> '' then
         AddChild('cbc:CompanyID').Text := _Invoice.AccountingCustomerParty.CompanyID;
-      //TODO <cbc:CompanyLegalForm>123/456/7890, HRA-Eintrag in []</cbc:CompanyLegalForm>
     end;
     with AddChild('cac:Contact') do
     begin
@@ -1526,8 +1527,8 @@ begin
         if _Invoice.AccountingSupplierParty.IdentifierSellerBuyer <> '' then
           AddChild('ram:ID').Text := _Invoice.AccountingSupplierParty.IdentifierSellerBuyer;
         AddChild('ram:Name').Text := _Invoice.AccountingSupplierParty.RegistrationName;
-        //TODO <ram:Description>123/456/7890, HRA-Eintrag in []</ram:Description>
-        //<cbc:CompanyLegalForm>123/456/7890, HRA-Eintrag in []</cbc:CompanyLegalForm>
+        if _Invoice.AccountingSupplierParty.AdditionalLegalInformationSeller <> '' then
+          AddChild('ram:Description').Text := _Invoice.AccountingSupplierParty.AdditionalLegalInformationSeller;
         with AddChild('ram:SpecifiedLegalOrganization') do
         begin
           if not _Invoice.AccountingSupplierParty.CompanyID.IsEmpty then

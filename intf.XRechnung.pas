@@ -1,4 +1,4 @@
-{
+﻿{
 License XRechnung-for-Delphi
 
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
@@ -33,6 +33,7 @@ uses
   ,intf.Invoice
   ;
 
+//UBL-Format
 //https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/tree/
 
 //https://portal3.gefeg.com/invoice/tthome/index/617afdc4-623f-44e0-a05b-5b878840e508
@@ -114,8 +115,6 @@ type
 implementation
 
 uses intf.XRechnungHelper;
-
-//{$R intf.XRechnungSchema.res}
 
 { TXRechnungInvoiceAdapter }
 
@@ -865,69 +864,6 @@ begin
     xml := nil;
   end;
 end;
-
-//class function TXRechnungValidationHelper.LoadXSDFromResource(
-//  const _ResourceName: String): String;
-//var
-//  res : TResourceStream;
-//  str : TStringStream;
-//begin
-//  res := TResourceStream.Create(hInstance, _ResourceName, RT_RCDATA);
-//  str := TStringStream.Create;
-//  try
-//    str.LoadFromStream(res);
-//    result := str.DataString;
-//  finally
-//    str.Free;
-//    res.Free;
-//  end;
-//end;
-
-//class function TXRechnungValidationHelper.ValidateXRechnung(
-//  const _XML: String; out _Error: TValidationError): Boolean;
-//var
-//  xml, xsd: IXMLDOMDocument2;
-//  cache: IXMLDOMSchemaCollection;
-//  error: IXMLDOMParseError;
-//begin
-//  Result := false;
-//  cache := CoXMLSchemaCache60.Create;
-//  try
-//    xsd := CoDOMDocument60.Create;
-//    xsd.Async := False;
-//    xsd.loadXML(TXRechnungValidationHelper.LoadXSDFromResource('XRECHNUNG200UBL'));
-//    cache.add('urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100', xsd);
-//
-//    xsd := CoDOMDocument60.Create;
-//    xsd.Async := False;
-//    xsd.loadXML(TXRechnungValidationHelper.LoadXSDFromResource('XRechnung21BASICQualifiedDataType'));
-//    cache.add('urn:un:unece:uncefact:data:standard:QualifiedDataType:100', xsd);
-//
-//    xsd := CoDOMDocument60.Create;
-//    xsd.Async := False;
-//    xsd.loadXML(TXRechnungValidationHelper.LoadXSDFromResource('XRechnung21BASICReusableAggregateBusinessInformationEntity'));
-//    cache.add('urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100', xsd);
-//
-//    xsd := CoDOMDocument60.Create;
-//    xsd.Async := False;
-//    xsd.loadXML(TXRechnungValidationHelper.LoadXSDFromResource('XRechnung21BASIC'));
-//    cache.add('urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100', xsd);
-//
-//    xml := CoDOMDocument60.Create;
-//    xml.async := False;
-//    xml.schemas := cache;
-//    xml.validateOnParse := true;
-//
-//    Result := xml.loadXML(_XML);
-//    if not Result then
-//    begin
-//      _Error.Reason := xml.parseError.reason;
-//      _Error.SrcText := xml.parseError.srcText;
-//    end;
-//  except
-//    on E:Exception do begin _Error.Reason := E.Message; _Error.SrcText := E.ClassName; end;
-//  end;
-//end;
 
 end.
 

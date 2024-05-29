@@ -1,4 +1,4 @@
-{
+﻿{
 License XRechnung-for-Delphi
 
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
@@ -30,14 +30,19 @@ uses
 
 type
   TInvoiceTypeCode = (itc_None,
-                      itc_PartialInvoice, //326
-                      itc_CommercialInvoice, //380
-                      itc_CorrectedInvoice, //384
-                      itc_SelfbilledInvoice, //389
-                      itc_CreditNote, //381
-                      itc_PartialConstructionInvoice, //875
-                      itc_PartialFinalConstructionInvoice, //876
-                      itc_FinalConstructionInvoice); //877
+                      //DebitnoteRelatedToFinancialAdjustments 84 - nicht in XRechnung
+                      //SelfBilledCreditNote 261 - nicht in XRechnung
+                      itc_PartialInvoice,        //326 Teilrechnung
+                      itc_CommercialInvoice,     //380 Handelsrechnung, Rechnung
+                      //DebitNote 383 Belastungsanzeige - nicht in XRechnung
+                      itc_CorrectedInvoice,      //384 Rechnungskorrektur
+                      //PrepaymentInvoice 386 Vorauszahlungsrechnung - nicht in XRechnung
+                      //Cancellation 457 Storno - nicht in XRechnung
+                      itc_SelfbilledInvoice,     //389 Gutschrift (Selbst ausgestellte Rechnung)
+                      itc_CreditNote,            //381 Gutschriftanzeige
+                      itc_PartialConstructionInvoice, //875 Abschlagsrechnung
+                      itc_PartialFinalConstructionInvoice, //876 Teilschlussrechnung
+                      itc_FinalConstructionInvoice); //877 Schlussrechnung
 
   TInvoicePaymentMeansCode = (ipmc_None, //https://www.xrepository.de/details/urn:xoev-de:xrechnung:codeliste:untdid.4461_2
                       ipmc_SEPACreditTransfer); //58
@@ -360,7 +365,8 @@ type
     ContactName : String;
     ContactTelephone : String;
     ContactElectronicMail : String;
-    ElectronicAddressSellerBuyer : String; //BT-34, BT-49
+    AdditionalLegalInformationSeller : String; //BT-33 Weitere rechtliche Informationen zum Verkäufer
+    ElectronicAddressSellerBuyer : String; //BT-34, BT-49 Pflicht
   end;
 
   TInvoiceDeliveryInformation = record
@@ -398,7 +404,7 @@ type
     PurchaseOrderReference : String; //Bestellnummer oder Vertragsnummer des Kaeufers
     ProjectReference : String;
     ContractDocumentReference : String;
-    DeliveryReceiptNumber : String; //Lieferscheinnummer (Lieferscheindatum fehlt und w�rde nur in ZUGFeRD unterst�tzt)
+    DeliveryReceiptNumber : String; //Lieferscheinnummer (Lieferscheindatum fehlt und würde nur in ZUGFeRD unterstützt)
 
     AccountingSupplierParty : TInvoiceAccountingParty;
     AccountingCustomerParty : TInvoiceAccountingParty;

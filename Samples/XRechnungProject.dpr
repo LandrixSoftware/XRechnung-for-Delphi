@@ -14,7 +14,8 @@ program XRechnungProject;
 
 uses
   Vcl.Forms,
-  XRechnungUnit1 in 'XRechnungUnit1.pas' {Form1};
+  XRechnungUnit1 in 'XRechnungUnit1.pas' {Form1},
+  XRechnungUnit2TestCases in 'XRechnungUnit2TestCases.pas';
 
 {$R *.res}
 

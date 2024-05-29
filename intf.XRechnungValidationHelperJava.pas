@@ -1,4 +1,4 @@
-{
+﻿{
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
 Version 3.0.1
@@ -31,6 +31,7 @@ type
     function Validate(const _InvoiceXMLData : String; out _CmdOutput,_ValidationResultAsXML,_ValidationResultAsHTML : String) : Boolean;
     function ValidateFile(const _InvoiceXMLFilename : String; out _CmdOutput,_ValidationResultAsXML,_ValidationResultAsHTML : String) : Boolean;
     function Visualize(const _InvoiceXMLData : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
+    function VisualizeAsPdf(const _InvoiceXMLData : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function VisualizeFile(const _InvoiceXMLFilename : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
     function VisualizeFileAsPdf(const _InvoiceXMLFilename : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
   end;
@@ -61,6 +62,7 @@ type
     function Validate(const _InvoiceXMLData : String; out _CmdOutput,_ValidationResultAsXML,_ValidationResultAsHTML : String) : Boolean;
     function ValidateFile(const _InvoiceXMLFilename : String; out _CmdOutput,_ValidationResultAsXML,_ValidationResultAsHTML : String) : Boolean;
     function Visualize(const _InvoiceXMLData : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
+    function VisualizeAsPdf(const _InvoiceXMLData : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function VisualizeFile(const _InvoiceXMLFilename : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
     function VisualizeFileAsPdf(const _InvoiceXMLFilename : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
   end;
@@ -366,6 +368,115 @@ begin
   end;
 end;
 
+function TXRechnungValidationHelperJava.VisualizeAsPdf(
+  const _InvoiceXMLData: String; _TrueIfUBL_FalseIfCII: Boolean;
+  out _CmdOutput: String; out _VisualizationAsPdf: TMemoryStream): Boolean;
+var
+  tmpFilename : String;
+  hstrl,cmd: TStringList;
+begin
+  //Experimental - it does not work
+  Result := false;
+  if _InvoiceXMLData = '' then
+    exit;
+  if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
+    exit;
+  if not FileExists(ValidatorLibPath+'libs\Saxon-HE-11.4.jar') then
+    exit;
+  if _TrueIfUBL_FalseIfCII then
+  if not FileExists(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl') then
+    exit;
+  if not _TrueIfUBL_FalseIfCII then
+  if not FileExists(VisualizationLibPath+'xsl\cii-xr.xsl') then
+    exit;
+  if not FileExists(VisualizationLibPath+'xsl\xrechnung-html.xsl') then
+    exit;
+  if not FileExists(FopLibPath+'fop\build\fop.jar') then
+    exit;
+
+  tmpFilename := TPath.GetTempFileName;
+
+  hstrl := TStringList.Create;
+  cmd := TStringList.Create;
+  try
+    hstrl.Text := _InvoiceXMLData;
+    hstrl.SaveToFile(tmpFilename,TEncoding.UTF8);
+
+    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
+    if _TrueIfUBL_FalseIfCII then
+      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
+             QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
+             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(tmpFilename)+
+             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl')+
+             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')))
+    else
+      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
+             QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
+             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(tmpFilename)+
+             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\cii-xr.xsl')+
+             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')));
+    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
+             QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
+             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml'))+
+             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\xr-pdf.xsl')+
+             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-.fo'))); // geändert von pdf auf fo
+
+    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.ANSI); //ToDo
+    //cmd.SaveToFile(_InvoiceXMLFilename+'.bat');
+
+    Result := ExecAndWait(tmpFilename+'.bat','');
+
+    _CmdOutput := CmdOutput.Text;
+
+    DeleteFile(tmpFilename+'.bat');
+
+    if not Result then
+      exit;
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Fopper aufrufen. Datei ist eine fo Datei. Saxon HE gibt eine fo-Datei zurück!
+    // cmd Inhalt aus der apache-fop\foop\fop.bat ausgelesen mit echo "%JAVACMD%" %JAVAOPTS% %LOGCHOICE% %LOGLEVEL% -cp "%LOCALCLASSPATH%" %FOP_OPTS% org.apache.fop.cli.Main %FOP_CMD_LINE_ARGS%
+    if FileExists(ChangeFileExt(tmpFilename,'-.fo')) then
+    begin
+      cmd.Clear;
+      cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
+      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
+      QuoteIfContainsSpace(FopLibPath+'fop\build\fop.jar;'+FopLibPath+'fop\lib\batik-all-1.16.jar;' +
+                           FopLibPath+'fop\lib\commons-io-2.11.0.jar;'+FopLibPath+'fop\lib\commons-logging-1.0.4.jar;' +
+                           FopLibPath+'fop\lib\fontbox-2.0.24.jar;'+FopLibPath+'fop\lib\serializer-2.7.2.jar;' +
+                           FopLibPath+'fop\lib\xml-apis-1.4.01.jar;'+FopLibPath+'fop\lib\xml-apis-ext-1.3.04.jar;' +
+                           FopLibPath+'fop\lib\xmlgraphics-commons-2.8.jar;') +
+        ' org.apache.fop.cli.Main ' +
+        QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-.fo')) + ' ' +
+        QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-.pdf') ));
+
+      cmd.SaveToFile(tmpFilename+'.bat');
+
+      Result := ExecAndWait(tmpFilename+'.bat','');
+
+     _CmdOutput := _CmdOutput + #13#10 + CmdOutput.Text;
+
+     DeleteFile(tmpFilename+'.bat');
+     DeleteFile(ChangeFileExt(tmpFilename,'-.fo'));
+    end else
+      Result := false;
+
+    DeleteFile(ChangeFileExt(tmpFilename,'-xr.xml'));
+    ////////////////////////////////////////////////////////////////////////////
+    if FileExists(ChangeFileExt(tmpFilename,'-.pdf')) then
+    begin
+      _VisualizationAsPdf := TMemoryStream.Create;
+      _VisualizationAsPdf.LoadFromFile(ChangeFileExt(tmpFilename,'-.pdf'));
+      _VisualizationAsPdf.Position := 0;
+      DeleteFile(ChangeFileExt(tmpFilename,'-.pdf'));
+    end else
+      Result := false;
+  finally
+    hstrl.Free;
+    cmd.Free;
+  end;
+end;
+
 function TXRechnungValidationHelperJava.VisualizeFile(
   const _InvoiceXMLFilename: String; _TrueIfUBL_FalseIfCII: Boolean;
   out _CmdOutput, _VisualizationAsHTML: String): Boolean;
@@ -439,7 +550,7 @@ function TXRechnungValidationHelperJava.VisualizeFileAsPdf(
   const _InvoiceXMLFilename: String; _TrueIfUBL_FalseIfCII: Boolean;
   out _CmdOutput: String; out _VisualizationAsPdf: TMemoryStream): Boolean;
 var
-  hstrl,cmd: TStringList;
+  cmd: TStringList;
 begin
   //Experimental - it does not work
   Result := false;
@@ -462,7 +573,6 @@ begin
   if not FileExists(FopLibPath+'fop\build\fop.jar') then
     exit;
 
-  hstrl := TStringList.Create;
   cmd := TStringList.Create;
   try
     cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(_InvoiceXMLFilename)));
@@ -482,7 +592,7 @@ begin
              QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
              ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-xr.xml'))+
              ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\xr-pdf.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-.fo'))); // ge�ndert von pdf auf fo
+             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-.fo'))); // geändert von pdf auf fo
 
     cmd.SaveToFile(_InvoiceXMLFilename+'.bat',TEncoding.ANSI); //ToDo
     //cmd.SaveToFile(_InvoiceXMLFilename+'.bat');
@@ -497,7 +607,7 @@ begin
       exit;
 
     ////////////////////////////////////////////////////////////////////////////
-    // Fopper aufrufen. Datei ist eine fo Datei. Saxon HE gibt eine fo-Datei zur�ck!
+    // Fopper aufrufen. Datei ist eine fo Datei. Saxon HE gibt eine fo-Datei zurück!
     // cmd Inhalt aus der apache-fop\foop\fop.bat ausgelesen mit echo "%JAVACMD%" %JAVAOPTS% %LOGCHOICE% %LOGLEVEL% -cp "%LOCALCLASSPATH%" %FOP_OPTS% org.apache.fop.cli.Main %FOP_CMD_LINE_ARGS%
     if FileExists(ChangeFileExt(_InvoiceXMLFilename,'-.fo')) then
     begin
@@ -535,7 +645,6 @@ begin
     end else
       Result := false;
   finally
-    hstrl.Free;
     cmd.Free;
   end;
 end;

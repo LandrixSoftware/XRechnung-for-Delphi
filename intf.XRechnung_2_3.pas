@@ -1056,6 +1056,8 @@ begin
       AddChild('cbc:RegistrationName').Text := _Invoice.AccountingSupplierParty.RegistrationName;
       if _Invoice.AccountingSupplierParty.CompanyID <> '' then
         AddChild('cbc:CompanyID').Text := _Invoice.AccountingSupplierParty.CompanyID;
+      if not _Invoice.AccountingSupplierParty.AdditionalLegalInformationSeller.IsEmpty then
+        AddChild('cbc:CompanyLegalForm').Text := _Invoice.AccountingSupplierParty.AdditionalLegalInformationSeller;
     end;
     with AddChild('cac:Contact') do
     begin
@@ -1106,7 +1108,6 @@ begin
       AddChild('cbc:RegistrationName').Text := _Invoice.AccountingCustomerParty.RegistrationName;
       if _Invoice.AccountingCustomerParty.CompanyID <> '' then
         AddChild('cbc:CompanyID').Text := _Invoice.AccountingCustomerParty.CompanyID;
-      //TODO <cbc:CompanyLegalForm>123/456/7890, HRA-Eintrag in []</cbc:CompanyLegalForm>
     end;
     with AddChild('cac:Contact') do
     begin
@@ -1430,12 +1431,11 @@ begin
 
       with AddChild('ram:SellerTradeParty') do
       begin
-        //TODO if _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer <> ''
         if _Invoice.AccountingSupplierParty.IdentifierSellerBuyer <> '' then
           AddChild('ram:ID').Text := _Invoice.AccountingSupplierParty.IdentifierSellerBuyer;
         AddChild('ram:Name').Text := _Invoice.AccountingSupplierParty.RegistrationName;
-        //TODO <ram:Description>123/456/7890, HRA-Eintrag in []</ram:Description>
-        //<cbc:CompanyLegalForm>123/456/7890, HRA-Eintrag in []</cbc:CompanyLegalForm>
+        if _Invoice.AccountingSupplierParty.AdditionalLegalInformationSeller <> '' then
+          AddChild('ram:Description').Text := _Invoice.AccountingSupplierParty.AdditionalLegalInformationSeller;
         with AddChild('ram:SpecifiedLegalOrganization') do
         begin
           if _Invoice.AccountingSupplierParty.CompanyID <> '' then
@@ -1461,6 +1461,12 @@ begin
           if _Invoice.AccountingSupplierParty.Address.CountrySubentity <> '' then
             AddChild('ram:CountrySubDivisionName').Text := _Invoice.AccountingSupplierParty.Address.CountrySubentity;
         end;
+        if _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer <> '' then
+        with AddChild('ram:URIUniversalCommunication').AddChild('ram:URIID') do
+        begin
+          Attributes['schemeID'] := 'EM';
+          Text := _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer;
+        end;
         if _Invoice.AccountingSupplierParty.VATCompanyID <> '' then
         with AddChild('ram:SpecifiedTaxRegistration').AddChild('ram:ID') do
         begin
@@ -1471,7 +1477,6 @@ begin
       end;
       with AddChild('ram:BuyerTradeParty') do
       begin
-        //TODO if _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer <> ''
         if _Invoice.AccountingCustomerParty.IdentifierSellerBuyer <> '' then
           AddChild('ram:ID').Text := _Invoice.AccountingCustomerParty.IdentifierSellerBuyer;
         AddChild('ram:Name').Text := _Invoice.AccountingCustomerParty.RegistrationName;
@@ -1500,6 +1505,12 @@ begin
           AddChild('ram:CountryID').Text := _Invoice.AccountingCustomerParty.Address.CountryCode;
           if _Invoice.AccountingCustomerParty.Address.CountrySubentity <> '' then
             AddChild('ram:CountrySubDivisionName').Text := _Invoice.AccountingCustomerParty.Address.CountrySubentity;
+        end;
+        if _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer <> '' then
+        with AddChild('ram:URIUniversalCommunication').AddChild('ram:URIID') do
+        begin
+          Attributes['schemeID'] := 'EM';
+          Text := _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer;
         end;
         if _Invoice.AccountingCustomerParty.VATCompanyID <> '' then
         with AddChild('ram:SpecifiedTaxRegistration').AddChild('ram:ID') do

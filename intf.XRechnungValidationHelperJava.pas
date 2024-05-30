@@ -243,7 +243,6 @@ function TXRechnungValidationHelperJava.ValidateFile(
   _ValidationResultAsXML, _ValidationResultAsHTML: String): Boolean;
 var
   hstrl,cmd: TStringList;
-  tmpFilename : String;
 begin
   Result := false;
   if _InvoiceXMLFilename = '' then

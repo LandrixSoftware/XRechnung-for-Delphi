@@ -108,8 +108,11 @@ type
   );
 
   //TODO prüfen, ob es noch mehr gibt
-  TInvoicePaymentMeansCode = (ipmc_None, //https://www.xrepository.de/details/urn:xoev-de:xrechnung:codeliste:untdid.4461_2
-                      ipmc_SEPACreditTransfer); //58
+  //https://www.xrepository.de/details/urn:xoev-de:xrechnung:codeliste:untdid.4461_2
+  TInvoicePaymentMeansCode = (
+    ipmc_InstrumentNotDefined, //1
+    ipmc_SEPACreditTransfer    //58
+  );
 
   TInvoicePaymentTermsType = (iptt_None,
                       iptt_Net,

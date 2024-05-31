@@ -594,14 +594,14 @@ begin
   if SameText(_Val,'58')  then
     Result := ipmc_SEPACreditTransfer
   else
-    Result := ipmc_None;
+    Result := ipmc_InstrumentNotDefined;
 end;
 
 class function TXRechnungHelper.InvoicePaymentMeansCodeToStr(_Val: TInvoicePaymentMeansCode): String;
 begin
   case _Val of
     ipmc_SEPACreditTransfer: Result := '58';
-    else Result := '';
+    else Result := '1'; //ipmc_InstrumentNotDefined
   end;
 end;
 

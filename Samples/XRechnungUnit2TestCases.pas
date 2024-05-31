@@ -1,4 +1,4 @@
-{
+﻿{
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
 Version 3.0.1
@@ -778,7 +778,6 @@ begin
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
   inv.BuyerReference := TInvoiceEmptyLeitwegID.NON_EXISTENT; //B2B ohne Leitweg-ID
-  inv.Note := 'keine';
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden
@@ -805,19 +804,11 @@ begin
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
-  inv.AccountingCustomerParty.ContactName := 'Müller';
-  inv.AccountingCustomerParty.ContactTelephone := '030 1508';
-  inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
-  inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
-  inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
-  inv.PayeeFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
-  inv.PayeeFinancialAccountName := 'Fa. XY';
-  //inv.PayeeFinancialInstitutionBranch := 'DEU...'; //BIC
+  inv.PaymentMeansCode := ipmc_InstrumentNotDefined; //Nicht definiert
 
-  inv.PaymentTermsType := iptt_Net;
-  inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceIssueDate)]);
+  inv.PaymentTermsType := iptt_None;
 
   with inv.InvoiceLines.AddInvoiceLine do
   begin

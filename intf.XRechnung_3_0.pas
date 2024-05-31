@@ -1192,11 +1192,17 @@ begin
       if _Invoice.AccountingCustomerParty.CompanyID <> '' then
         AddChild('cbc:CompanyID').Text := _Invoice.AccountingCustomerParty.CompanyID;
     end;
+    if (_Invoice.AccountingCustomerParty.ContactName <> '') or
+       (_Invoice.AccountingCustomerParty.ContactTelephone <> '') or
+       (_Invoice.AccountingCustomerParty.ContactElectronicMail <> '') then
     with AddChild('cac:Contact') do
     begin
-      AddChild('cbc:Name').Text := _Invoice.AccountingCustomerParty.ContactName;
-      AddChild('cbc:Telephone').Text := _Invoice.AccountingCustomerParty.ContactTelephone;
-      AddChild('cbc:ElectronicMail').Text := _Invoice.AccountingCustomerParty.ContactElectronicMail;
+      if (_Invoice.AccountingCustomerParty.ContactName <> '') then
+        AddChild('cbc:Name').Text := _Invoice.AccountingCustomerParty.ContactName;
+      if (_Invoice.AccountingCustomerParty.ContactTelephone <> '') then
+        AddChild('cbc:Telephone').Text := _Invoice.AccountingCustomerParty.ContactTelephone;
+      if (_Invoice.AccountingCustomerParty.ContactElectronicMail <> '') then
+        AddChild('cbc:ElectronicMail').Text := _Invoice.AccountingCustomerParty.ContactElectronicMail;
     end;
   end;
 
@@ -1229,12 +1235,12 @@ begin
       AddChild('cac:DeliveryParty').AddChild('cac:PartyName').AddChild('cbc:Name').Text := _Invoice.DeliveryInformation.Name;
   end;
 
-  if (_Invoice.PaymentMeansCode <> ipmc_None) and (_Invoice.PayeeFinancialAccount <> '') then
   with xRoot.AddChild('cac:PaymentMeans') do
   begin
     AddChild('cbc:PaymentMeansCode').Text := TXRechnungHelper.InvoicePaymentMeansCodeToStr(_Invoice.PaymentMeansCode);
     if _Invoice.PaymentID <> '' then
       AddChild('cbc:PaymentID').Text := _Invoice.PaymentID;
+    if (_Invoice.PayeeFinancialAccount <> '') then
     with AddChild('cac:PayeeFinancialAccount') do
     begin
       AddChild('cbc:ID').Text := _Invoice.PayeeFinancialAccount;
@@ -1580,11 +1586,17 @@ begin
             AddChild('ram:ID').Text := _Invoice.AccountingCustomerParty.CompanyID;
           AddChild('ram:TradingBusinessName').Text := _Invoice.AccountingCustomerParty.Name;
         end;
+        if (_Invoice.AccountingCustomerParty.ContactName <> '') or
+           (_Invoice.AccountingCustomerParty.ContactTelephone <> '') or
+           (_Invoice.AccountingCustomerParty.ContactElectronicMail <> '') then
         with AddChild('ram:DefinedTradeContact') do
         begin
-          AddChild('ram:PersonName').Text := _Invoice.AccountingCustomerParty.ContactName;
-          AddChild('ram:TelephoneUniversalCommunication').AddChild('ram:CompleteNumber').Text := _Invoice.AccountingCustomerParty.ContactTelephone;
-          AddChild('ram:EmailURIUniversalCommunication').AddChild('ram:URIID').Text := _Invoice.AccountingCustomerParty.ContactElectronicMail;
+          if (_Invoice.AccountingCustomerParty.ContactName <> '') then
+            AddChild('ram:PersonName').Text := _Invoice.AccountingCustomerParty.ContactName;
+          if (_Invoice.AccountingCustomerParty.ContactTelephone <> '') then
+            AddChild('ram:TelephoneUniversalCommunication').AddChild('ram:CompleteNumber').Text := _Invoice.AccountingCustomerParty.ContactTelephone;
+          if (_Invoice.AccountingCustomerParty.ContactElectronicMail <> '') then
+            AddChild('ram:EmailURIUniversalCommunication').AddChild('ram:URIID').Text := _Invoice.AccountingCustomerParty.ContactElectronicMail;
         end;
         with AddChild('ram:PostalTradeAddress') do
         begin
@@ -1687,10 +1699,10 @@ begin
         AddChild('ram:PaymentReference').Text := _Invoice.PaymentID;
       //zuviel AddChild('ram:TaxCurrencyCode').Text := _Invoice.TaxCurrencyCode;
       AddChild('ram:InvoiceCurrencyCode').Text := _Invoice.InvoiceCurrencyCode;
-      if (_Invoice.PaymentMeansCode <> ipmc_None) and (_Invoice.PayeeFinancialAccount <> '') then
       with AddChild('ram:SpecifiedTradeSettlementPaymentMeans') do
       begin
         AddChild('ram:TypeCode').Text := TXRechnungHelper.InvoicePaymentMeansCodeToStr(_Invoice.PaymentMeansCode);
+        if (_Invoice.PayeeFinancialAccount <> '') then
         with AddChild('ram:PayeePartyCreditorFinancialAccount') do
         begin
           AddChild('ram:IBANID').Text := _Invoice.PayeeFinancialAccount;

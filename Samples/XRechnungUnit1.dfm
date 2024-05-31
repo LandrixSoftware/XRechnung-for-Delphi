@@ -197,7 +197,9 @@ object Form1: TForm1
       #167'13b UStG'
       'Austauschteilesteuer'
       'Differenzbesteuerung'
-      'Titel/Positionsgruppen')
+      'Titel/Positionsgruppen'
+      'Gutschrift'
+      'Minimalrechnung B2B')
     TabOrder = 16
   end
 end

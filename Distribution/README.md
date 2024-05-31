@@ -2,6 +2,9 @@
 
 Das Skript installtools.ps1 mit PowerShell ausfuehren, um die Tools zu installieren bzw. zu aktualisieren.
 
+Dabei wird die JRE von AdoptOpenJDK genutzt. Fragen zur Lizenz von AdoptOpenJDK 
+finden Sie unter https://adoptium.net/de/docs/faq/ .
+
 ## Historie
 
 - 16.11.2023 Update\
@@ -56,7 +59,7 @@ https://github.com/itplr-kosit/validator-configuration-xrechnung
 
 https://github.com/itplr-kosit/xrechnung-visualization
 
-https://adoptopenjdk.net
+https://adoptium.net/de/
 
 https://xmlgraphics.apache.org/fop/2.8/running.html
 

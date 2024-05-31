@@ -1,4 +1,16 @@
-﻿unit XRechnungUnit2TestCases;
+{
+Copyright (C) 2024 Landrix Software GmbH & Co. KG
+Sven Harazim, info@landrix.de
+Version 3.0.1
+
+License
+This file is not official part of the package XRechnung-for-Delphi.
+
+This is provided as is, expressly without a warranty of any kind.
+You use it at your own risc.
+}
+
+unit XRechnungUnit2TestCases;
 
 interface
 
@@ -19,6 +31,8 @@ type
     class procedure Austauschteilesteuer(inv : TInvoice);
     class procedure Differenzbesteuerung(inv : TInvoice);
     class procedure TitelPositionsgruppen(inv : TInvoice);
+    class procedure MinimalbeispielB2BOhneLeitwegID(inv : TInvoice);
+    class procedure Gutschrift(inv : TInvoice);
   end;
 
 implementation
@@ -221,7 +235,10 @@ begin
   begin
     ID := '01'; //Positionsnummer
     Name := 'Fahrzeug mit Differenzbesteuerung'; //Kurztext
-    Description := 'Fahrzeug mit Differenzbesteuerung'+#13#10+'Einkauf 4000,00 EUR'+#13#10+'Marge 840,34 EUR'+#13#10+'Verkauf Brutto 5000,00 EUR'+#13#10+'Enthaltene MwSt. 159,66'; //Laengere Beschreibung
+    Description := 'Fahrzeug mit Differenzbesteuerung'+#13#10+'Einkauf 4000,00 EUR'+#13#10+
+                   'Marge 840,34 EUR'+#13#10+
+                   'Verkauf Brutto 5000,00 EUR'+#13#10+
+                   'Enthaltene MwSt. 159,66'; //Laengere Beschreibung
     Quantity := 1; //Menge
     UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
     TaxPercent := 0.0; //MwSt
@@ -575,6 +592,92 @@ begin
   //TODO PayableRoundingAmount
 end;
 
+class procedure TInvoiceTestCases.Gutschrift(inv: TInvoice);
+var
+  suc : Boolean;
+begin
+  inv.InvoiceNumber := 'R2020-0815';
+  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
+  inv.InvoiceDueDate := Date+30;         //Fälligkeitsdatum
+  inv.InvoicePeriodStartDate := Date-30;
+  inv.InvoicePeriodEndDate := Date-1;
+  inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CreditNote; //Gutschrift
+  inv.InvoiceCurrencyCode := 'EUR';
+  inv.TaxCurrencyCode := 'EUR';
+  inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
+
+  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingSupplierParty.CompanyID :=  '';
+  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstraße 1';
+  inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
+  inv.AccountingSupplierParty.Address.PostalZone := '01234';
+  inv.AccountingSupplierParty.Address.CountryCode := 'DE';
+  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingSupplierParty.ContactName := 'Meier';
+  inv.AccountingSupplierParty.ContactTelephone := '030 0815';
+  inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
+  inv.AccountingSupplierParty.AdditionalLegalInformationSeller := 'Kein Ausweis von Umsatzsteuer, da Kleinunternehmer gemäß § 19 UStG';
+  //BT-34 Gibt die elektronische Adresse des Verkäufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
+  //Aktuell nur Unterstuetzung fuer schemeID=EM ElectronicMail
+  //Weitere Codes auf Anfrage
+  //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
+  //Pflichtangabe
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+
+  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
+  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstraße 1';
+  inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
+  inv.AccountingCustomerParty.Address.PostalZone := '05678';
+  inv.AccountingCustomerParty.Address.CountryCode := 'DE';
+  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingCustomerParty.ContactName := 'Müller';
+  inv.AccountingCustomerParty.ContactTelephone := '030 1508';
+  inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+
+  inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
+  inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
+  inv.PayeeFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+  inv.PayeeFinancialAccountName := 'Fa. XY';
+
+  inv.PaymentTermsType := iptt_Net;
+  inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceIssueDate)]);
+
+  with inv.InvoiceLines.AddInvoiceLine do
+  begin
+    ID := '01'; //Positionsnummer
+    Name := 'Homepage erstellt'; //Kurztext
+    Description := 'Homepage erstellt'; //Laengere Beschreibung
+    Quantity := 1; //Menge
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    TaxPercent := 0.0; //MwSt
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
+    PriceAmount := 5000; //Einzelpreis
+    BaseQuantity := 0; //Preiseinheit 0 = wird nicht ausgegeben, entspricht default = 1
+    BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
+    LineAmount := 5000;
+  end;
+
+  inv.TaxAmountTotal := 0.00; //Summe der gesamten MwSt
+  SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
+  inv.TaxAmountSubtotals[0].TaxPercent := 0.0;
+  inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
+  inv.TaxAmountSubtotals[0].TaxExemptionReason := 'Kein Ausweis von Umsatzsteuer, da Kleinunternehmer gemäß § 19 UStG';
+  inv.TaxAmountSubtotals[0].TaxableAmount := 5000.00;
+  inv.TaxAmountSubtotals[0].TaxAmount     := 00.00;
+
+  inv.LineAmount := 5000.00;         //Summe
+  inv.TaxExclusiveAmount := 5000.00; //Summe ohne MwSt
+  inv.TaxInclusiveAmount := 5000.00; //Summe inkl MwSt
+  inv.AllowanceTotalAmount := 0; //Abzuege
+  inv.ChargeTotalAmount := 0; //Zuschlaege
+  inv.PrepaidAmount := 0; //Anzahlungen
+  inv.PayableAmount := 5000.00;      //Summe Zahlbar MwSt
+end;
+
 class procedure TInvoiceTestCases.Kleinunternehmerregelung(inv: TInvoice);
 var
   suc : Boolean;
@@ -659,6 +762,92 @@ begin
   inv.ChargeTotalAmount := 0; //Zuschlaege
   inv.PrepaidAmount := 0; //Anzahlungen
   inv.PayableAmount := 5000.00;      //Summe Zahlbar MwSt
+end;
+
+class procedure TInvoiceTestCases.MinimalbeispielB2BOhneLeitwegID(
+  inv: TInvoice);
+var
+  suc : Boolean;
+begin
+  inv.InvoiceNumber := 'R2020-0815';
+  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
+  inv.InvoiceDueDate := Date+30;         //Fälligkeitsdatum
+  inv.InvoicePeriodStartDate := Date-30;
+  inv.InvoicePeriodEndDate := Date-1;
+  inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
+  inv.InvoiceCurrencyCode := 'EUR';
+  inv.TaxCurrencyCode := 'EUR';
+  inv.BuyerReference := TInvoiceEmptyLeitwegID.NON_EXISTENT; //B2B ohne Leitweg-ID
+  inv.Note := 'keine';
+
+  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingSupplierParty.CompanyID :=  '';
+  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstraße 1';
+  inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
+  inv.AccountingSupplierParty.Address.PostalZone := '01234';
+  inv.AccountingSupplierParty.Address.CountryCode := 'DE';
+  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingSupplierParty.ContactName := 'Meier';
+  inv.AccountingSupplierParty.ContactTelephone := '030 0815';
+  inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
+  //BT-34 Gibt die elektronische Adresse des Verkäufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
+  //Aktuell nur Unterstuetzung fuer schemeID=EM ElectronicMail
+  //Weitere Codes auf Anfrage
+  //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+
+  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
+  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstraße 1';
+  inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
+  inv.AccountingCustomerParty.Address.PostalZone := '05678';
+  inv.AccountingCustomerParty.Address.CountryCode := 'DE';
+  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingCustomerParty.ContactName := 'Müller';
+  inv.AccountingCustomerParty.ContactTelephone := '030 1508';
+  inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+
+  inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
+  inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
+  inv.PayeeFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+  inv.PayeeFinancialAccountName := 'Fa. XY';
+  //inv.PayeeFinancialInstitutionBranch := 'DEU...'; //BIC
+
+  inv.PaymentTermsType := iptt_Net;
+  inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceIssueDate)]);
+
+  with inv.InvoiceLines.AddInvoiceLine do
+  begin
+    ID := '01'; //Positionsnummer
+    Name := 'Kurzinfo Artikel 1'; //Kurztext
+    Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
+    Quantity := 1; //Menge
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    TaxPercent := 19.0; //MwSt
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    PriceAmount := 360; //Einzelpreis
+    BaseQuantity := 0; //Preiseinheit
+    BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
+    LineAmount := 360;
+  end;
+
+  inv.TaxAmountTotal := 68.40; //Summe der gesamten MwSt
+  SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
+  inv.TaxAmountSubtotals[0].TaxPercent := 19.0;
+  inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+  inv.TaxAmountSubtotals[0].TaxableAmount := 360.0;
+  inv.TaxAmountSubtotals[0].TaxAmount := 68.40;
+
+  inv.LineAmount := 360.0;         //Summe
+  inv.TaxExclusiveAmount := 360.00; //Summe ohne MwSt
+  inv.TaxInclusiveAmount := 428.40; //Summe inkl MwSt
+  inv.AllowanceTotalAmount := 0; //Abzuege
+  inv.ChargeTotalAmount := 0; //Zuschlaege
+  inv.PrepaidAmount := 0; //Anzahlungen
+  inv.PayableAmount := 428.40;      //Summe Zahlbar MwSt
 end;
 
 class procedure TInvoiceTestCases.Paragr13b(inv: TInvoice);

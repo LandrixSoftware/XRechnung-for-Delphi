@@ -299,6 +299,8 @@ begin
       2 : TInvoiceTestCases.Austauschteilesteuer(inv);//Austauschteilesteuer
       3 : TInvoiceTestCases.Differenzbesteuerung(inv);//Differenzbesteuerung
       4 : TInvoiceTestCases.TitelPositionsgruppen(inv);//Titel/Positionsgruppen
+      5 : TInvoiceTestCases.Gutschrift(inv);
+      6 : TInvoiceTestCases.MinimalbeispielB2BOhneLeitwegID(inv);
     end;
 
     Generate(inv);

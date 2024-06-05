@@ -381,8 +381,9 @@ begin
     Result := iacic_Temporary else
   if SameText(_Val,'104') then
     Result := iacic_Standard else
+  if SameText(_Val,'105') then
+    Result := iacic_YearlyTurnover else
   Result := iacic_None;
-
 end;
 
 class function TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(
@@ -492,7 +493,7 @@ begin
     iacic_FixedLongTerm: Result :=                                     '102';
     iacic_Temporary: Result :=                                         '103';
     iacic_Standard: Result :=                                          '104';
-    //iacic_YearlyTurnover: Result :=                                    '105';
+    iacic_YearlyTurnover: Result :=                                    '105';
     //iacic_WithheldTaxesAndSocialSecurityContributions: Result :=       '106';
     else Result := '';
   end;
@@ -608,10 +609,24 @@ end;
 class function TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeFromStr(
   _Val: String): TInvoiceSpecialServiceDescriptionCode;
 begin
+  if SameText(_Val,'AA') then
+    Result := issdc_AA_Advertising else
   if SameText(_Val,'AAA') then
     Result := issdc_AAA_Telecommunication else
   if SameText(_Val,'ABK') then
     Result := issdc_ABK_Miscellaneous else
+  if SameText(_Val,'ABL') then
+    Result := issdc_ABL_AdditionalPackaging else
+  if SameText(_Val,'ADR') then
+    Result := issdc_ADR_OtherServices else
+  if SameText(_Val,'ADT') then
+    Result := issdc_ADT_Pickup else
+  if SameText(_Val,'FC') then
+    Result := issdc_FC_FreightService else
+  if SameText(_Val,'FI') then
+    Result := issdc_FI_Financing else
+  if SameText(_Val,'LA') then
+    Result := issdc_LA_Labelling else
   if SameText(_Val,'PC') then
     Result := issdc_PC_Packing else
   Result := issdc_None;
@@ -621,8 +636,15 @@ class function TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(
   _Val: TInvoiceSpecialServiceDescriptionCode): String;
 begin
   case _Val of
+    issdc_AA_Advertising: Result := 'AA';
     issdc_AAA_Telecommunication: Result := 'AAA';
     issdc_ABK_Miscellaneous: Result := 'ABK';
+    issdc_ABL_AdditionalPackaging: Result := 'ABL';
+    issdc_ADR_OtherServices: Result := 'ADR';
+    issdc_ADT_Pickup: Result := 'ADT';
+    issdc_FC_FreightService: Result := 'FC';
+    issdc_FI_Financing: Result := 'FI';
+    issdc_LA_Labelling: Result := 'LA';
     issdc_PC_Packing: Result := 'PC';
     else Result := '';
   end;

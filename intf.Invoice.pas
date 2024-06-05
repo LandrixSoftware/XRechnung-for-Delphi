@@ -187,10 +187,10 @@ type
     class function MapUnitOfMeasure(_UnitOfMeasure : String; out _Success : Boolean; _DefaultOnFailure : TInvoiceUnitCode = TInvoiceUnitCode.iuc_piece) : TInvoiceUnitCode;
   end;
 
-  {$region 'TInvoiceAllowanceOrChargeIdentCode'}
-  //cbc:ChargeIndicator = false dann sind folgende Code erlaubt 41 42 60 62 63 64 65 66 67 68 70 71 88 95 100 102 103 104
+  //cbc:ChargeIndicator = false dann sind folgende Code erlaubt 41 42 60 62 63 64 65 66 67 68 70 71 88 95 100 102 103 104 105
+  //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:untdid.5189_3
   TInvoiceAllowanceOrChargeIdentCode = (
-    iacic_None, //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:untdid.5189_2
+    iacic_None,
     //iacic_HandlingCommission, //       Fee for the processing of documentary credit, collection and payment which are charged to the customer.                                                                                    '1';
     //iacic_AmendmentCommission, //       Fee for amendments in documentary credit and collection business (not extensions and increases of documentary credits).                                                                   '2';
     //iacic_AcceptanceCommission, //       Fee for the acceptance of draft in documentary credit and collection business which are drawn on us (also to be seen as a kind of 'guarantee commission').                               '3';
@@ -293,22 +293,26 @@ type
     //iacic_CarbonFootprintCharge, //       A monetary amount charged for carbon footprint related to a regulatory requirement.                                                                                                     '101';
     iacic_FixedLongTerm, //       A fixed long term allowance or charge.                                                                                                                                                          '102';
     iacic_Temporary, //       A temporary allowance or charge.                                                                                                                                                                    '103';
-    iacic_Standard //       The standard available allowance or charge.                                                                                                                                                          '104';
-    //iacic_YearlyTurnover, //       An allowance or charge based on yearly turnover.                                                                                                                                               '105';
+    iacic_Standard, //       The standard available allowance or charge.                                                                                                                                                          '104';
+    iacic_YearlyTurnover //       An allowance or charge based on yearly turnover.                                                                                                                                               '105';
     //iacic_WithheldTaxesAndSocialSecurityContributions//       The amount of taxes and contributions for social security, that is subtracted from the payable amount as it is to be paid separately.                             '106';
     );
-  {$endregion}
 
-  {$region 'TInvoiceSpecialServiceDescriptionCode'}
   //cbc:ChargeIndicator = true
-  TInvoiceSpecialServiceDescriptionCode = (issdc_None, //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:untdid.7161_2
+  //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:untdid.7161_3
+  TInvoiceSpecialServiceDescriptionCode = (issdc_None,
+                        issdc_AA_Advertising, //The service of providing advertising.
                         issdc_AAA_Telecommunication, //The service of providing telecommunication activities and/or faclities.
                         issdc_ABK_Miscellaneous,	//Miscellaneous services.
+                        issdc_ABL_AdditionalPackaging, //The service of providing additional packaging.
+                        issdc_ADR_OtherServices, //A code indicating that other non-specific services are in operation.
+                        issdc_ADT_Pickup, //The service of picking up or collection of goods.
+                        issdc_FC_FreightService, //The service of moving goods, by whatever means, from one place to another.
+                        issdc_FI_Financing, //The service of providing financing.
+                        issdc_LA_Labelling, //Labelling service.
                         issdc_PC_Packing //The service of packing.
                         );
-  {$endregion}
 
-  {$region 'TInvoiceDutyTaxFeeCategoryCode'}
   //Nur ein Teil der Codes ist erlaubt
   //Die Codes fuer die Umsatzsteuerkategorie sind Folgende:
   //- S = Umsatzsteuer faellt mit Normalsatz an
@@ -340,7 +344,6 @@ type
           //idtfcc_O_ServicesOutsideScopeOfTax, //	Code specifying that taxes are not applicable to the services.
           idtfcc_S_StandardRate, //	Code specifying the standard rate.
           idtfcc_Z_ZeroRatedGoods);
-  {$endregion}
 
   TInvoiceAllowanceCharge = class(TOBject)
   public
@@ -469,7 +472,7 @@ type
     TaxCurrencyCode : String;     //EUR
     BuyerReference : String; //Pflicht - Leitweg-ID - https://leitweg-id.de/home/ wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
     Note : String; //Hinweise zur Rechnung allgemein
-    SellerOrderReference : String;
+    SellerOrderReference : String; //TODO in UBL entweder oder PurchaseOrderReference
     PurchaseOrderReference : String; //Bestellnummer oder Vertragsnummer des Kaeufers
     ProjectReference : String;
     ContractDocumentReference : String;

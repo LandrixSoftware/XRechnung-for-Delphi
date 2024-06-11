@@ -1,7 +1,6 @@
 ﻿{
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
-Version 3.0.1
 
 License
 This file is not official part of the package XRechnung-for-Delphi.
@@ -10,7 +9,7 @@ This is provided as is, expressly without a warranty of any kind.
 You use it at your own risc.
 }
 
-unit intf.MSXML2_TLB;
+unit intf.XRechnungMSXML2_TLB;
 
 // ************************************************************************ //
 // WARNUNG

@@ -23,11 +23,19 @@ unit intf.XRechnung;
 
 interface
 
+//setzt ZUGFeRD-for-Delphi voraus
+//https://github.com/LandrixSoftware/ZUGFeRD-for-Delphi
+{.$DEFINE ZUGFeRD_Support}
+
 uses
   System.SysUtils,System.Classes,System.Types,System.DateUtils,System.Rtti
   ,System.Variants,System.StrUtils,System.Generics.Collections
   ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema,intf.MSXML2_TLB
   {$IFDEF USE_OXMLDomVendor},OXmlDOMVendor{$ENDIF}
+  {$IFDEF ZUGFeRD_Support}
+  ,intf.ZUGFeRDInvoiceDescriptor
+  ,intf.ZUGFeRDCurrencyCodes
+  {$ENDIF}
   ,intf.XRechnung_2_3
   ,intf.XRechnung_3_0
   ,intf.Invoice
@@ -90,27 +98,37 @@ type
       Reason : String;
       SrcText : String;
     end;
-  private
-    //class function LoadXSDFromResource(const _ResourceName : String) : String;
   public
     class function GetXRechnungVersion(const _Filename : String) : TXRechnungVersion; overload;
     class function GetXRechnungVersion(_Xml : IXMLDocument) : TXRechnungVersion; overload;
     class function GetXRechnungVersion(const _Stream: TStream) : TXRechnungVersion; overload;
-    //class function ValidateXRechnung(const _XML : String; out _Error : TValidationError) : Boolean;
   end;
 
   TXRechnungInvoiceAdapter = class
   private
     class procedure SaveDocument(_Invoice: TInvoice;_Version : TXRechnungVersion; _Xml : IXMLDocument);
-    class function LoadFromXMLDocument(_Invoice: TInvoice; _XmlDocument: IXMLDocument; out _Error : String) : Boolean;
+    class function  LoadFromXMLDocument(_Invoice: TInvoice; _XmlDocument: IXMLDocument; out _Error : String) : Boolean;
   public
     class procedure SaveToStream(_Invoice : TInvoice; _Version : TXRechnungVersion; _Stream : TStream);
     class procedure SaveToFile(_Invoice : TInvoice; _Version : TXRechnungVersion; const _Filename : String);
     class procedure SaveToXMLStr(_Invoice : TInvoice; _Version : TXRechnungVersion; out _XML : String);
-    class function LoadFromStream(_Invoice : TInvoice; _Stream : TStream; out _Error : String) : Boolean;
-    class function LoadFromFile(_Invoice : TInvoice; const _Filename : String; out _Error : String) : Boolean;
-    class function LoadFromXMLStr(_Invoice : TInvoice; const _XML : String; out _Error : String) : Boolean;
+
+    class function  LoadFromStream(_Invoice : TInvoice; _Stream : TStream; out _Error : String) : Boolean;
+    class function  LoadFromFile(_Invoice : TInvoice; const _Filename : String; out _Error : String) : Boolean;
+    class function  LoadFromXMLStr(_Invoice : TInvoice; const _XML : String; out _Error : String) : Boolean;
   end;
+
+  {$IFDEF ZUGFeRD_Support}
+  TZUGFeRDInvoiceAdapter  = class
+  private
+    class function  LoadFromInvoiceDescriptor(_Invoice: TInvoice; _InvoiceDescriptor: TZUGFeRDInvoiceDescriptor; out _Error : String) : Boolean;
+  public
+    class function  LoadFromXMLDocument(_Invoice: TInvoice; _XmlDocument: IXMLDocument; out _Error : String) : Boolean;
+    class function  LoadFromStream(_Invoice : TInvoice; _Stream : TStream; out _Error : String) : Boolean;
+    class function  LoadFromFile(_Invoice : TInvoice; const _Filename : String; out _Error : String) : Boolean;
+    class function  LoadFromXMLStr(_Invoice : TInvoice; const _XML : String; out _Error : String) : Boolean;
+  end;
+  {$ENDIF}
 
 implementation
 
@@ -227,10 +245,14 @@ begin
   case TXRechnungValidationHelper.GetXRechnungVersion(_XmlDocument) of
     XRechnungVersion_230_UBL      : Result := TXRechnungInvoiceAdapter230.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
     XRechnungVersion_30x_UBL      : Result := TXRechnungInvoiceAdapter301.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
+    {$IFNDEF ZUGFeRD_Support}
     XRechnungVersion_230_UNCEFACT : Result := TXRechnungInvoiceAdapter230.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     XRechnungVersion_30x_UNCEFACT,
     XRechnungVersion_ReadingSupport_ZUGFeRDFacturX : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     else exit;
+    {$ELSE}
+    else TZUGFeRDInvoiceAdapter.LoadFromXMLDocument(_Invoice,_XmlDocument,_Error);
+    {$ENDIF}
   end;
 end;
 
@@ -886,6 +908,161 @@ begin
     xml := nil;
   end;
 end;
+
+{$IFDEF ZUGFeRD_Support}
+class function TZUGFeRDInvoiceAdapter.LoadFromStream(_Invoice : TInvoice;
+        _Stream : TStream; out _Error : String) : Boolean;
+var
+  desc : TZUGFeRDInvoiceDescriptor;
+begin
+  Result := false;
+  if _Invoice = nil then
+    exit;
+  if _Stream = nil then
+    exit;
+
+  desc := TZUGFeRDInvoiceDescriptor.Load(_Stream);
+  try
+    Result := TZUGFeRDInvoiceAdapter.LoadFromInvoiceDescriptor(_Invoice,desc,_Error);
+  finally
+    desc.Free;
+  end;
+end;
+
+class function TZUGFeRDInvoiceAdapter.LoadFromFile(_Invoice : TInvoice;
+  const _Filename : String; out _Error : String) : Boolean;
+var
+  stream : TFileStream;
+begin
+  Result := false;
+  if _Invoice = nil then
+    exit;
+  if _Filename = '' then
+    exit;
+  if not System.SysUtils.FileExists(_Filename) then
+    exit;
+
+  stream := TFileStream.Create(_Filename,fmOpenRead or fmShareDenyNone);
+  try
+    TZUGFeRDInvoiceAdapter.LoadFromStream(_Invoice,stream,_Error);
+  finally
+    stream.Free;
+  end;
+end;
+
+class function TZUGFeRDInvoiceAdapter.LoadFromXMLDocument(_Invoice: TInvoice;
+  _XmlDocument: IXMLDocument; out _Error: String): Boolean;
+var
+  desc : TZUGFeRDInvoiceDescriptor;
+begin
+  Result := false;
+  if _Invoice = nil then
+    exit;
+  if _XmlDocument = nil then
+    exit;
+
+  desc := TZUGFeRDInvoiceDescriptor.Load(_XmlDocument);
+  try
+    Result := TZUGFeRDInvoiceAdapter.LoadFromInvoiceDescriptor(_Invoice,desc,_Error);
+  finally
+    desc.Free;
+  end;
+end;
+
+class function TZUGFeRDInvoiceAdapter.LoadFromXMLStr(_Invoice : TInvoice;
+  const _XML : String; out _Error : String) : Boolean;
+var
+  stream : TStringStream;
+begin
+  Result := false;
+  if _Invoice = nil then
+    exit;
+  if _XML = '' then
+    exit;
+
+  stream := TStringStream.Create(_XML,TEncoding.UTF8);
+  try
+    TZUGFeRDInvoiceAdapter.LoadFromStream(_Invoice,stream,_Error);
+  finally
+    stream.Free;
+  end;
+end;
+
+class function TZUGFeRDInvoiceAdapter.LoadFromInvoiceDescriptor(
+  _Invoice: TInvoice; _InvoiceDescriptor: TZUGFeRDInvoiceDescriptor;
+  out _Error : String) : Boolean;
+var
+  i : Integer;
+begin
+  Result := false;
+  if _Invoice = nil then
+    exit;
+  if _InvoiceDescriptor = nil then
+    exit;
+
+  _Invoice.InvoiceNumber := _InvoiceDescriptor.InvoiceNo;
+  _Invoice.InvoiceIssueDate := _InvoiceDescriptor.InvoiceDate;
+  _Invoice.InvoiceDueDate := 0;
+  for i := 0 to _InvoiceDescriptor.PaymentTermsList.Count-1 do
+  if (_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.CalculationPercent = 0.0) then
+  begin
+    _Invoice.InvoiceDueDate := _InvoiceDescriptor.PaymentTermsList[i].DueDate;
+    break;
+  end;
+  _Invoice.InvoicePeriodStartDate := _InvoiceDescriptor.BillingPeriodStart;
+  _Invoice.InvoicePeriodEndDate := _InvoiceDescriptor.BillingPeriodEnd;
+//    InvoiceTypeCode : TInvoiceTypeCode;
+  _Invoice.InvoiceCurrencyCode := TZUGFeRDCurrencyCodesExtensions.EnumToString(_InvoiceDescriptor.Currency);
+//    _Invoice.TaxCurrencyCode : String;     //EUR
+//    _Invoice.BuyerReference : String; //Pflicht - Leitweg-ID - https://leitweg-id.de/home/ wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
+//    _Invoice.Note : String; //Hinweise zur Rechnung allgemein
+//    _Invoice.SellerOrderReference : String; //TODO in UBL entweder oder PurchaseOrderReference
+//    _Invoice.PurchaseOrderReference : String; //Bestellnummer oder Vertragsnummer des Kaeufers
+//    _Invoice.ProjectReference : String;
+//    _Invoice.ContractDocumentReference : String;
+//    _Invoice.DeliveryReceiptNumber : String; //Lieferscheinnummer (Lieferscheindatum fehlt und würde nur in ZUGFeRD unterstützt)
+//
+//    AccountingSupplierParty : TInvoiceAccountingParty;
+//    AccountingCustomerParty : TInvoiceAccountingParty;
+//    DeliveryInformation : TInvoiceDeliveryInformation;
+//
+//    //TODO weitere Zahlungswege, als Liste
+//    //TODO Auch 0 prüfen
+//    PaymentMeansCode : TInvoicePaymentMeansCode;
+//    PaymentID : String; //Verwendungszweck der Ueberweisung, optional
+//    PayeeFinancialAccount : String;
+//    PayeeFinancialAccountName : String;
+//    PayeeFinancialInstitutionBranch : String; //BIC
+//
+//    //TODO Verzugszinsen
+//    PaymentTermsType : TInvoicePaymentTermsType;
+//    PaymentTermNetNote : String;
+//    PaymentTermCashDiscount1Days : Integer;
+//    PaymentTermCashDiscount1Percent : double;
+//    PaymentTermCashDiscount1Base : Currency; //Anderer Betrag als der Rechnungsbetrag
+//    PaymentTermCashDiscount2Days : Integer;
+//    PaymentTermCashDiscount2Percent : double;
+//    PaymentTermCashDiscount2Base : Currency; //Anderer Betrag als der Rechnungsbetrag
+//
+//    InvoiceLines : TInvoiceLines;
+//
+//    Attachments : TInvoiceAttachmentList;
+//
+//    AllowanceCharges : TInvoiceAllowanceCharges; //Nachlaesse, Zuschlaege
+//    PrecedingInvoiceReferences : TInvoicePrecedingInvoiceReferences;
+//
+//    TaxAmountTotal : Currency;
+//    TaxAmountSubtotals : TInvoiceTaxAmountArray;
+//
+//    _Invoice.LineAmount : Currency;
+//    _Invoice.TaxExclusiveAmount : Currency;
+//    _Invoice.TaxInclusiveAmount : Currency;
+//    _Invoice.AllowanceTotalAmount : Currency;
+//    _Invoice.ChargeTotalAmount : Currency;
+//    _Invoice.PrepaidAmount : Currency;
+//    _Invoice.PayableAmount : Currency;
+end;
+{$ENDIF}
 
 end.
 

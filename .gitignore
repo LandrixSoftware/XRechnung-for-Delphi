@@ -47,6 +47,9 @@ Distribution/java
 Distribution/apache-fop
 Schema
 
+xrechnung-3.0.0-testsuite-2023-07-31
+Webservice via Peppol
+
 # Delphi compiler-generated binaries (safe to delete)
 *.exe
 *.dll

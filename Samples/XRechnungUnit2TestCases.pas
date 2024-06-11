@@ -53,7 +53,7 @@ begin
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
   inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
-  inv.Note := '#ADU#Rechnung enthält 100 EUR (Umsatz)Steuer auf Altteile gem. Abschn. 10.5 Abs. 3 UStAE';
+  inv.Note := 'Rechnung enthält 100 EUR (Umsatz)Steuer auf Altteile gem. Abschn. 10.5 Abs. 3 UStAE';
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden
@@ -533,7 +533,7 @@ begin
     begin
       ChargeIndicator := true;
       ReasonCodeCharge := TInvoiceSpecialServiceDescriptionCode.issdc_AAA_Telecommunication;
-      Reason := 'Zuschlag fuer Kommuikation';
+      Reason := 'Zuschlag fuer Kommunikation';
       BaseAmount := 10.00;
       MultiplierFactorNumeric := 10; //10 Prozent auf 10 EUR
       Amount := 1.00;
@@ -632,7 +632,7 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
-  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
   inv.AccountingCustomerParty.ContactName := 'Müller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
@@ -649,16 +649,16 @@ begin
   with inv.InvoiceLines.AddInvoiceLine do
   begin
     ID := '01'; //Positionsnummer
-    Name := 'Homepage erstellt'; //Kurztext
-    Description := 'Homepage erstellt'; //Laengere Beschreibung
+    Name := 'Provision'; //Kurztext
+    Description := 'Provision'; //Laengere Beschreibung
     Quantity := 1; //Menge
     UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
     TaxPercent := 0.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
-    PriceAmount := 5000; //Einzelpreis
+    PriceAmount := 500; //Einzelpreis
     BaseQuantity := 0; //Preiseinheit 0 = wird nicht ausgegeben, entspricht default = 1
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
-    LineAmount := 5000;
+    LineAmount := 500;
   end;
 
   inv.TaxAmountTotal := 0.00; //Summe der gesamten MwSt
@@ -666,16 +666,16 @@ begin
   inv.TaxAmountSubtotals[0].TaxPercent := 0.0;
   inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
   inv.TaxAmountSubtotals[0].TaxExemptionReason := 'Kein Ausweis von Umsatzsteuer, da Kleinunternehmer gemäß § 19 UStG';
-  inv.TaxAmountSubtotals[0].TaxableAmount := 5000.00;
+  inv.TaxAmountSubtotals[0].TaxableAmount := 500.00;
   inv.TaxAmountSubtotals[0].TaxAmount     := 00.00;
 
-  inv.LineAmount := 5000.00;         //Summe
-  inv.TaxExclusiveAmount := 5000.00; //Summe ohne MwSt
-  inv.TaxInclusiveAmount := 5000.00; //Summe inkl MwSt
+  inv.LineAmount := 500.00;         //Summe
+  inv.TaxExclusiveAmount := 500.00; //Summe ohne MwSt
+  inv.TaxInclusiveAmount := 500.00; //Summe inkl MwSt
   inv.AllowanceTotalAmount := 0; //Abzuege
   inv.ChargeTotalAmount := 0; //Zuschlaege
   inv.PrepaidAmount := 0; //Anzahlungen
-  inv.PayableAmount := 5000.00;      //Summe Zahlbar MwSt
+  inv.PayableAmount := 500.00;      //Summe Zahlbar MwSt
 end;
 
 class procedure TInvoiceTestCases.Kleinunternehmerregelung(inv: TInvoice);

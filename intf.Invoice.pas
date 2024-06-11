@@ -188,6 +188,7 @@ type
   end;
 
   //cbc:ChargeIndicator = false dann sind folgende Code erlaubt 41 42 60 62 63 64 65 66 67 68 70 71 88 95 100 102 103 104 105
+  //Keine anderen Codes in XRechnung möglich !!!
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:untdid.5189_3
   TInvoiceAllowanceOrChargeIdentCode = (
     iacic_None,

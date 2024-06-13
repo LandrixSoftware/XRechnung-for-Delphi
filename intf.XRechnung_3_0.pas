@@ -145,11 +145,11 @@ begin
 //        AddChild('cac:AddressLine').AddChild('cbc:Line').Text := _Invoice.AccountingSupplierParty.Address.AddressLine;
 //      AddChild('cac:Country').AddChild('cbc:IdentificationCode').Text := _Invoice.AccountingSupplierParty.Address.CountryCode;
 //    end;
-//    if _Invoice.AccountingSupplierParty.VATCompanyID <> '' then
+//    if _Invoice.AccountingSupplierParty.VATCompanyID <> '' then VATCompanyName
 //    with AddChild('cac:PartyTaxScheme') do
 //    begin
 //      AddChild('cbc:CompanyID').Text := _Invoice.AccountingSupplierParty.VATCompanyID;
-//      AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
+//      AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT'; FC
 //    end;
 //    with AddChild('cac:PartyLegalEntity') do
 //    begin
@@ -194,11 +194,11 @@ begin
 //        AddChild('cac:AddressLine').AddChild('cbc:Line').Text := _Invoice.AccountingCustomerParty.Address.AddressLine;
 //      AddChild('cac:Country').AddChild('cbc:IdentificationCode').Text := _Invoice.AccountingCustomerParty.Address.CountryCode;
 //    end;
-//    if _Invoice.AccountingCustomerParty.VATCompanyID <> '' then
+//    if _Invoice.AccountingCustomerParty.VATCompanyID <> '' then VATCompanyName
 //    with AddChild('cac:PartyTaxScheme') do
 //    begin
 //      AddChild('cbc:CompanyID').Text := _Invoice.AccountingCustomerParty.VATCompanyID;
-//      AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
+//      AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT'; FC
 //    end;
 //    with AddChild('cac:PartyLegalEntity') do
 //    begin
@@ -633,9 +633,16 @@ begin
           if TXRechnungXMLHelper.SelectNode(node3,'.//ram:CountrySubDivisionName',node) then
             _Invoice.AccountingSupplierParty.Address.CountrySubentity := node.text;
         end;
-        if TXRechnungXMLHelper.SelectNode(node2,'.//ram:SpecifiedTaxRegistration',node3) then
-        if TXRechnungXMLHelper.SelectNode(node3,'.//ram:ID',node4) then
-          _Invoice.AccountingSupplierParty.VATCompanyID := node4.text;
+        if TXRechnungXMLHelper.SelectNodes(node2,'.//ram:SpecifiedTaxRegistration',nodes) then
+        for i := 0  to nodes.length-1 do
+        if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ID',node3) then
+        begin
+          if SameText(node3.attributes.getNamedItem('schemeID').Text,'VA') then
+            _Invoice.AccountingSupplierParty.VATCompanyID := node3.text
+          else
+          if SameText(node3.attributes.getNamedItem('schemeID').Text,'FC') then
+            _Invoice.AccountingSupplierParty.VATCompanyNumber := node3.text;
+        end;
       end;
       if TXRechnungXMLHelper.SelectNode(nodeApplicableHeaderTradeAgreement,'.//ram:BuyerTradeParty',node2) then
       begin
@@ -679,9 +686,16 @@ begin
           if TXRechnungXMLHelper.SelectNode(node3,'.//ram:CountrySubDivisionName',node) then
             _Invoice.AccountingCustomerParty.Address.CountrySubentity := node.text;
         end;
-        if TXRechnungXMLHelper.SelectNode(node2,'.//ram:SpecifiedTaxRegistration',node3) then
-        if TXRechnungXMLHelper.SelectNode(node3,'.//ram:ID',node4) then
-          _Invoice.AccountingCustomerParty.VATCompanyID := node4.text;
+        if TXRechnungXMLHelper.SelectNodes(node2,'.//ram:SpecifiedTaxRegistration',nodes) then
+        for i := 0  to nodes.length-1 do
+        if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ID',node3) then
+        begin
+          if SameText(node3.attributes.getNamedItem('schemeID').Text,'VA') then
+            _Invoice.AccountingCustomerParty.VATCompanyID := node3.text
+          else
+          if SameText(node3.attributes.getNamedItem('schemeID').Text,'FC') then
+            _Invoice.AccountingCustomerParty.VATCompanyNumber := node3.text;
+        end;
       end;
       if TXRechnungXMLHelper.SelectNode(nodeApplicableHeaderTradeAgreement,'.//ram:BuyerOrderReferencedDocument',node2) then
       if TXRechnungXMLHelper.SelectNode(node2,'.//ram:IssuerAssignedID',node) then
@@ -1134,6 +1148,12 @@ begin
       AddChild('cbc:CompanyID').Text := _Invoice.AccountingSupplierParty.VATCompanyID;
       AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
     end;
+    if _Invoice.AccountingSupplierParty.VATCompanyNumber <> '' then
+    with AddChild('cac:PartyTaxScheme') do
+    begin
+      AddChild('cbc:CompanyID').Text := _Invoice.AccountingSupplierParty.VATCompanyNumber;
+      AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'FC';
+    end;
     with AddChild('cac:PartyLegalEntity') do
     begin
       AddChild('cbc:RegistrationName').Text := _Invoice.AccountingSupplierParty.RegistrationName;
@@ -1185,6 +1205,12 @@ begin
     begin
       AddChild('cbc:CompanyID').Text := _Invoice.AccountingCustomerParty.VATCompanyID;
       AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
+    end;
+    if _Invoice.AccountingCustomerParty.VATCompanyNumber <> '' then
+    with AddChild('cac:PartyTaxScheme') do
+    begin
+      AddChild('cbc:CompanyID').Text := _Invoice.AccountingCustomerParty.VATCompanyNumber;
+      AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'FC';
     end;
     with AddChild('cac:PartyLegalEntity') do
     begin
@@ -1572,7 +1598,12 @@ begin
           Attributes['schemeID'] := 'VA';
           Text := _Invoice.AccountingSupplierParty.VATCompanyID;
         end;
-        //TODO FC bei Steuernummer
+        if _Invoice.AccountingSupplierParty.VATCompanyNumber <> '' then
+        with AddChild('ram:SpecifiedTaxRegistration').AddChild('ram:ID') do
+        begin
+          Attributes['schemeID'] := 'FC';
+          Text := _Invoice.AccountingSupplierParty.VATCompanyNumber;
+        end;
       end;
       with AddChild('ram:BuyerTradeParty') do
       begin
@@ -1622,6 +1653,12 @@ begin
         begin
           Attributes['schemeID'] := 'VA';
           Text := _Invoice.AccountingCustomerParty.VATCompanyID;
+        end;
+        if _Invoice.AccountingCustomerParty.VATCompanyNumber <> '' then
+        with AddChild('ram:SpecifiedTaxRegistration').AddChild('ram:ID') do
+        begin
+          Attributes['schemeID'] := 'FC';
+          Text := _Invoice.AccountingCustomerParty.VATCompanyNumber;
         end;
       end;
       if _Invoice.PurchaseOrderReference <> '' then

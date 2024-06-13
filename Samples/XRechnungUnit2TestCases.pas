@@ -62,7 +62,8 @@ begin
   inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
   inv.AccountingSupplierParty.Address.PostalZone := '01234';
   inv.AccountingSupplierParty.Address.CountryCode := 'DE';
-  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678';
+  inv.AccountingSupplierParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
   inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
@@ -79,7 +80,8 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
-  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
+  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ContactName := 'Müller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
@@ -199,7 +201,8 @@ begin
   inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
   inv.AccountingSupplierParty.Address.PostalZone := '01234';
   inv.AccountingSupplierParty.Address.CountryCode := 'DE';
-  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678';
+  inv.AccountingSupplierParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
   inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
@@ -216,7 +219,8 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
-  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
+  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ContactName := 'Müller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
@@ -298,7 +302,8 @@ begin
   inv.AccountingSupplierParty.Address.CountrySubentity := 'Sachsen';     //optional
   inv.AccountingSupplierParty.Address.AddressLine := 'Gate 64';  //optional
   inv.AccountingSupplierParty.Address.CountryCode := 'DE';
-  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678';
+  inv.AccountingSupplierParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
   inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
@@ -315,7 +320,8 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
-  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
+  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ContactName := 'Müller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
@@ -613,7 +619,8 @@ begin
   inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
   inv.AccountingSupplierParty.Address.PostalZone := '01234';
   inv.AccountingSupplierParty.Address.CountryCode := 'DE';
-  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678';
+  inv.AccountingSupplierParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
   inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
@@ -633,6 +640,7 @@ begin
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
+  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ContactName := 'Müller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
@@ -699,7 +707,8 @@ begin
   inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
   inv.AccountingSupplierParty.Address.PostalZone := '01234';
   inv.AccountingSupplierParty.Address.CountryCode := 'DE';
-  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678';
+  inv.AccountingSupplierParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
   inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
@@ -718,7 +727,8 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
-  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
+  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ContactName := 'Müller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
@@ -786,7 +796,8 @@ begin
   inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
   inv.AccountingSupplierParty.Address.PostalZone := '01234';
   inv.AccountingSupplierParty.Address.CountryCode := 'DE';
-  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678';
+  inv.AccountingSupplierParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
   inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
@@ -803,7 +814,8 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
-  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
+  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
   inv.PaymentMeansCode := ipmc_InstrumentNotDefined; //Nicht definiert
@@ -863,7 +875,8 @@ begin
   inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
   inv.AccountingSupplierParty.Address.PostalZone := '01234';
   inv.AccountingSupplierParty.Address.CountryCode := 'DE';
-  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678';
+  inv.AccountingSupplierParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
   inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
@@ -881,7 +894,8 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
-  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
+  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ContactName := 'Müller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
@@ -954,7 +968,8 @@ begin
   inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
   inv.AccountingSupplierParty.Address.PostalZone := '01234';
   inv.AccountingSupplierParty.Address.CountryCode := 'DE';
-  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678';
+  inv.AccountingSupplierParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
   inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
@@ -971,7 +986,8 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
-  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678'; //TODO mehrere Steuer-IDs
+  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
+  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ContactName := 'Müller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';

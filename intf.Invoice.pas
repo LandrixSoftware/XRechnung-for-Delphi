@@ -432,7 +432,8 @@ type
 
     IdentifierSellerBuyer : String; //Kreditor-Nr AccountingSupplierParty / Debitor-Nr AccountingCustomerParty
 
-    VATCompanyID : String;
+    VATCompanyID : String;   //BT-31
+    VATCompanyNumber: String;//BT-32
 
     ContactName : String;
     ContactTelephone : String;

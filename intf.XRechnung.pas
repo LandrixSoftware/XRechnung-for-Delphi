@@ -42,7 +42,7 @@ uses
   ;
 
 //UBL-Format
-//https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/tree/
+//https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice
 
 //https://portal3.gefeg.com/invoice/tthome/index/617afdc4-623f-44e0-a05b-5b878840e508
 

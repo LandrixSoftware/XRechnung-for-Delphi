@@ -1577,6 +1577,8 @@ begin
           Text := _Invoice.AccountingCustomerParty.VATCompanyNumber;
         end;
       end;
+      if _Invoice.SellerOrderReference <> '' then
+        AddChild('ram:SellerOrderReferencedDocument').AddChild('ram:IssuerAssignedID').Text := _Invoice.SellerOrderReference;
       if _Invoice.PurchaseOrderReference <> '' then
         AddChild('ram:BuyerOrderReferencedDocument').AddChild('ram:IssuerAssignedID').Text := _Invoice.PurchaseOrderReference;
       if _Invoice.ContractDocumentReference <> '' then

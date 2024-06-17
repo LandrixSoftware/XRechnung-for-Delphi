@@ -576,8 +576,13 @@ begin
       _Invoice.InvoiceIssueDate := TXRechnungHelper.DateFromStrUNCEFACTFormat(node.Text);
     if TXRechnungXMLHelper.SelectNode(xml,'//*[local-name()="ExchangedDocument"]/ram:TypeCode',node) then
       _Invoice.InvoiceTypeCode := TXRechnungHelper.InvoiceTypeCodeFromStr(node.Text);
-    if TXRechnungXMLHelper.SelectNode(xml,'//*[local-name()="ExchangedDocument"]/ram:IncludedNote/ram:Content',node) then
-      _Invoice.Note := node.Text;
+    if TXRechnungXMLHelper.SelectNodes(xml,'//*[local-name()="ExchangedDocument"]/ram:IncludedNote',nodes) then
+    for i := 0 to nodes.length-1 do
+    begin
+      if _Invoice.Note <> '' then
+        _Invoice.Note := _Invoice.Note + #13#10;
+      _Invoice.Note := _Invoice.Note + TXRechnungXMLHelper.SelectNodeText(nodes[i], './/ram:Content');
+    end;
 
     if not TXRechnungXMLHelper.SelectNode(xml,'//*[local-name()="SupplyChainTradeTransaction"]',nodeSupplyChainTradeTransaction) then
       exit;

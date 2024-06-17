@@ -633,6 +633,9 @@ begin
           if TXRechnungXMLHelper.SelectNode(node3,'.//ram:CountrySubDivisionName',node) then
             _Invoice.AccountingSupplierParty.Address.CountrySubentity := node.text;
         end;
+        if TXRechnungXMLHelper.SelectNode(node2,'.//ram:URIUniversalCommunication',node3) then
+          if TXRechnungXMLHelper.SelectNode(node3,'.//ram:URIID',node) then
+            _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer := node.text;
         if TXRechnungXMLHelper.SelectNodes(node2,'.//ram:SpecifiedTaxRegistration',nodes) then
         for i := 0  to nodes.length-1 do
         if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ID',node3) then
@@ -686,6 +689,10 @@ begin
           if TXRechnungXMLHelper.SelectNode(node3,'.//ram:CountrySubDivisionName',node) then
             _Invoice.AccountingCustomerParty.Address.CountrySubentity := node.text;
         end;
+        if TXRechnungXMLHelper.SelectNode(node2,'.//ram:URIUniversalCommunication',node3) then
+          if TXRechnungXMLHelper.SelectNode(node3,'.//ram:URIID',node) then
+            _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer := node.text;
+
         if TXRechnungXMLHelper.SelectNodes(node2,'.//ram:SpecifiedTaxRegistration',nodes) then
         for i := 0  to nodes.length-1 do
         if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ID',node3) then
@@ -697,6 +704,9 @@ begin
             _Invoice.AccountingCustomerParty.VATCompanyNumber := node3.text;
         end;
       end;
+      if TXRechnungXMLHelper.SelectNode(nodeApplicableHeaderTradeAgreement,'.//ram:SellerOrderReferencedDocument',node2) then
+      if TXRechnungXMLHelper.SelectNode(node2,'.//ram:IssuerAssignedID',node) then
+        _Invoice.SellerOrderReference := node.text;
       if TXRechnungXMLHelper.SelectNode(nodeApplicableHeaderTradeAgreement,'.//ram:BuyerOrderReferencedDocument',node2) then
       if TXRechnungXMLHelper.SelectNode(node2,'.//ram:IssuerAssignedID',node) then
         _Invoice.PurchaseOrderReference := node.text;

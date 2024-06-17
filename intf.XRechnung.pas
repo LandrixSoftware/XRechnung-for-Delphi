@@ -35,6 +35,7 @@ uses
   {$IFDEF ZUGFeRD_Support}
   ,intf.ZUGFeRDInvoiceDescriptor
   ,intf.ZUGFeRDCurrencyCodes
+  ,intf.ZUGFeRDTaxRegistrationSchemeID
   {$ENDIF}
   ,intf.XRechnung_2_3
   ,intf.XRechnung_3_0
@@ -48,6 +49,8 @@ uses
 
 //validieren von XRechnung
 //https://ecosio.com/de/peppol-und-xml-dokumente-online-validieren/
+
+//https://www.e-rechnung-bund.de/wp-content/uploads/2023/04/Uebersichtslisten-Eingabefelder-OZG-RE.pdf
 
 type
   TXRechnungHelper = class(TObject)
@@ -109,6 +112,8 @@ type
     class procedure SaveDocument(_Invoice: TInvoice;_Version : TXRechnungVersion; _Xml : IXMLDocument);
     class function  LoadFromXMLDocument(_Invoice: TInvoice; _XmlDocument: IXMLDocument; out _Error : String) : Boolean;
   public
+    class function ConsistencyCheck(_Invoice : TInvoice; _Version : TXRechnungVersion) : Boolean;
+
     class procedure SaveToStream(_Invoice : TInvoice; _Version : TXRechnungVersion; _Stream : TStream);
     class procedure SaveToFile(_Invoice : TInvoice; _Version : TXRechnungVersion; const _Filename : String);
     class procedure SaveToXMLStr(_Invoice : TInvoice; _Version : TXRechnungVersion; out _XML : String);
@@ -187,6 +192,21 @@ begin
     xml.SaveToFile(_Filename);
   finally
     xml := nil;
+  end;
+end;
+
+class function TXRechnungInvoiceAdapter.ConsistencyCheck(_Invoice: TInvoice;
+  _Version: TXRechnungVersion): Boolean;
+begin
+  Result := true;
+
+  if (_Version in [TXRechnungVersion.XRechnungVersion_230_UBL,
+                   TXRechnungVersion.XRechnungVersion_30x_UBL]) then
+  if (_Invoice.PurchaseOrderReference <> '') and
+     (_Invoice.SellerOrderReference <> '') then
+  begin
+    Result := false;
+    exit;
   end;
 end;
 
@@ -1023,7 +1043,20 @@ begin
 //    _Invoice.DeliveryReceiptNumber : String; //Lieferscheinnummer (Lieferscheindatum fehlt und würde nur in ZUGFeRD unterstützt)
 //
 //    AccountingSupplierParty : TInvoiceAccountingParty;
+  for i := 0 to _InvoiceDescriptor.SellerTaxRegistration.Count-1 do
+  if _InvoiceDescriptor.SellerTaxRegistration[i].SchemeID = TZUGFeRDTaxRegistrationSchemeID.VA then
+    _Invoice.AccountingSupplierParty.VATCompanyID := _InvoiceDescriptor.SellerTaxRegistration[i].No
+  else
+  if _InvoiceDescriptor.SellerTaxRegistration[i].SchemeID = TZUGFeRDTaxRegistrationSchemeID.FC then
+    _Invoice.AccountingSupplierParty.VATCompanyNumber := _InvoiceDescriptor.SellerTaxRegistration[i].No;
+
 //    AccountingCustomerParty : TInvoiceAccountingParty;
+  for i := 0 to _InvoiceDescriptor.BuyerTaxRegistration.Count-1 do
+  if _InvoiceDescriptor.BuyerTaxRegistration[i].SchemeID = TZUGFeRDTaxRegistrationSchemeID.VA then
+    _Invoice.AccountingCustomerParty.VATCompanyID := _InvoiceDescriptor.BuyerTaxRegistration[i].No
+  else
+  if _InvoiceDescriptor.BuyerTaxRegistration[i].SchemeID = TZUGFeRDTaxRegistrationSchemeID.FC then
+    _Invoice.AccountingCustomerParty.VATCompanyNumber := _InvoiceDescriptor.BuyerTaxRegistration[i].No;
 //    DeliveryInformation : TInvoiceDeliveryInformation;
 //
 //    //TODO weitere Zahlungswege, als Liste

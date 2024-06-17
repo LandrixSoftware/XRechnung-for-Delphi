@@ -1000,7 +1000,10 @@ begin
     AddChild('cbc:EndDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoicePeriodEndDate);
   end;
   if _Invoice.PurchaseOrderReference <> '' then
-    xRoot.AddChild('cac:OrderReference').AddChild('cbc:ID').Text := _Invoice.PurchaseOrderReference;
+    xRoot.AddChild('cac:OrderReference').AddChild('cbc:ID').Text := _Invoice.PurchaseOrderReference
+  else
+  if _Invoice.SellerOrderReference <> '' then
+    xRoot.AddChild('cac:OrderReference').AddChild('cbc:ID').Text := _Invoice.SellerOrderReference;
   for precedingInvoiceReference in _Invoice.PrecedingInvoiceReferences do
   with xRoot.AddChild('cac:BillingReference').AddChild('cac:InvoiceDocumentReference') do
   begin

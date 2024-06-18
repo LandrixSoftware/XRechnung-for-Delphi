@@ -38,10 +38,10 @@ type
     itc_None,
 
     ///TypeCode: 84 –
-    ///DebitnoteRelatedToFinancialAdjustments 84 - nicht in XRechnung
+    itc_DebitnoteRelatedToFinancialAdjustments, // 84 - nicht in XRechnung verwenden
 
     ///TypeCode: 261 –
-    ///SelfBilledCreditNote 261 - nicht in XRechnung
+    itc_SelfBilledCreditNote, // 261 - nicht in XRechnung verwenden
 
     ///TypeCode: 326 – Teilrechnung (eigentlich: Teilschlussrechnung)
     ///Die Teilrechnung ist eine normale Rechnung mit der eine oder
@@ -51,15 +51,15 @@ type
     ///unabhängig von der bereits erbrachten Leistung ist, werden mit
     ///einer Teilrechnung nur tatsächlich erbrachte Leistungen abgerechnet
     ///mit allen damit verbundenen Gewährleistungspflichten.
-    itc_PartialInvoice,
+    itc_PartialInvoice, //326
 
     ///TypeCode: 380 – Rechnung
     ///Dieser Typ beschreibt den „Normalfall“ einer Waren- oder
     ///Handelsrechnung und ist der gebräuchlichste Typ für die meisten
     ///Rechnungen.
-    itc_CommercialInvoice,
+    itc_CommercialInvoice, //380
 
-    ///DebitNote 383 Belastungsanzeige - nicht in XRechnung
+    itc_DebitNote, // 383 Belastungsanzeige - nicht in XRechnung verwenden
 
     ///TypeCode: 384 – Rechnungskorrektur
     ///Eine Rechnungskorrektur (oder auch Stornorechnung) wird erstellt,
@@ -67,11 +67,11 @@ type
     ///vollständig oder mangelhaft erbracht wurde und damit der
     ///Rechnungsbetrag reduziert werden muss. Eine Rechnungskorrektur
     ///muss sich dabei immer auf eine bereits erstellte Rechnung beziehen.
-    itc_CorrectedInvoice,
+    itc_CorrectedInvoice, //384
 
-    ///PrepaymentInvoice 386 Vorauszahlungsrechnung - nicht in XRechnung
+    itc_PrepaymentInvoice, // 386 Vorauszahlungsrechnung - nicht in XRechnung verwenden
 
-    ///Cancellation 457 Storno - nicht in XRechnung
+    itc_Cancellation, // 457 Storno - nicht in XRechnung verwenden
 
     ///TypeCode: 389 – Selbstfakturierte Rechnung
     ///Eine selbstfakturierte Rechnung wird vom Kunden ausgestellt.
@@ -110,6 +110,7 @@ type
   //TODO prüfen, ob es noch mehr gibt
   //https://www.xrepository.de/details/urn:xoev-de:xrechnung:codeliste:untdid.4461_2
   TInvoicePaymentMeansCode = (
+    ipmc_NotImplemented,
     ipmc_InstrumentNotDefined, //1
     ipmc_SEPACreditTransfer    //58
   );
@@ -155,6 +156,11 @@ type
                       iat_application_vnd_oasis_opendocument_spreadsheet,
                       iat_application_xml //ab XRechnung 2.0.0
                       );
+
+  TInvoiceAttachmentTypeHelper = class(TObject)
+  public
+    class function GetTypeFromFilename(const _Filename : String): TInvoiceAttachmentType;
+  end;
 
   //Entweder externe Referenz oder eingebettetes Objekt
   //Ob man die Daten als Base64 integriert oder separat mitliefert,
@@ -492,7 +498,8 @@ type
     PayeeFinancialAccountName : String;
     PayeeFinancialInstitutionBranch : String; //BIC
 
-    //TODO Verzugszinsen
+    //Infos unter
+    //https://www.e-rechnung-bund.de/wp-content/uploads/2023/04/Angabe-Skonto-Upload.pdf
     PaymentTermsType : TInvoicePaymentTermsType;
     PaymentTermNetNote : String;
     PaymentTermCashDiscount1Days : Integer;
@@ -825,37 +832,52 @@ end;
 function TInvoiceAttachmentList.TryAddAttachmentByExtension(const _Filename: String;
   out _Attachment: TInvoiceAttachment): Boolean;
 var
-  fileExt : String;
+  fileType : TInvoiceAttachmentType;
 begin
   Result := false;
+
   if not FileExists(_Filename) then
     exit;
 
-  fileExt := ExtractFileExt(_Filename);
-  if SameText(fileExt,'.xlsx') then
-    _Attachment := AddAttachment(iat_application_vnd_openxmlformats_officedocument_spreadsheetml_sheet)
-  else
-  if SameText(fileExt,'.ods') then
-    _Attachment := AddAttachment(iat_application_vnd_oasis_opendocument_spreadsheet)
-  else
-  if SameText(fileExt,'.csv') then
-    _Attachment := AddAttachment(iat_text_csv)
-  else
-  if SameText(fileExt,'.jpg') then
-    _Attachment := AddAttachment(iat_image_jpeg)
-  else
-  if SameText(fileExt,'.pdf') then
-    _Attachment := AddAttachment(iat_application_pdf)
-  else
-  if SameText(fileExt,'.png') then
-    _Attachment := AddAttachment(iat_image_png)
-  else
-  if SameText(fileExt,'.xml') then
-    _Attachment := AddAttachment(iat_application_xml)
-  else
+  fileType := TInvoiceAttachmentTypeHelper.GetTypeFromFilename(_Filename);
+
+  if fileType = iat_application_None then
     exit;
 
+  _Attachment := AddAttachment(fileType);
   Result := true;
+end;
+
+{ TInvoiceAttachmentTypeHelper }
+
+class function TInvoiceAttachmentTypeHelper.GetTypeFromFilename(
+  const _Filename: String): TInvoiceAttachmentType;
+var
+  fileExt : String;
+begin
+  Result := iat_application_None;
+
+  fileExt := ExtractFileExt(_Filename);
+  if SameText(fileExt,'.xlsx') then
+    Result := iat_application_vnd_openxmlformats_officedocument_spreadsheetml_sheet
+  else
+  if SameText(fileExt,'.ods') then
+    Result := iat_application_vnd_oasis_opendocument_spreadsheet
+  else
+  if SameText(fileExt,'.csv') then
+    Result := iat_text_csv
+  else
+  if SameText(fileExt,'.jpg') then
+    Result := iat_image_jpeg
+  else
+  if SameText(fileExt,'.pdf') then
+    Result := iat_application_pdf
+  else
+  if SameText(fileExt,'.png') then
+    Result := iat_image_png
+  else
+  if SameText(fileExt,'.xml') then
+    Result := iat_application_xml;
 end;
 
 {$IF CompilerVersion >= 33.0}

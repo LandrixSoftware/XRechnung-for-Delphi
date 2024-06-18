@@ -25,6 +25,20 @@ Aktuelle XRechnung-Versionen
 - 3.0.1 gültig ab 1.2.2024 - Übersicht der Pflichtfelder unter https://blog.seeburger.com/de/xrechnung-version-3-0-1-gueltig-ab-01-februar-2024/
 - 2.3.1 gültig ab 1.8.2023
 
+## Beispiele
+
+Zu finden unter Samples\XRechnungUnit2TestCases.pas
+
+## Hilfsfunktion für den XRechnung-Export
+
+Prüft, ob die zu exportierende Rechnung den Anforderungen der XRechnung entspricht. Gibt False zurück, wenn die Rechnung Werte enthält, die nicht im XRechnung-Profil erlaubt sind. Die Funktion ist nicht vollständig und wird ständig erweitert.
+
+```delphi
+unit intf.XRechnung;
+
+TXRechnungInvoiceAdapter.ConsistencyCheck(_Invoice : TInvoice; _Version : TXRechnungVersion) : Boolean;
+```
+
 ## Weitere Informationen zu XRechnung
 
 https://www.verband-e-rechnung.org/xrechnung/

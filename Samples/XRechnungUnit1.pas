@@ -1,4 +1,4 @@
-﻿{
+{
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
 Version 3.0.1
@@ -314,16 +314,33 @@ procedure TForm1.Generate(inv: TInvoice);
 var
   xml,cmdoutput,xmlresult,htmlresult,error : String;
   invtest : TInvoice;
+  version : TXRechnungVersion;
 begin
   Screen.Cursor := crHourglass;
   ClearBrowser;
   Memo3.Clear;
+
+  if rbFormat.itemindex = 0 then
+    case rbVersion.ItemIndex of
+      0 : version := XRechnungVersion_230_UBL;
+      else version := XRechnungVersion_30x_UBL;
+    end
+  else
+    case rbVersion.ItemIndex of
+      0 : version := XRechnungVersion_230_UNCEFACT;
+      else version := XRechnungVersion_30x_UNCEFACT;
+    end;
+
+  if not TXRechnungInvoiceAdapter.ConsistencyCheck(inv,version) then
+  begin
+    MessageDlg('Die Rechnung enthält für das XRechnung-Format ungültige Werte', mtError, [mbOK], 0);
+    exit;
+  end;
+
   if rbFormat.itemindex = 0 then
   begin
-    case rbVersion.ItemIndex of
-      0 : TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_230_UBL,xml);
-      else TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_30x_UBL,xml);
-    end;
+    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,version,xml);
+
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetValidatorLibPath(ValidatorLibPath)
         .SetValidatorConfigurationPath(ValidatorConfigurationPath)
@@ -355,10 +372,7 @@ begin
   end
   else
   begin
-    case rbVersion.ItemIndex of
-      0 : TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_230_UNCEFACT,xml);
-      else TXRechnungInvoiceAdapter.SaveToXMLStr(inv,XRechnungVersion_30x_UNCEFACT,xml);
-    end;
+    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,version,xml);
 
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetValidatorLibPath(ValidatorLibPath)

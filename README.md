@@ -29,6 +29,18 @@ Aktuelle XRechnung-Versionen
 
 Zu finden unter Samples\XRechnungUnit2TestCases.pas
 
+## ZUGFeRD Support
+
+Um den Import von ZUGFeRD-Rechnungen zu ermöglichen, wurde die 
+Bibliothek ZUGFeRD-for-Delphi integriert. Die Quellen hier zu finden:
+
+https://github.com/LandrixSoftware/ZUGFeRD-for-Delphi
+
+Aktivieren Sie dazu auch in der Unit intf.XRechnung.pas den Compiler-Schalter ZUGFeRD_Support.
+
+```delphi
+{$DEFINE ZUGFeRD_Support}
+```
 ## Hilfsfunktion für den XRechnung-Export
 
 Prüft, ob die zu exportierende Rechnung den Anforderungen der XRechnung entspricht. Gibt False zurück, wenn die Rechnung Werte enthält, die nicht im XRechnung-Profil erlaubt sind. Die Funktion ist nicht vollständig und wird ständig erweitert.

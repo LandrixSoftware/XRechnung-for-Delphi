@@ -1782,6 +1782,7 @@ begin
           Attributes['format'] := '102';
           Text := TXRechnungHelper.DateToStrUNCEFACTFormat(precedingInvoiceReference.IssueDate);
         end;
+        break; //only one item allowed in cii
       end;
 
     end;

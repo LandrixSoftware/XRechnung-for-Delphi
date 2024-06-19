@@ -1,4 +1,4 @@
-﻿{
+{
 License XRechnung-for-Delphi
 
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
@@ -229,6 +229,16 @@ begin
     Result := false;
     exit;
   end;
+
+  //Nur maximal eine Referenzrechnung in ZUGFeRD erlaubt
+  if (_Version in [TXRechnungVersion.XRechnungVersion_230_UNCEFACT,
+                   TXRechnungVersion.XRechnungVersion_30x_UNCEFACT]) then
+  if _Invoice.PrecedingInvoiceReferences.Count > 1 then
+  begin
+    Result := false;
+    exit;
+  end;
+
 end;
 
 class function TXRechnungInvoiceAdapter.LoadFromFile(_Invoice: TInvoice;

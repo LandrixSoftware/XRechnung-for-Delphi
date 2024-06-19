@@ -442,10 +442,10 @@ var
       if TXRechnungXMLHelper.SelectNode(node2i,'.//ram:NetPriceProductTradePrice',node3i) then
       begin
         _Invoiceline.PriceAmount := TXRechnungHelper.UnitPriceAmountFromStr(TXRechnungXMLHelper.SelectNodeText(node3i,'.//ram:ChargeAmount'));
-        if TXRechnungXMLHelper.SelectNode(node3i,'.//ram:BaseQuantity',nodei) then
+        if TXRechnungXMLHelper.SelectNode(node3i,'.//ram:BasisQuantity',nodei) then
         begin
           _Invoiceline.BaseQuantityUnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(nodei.attributes.getNamedItem('unitCode').Text);
-          _Invoiceline.BaseQuantity := StrToIntDef(nodei.text,0);
+          _Invoiceline.BaseQuantity := TXRechnungHelper.FloatFromStr(nodei.text);
         end;
       end;
     end;
@@ -960,7 +960,7 @@ var
       with AddChild('cbc:BaseQuantity') do
       begin
         Attributes['unitCode'] := TXRechnungHelper.InvoiceUnitCodeToStr(_Invoiceline.BaseQuantityUnitCode);
-        Text := IntToStr(_Invoiceline.BaseQuantity);
+        Text := TXRechnungHelper.FloatToStr(_Invoiceline.BaseQuantity);
       end;
     end;
     //if _Version in [XRechnungVersion_220_UBL,XRechnungVersion_230_UBL] then
@@ -1387,10 +1387,10 @@ var
       begin
         AddChild('ram:ChargeAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoiceline.PriceAmount);
         if (_Invoiceline.BaseQuantity <> 0) and (_Invoiceline.BaseQuantityUnitCode <> iuc_None) then
-        with AddChild('ram:BaseQuantity') do
+        with AddChild('ram:BasisQuantity') do
         begin
           Attributes['unitCode'] := TXRechnungHelper.InvoiceUnitCodeToStr(_Invoiceline.BaseQuantityUnitCode);
-          Text := IntToStr(_Invoiceline.BaseQuantity);
+          Text := TXRechnungHelper.FloatToStr(_Invoiceline.BaseQuantity);
         end;
       end;
     end;

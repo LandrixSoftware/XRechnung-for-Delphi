@@ -199,7 +199,8 @@ object Form1: TForm1
       'Differenzbesteuerung'
       'Titel/Positionsgruppen'
       'Gutschrift'
-      'Minimalrechnung B2B')
+      'Minimalrechnung B2B'
+      'Preiseinheit')
     TabOrder = 16
   end
 end

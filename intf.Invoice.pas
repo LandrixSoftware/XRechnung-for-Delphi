@@ -384,7 +384,7 @@ type
     TaxPercent : double; //MwSt
     TaxCategory : TInvoiceDutyTaxFeeCategoryCode; //MwSt-Einordnung
     PriceAmount : Currency; //Einzelpreis
-    BaseQuantity : Integer; //Preiseinheit
+    BaseQuantity : double; //Preiseinheit
     BaseQuantityUnitCode : TInvoiceUnitCode; //Preiseinheit Mengeneinheit
     LineAmount : Currency;
     AllowanceCharges : TInvoiceAllowanceCharges;

@@ -301,6 +301,7 @@ begin
       4 : TInvoiceTestCases.TitelPositionsgruppen(inv);//Titel/Positionsgruppen
       5 : TInvoiceTestCases.Gutschrift(inv);
       6 : TInvoiceTestCases.MinimalbeispielB2BOhneLeitwegID(inv);
+      7 : TInvoiceTestCases.PreiseinheitGroesser1(inv);
     end;
 
     Generate(inv);

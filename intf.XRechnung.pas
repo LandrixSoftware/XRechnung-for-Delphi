@@ -1,4 +1,4 @@
-﻿{
+{
 License XRechnung-for-Delphi
 
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
@@ -305,7 +305,7 @@ begin
     XRechnungVersion_ReadingSupport_ZUGFeRDFacturX : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     else exit;
     {$ELSE}
-    else TZUGFeRDInvoiceAdapter.LoadFromXMLDocument(_Invoice,_XmlDocument,_Error);
+    else Result := TZUGFeRDInvoiceAdapter.LoadFromXMLDocument(_Invoice,_XmlDocument,_Error);
     {$ENDIF}
   end;
 end;
@@ -1087,7 +1087,7 @@ begin
     else _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_None;
   end;
   _Invoice.InvoiceCurrencyCode := TZUGFeRDCurrencyCodesExtensions.EnumToString(_InvoiceDescriptor.Currency);
-  _Invoice.TaxCurrencyCode := ''; //TODO fehlt in ZUGFeRD-Lib
+  _Invoice.TaxCurrencyCode := _Invoice.InvoiceCurrencyCode; //TODO fehlt in ZUGFeRD-Lib
   _Invoice.BuyerReference := _InvoiceDescriptor.ReferenceOrderNo;
   for i := 0 to _InvoiceDescriptor.Notes.Count-1 do
   begin
@@ -1098,30 +1098,37 @@ begin
   if _InvoiceDescriptor.SellerOrderReferencedDocument <> nil then
     _Invoice.SellerOrderReference := _InvoiceDescriptor.SellerOrderReferencedDocument.ID;
   _Invoice.PurchaseOrderReference := _InvoiceDescriptor.OrderNo;
-  _Invoice.ProjectReference := _InvoiceDescriptor.SpecifiedProcuringProject.ID;
+  if _InvoiceDescriptor.SpecifiedProcuringProject <> nil then 
+    _Invoice.ProjectReference := _InvoiceDescriptor.SpecifiedProcuringProject.ID;
   if _InvoiceDescriptor.ContractReferencedDocument <> nil then
     _Invoice.ContractDocumentReference := _InvoiceDescriptor.ContractReferencedDocument.ID;
   if _InvoiceDescriptor.DeliveryNoteReferencedDocument <> nil then
     _Invoice.DeliveryReceiptNumber := _InvoiceDescriptor.DeliveryNoteReferencedDocument.ID;
   //Seller
-  _Invoice.AccountingSupplierParty.Name := _InvoiceDescriptor.Seller.SpecifiedLegalOrganization.TradingBusinessName;
-  _Invoice.AccountingSupplierParty.RegistrationName := _InvoiceDescriptor.Seller.Name;
-  _Invoice.AccountingSupplierParty.CompanyID := _InvoiceDescriptor.Seller.SpecifiedLegalOrganization.ID.ID;
-  if _InvoiceDescriptor.Seller.ContactName = '' then
+  if _InvoiceDescriptor.Seller <> nil then
   begin
-    _Invoice.AccountingSupplierParty.Address.StreetName := _InvoiceDescriptor.Seller.Street;
-    _Invoice.AccountingSupplierParty.Address.AdditionalStreetName := '';
-  end else
-  begin
-    _Invoice.AccountingSupplierParty.Address.StreetName := _InvoiceDescriptor.Seller.ContactName;
-    _Invoice.AccountingSupplierParty.Address.AdditionalStreetName := _InvoiceDescriptor.Seller.Street;
+    if _InvoiceDescriptor.Seller.SpecifiedLegalOrganization <> nil then
+    begin
+      _Invoice.AccountingSupplierParty.Name := _InvoiceDescriptor.Seller.SpecifiedLegalOrganization.TradingBusinessName;
+      _Invoice.AccountingSupplierParty.CompanyID := _InvoiceDescriptor.Seller.SpecifiedLegalOrganization.ID.ID;
+    end;
+    _Invoice.AccountingSupplierParty.RegistrationName := _InvoiceDescriptor.Seller.Name;
+    if _InvoiceDescriptor.Seller.ContactName = '' then
+    begin
+      _Invoice.AccountingSupplierParty.Address.StreetName := _InvoiceDescriptor.Seller.Street;
+      _Invoice.AccountingSupplierParty.Address.AdditionalStreetName := '';
+    end else
+    begin
+      _Invoice.AccountingSupplierParty.Address.StreetName := _InvoiceDescriptor.Seller.ContactName;
+      _Invoice.AccountingSupplierParty.Address.AdditionalStreetName := _InvoiceDescriptor.Seller.Street;
+    end;
+    _Invoice.AccountingSupplierParty.Address.City := _InvoiceDescriptor.Seller.City;
+    _Invoice.AccountingSupplierParty.Address.PostalZone := _InvoiceDescriptor.Seller.Postcode;
+    _Invoice.AccountingSupplierParty.Address.CountrySubentity := _InvoiceDescriptor.Seller.CountrySubdivisionName;
+    _Invoice.AccountingSupplierParty.Address.AddressLine := _InvoiceDescriptor.Seller.AddressLine3;
+    _Invoice.AccountingSupplierParty.Address.CountryCode := TZUGFeRDCountryCodesExtensions.EnumToString(_InvoiceDescriptor.Seller.Country);
+    _Invoice.AccountingSupplierParty.IdentifierSellerBuyer := _InvoiceDescriptor.Seller.ID.ID;
   end;
-  _Invoice.AccountingSupplierParty.Address.City := _InvoiceDescriptor.Seller.City;
-  _Invoice.AccountingSupplierParty.Address.PostalZone := _InvoiceDescriptor.Seller.Postcode;
-  _Invoice.AccountingSupplierParty.Address.CountrySubentity := _InvoiceDescriptor.Seller.CountrySubdivisionName;
-  _Invoice.AccountingSupplierParty.Address.AddressLine := _InvoiceDescriptor.Seller.AddressLine3;
-  _Invoice.AccountingSupplierParty.Address.CountryCode := TZUGFeRDCountryCodesExtensions.EnumToString(_InvoiceDescriptor.Seller.Country);
-  _Invoice.AccountingSupplierParty.IdentifierSellerBuyer := _InvoiceDescriptor.Seller.ID.ID;
   for i := 0 to _InvoiceDescriptor.SellerTaxRegistration.Count-1 do
   if _InvoiceDescriptor.SellerTaxRegistration[i].SchemeID = TZUGFeRDTaxRegistrationSchemeID.VA then
     _Invoice.AccountingSupplierParty.VATCompanyID := _InvoiceDescriptor.SellerTaxRegistration[i].No
@@ -1137,24 +1144,30 @@ begin
   _Invoice.AccountingSupplierParty.AdditionalLegalInformationSeller := ''; //TODO fehlt in ZUGFeRD-Lib
   _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer := _InvoiceDescriptor.SellerElectronicAddress.Address;
   //Buyer
-  _Invoice.AccountingCustomerParty.Name := _InvoiceDescriptor.Buyer.SpecifiedLegalOrganization.TradingBusinessName;
-  _Invoice.AccountingCustomerParty.RegistrationName := _InvoiceDescriptor.Buyer.Name;
-  _Invoice.AccountingCustomerParty.CompanyID := _InvoiceDescriptor.Buyer.SpecifiedLegalOrganization.ID.ID;
-  if _InvoiceDescriptor.Buyer.ContactName = '' then
+  if _InvoiceDescriptor.Buyer <> nil then
   begin
-    _Invoice.AccountingCustomerParty.Address.StreetName := _InvoiceDescriptor.Buyer.Street;
-    _Invoice.AccountingCustomerParty.Address.AdditionalStreetName := '';
-  end else
-  begin
-    _Invoice.AccountingCustomerParty.Address.StreetName := _InvoiceDescriptor.Buyer.ContactName;
-    _Invoice.AccountingCustomerParty.Address.AdditionalStreetName := _InvoiceDescriptor.Buyer.Street;
+    if _InvoiceDescriptor.Buyer.SpecifiedLegalOrganization <> nil then
+    begin
+      _Invoice.AccountingCustomerParty.Name := _InvoiceDescriptor.Buyer.SpecifiedLegalOrganization.TradingBusinessName;
+      _Invoice.AccountingCustomerParty.CompanyID := _InvoiceDescriptor.Buyer.SpecifiedLegalOrganization.ID.ID;
+    end;
+    _Invoice.AccountingCustomerParty.RegistrationName := _InvoiceDescriptor.Buyer.Name;
+    if _InvoiceDescriptor.Buyer.ContactName = '' then
+    begin
+      _Invoice.AccountingCustomerParty.Address.StreetName := _InvoiceDescriptor.Buyer.Street;
+      _Invoice.AccountingCustomerParty.Address.AdditionalStreetName := '';
+    end else
+    begin
+      _Invoice.AccountingCustomerParty.Address.StreetName := _InvoiceDescriptor.Buyer.ContactName;
+      _Invoice.AccountingCustomerParty.Address.AdditionalStreetName := _InvoiceDescriptor.Buyer.Street;
+    end;
+    _Invoice.AccountingCustomerParty.Address.City := _InvoiceDescriptor.Buyer.City;
+    _Invoice.AccountingCustomerParty.Address.PostalZone := _InvoiceDescriptor.Buyer.Postcode;
+    _Invoice.AccountingCustomerParty.Address.CountrySubentity := _InvoiceDescriptor.Buyer.CountrySubdivisionName;
+    _Invoice.AccountingCustomerParty.Address.AddressLine := _InvoiceDescriptor.Buyer.AddressLine3;
+    _Invoice.AccountingCustomerParty.Address.CountryCode := TZUGFeRDCountryCodesExtensions.EnumToString(_InvoiceDescriptor.Buyer.Country);
+    _Invoice.AccountingCustomerParty.IdentifierSellerBuyer := _InvoiceDescriptor.Buyer.ID.ID;
   end;
-  _Invoice.AccountingCustomerParty.Address.City := _InvoiceDescriptor.Buyer.City;
-  _Invoice.AccountingCustomerParty.Address.PostalZone := _InvoiceDescriptor.Buyer.Postcode;
-  _Invoice.AccountingCustomerParty.Address.CountrySubentity := _InvoiceDescriptor.Buyer.CountrySubdivisionName;
-  _Invoice.AccountingCustomerParty.Address.AddressLine := _InvoiceDescriptor.Buyer.AddressLine3;
-  _Invoice.AccountingCustomerParty.Address.CountryCode := TZUGFeRDCountryCodesExtensions.EnumToString(_InvoiceDescriptor.Buyer.Country);
-  _Invoice.AccountingCustomerParty.IdentifierSellerBuyer := _InvoiceDescriptor.Buyer.ID.ID;
   for i := 0 to _InvoiceDescriptor.BuyerTaxRegistration.Count-1 do
   if _InvoiceDescriptor.BuyerTaxRegistration[i].SchemeID = TZUGFeRDTaxRegistrationSchemeID.VA then
     _Invoice.AccountingCustomerParty.VATCompanyID := _InvoiceDescriptor.BuyerTaxRegistration[i].No
@@ -1444,6 +1457,7 @@ begin
   _Invoice.ChargeTotalAmount := _InvoiceDescriptor.ChargeTotalAmount.GetValueOrDefault(0);
   _Invoice.PrepaidAmount := _InvoiceDescriptor.TotalPrepaidAmount.GetValueOrDefault(0);
   _Invoice.PayableAmount := _InvoiceDescriptor.DuePayableAmount.GetValueOrDefault(0);
+  Result := True;
 end;
 {$ENDIF}
 

@@ -587,6 +587,7 @@ begin
   //Hinweise: Evtl könnte man noch die Abschlagsrechnungen als Anhang anhängen
   if AbschlagsrechnungAbziehen then
   begin
+    //Im CII-ZUGFeRD-Format ist hier nur maximal eine Referenz möglich
     with inv.PrecedingInvoiceReferences.AddPrecedingInvoiceReference do
     begin
       ID := 'R2020-0001';

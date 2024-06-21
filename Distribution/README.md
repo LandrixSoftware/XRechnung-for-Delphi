@@ -7,6 +7,10 @@ finden Sie unter https://adoptium.net/de/docs/faq/ .
 
 ## Historie
 
+- 21.02.2024 Update\
+  https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/release-2024-06-20/validator-configuration-xrechnung_3.0.2_2024-06-20.zip\
+  https://github.com/itplr-kosit/xrechnung-visualization/releases/download/v2024-06-20/xrechnung-3.0.2-xrechnung-visualization-2024-06-20.zip
+
 - 16.11.2023 Update\
   https://github.com/itplr-kosit/xrechnung-visualization/releases/tag/v2023-11-15\
   https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/tag/release-2023-11-15\

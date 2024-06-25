@@ -1,4 +1,4 @@
-{
+﻿{
 License XRechnung-for-Delphi
 
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
@@ -671,6 +671,9 @@ begin
   if SameText(_Val,'58')  then
     Result := ipmc_SEPACreditTransfer
   else
+  if SameText(_Val,'59')  then
+    Result := ipmc_SEPADirectDebit
+  else
   if SameText(_Val,'1')  then
     Result := ipmc_InstrumentNotDefined
   else
@@ -681,6 +684,7 @@ class function TXRechnungHelper.InvoicePaymentMeansCodeToStr(_Val: TInvoicePayme
 begin
   case _Val of
     ipmc_SEPACreditTransfer: Result := '58';
+    ipmc_SEPADirectDebit: Result := '59';
     else Result := '1'; //ipmc_InstrumentNotDefined
   end;
 end;

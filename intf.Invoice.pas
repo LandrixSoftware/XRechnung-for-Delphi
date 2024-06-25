@@ -112,7 +112,8 @@ type
   TInvoicePaymentMeansCode = (
     ipmc_NotImplemented,
     ipmc_InstrumentNotDefined, //1
-    ipmc_SEPACreditTransfer    //58
+    ipmc_SEPACreditTransfer,    //58
+    ipmc_SEPADirectDebit    //59
   );
 
   TInvoicePaymentTermsType = (iptt_None,

@@ -903,7 +903,7 @@ begin
   begin
     if not TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'cbc:CustomizationID',node) then
       exit;
-    if node.Text.EndsWith('xrechnung_2.2',true) then
+    if node.Text.EndsWith('xrechnung_2.3',true) then
       Result := XRechnungVersion_230_UBL
     else
     if node.Text.EndsWith('xrechnung_3.0',true) then
@@ -918,7 +918,7 @@ begin
       exit;
     if not TXRechnungXMLHelper.FindChild(node2,'ram:ID',node) then
       exit;
-    if node.Text.EndsWith('xrechnung_2.2',true) then
+    if node.Text.EndsWith('xrechnung_2.3',true) then
       Result := XRechnungVersion_230_UNCEFACT
     else
     if node.Text.EndsWith('xrechnung_3.0',true) then

@@ -111,9 +111,13 @@ type
   //https://www.xrepository.de/details/urn:xoev-de:xrechnung:codeliste:untdid.4461_2
   TInvoicePaymentMeansCode = (
     ipmc_NotImplemented,
-    ipmc_InstrumentNotDefined, //1
-    ipmc_SEPACreditTransfer,    //58
-    ipmc_SEPADirectDebit    //59
+    ipmc_InstrumentNotDefined, //1  Keine Angaben
+    ipmc_InCash,               //10 Barzahlung
+    ipmc_Cheque,               //20 Scheck
+    ipmc_CreditTransfer,       //30 Überweisung - Ausland (nicht SEPA)
+    ipmc_CreditCard,           //54 Kreditkarte
+    ipmc_SEPACreditTransfer,   //58 Überweisung (SEPA)
+    ipmc_SEPADirectDebit       //59 Lastschrift (SEPA)
   );
 
   TInvoicePaymentTermsType = (iptt_None,

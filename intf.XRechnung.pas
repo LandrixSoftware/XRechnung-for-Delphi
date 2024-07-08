@@ -668,6 +668,18 @@ end;
 class function TXRechnungHelper.InvoicePaymentMeansCodeFromStr(
   _Val: String): TInvoicePaymentMeansCode;
 begin
+  if SameText(_Val,'10') then
+    Result := ipmc_InCash
+  else
+  if SameText(_Val,'20') then
+    Result := ipmc_Cheque
+  else
+  if SameText(_Val,'30') then
+    Result := ipmc_CreditTransfer
+  else
+  if SameText(_Val,'54') then
+    Result := ipmc_CreditCard
+  else
   if SameText(_Val,'58')  then
     Result := ipmc_SEPACreditTransfer
   else
@@ -683,6 +695,10 @@ end;
 class function TXRechnungHelper.InvoicePaymentMeansCodeToStr(_Val: TInvoicePaymentMeansCode): String;
 begin
   case _Val of
+    ipmc_InCash: Result := '10';
+    ipmc_Cheque: Result := '20';
+    ipmc_CreditTransfer: Result := '30';
+    ipmc_CreditCard: Result := '54';
     ipmc_SEPACreditTransfer: Result := '58';
     ipmc_SEPADirectDebit: Result := '59';
     else Result := '1'; //ipmc_InstrumentNotDefined

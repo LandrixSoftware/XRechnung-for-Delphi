@@ -543,17 +543,17 @@ var
       for ii := 0 to nodesi.length-1 do
       with _Invoiceline.AllowanceCharges.AddAllowanceCharge do
       begin
-        if TXRechnungXMLHelper.SelectNode(nodesi[i],'.//ram:ChargeIndicator',node2i) then
+        if TXRechnungXMLHelper.SelectNode(nodesi[ii],'.//ram:ChargeIndicator',node2i) then
         if TXRechnungXMLHelper.SelectNode(node2i,'.//udt:Indicator',nodei) then
           ChargeIndicator := StrToBoolDef(nodei.text,false);
-        MultiplierFactorNumeric := TXRechnungHelper.FloatFromStr(TXRechnungXMLHelper.SelectNodeText(nodesi[i],'.//ram:CalculationPercent'));
-        BaseAmount  := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(nodesi[i],'.//ram:BasisAmount'));
-        Amount  := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(nodesi[i],'.//ram:ActualAmount'));
+        MultiplierFactorNumeric := TXRechnungHelper.FloatFromStr(TXRechnungXMLHelper.SelectNodeText(nodesi[ii],'.//ram:CalculationPercent'));
+        BaseAmount  := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(nodesi[ii],'.//ram:BasisAmount'));
+        Amount  := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(nodesi[ii],'.//ram:ActualAmount'));
         if ChargeIndicator then
-          ReasonCodeCharge := TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeFromStr(TXRechnungXMLHelper.SelectNodeText(nodesi[i],'.//ram:ReasonCode'))
+          ReasonCodeCharge := TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeFromStr(TXRechnungXMLHelper.SelectNodeText(nodesi[ii],'.//ram:ReasonCode'))
         else
-          ReasonCodeAllowance := TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeFromStr(TXRechnungXMLHelper.SelectNodeText(nodesi[i],'.//ram:ReasonCode'));
-        Reason := TXRechnungXMLHelper.SelectNodeText(nodesi[i],'.//ram:Reason');
+          ReasonCodeAllowance := TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeFromStr(TXRechnungXMLHelper.SelectNodeText(nodesi[ii],'.//ram:ReasonCode'));
+        Reason := TXRechnungXMLHelper.SelectNodeText(nodesi[ii],'.//ram:Reason');
       end;
       if TXRechnungXMLHelper.SelectNode(node2i,'.//ram:SpecifiedTradeSettlementLineMonetarySummation',nodei) then
       begin

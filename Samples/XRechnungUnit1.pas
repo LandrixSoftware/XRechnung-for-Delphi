@@ -1,4 +1,4 @@
-{
+﻿{
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
 Version 3.0.1
@@ -150,6 +150,9 @@ begin
   inv := TInvoice.Create;
   od := TOpenDialog.Create(nil);
   try
+    od.Filter := 'XML-Dateien|*.xml';
+    od.FilterIndex := 0;
+    od.DefaultExt := '*.xml';
     if not od.Execute then
       exit;
     if not TXRechnungInvoiceAdapter.LoadFromFile(inv, od.FileName,error) then

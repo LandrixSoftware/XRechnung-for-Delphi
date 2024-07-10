@@ -29,7 +29,7 @@ interface
 
 uses
   System.SysUtils,System.Classes,System.Types,System.DateUtils,System.Rtti
-  ,System.Variants,System.StrUtils,System.Generics.Collections
+  ,System.Variants,System.StrUtils,System.Generics.Collections,System.Win.ComObj
   ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema,intf.XRechnungMSXML2_TLB
   {$IFDEF USE_OXMLDomVendor},OXmlDOMVendor{$ENDIF}
   {$IFDEF ZUGFeRD_Support}
@@ -52,12 +52,15 @@ uses
 //UBL-Format
 //https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice
 
+//CII-Format
 //https://portal3.gefeg.com/invoice/tthome/index/617afdc4-623f-44e0-a05b-5b878840e508
 
 //validieren von XRechnung
 //https://ecosio.com/de/peppol-und-xml-dokumente-online-validieren/
 
 //https://www.e-rechnung-bund.de/wp-content/uploads/2023/04/Uebersichtslisten-Eingabefelder-OZG-RE.pdf
+
+//https://www.deutschebahn.com/en/invoicing-6930178#collapse6130808
 
 type
   TXRechnungHelper = class(TObject)
@@ -112,6 +115,9 @@ type
     class function GetXRechnungVersion(const _Filename : String) : TXRechnungVersion; overload;
     class function GetXRechnungVersion(_Xml : IXMLDocument) : TXRechnungVersion; overload;
     class function GetXRechnungVersion(const _Stream: TStream) : TXRechnungVersion; overload;
+
+    //First thoughts on the topic
+    //class function Validate(_XSDFilename, _XmlFilename: String) : Boolean;
   end;
 
   TXRechnungInvoiceAdapter = class
@@ -985,6 +991,66 @@ begin
     xml := nil;
   end;
 end;
+
+//class function TXRechnungValidationHelper.Validate(_XSDFilename, _XmlFilename: String): Boolean;
+//var
+//  FXMLDocument: IXMLDOMDocument2;
+//  FXMLDOMSchema: IXMLDOMSchemaCollection2;
+//  FXMLParserError: IXMLDOMParseError2;
+//  s: string;
+//  i: integer;
+//begin
+//  //https://en.delphipraxis.net/topic/7803-validating-an-xml-using-xsd/
+//  //FileName:= '';
+//  try
+//    FXMLDocument := CreateOleObject('Msxml2.DOMDocument.6.0') as IXMLDomDocument2;
+//    FXMLDOMSchema := CreateOleObject('Msxml2.XMLSchemaCache.6.0') as IXMLDOMSchemaCollection2;
+//
+//    FXMLDOMSchema.add('', _XSDFilename);
+//    FXMLDocument.Async := false;
+//    FXMLDocument.resolveExternals:= false;
+//    FXMLDocument.validateOnParse := false;
+//    FXMLDocument.setProperty('MultipleErrorMessages', true);
+//    FXMLDocument.load(_XmlFilename);
+//    FXMLDocument.schemas := FXMLDOMSchema;
+//    FXMLParserError := FXMLDocument.validate as IXMLDOMParseError2;
+//  finally
+//    if (FXMLParserError.errorCode <> 0) then
+//    begin
+//      s:= '';
+//      Result := false;
+////        flk:= NewFLK_P;
+////        flk.FNAME:= ReplaceFirstChar(ExtractFileName(xml_file),'V');
+////        flk.FNAME_I:= ExtractFileName(xml_file);
+////        with FXMLParserError.allErrors do
+////          for i:= 0 to Length - 1 do
+////            begin
+////              with flk.PR.Add do
+////                begin
+////                  case Item[i].ErrorCode of
+////                    -1072897535: OSHIB:= 903;
+////                    -1072898028: OSHIB:= 902;
+////                  end;
+////                  BAS_EL:= Item[i].errorXPath;
+////                  COMMENT:= StringReplace(Item[i].reason, #13#10, '', [rfReplaceAll]);
+////                end;
+////              s:= s + Format('ErrorCode: %d' + #13#10 + 'Reason: %s' + #13#10 +
+////                             'SrcText: %s' + #13#10 + 'Line: %d' + #13#10 +
+////                             'LinePos: %d' + #13#10 + 'FilePos: %d' + #13#10 +
+////                             'XPath: %s', [Item[i].ErrorCode, Item[i].reason, Item[i].Srctext, Item[i].Line, Item[i].LinePos, Item[i].FilePos, Item[i].errorXPath])+ #13#10;
+////            end;
+////        FileName:= TempFolder + ReplaceFirstChar(ExtractFileName(xml_file),'V');
+////        flk.OwnerDocument.LoadFromXML(XMLDoc.FormatXMLData(flk.OwnerDocument.XML.Text));
+////        flk.OwnerDocument.SaveToFile(FileName);
+//        //raise Exception.Create(ExtractFileName(xml_file) +
+//        //                       ' не соответствует своей XSD схеме ' + ExtractFileName(xsd_file) + #13#10 + s);
+//    end else
+//      Result := true;
+//    FXMLParserError:= nil;
+//    FXMLDOMSchema:= nil;
+//    FXMLDocument:= nil;
+//  end;
+//end;
 
 {$IFDEF ZUGFeRD_Support}
 class function TZUGFeRDInvoiceAdapter.LoadFromStream(_Invoice : TInvoice;

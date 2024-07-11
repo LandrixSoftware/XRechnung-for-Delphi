@@ -1377,14 +1377,14 @@ begin
     lInvoiceLine.BaseQuantity := _InvoiceDescriptor.TradeLineItems[i].UnitQuantity.GetValueOrDefault(0);
     lInvoiceLine.BaseQuantityUnitCode := lInvoiceLine.UnitCode;
     lInvoiceLine.LineAmount := _InvoiceDescriptor.TradeLineItems[i].LineTotalAmount.GetValueOrDefault(0);
-    for j := 0 to _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges.Count-1 do
+    for j := 0 to _InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges.Count-1 do
     with lInvoiceLine.AllowanceCharges.AddAllowanceCharge do
     begin
-      ChargeIndicator := _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ChargeIndicator;
+      ChargeIndicator := _InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges[j].ChargeIndicator;
       ReasonCodeAllowance := iacic_None;
       ReasonCodeCharge := issdc_None;
       if ChargeIndicator then
-        case _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ReasonCodeCharge of
+        case _InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges[j].ReasonCodeCharge of
           AA_Advertising : ReasonCodeCharge := issdc_AA_Advertising;
           AAA_Telecommunication : ReasonCodeCharge := issdc_AAA_Telecommunication;
           ABK_Miscellaneous : ReasonCodeCharge := issdc_ABK_Miscellaneous;
@@ -1398,7 +1398,7 @@ begin
           else ReasonCodeCharge := issdc_None;
         end
       else
-        case _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ReasonCodeAllowance of
+        case _InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges[j].ReasonCodeAllowance of
           BonusForWorksAheadOfSchedule : ReasonCodeAllowance := iacic_BonusForWorksAheadOfSchedule;
           OtherBonus : ReasonCodeAllowance := iacic_OtherBonus;
           ManufacturersConsumerDiscount : ReasonCodeAllowance :=  iacic_ManufacturersConsumerDiscount;
@@ -1420,10 +1420,10 @@ begin
           YearlyTurnover : ReasonCodeAllowance :=  iacic_YearlyTurnover;
           else ReasonCodeAllowance := iacic_None;
         end;
-      Reason := _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].Reason;
-      BaseAmount := _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].BasisAmount;
-      MultiplierFactorNumeric := _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ChargePercentage;
-      Amount := _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ActualAmount;
+      Reason := _InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges[j].Reason;
+      BaseAmount := _InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges[j].BasisAmount;
+      MultiplierFactorNumeric := _InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges[j].ChargePercentage;
+      Amount := _InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges[j].ActualAmount;
       TaxPercent := 0; //Nicht in Position vorhanden
       TaxCategory := idtfcc_None; //Nicht in Position vorhanden
     end;

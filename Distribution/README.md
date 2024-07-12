@@ -5,6 +5,27 @@ Das Skript installtools.ps1 mit PowerShell ausfuehren, um die Tools zu installie
 Dabei wird die JRE von AdoptOpenJDK genutzt. Fragen zur Lizenz von AdoptOpenJDK 
 finden Sie unter https://adoptium.net/de/docs/faq/ .
 
+Sollte bei der Ausführung des Skripts folgende Fehlermeldung erscheinen:
+
+    .\installtools.ps1 : Die Datei "C:\...\Distribution\installtools.ps1" kann nicht geladen werden, da die Ausführung von Skripts auf diesem System deaktiviert ist. Weitere Informationen finden Sie unter
+    "about_Execution_Policies" (https:/go.microsoft.com/fwlink/?LinkID=135170).
+    In Zeile:1 Zeichen:1
+    + .\installtools.ps1
+    + ~~~~~~~~~~~~~~~~~~
+        + CategoryInfo          : Sicherheitsfehler: (:) [], PSSecurityException
+        + FullyQualifiedErrorId : UnauthorizedAccess
+
+Dann bitte folgende Schritte durhführen:
+
+ - Drücke die [Windows]-Taste und tippe dann PowerShell ein.
+ - Führe es als Administrator aus.
+ - Kopiere und füge den folgenden Befehl ein und drücke [Enter]:
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope LocalMachine
+```
+ - Schließe PowerShell und versuche es erneut.
+
 ## Historie
 
 - 21.02.2024 Update\

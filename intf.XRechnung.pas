@@ -120,10 +120,19 @@ type
     //class function Validate(_XSDFilename, _XmlFilename: String) : Boolean;
   end;
 
+  {$IFDEF ZUGFeRD_Support}
+  TZUGFeRDAdditionalContent = class
+  public
+    InvoiceeTradePartyFound : Boolean;
+    InvoiceeTradeParty : TInvoiceAccountingParty;
+    constructor Create;
+  end;
+  {$ENDIF}
+
   TXRechnungInvoiceAdapter = class
   private
     class procedure SaveDocument(_Invoice: TInvoice;_Version : TXRechnungVersion; _Xml : IXMLDocument);
-    class function  LoadFromXMLDocument(_Invoice: TInvoice; _XmlDocument: IXMLDocument; out _Error : String) : Boolean;
+    class function  LoadFromXMLDocument(_Invoice: TInvoice; _XmlDocument: IXMLDocument; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
   public
     class function ConsistencyCheck(_Invoice : TInvoice; _Version : TXRechnungVersion) : Boolean;
 
@@ -131,26 +140,28 @@ type
     class procedure SaveToFile(_Invoice : TInvoice; _Version : TXRechnungVersion; const _Filename : String);
     class procedure SaveToXMLStr(_Invoice : TInvoice; _Version : TXRechnungVersion; out _XML : String);
 
-    class function  LoadFromStream(_Invoice : TInvoice; _Stream : TStream; out _Error : String) : Boolean;
-    class function  LoadFromFile(_Invoice : TInvoice; const _Filename : String; out _Error : String) : Boolean;
-    class function  LoadFromXMLStr(_Invoice : TInvoice; const _XML : String; out _Error : String) : Boolean;
+    class function  LoadFromStream(_Invoice : TInvoice; _Stream : TStream; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
+    class function  LoadFromFile(_Invoice : TInvoice; const _Filename : String; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
+    class function  LoadFromXMLStr(_Invoice : TInvoice; const _XML : String; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
   end;
-
-  {$IFDEF ZUGFeRD_Support}
-  TZUGFeRDInvoiceAdapter  = class
-  private
-    class function  LoadFromInvoiceDescriptor(_Invoice: TInvoice; _InvoiceDescriptor: TZUGFeRDInvoiceDescriptor; out _Error : String) : Boolean;
-  public
-    class function  LoadFromXMLDocument(_Invoice: TInvoice; _XmlDocument: IXMLDocument; out _Error : String) : Boolean;
-    class function  LoadFromStream(_Invoice : TInvoice; _Stream : TStream; out _Error : String) : Boolean;
-    class function  LoadFromFile(_Invoice : TInvoice; const _Filename : String; out _Error : String) : Boolean;
-    class function  LoadFromXMLStr(_Invoice : TInvoice; const _XML : String; out _Error : String) : Boolean;
-  end;
-  {$ENDIF}
 
 implementation
 
 uses intf.XRechnungHelper;
+
+{$IFDEF ZUGFeRD_Support}
+type
+  TZUGFeRDInvoiceAdapter = class
+  private
+    class function LoadFromInvoiceDescriptor(_Invoice: TInvoice; _InvoiceDescriptor: TZUGFeRDInvoiceDescriptor; out _Error : String) : Boolean;
+    class function LoadAdditionalContentFromXMLDocument(_AdditionalContent : TZUGFeRDAdditionalContent; _InvoiceDescriptor: TZUGFeRDInvoiceDescriptor) : Boolean;
+  public
+    class function  LoadFromXMLDocument(_Invoice: TInvoice; _XmlDocument: IXMLDocument; out _Error : String; _AdditionalContent : TZUGFeRDAdditionalContent = nil) : Boolean;
+    class function  LoadFromStream(_Invoice : TInvoice; _Stream : TStream; out _Error : String) : Boolean;
+    class function  LoadFromFile(_Invoice : TInvoice; const _Filename : String; out _Error : String) : Boolean;
+    class function  LoadFromXMLStr(_Invoice : TInvoice; const _XML : String; out _Error : String) : Boolean;
+  end;
+{$ENDIF}
 
 { TXRechnungInvoiceAdapter }
 
@@ -251,7 +262,8 @@ begin
 end;
 
 class function TXRechnungInvoiceAdapter.LoadFromFile(_Invoice: TInvoice;
-  const _Filename: String; out _Error : String) : Boolean;
+  const _Filename: String; out _Error : String
+  {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
 var
   xml : IXMLDocument;
 begin
@@ -273,7 +285,8 @@ begin
 end;
 
 class function TXRechnungInvoiceAdapter.LoadFromStream(_Invoice: TInvoice;
-  _Stream: TStream; out _Error : String) : Boolean;
+  _Stream: TStream; out _Error : String
+  {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
 var
   xml : IXMLDocument;
 begin
@@ -294,7 +307,8 @@ end;
 
 class function TXRechnungInvoiceAdapter.LoadFromXMLDocument(
   _Invoice: TInvoice; _XmlDocument: IXMLDocument;
-  out _Error: String): Boolean;
+  out _Error: String
+  {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}): Boolean;
 begin
   Result := false;
   if _Invoice = nil then
@@ -311,13 +325,15 @@ begin
     XRechnungVersion_ReadingSupport_ZUGFeRDFacturX : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     else exit;
     {$ELSE}
-    else Result := TZUGFeRDInvoiceAdapter.LoadFromXMLDocument(_Invoice,_XmlDocument,_Error);
+    else
+      Result := TZUGFeRDInvoiceAdapter.LoadFromXMLDocument(_Invoice,_XmlDocument,_Error,_AdditionalContent);
     {$ENDIF}
   end;
 end;
 
 class function TXRechnungInvoiceAdapter.LoadFromXMLStr(_Invoice: TInvoice;
-  const _XML: String; out _Error : String) : Boolean;
+  const _XML: String; out _Error : String
+  {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
 var
   xml : IXMLDocument;
 begin
@@ -1094,7 +1110,8 @@ begin
 end;
 
 class function TZUGFeRDInvoiceAdapter.LoadFromXMLDocument(_Invoice: TInvoice;
-  _XmlDocument: IXMLDocument; out _Error: String): Boolean;
+  _XmlDocument: IXMLDocument; out _Error: String;
+  _AdditionalContent : TZUGFeRDAdditionalContent = nil): Boolean;
 var
   desc : TZUGFeRDInvoiceDescriptor;
 begin
@@ -1107,6 +1124,8 @@ begin
   desc := TZUGFeRDInvoiceDescriptor.Load(_XmlDocument);
   try
     Result := TZUGFeRDInvoiceAdapter.LoadFromInvoiceDescriptor(_Invoice,desc,_Error);
+    if _AdditionalContent <> nil then
+      TZUGFeRDInvoiceAdapter.LoadAdditionalContentFromXMLDocument(_AdditionalContent,desc);
   finally
     desc.Free;
   end;
@@ -1545,6 +1564,52 @@ begin
   _Invoice.PayableAmount := _InvoiceDescriptor.DuePayableAmount.GetValueOrDefault(0);
   Result := True;
 end;
+
+class function TZUGFeRDInvoiceAdapter.LoadAdditionalContentFromXMLDocument(
+  _AdditionalContent : TZUGFeRDAdditionalContent;
+  _InvoiceDescriptor: TZUGFeRDInvoiceDescriptor) : Boolean;
+begin
+  Result := false;
+  if _AdditionalContent = nil then
+    exit;
+  if _InvoiceDescriptor = nil then
+    exit;
+
+  if _InvoiceDescriptor.Invoicee <> nil then
+  begin
+    _AdditionalContent.InvoiceeTradePartyFound := true;
+
+    if _InvoiceDescriptor.Invoicee.SpecifiedLegalOrganization <> nil then
+    begin
+      _AdditionalContent.InvoiceeTradeParty.Name := _InvoiceDescriptor.Invoicee.SpecifiedLegalOrganization.TradingBusinessName;
+      _AdditionalContent.InvoiceeTradeParty.CompanyID := _InvoiceDescriptor.Invoicee.SpecifiedLegalOrganization.ID.ID;
+    end;
+    _AdditionalContent.InvoiceeTradeParty.RegistrationName := _InvoiceDescriptor.Invoicee.Name;
+    if _InvoiceDescriptor.Invoicee.ContactName = '' then
+    begin
+      _AdditionalContent.InvoiceeTradeParty.Address.StreetName := _InvoiceDescriptor.Invoicee.Street;
+      _AdditionalContent.InvoiceeTradeParty.Address.AdditionalStreetName := '';
+    end else
+    begin
+      _AdditionalContent.InvoiceeTradeParty.Address.StreetName := _InvoiceDescriptor.Invoicee.ContactName;
+      _AdditionalContent.InvoiceeTradeParty.Address.AdditionalStreetName := _InvoiceDescriptor.Invoicee.Street;
+    end;
+    _AdditionalContent.InvoiceeTradeParty.Address.City := _InvoiceDescriptor.Invoicee.City;
+    _AdditionalContent.InvoiceeTradeParty.Address.PostalZone := _InvoiceDescriptor.Invoicee.Postcode;
+    _AdditionalContent.InvoiceeTradeParty.Address.CountrySubentity := _InvoiceDescriptor.Invoicee.CountrySubdivisionName;
+    _AdditionalContent.InvoiceeTradeParty.Address.AddressLine := _InvoiceDescriptor.Invoicee.AddressLine3;
+    _AdditionalContent.InvoiceeTradeParty.Address.CountryCode := TZUGFeRDCountryCodesExtensions.EnumToString(_InvoiceDescriptor.Invoicee.Country);
+    _AdditionalContent.InvoiceeTradeParty.IdentifierSellerBuyer := _InvoiceDescriptor.Invoicee.ID.ID;
+  end;
+end;
+
+{ TZUGFeRDAdditionalContent }
+
+constructor TZUGFeRDAdditionalContent.Create;
+begin
+  InvoiceeTradePartyFound := false;
+end;
+
 {$ENDIF}
 
 end.

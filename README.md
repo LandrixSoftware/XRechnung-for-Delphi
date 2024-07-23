@@ -7,17 +7,6 @@ Erstellen von Rechnungen im
 - XRechnung-UBL-Format (Universal Business Language)
 - XRechnung-CII-Format (Cross Industrie Invoice)
 
-## TODO
-
-UBL-CR-646 A UBL invoice should not include the InvoiceLine SubInvoiceLine
-
-https://github.com/itplr-kosit/validator-configuration-xrechnung/issues/36
-
-False positive validation warning [BR-DEX-02] when using SubInvoiceLine and AllowanceCharge.
-Die Warnung existiert immer noch.
-
-https://github.com/itplr-kosit/validator-configuration-xrechnung/issues/41
-
 ## Version
 
 Aktuelle XRechnung-Versionen
@@ -41,6 +30,16 @@ Aktivieren Sie dazu auch in der Unit intf.XRechnung.pas den Compiler-Schalter ZU
 ```delphi
 {$DEFINE ZUGFeRD_Support}
 ```
+Ebenso steht zusätzlich eine Klasse TZUGFeRDAdditionalContent zur Verfügung, um weitere ZUGFeRD-Profil-Inhalte zu laden, die nicht vom XRechnungs-Profil unterstützt werden, z.B. die abweichende Rechnungsanschrift. Eine Instanz dieser Klasse kann man optional an die Methode TXRechnungInvoiceAdapter.LoadFrom...() übergeben. Nicht implementierte Werte bitte selbst ergänzen oder anfragen.
+
+```delphi
+  TZUGFeRDAdditionalContent = class
+  public
+    InvoiceeTradePartyFound : Boolean;
+    InvoiceeTradeParty : TInvoiceAccountingParty;
+  end;
+```
+
 ## Hilfsfunktion für den XRechnung-Export
 
 Prüft, ob die zu exportierende Rechnung den Anforderungen der XRechnung entspricht. Gibt False zurück, wenn die Rechnung Werte enthält, die nicht im XRechnung-Profil erlaubt sind. Die Funktion ist nicht vollständig und wird ständig erweitert.

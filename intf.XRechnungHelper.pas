@@ -39,6 +39,7 @@ type
     class function SelectNode(_XnRoot: IXMLDOMNode; const _NodePath: String; out _Result : IXMLDOMNode): Boolean;
     class function SelectNodes(_XnRoot: IXMLDOMNode; const _NodePath: String; out _Result : IXMLDOMNodeList): Boolean;
     class function SelectNodeText(_XnRoot: IXMLDOMNode; const _NodePath: String): String;
+    class function SelectAttributeText(_XnRoot: IXMLDOMNode; const _Attribute: String): String;
     class function FindNode(_XnRoot: IXMLDOMNode; const _NodePath: String): Boolean;
     class function PrepareDocumentForXPathQuerys(_Xml : IXMLDocument) : IXMLDOMDocument2;
   end;
@@ -67,6 +68,18 @@ begin
   Result := '';
   if TXRechnungXMLHelper.SelectNode(_XnRoot,_NodePath,node) then
     Result := node.Text;
+end;
+
+class function TXRechnungXMLHelper.SelectAttributeText(_XnRoot: IXMLDOMNode;
+  const _Attribute: String): String;
+begin
+  Result := '';
+  if _XnRoot = nil then
+    exit;
+  if _Attribute = '' then
+    exit;
+  if _XnRoot.attributes.getNamedItem(_Attribute) <> nil then
+    Result := _XnRoot.attributes.getNamedItem(_Attribute).Text;
 end;
 
 class function TXRechnungXMLHelper.SelectNode(_XnRoot: IXMLDOMNode;

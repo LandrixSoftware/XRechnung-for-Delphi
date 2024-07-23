@@ -23,7 +23,6 @@ unit intf.Invoice;
 interface
 
 type
-  {$region 'TInvoiceUnitCode'}
   TInvoiceUnitCode = (//https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:rec20_1
                       ,iuc_group
                       ,iuc_outfit
@@ -1740,7 +1739,6 @@ type
                       ,iuc_hanging_container
                       ,iuc_page
                       ,iuc_mutually_defined);
-  {$endregion}
 
 implementation
 

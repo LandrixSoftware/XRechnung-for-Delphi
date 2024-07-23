@@ -547,6 +547,8 @@ begin
   Attachments := TInvoiceAttachmentList.Create;
   AllowanceCharges := TInvoiceAllowanceCharges.Create;
   PrecedingInvoiceReferences := TInvoicePrecedingInvoiceReferences.Create;
+  PaymentMeansCode := ipmc_NotImplemented;
+  PaymentTermsType := iptt_None;
   Clear;
 end;
 

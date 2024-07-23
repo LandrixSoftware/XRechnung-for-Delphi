@@ -2,7 +2,7 @@ object Form1: TForm1
   Left = 0
   Top = 0
   Caption = 'XRechnung for Delphi v3.0.x'
-  ClientHeight = 695
+  ClientHeight = 714
   ClientWidth = 1605
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -14,18 +14,18 @@ object Form1: TForm1
   OnCreate = FormCreate
   DesignSize = (
     1605
-    695)
+    714)
   TextHeight = 13
   object Label3: TLabel
-    Left = 9
-    Top = 368
+    Left = 8
+    Top = 392
     Width = 82
     Height = 13
     Caption = 'Weitere Beispiele'
   end
   object btCreateInvoice: TButton
-    Left = 9
-    Top = 323
+    Left = 8
+    Top = 347
     Width = 129
     Height = 25
     Caption = 'Erzeugen'
@@ -36,14 +36,14 @@ object Form1: TForm1
     Left = 144
     Top = 8
     Width = 649
-    Height = 497
+    Height = 516
     Anchors = [akLeft, akTop, akBottom]
     ScrollBars = ssBoth
     TabOrder = 1
   end
   object Memo3: TMemo
     Left = 144
-    Top = 511
+    Top = 530
     Width = 1453
     Height = 169
     Anchors = [akLeft, akRight, akBottom]
@@ -51,8 +51,8 @@ object Form1: TForm1
     TabOrder = 2
   end
   object rbPaymentTerms: TRadioGroup
-    Left = 9
-    Top = 126
+    Left = 8
+    Top = 150
     Width = 129
     Height = 99
     Caption = 'Zahlungsbedingungen'
@@ -65,32 +65,32 @@ object Form1: TForm1
     TabOrder = 3
   end
   object cbAllowanceCharges: TCheckBox
-    Left = 9
-    Top = 231
+    Left = 8
+    Top = 255
     Width = 138
     Height = 17
     Caption = 'Nachlaesse/Zuschlaege'
     TabOrder = 4
   end
   object cbPrepaidAmount: TCheckBox
-    Left = 9
-    Top = 254
+    Left = 8
+    Top = 278
     Width = 129
     Height = 17
     Caption = 'Abschlagsrechnungen'
     TabOrder = 5
   end
   object cbAttachments: TCheckBox
-    Left = 9
-    Top = 277
+    Left = 8
+    Top = 301
     Width = 97
     Height = 17
     Caption = 'Mit Anhaengen'
     TabOrder = 6
   end
   object cbDeliveriyInf: TCheckBox
-    Left = 9
-    Top = 300
+    Left = 8
+    Top = 324
     Width = 97
     Height = 17
     Caption = 'Lieferanschrift'
@@ -98,7 +98,7 @@ object Form1: TForm1
   end
   object rbFormat: TRadioGroup
     Left = 8
-    Top = 8
+    Top = 32
     Width = 129
     Height = 53
     Caption = 'Ausgabeformat'
@@ -110,7 +110,7 @@ object Form1: TForm1
   end
   object Button2: TButton
     Left = 8
-    Top = 561
+    Top = 585
     Width = 129
     Height = 25
     Caption = 'Datei laden'
@@ -119,7 +119,7 @@ object Form1: TForm1
   end
   object Button3: TButton
     Left = 8
-    Top = 592
+    Top = 616
     Width = 130
     Height = 25
     Caption = 'XRechnung validieren'
@@ -128,7 +128,7 @@ object Form1: TForm1
   end
   object Button5: TButton
     Left = 8
-    Top = 623
+    Top = 647
     Width = 130
     Height = 25
     Caption = 'XRechnung als HTML'
@@ -137,7 +137,7 @@ object Form1: TForm1
   end
   object Button6: TButton
     Left = 8
-    Top = 654
+    Top = 678
     Width = 130
     Height = 25
     Caption = 'XRechnung als PDF'
@@ -146,7 +146,7 @@ object Form1: TForm1
   end
   object rbVersion: TRadioGroup
     Left = 8
-    Top = 67
+    Top = 91
     Width = 129
     Height = 53
     Caption = 'Ausgabeversion'
@@ -161,7 +161,7 @@ object Form1: TForm1
     Left = 799
     Top = 8
     Width = 798
-    Height = 497
+    Height = 516
     ActivePage = TabSheet1
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 14
@@ -179,7 +179,7 @@ object Form1: TForm1
   end
   object Button9: TButton
     Left = 8
-    Top = 518
+    Top = 542
     Width = 130
     Height = 25
     Caption = 'Erzeugen'
@@ -188,7 +188,7 @@ object Form1: TForm1
   end
   object ListBox1: TListBox
     Left = 8
-    Top = 384
+    Top = 408
     Width = 130
     Height = 128
     ItemHeight = 13
@@ -202,5 +202,15 @@ object Form1: TForm1
       'Minimalrechnung B2B'
       'Preiseinheit')
     TabOrder = 16
+  end
+  object cbValidateWithJava: TCheckBox
+    Left = 8
+    Top = 8
+    Width = 121
+    Height = 17
+    Caption = 'Validierung aktiv'
+    Checked = True
+    State = cbChecked
+    TabOrder = 17
   end
 end

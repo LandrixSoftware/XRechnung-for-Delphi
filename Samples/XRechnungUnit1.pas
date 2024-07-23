@@ -54,6 +54,7 @@ type
     TabSheet3: TTabSheet;
     Button9: TButton;
     ListBox1: TListBox;
+    cbValidateWithJava: TCheckBox;
     procedure btCreateInvoiceClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button2Click(Sender: TObject);
@@ -316,13 +317,15 @@ end;
 
 procedure TForm1.Generate(inv: TInvoice);
 var
-  xml,cmdoutput,xmlresult,htmlresult,error : String;
+  xml,xmltest,cmdoutput,xmlresult,htmlresult,error : String;
   invtest : TInvoice;
   version : TXRechnungVersion;
 begin
   Screen.Cursor := crHourglass;
   ClearBrowser;
   Memo3.Clear;
+
+  try
 
   if rbFormat.itemindex = 0 then
     case rbVersion.ItemIndex of
@@ -345,21 +348,24 @@ begin
   begin
     TXRechnungInvoiceAdapter.SaveToXMLStr(inv,version,xml);
 
-    GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
-        .SetValidatorLibPath(ValidatorLibPath)
-        .SetValidatorConfigurationPath(ValidatorConfigurationPath)
-        .Validate(xml,cmdoutput,xmlresult,htmlresult);
-
-    Memo3.Lines.Text := cmdoutput;
-
-    if htmlresult <> '' then
+    if cbValidateWithJava.Checked then
     begin
-      ShowXMLAsHtml(xml);
-      ShowXMLAsPdf(xml);
-    end else
-      htmlresult := '<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
-    TFile.WriteAllText(WebBrowserContentFilename,htmlresult,TEncoding.UTF8);
-    ShowFileInBrowser(WebBrowserContentFilename,1);
+      GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+          .SetValidatorLibPath(ValidatorLibPath)
+          .SetValidatorConfigurationPath(ValidatorConfigurationPath)
+          .Validate(xml,cmdoutput,xmlresult,htmlresult);
+
+      Memo3.Lines.Text := cmdoutput;
+
+      if htmlresult <> '' then
+      begin
+        ShowXMLAsHtml(xml);
+        ShowXMLAsPdf(xml);
+      end else
+        htmlresult := '<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
+      TFile.WriteAllText(WebBrowserContentFilename,htmlresult,TEncoding.UTF8);
+      ShowFileInBrowser(WebBrowserContentFilename,1);
+    end;
 
     Memo2.Lines.Text := xml;
     Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UBL.xml',TEncoding.UTF8);
@@ -369,6 +375,16 @@ begin
       TXRechnungInvoiceAdapter.LoadFromXMLStr(invtest,xml,error);
       if error <> '' then
         MessageDlg('error loading XRechnung'+#10+error, mtError, [mbOK], 0);
+
+      TXRechnungInvoiceAdapter.SaveToXMLStr(invtest,version,xmltest);
+      if not SameStr(xml,xmltest) then
+      begin
+        TFile.WriteAllText(ExtractFilePath(Application.ExeName)+'xrechnung_original.xml',xml,TEncoding.UTF8);
+        TFile.WriteAllText(ExtractFilePath(Application.ExeName)+'xrechnung_test.xml',xmltest,TEncoding.UTF8);
+        if MessageDlg('Testrechnung unterscheidet sich vom Original.'+#10+'Im Explorer anzeigen?', mtError, [mbYes,mbNo], 0) = mrYes then
+          ShellExecuteW(0,'open','EXPLORER.EXE',PChar('/select,'+ExtractFilePath(Application.ExeName)+'xrechnung_original.xml'),'%SystemRoot%',SW_SHOWNORMAL);
+      end;
+
     finally
       invtest.Free;
     end;
@@ -378,21 +394,24 @@ begin
   begin
     TXRechnungInvoiceAdapter.SaveToXMLStr(inv,version,xml);
 
-    GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
-        .SetValidatorLibPath(ValidatorLibPath)
-        .SetValidatorConfigurationPath(ValidatorConfigurationPath)
-        .Validate(xml,cmdoutput,xmlresult,htmlresult);
-
-    Memo3.Lines.Text := cmdoutput;
-
-    if htmlresult <> '' then
+    if cbValidateWithJava.Checked then
     begin
-      ShowXMLAsHtml(xml);
-      ShowXMLAsPdf(xml);
-    end else
-      htmlresult := '<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
-    TFile.WriteAllText(WebBrowserContentFilename,htmlresult,TEncoding.UTF8);
-    ShowFileInBrowser(WebBrowserContentFilename,1);
+      GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+          .SetValidatorLibPath(ValidatorLibPath)
+          .SetValidatorConfigurationPath(ValidatorConfigurationPath)
+          .Validate(xml,cmdoutput,xmlresult,htmlresult);
+
+      Memo3.Lines.Text := cmdoutput;
+
+      if htmlresult <> '' then
+      begin
+        ShowXMLAsHtml(xml);
+        ShowXMLAsPdf(xml);
+      end else
+        htmlresult := '<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
+      TFile.WriteAllText(WebBrowserContentFilename,htmlresult,TEncoding.UTF8);
+      ShowFileInBrowser(WebBrowserContentFilename,1);
+    end;
 
     Memo2.Lines.Text := xml;
     Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UNCEFACT.xml',TEncoding.UTF8);
@@ -402,11 +421,23 @@ begin
       TXRechnungInvoiceAdapter.LoadFromXMLStr(invtest,xml,error);
       if error <> '' then
         MessageDlg('error loading XRechnung'+#10+error, mtError, [mbOK], 0);
+
+      TXRechnungInvoiceAdapter.SaveToXMLStr(invtest,version,xmltest);
+      if not SameStr(xml,xmltest) then
+      begin
+        TFile.WriteAllText(ExtractFilePath(Application.ExeName)+'xrechnung_original.xml',xml,TEncoding.UTF8);
+        TFile.WriteAllText(ExtractFilePath(Application.ExeName)+'xrechnung_test.xml',xmltest,TEncoding.UTF8);
+        if MessageDlg('Testrechnung unterscheidet sich vom Original.'+#10+'Im Explorer anzeigen?', mtError, [mbYes,mbNo], 0) = mrYes then
+          ShellExecuteW(0,'open','EXPLORER.EXE',PChar('/select,'+ExtractFilePath(Application.ExeName)+'xrechnung_original.xml'),'%SystemRoot%',SW_SHOWNORMAL);
+      end;
+
     finally
       invtest.Free;
     end;
   end;
-  Screen.Cursor := crDefault;
+  finally
+    Screen.Cursor := crDefault;
+  end;
 end;
 
 procedure TForm1.rbVersionClick(Sender: TObject);

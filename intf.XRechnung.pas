@@ -278,7 +278,7 @@ begin
   xml := TXMLDocument.Create(nil);
   try
     xml.LoadFromFile(_Filename);
-    Result := TXRechnungInvoiceAdapter.LoadFromXMLDocument(_Invoice,xml,_Error);
+    Result := TXRechnungInvoiceAdapter.LoadFromXMLDocument(_Invoice,xml,_Error{$IFDEF ZUGFeRD_Support},_AdditionalContent{$ENDIF});
   finally
     xml := nil;
   end;
@@ -299,7 +299,7 @@ begin
   xml := TXMLDocument.Create(nil);
   try
     xml.LoadFromStream(_Stream);
-    Result := TXRechnungInvoiceAdapter.LoadFromXMLDocument(_Invoice,xml,_Error);
+    Result := TXRechnungInvoiceAdapter.LoadFromXMLDocument(_Invoice,xml,_Error{$IFDEF ZUGFeRD_Support},_AdditionalContent{$ENDIF});
   finally
     xml := nil;
   end;
@@ -346,7 +346,7 @@ begin
   xml := TXMLDocument.Create(nil);
   try
     xml.LoadFromXML(_XML);
-    Result := TXRechnungInvoiceAdapter.LoadFromXMLDocument(_Invoice,xml,_Error);
+    Result := TXRechnungInvoiceAdapter.LoadFromXMLDocument(_Invoice,xml,_Error{$IFDEF ZUGFeRD_Support},_AdditionalContent{$ENDIF});
   finally
     xml := nil;
   end;

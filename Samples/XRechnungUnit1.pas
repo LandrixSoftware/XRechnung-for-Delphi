@@ -160,6 +160,17 @@ begin
       memo3.Lines.Text := error
     else
       ShowMessage('Eingelesen');
+
+    //Lesen von zusaätzlichen ZUGFeRD-Daten, die nicht im XRechnungs-Profil enthalten sind
+    //var invAdditionalData : TZUGFeRDAdditionalContent := TZUGFeRDAdditionalContent.Create;
+    //try
+    //  if not TXRechnungInvoiceAdapter.LoadFromFile(inv, od.FileName,error,invAdditionalData) then
+    //    memo3.Lines.Text := error
+    //  else
+    //    ShowMessage('Eingelesen');
+    //finally
+    //  invAdditionalData.Free;
+    //end;
   finally
     od.Free;
     inv.Free;

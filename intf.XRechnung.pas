@@ -1,4 +1,4 @@
-﻿{
+{
 License XRechnung-for-Delphi
 
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
@@ -43,6 +43,7 @@ uses
   ,intf.ZUGFeRDSpecialServiceDescriptionCodes
   ,intf.ZUGFeRDAllowanceOrChargeIdentificationCodes
   ,intf.ZUGFeRDQuantityCodes
+  ,intf.ZUGFeRDGlobalIDSchemeIdentifiers
   {$ENDIF}
   ,intf.XRechnung_2_3
   ,intf.XRechnung_3_0
@@ -61,6 +62,9 @@ uses
 //https://www.e-rechnung-bund.de/wp-content/uploads/2023/04/Uebersichtslisten-Eingabefelder-OZG-RE.pdf
 
 //https://www.deutschebahn.com/en/invoicing-6930178#collapse6130808
+
+//unklar
+//https://portal3.gefeg.com/projectdata/invoice/deliverables/installed/publishingproject/factur-x%20(zugferd%202.0)/factur-x;%20draft;%20extended.scm/html/021.htm?https://portal3.gefeg.com/projectdata/invoice/deliverables/installed/publishingproject/factur-x%20(zugferd%202.0)/factur-x;%20draft;%20extended.scm/html/02233.htm
 
 type
   TXRechnungHelper = class(TObject)
@@ -1375,9 +1379,13 @@ begin
         lInvoiceLine.Note := lInvoiceLine.Note + _InvoiceDescriptor.TradeLineItems[i].AssociatedDocument.Notes[j].Content;
       end;
     end;
+    if _InvoiceDescriptor.TradeLineItems[i].GlobalID.ID <> '' then
+    if _InvoiceDescriptor.TradeLineItems[i].GlobalID.SchemeID = EAN then
+      lInvoiceLine.GlobalID_EAN_GTIN := _InvoiceDescriptor.TradeLineItems[i].GlobalID.ID;
     lInvoiceLine.Name := _InvoiceDescriptor.TradeLineItems[i].Name;
     lInvoiceLine.Description := _InvoiceDescriptor.TradeLineItems[i].Description;
     lInvoiceLine.Quantity := _InvoiceDescriptor.TradeLineItems[i].BilledQuantity;
+    //lInvoiceLine.UnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(TZUGFeRDQuantityCodesExtensions.EnumToString(_InvoiceDescriptor.TradeLineItems[i].BilledQuantityUnitCode));
     lInvoiceLine.UnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(TZUGFeRDQuantityCodesExtensions.EnumToString(_InvoiceDescriptor.TradeLineItems[i].UnitCode));
     lInvoiceLine.SellersItemIdentification := _InvoiceDescriptor.TradeLineItems[i].SellerAssignedID;
     lInvoiceLine.TaxPercent := _InvoiceDescriptor.TradeLineItems[i].TaxPercent;

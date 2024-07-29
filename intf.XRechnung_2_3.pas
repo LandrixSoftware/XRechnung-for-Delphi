@@ -181,6 +181,9 @@ var
       _Invoiceline.Description := TXRechnungXMLHelper.SelectNodeText(node,'.//cbc:Description');
       _Invoiceline.Name := TXRechnungXMLHelper.SelectNodeText(node,'.//cbc:Name');
       _Invoiceline.SellersItemIdentification := TXRechnungXMLHelper.SelectNodeText(node,'.//cac:SellersItemIdentification/cbc:ID');
+      if (TXRechnungXMLHelper.SelectNode(node,'.//cac:StandardItemIdentification/cbc:ID',node2)) then
+      if (TXRechnungXMLHelper.SelectAttributeText(node2,'schemeID') = '0160') then
+        _Invoiceline.GlobalID_EAN_GTIN := node2.text;
       _Invoiceline.TaxCategory := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeFromStr(TXRechnungXMLHelper.SelectNodeText(node,'.//cac:ClassifiedTaxCategory/cbc:ID'));
       _Invoiceline.TaxPercent := TXRechnungHelper.PercentageFromStr(TXRechnungXMLHelper.SelectNodeText(node,'.//cac:ClassifiedTaxCategory/cbc:Percent'));
       //VAT := TXRechnungXMLHelper.SelectNodeText(node,'.//cac:TaxScheme/cbc:ID');
@@ -417,6 +420,9 @@ var
     end;
     if TXRechnungXMLHelper.SelectNode(_Node,'.//ram:SpecifiedTradeProduct',node2) then
     begin
+      if (TXRechnungXMLHelper.SelectNode(node2,'.//ram:GlobalID',node3)) then
+      if (TXRechnungXMLHelper.SelectAttributeText(node3,'schemeID') = '0160') then
+        _Invoiceline.GlobalID_EAN_GTIN := node3.text;
       _Invoiceline.SellersItemIdentification := TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:SellerAssignedID');
       _Invoiceline.Name := TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:Name');
       _Invoiceline.Description := TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:Description');
@@ -932,10 +938,14 @@ var
       //   <cac:BuyersItemIdentification>
       //      <cbc:ID/>
       //   </cac:BuyersItemIdentification>
-      AddChild('cac:SellersItemIdentification').AddChild('cbc:ID').Text := _Invoiceline.SellersItemIdentification;
-      //<cac:StandardItemIdentification>
-      //      <cbc:ID schemeID="0001"/>
-      //   </cac:StandardItemIdentification>
+      if not _Invoiceline.SellersItemIdentification.IsEmpty then
+        AddChild('cac:SellersItemIdentification').AddChild('cbc:ID').Text := _Invoiceline.SellersItemIdentification;
+      if _Invoiceline.GlobalID_EAN_GTIN <> '' then
+      with AddChild('cac:StandardItemIdentification').AddChild('cbc:ID') do
+      begin
+        Attributes['schemeID'] := '0160';
+        Text := _Invoiceline.GlobalID_EAN_GTIN;
+      end;
       with AddChild('cac:ClassifiedTaxCategory') do
       begin
         AddChild('cbc:ID').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(_Invoiceline.TaxCategory);
@@ -1362,9 +1372,18 @@ var
     end;
     with _Node.AddChild('ram:SpecifiedTradeProduct') do
     begin
+      if _Invoiceline.GlobalID_EAN_GTIN <> '' then
+      begin
+        with AddChild('ram:GlobalID') do
+        begin
+          Attributes['schemeID'] := '0160';
+          Text := _Invoiceline.GlobalID_EAN_GTIN;
+        end;
+      end;
       AddChild('ram:SellerAssignedID').Text := _Invoiceline.SellersItemIdentification;
       AddChild('ram:Name').Text := _Invoiceline.Name;
-      AddChild('ram:Description').Text := _Invoiceline.Description;
+      if not _Invoiceline.Description.IsEmpty then
+        AddChild('ram:Description').Text := _Invoiceline.Description;
     end;
     with _Node.AddChild('ram:SpecifiedLineTradeAgreement') do
     begin

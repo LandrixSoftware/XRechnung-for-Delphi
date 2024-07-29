@@ -445,6 +445,7 @@ begin
   with inv.InvoiceLines.AddInvoiceLine do
   begin
     ID := '001'; //Positionsnummer
+    GlobalID_EAN_GTIN := '978381582086'; //EAN
     //Note : String; //Hinweis
     Name := 'Kurzinfo Artikel 1'; //Kurztext
     Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung

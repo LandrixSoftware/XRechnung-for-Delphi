@@ -380,6 +380,7 @@ type
   TInvoiceLine = class(TObject)
   public
     ID : String; //Positionsnummer
+    GlobalID_EAN_GTIN: String; //BT-157 GTIN/EAN
     Note : String; //Hinweis
     Name : String; //Kurztext
     Description : String; //Laengere Beschreibung

@@ -1199,11 +1199,7 @@ begin
   _Invoice.TaxCurrencyCode := _Invoice.InvoiceCurrencyCode; //TODO fehlt in ZUGFeRD-Lib
   _Invoice.BuyerReference := _InvoiceDescriptor.ReferenceOrderNo;
   for i := 0 to _InvoiceDescriptor.Notes.Count-1 do
-  begin
-    if _Invoice.Note <> '' then
-      _Invoice.Note := _Invoice.Note + #13#10;
-    _Invoice.Note := _Invoice.Note + _InvoiceDescriptor.Notes[i].Content;
-  end;
+    _Invoice.Notes.AddNote.Content := _InvoiceDescriptor.Notes[i].Content;
   if _InvoiceDescriptor.SellerOrderReferencedDocument <> nil then
     _Invoice.SellerOrderReference := _InvoiceDescriptor.SellerOrderReferencedDocument.ID;
   _Invoice.PurchaseOrderReference := _InvoiceDescriptor.OrderNo;

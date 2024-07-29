@@ -247,8 +247,9 @@ begin
       _Invoice.InvoiceDueDate := TXRechnungHelper.DateFromStrUBLFormat(node.Text);
     if TXRechnungXMLHelper.SelectNode(xml,'//cbc:InvoiceTypeCode',node) then
       _Invoice.InvoiceTypeCode := TXRechnungHelper.InvoiceTypeCodeFromStr(node.Text);
-    if TXRechnungXMLHelper.SelectNode(xml,'//ubl:Invoice/cbc:Note',node) then
-      _Invoice.Note := node.Text;
+    if TXRechnungXMLHelper.SelectNodes(xml,'//ubl:Invoice/cbc:Note',nodes) then
+    for i := 0  to nodes.length-1 do
+      _Invoice.Notes.AddNote.Content := nodes.item[i].Text;
     if TXRechnungXMLHelper.SelectNode(xml,'//cbc:DocumentCurrencyCode',node) then
       _Invoice.InvoiceCurrencyCode := node.Text;
     if TXRechnungXMLHelper.SelectNode(xml,'//cbc:BuyerReference',node) then
@@ -496,11 +497,7 @@ begin
       _Invoice.InvoiceTypeCode := TXRechnungHelper.InvoiceTypeCodeFromStr(node.Text);
     if TXRechnungXMLHelper.SelectNodes(xml,'//*[local-name()="ExchangedDocument"]/ram:IncludedNote',nodes) then
     for i := 0 to nodes.length-1 do
-    begin
-      if _Invoice.Note <> '' then
-        _Invoice.Note := _Invoice.Note + #13#10;
-      _Invoice.Note := _Invoice.Note + TXRechnungXMLHelper.SelectNodeText(nodes[i], './/ram:Content');
-    end;
+      _Invoice.Notes.AddNote.Content := TXRechnungXMLHelper.SelectNodeText(nodes[i], './/ram:Content');
 
     if not TXRechnungXMLHelper.SelectNode(xml,'//*[local-name()="SupplyChainTradeTransaction"]',nodeSupplyChainTradeTransaction) then
       exit;
@@ -996,8 +993,8 @@ begin
   xRoot.AddChild('cbc:IssueDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoiceIssueDate);
   if _Invoice.InvoiceDueDate > 100 then xRoot.AddChild('cbc:DueDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoiceDueDate);
   xRoot.AddChild('cbc:InvoiceTypeCode').Text := TXRechnungHelper.InvoiceTypeCodeToStr(_Invoice.InvoiceTypeCode);
-  if _Invoice.Note <> '' then
-    xRoot.AddChild('cbc:Note').Text := _Invoice.Note;
+  for i := 0 to _Invoice.Notes.Count-1 do
+    xRoot.AddChild('cbc:Note').Text := _Invoice.Notes[i].Content;
   xRoot.AddChild('cbc:DocumentCurrencyCode').Text := _Invoice.InvoiceCurrencyCode;
   xRoot.AddChild('cbc:TaxCurrencyCode').Text := _Invoice.TaxCurrencyCode;
   xRoot.AddChild('cbc:BuyerReference').Text := _Invoice.BuyerReference;
@@ -1470,10 +1467,10 @@ begin
       Attributes['format'] := '102';
       Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.InvoiceIssueDate);
     end;
-    if _Invoice.Note <> '' then
+    for i := 0 to _Invoice.Notes.Count-1 do
     with AddChild('ram:IncludedNote') do
     begin
-      AddChild('ram:Content').Text := _Invoice.Note;
+      AddChild('ram:Content').Text := _Invoice.Notes[i].Content;
       //TODO <ram:SubjectCode>ADU</ram:SubjectCode>, bei UBL auch
     end;
   end;

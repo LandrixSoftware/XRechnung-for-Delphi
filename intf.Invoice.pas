@@ -474,6 +474,16 @@ type
     function IndexOfPrecedingInvoiceReference(const _ID : String) : Integer;
   end;
 
+  TInvoiceNote = class(Tobject)
+  public
+    Content : String;
+  end;
+
+  TInvoiceNotes = class(TObjectList<TInvoiceNote>)
+  public
+    function AddNote: TInvoiceNote;
+  end;
+
   TInvoice = class(TObject)
   public
     InvoiceNumber : String;  //Rechnungsnummer
@@ -485,7 +495,7 @@ type
     InvoiceCurrencyCode : String; //EUR
     TaxCurrencyCode : String;     //EUR
     BuyerReference : String; //Pflicht - Leitweg-ID - https://leitweg-id.de/home/ wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
-    Note : String; //Hinweise zur Rechnung allgemein
+    Notes : TInvoiceNotes; //Hinweise zur Rechnung allgemein
     SellerOrderReference : String; //!! in UBL entweder SellerOrderReference oder PurchaseOrderReference
     PurchaseOrderReference : String; //Bestellnummer oder Vertragsnummer des Kaeufers
     ProjectReference : String;
@@ -548,6 +558,7 @@ begin
   Attachments := TInvoiceAttachmentList.Create;
   AllowanceCharges := TInvoiceAllowanceCharges.Create;
   PrecedingInvoiceReferences := TInvoicePrecedingInvoiceReferences.Create;
+  Notes := TInvoiceNotes.Create;
   PaymentMeansCode := ipmc_NotImplemented;
   PaymentTermsType := iptt_None;
   Clear;
@@ -559,6 +570,7 @@ begin
   if Assigned(Attachments) then begin Attachments.Free; Attachments := nil; end;
   if Assigned(AllowanceCharges) then begin AllowanceCharges.Free; AllowanceCharges := nil; end;
   if Assigned(PrecedingInvoiceReferences) then begin PrecedingInvoiceReferences.Free; PrecedingInvoiceReferences := nil; end;
+  if Assigned(Notes) then begin Notes.Free; Notes := nil; end;
   inherited;
 end;
 
@@ -567,6 +579,7 @@ begin
   InvoiceLines.Clear;
   AllowanceCharges.Clear;
   PrecedingInvoiceReferences.Clear;
+  Notes.Clear;
   SetLength(TaxAmountSubtotals,0);
   PaymentTermsType := iptt_None;
 end;
@@ -607,6 +620,14 @@ begin
     Result := i;
     break;
   end;
+end;
+
+{ TInvoiceNotes }
+
+function TInvoiceNotes.AddNote: TInvoiceNote;
+begin
+  Result := TInvoiceNote.Create;
+  Add(Result);
 end;
 
 { TInvoiceLine }

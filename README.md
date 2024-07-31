@@ -49,18 +49,32 @@ unit intf.XRechnung;
 
 TXRechnungInvoiceAdapter.ConsistencyCheck(_Invoice : TInvoice; _Version : TXRechnungVersion) : Boolean;
 ```
-
 ## Weitere Informationen zu XRechnung
 
-https://www.verband-e-rechnung.org/xrechnung/
+- UBL-Format
+     https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice
 
-https://xeinkauf.de/
+- CII-Format
+  https://portal3.gefeg.com/invoice/tthome/index/617afdc4-623f-44e0-a05b-5b878840e508
 
-https://xeinkauf.de/xrechnung/versionen-und-bundles/
+- Validieren von XRechnung
+  https://ecosio.com/de/peppol-und-xml-dokumente-online-validieren/
 
-https://github.com/itplr-kosit
+- https://portal3.gefeg.com/projectdata/invoice/deliverables/installed/publishingproject/factur-x%20(zugferd%202.0)/factur-x;%20draft;%20extended.scm/html/021.htm?https://portal3.gefeg.com/projectdata/invoice/deliverables/installed/publishingproject/factur-x%20(zugferd%202.0)/factur-x;%20draft;%20extended.scm/html/02233.htm
 
-https://cranesoftwrights.github.io/resources/Crane-UBL-2.2-Skeleton/Crane-UBL-Invoice-2.2.html#result
+- https://www.verband-e-rechnung.org/xrechnung/
+
+- https://xeinkauf.de/
+
+- https://xeinkauf.de/xrechnung/versionen-und-bundles/
+
+- https://github.com/itplr-kosit
+
+- https://cranesoftwrights.github.io/resources/Crane-UBL-2.2-Skeleton/Crane-UBL-Invoice-2.2.html#result
+
+- https://www.e-rechnung-bund.de/wp-content/uploads/2023/04/Uebersichtslisten-Eingabefelder-OZG-RE.pdf
+
+- https://www.deutschebahn.com/en/invoicing-6930178#collapse6130808
 
 # Lizenz / License
 

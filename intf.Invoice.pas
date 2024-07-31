@@ -24,8 +24,8 @@ unit intf.Invoice;
 interface
 
 uses
-  System.SysUtils,System.Classes,System.Types,System.DateUtils,System.Rtti
-  ,System.Variants,System.Generics.Collections,System.NetEncoding
+  System.SysUtils,System.Classes,System.Types
+  ,System.Generics.Collections,System.NetEncoding
   ;
 
 type
@@ -389,7 +389,9 @@ type
     SellersItemIdentification : String; //Artikelnummer
     TaxPercent : double; //MwSt
     TaxCategory : TInvoiceDutyTaxFeeCategoryCode; //MwSt-Einordnung
-    PriceAmount : Currency; //Einzelpreis
+    GrossPriceAmount : Currency; //Brutto-Einzelpreis
+    DiscountOnTheGrossPrice : Currency; //Rabatt auf den Bruttopreis ergibt Nettopreis, nur ein Rabatt möglich wegen UBL, obwohl CII mehrere erlaubt
+    NetPriceAmount : Currency; //Netto-Einzelpreis
     BaseQuantity : double; //Preiseinheit
     BaseQuantityUnitCode : TInvoiceUnitCode; //Preiseinheit Mengeneinheit
     LineAmount : Currency;

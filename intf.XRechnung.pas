@@ -1,4 +1,4 @@
-{
+﻿{
 License XRechnung-for-Delphi
 
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
@@ -28,10 +28,9 @@ interface
 {.$DEFINE ZUGFeRD_Support}
 
 uses
-  System.SysUtils,System.Classes,System.Types,System.DateUtils,System.Rtti
-  ,System.Variants,System.StrUtils,System.Generics.Collections,System.Win.ComObj
+  System.SysUtils,System.Classes,System.Types
+  ,System.StrUtils,System.Generics.Collections
   ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema,intf.XRechnungMSXML2_TLB
-  {$IFDEF USE_OXMLDomVendor},OXmlDOMVendor{$ENDIF}
   {$IFDEF ZUGFeRD_Support}
   ,intf.ZUGFeRDInvoiceDescriptor
   ,intf.ZUGFeRDCurrencyCodes
@@ -49,22 +48,6 @@ uses
   ,intf.XRechnung_3_0
   ,intf.Invoice
   ;
-
-//UBL-Format
-//https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice
-
-//CII-Format
-//https://portal3.gefeg.com/invoice/tthome/index/617afdc4-623f-44e0-a05b-5b878840e508
-
-//validieren von XRechnung
-//https://ecosio.com/de/peppol-und-xml-dokumente-online-validieren/
-
-//https://www.e-rechnung-bund.de/wp-content/uploads/2023/04/Uebersichtslisten-Eingabefelder-OZG-RE.pdf
-
-//https://www.deutschebahn.com/en/invoicing-6930178#collapse6130808
-
-//unklar
-//https://portal3.gefeg.com/projectdata/invoice/deliverables/installed/publishingproject/factur-x%20(zugferd%202.0)/factur-x;%20draft;%20extended.scm/html/021.htm?https://portal3.gefeg.com/projectdata/invoice/deliverables/installed/publishingproject/factur-x%20(zugferd%202.0)/factur-x;%20draft;%20extended.scm/html/02233.htm
 
 type
   TXRechnungHelper = class(TObject)
@@ -390,6 +373,9 @@ class function TXRechnungHelper.UnitPriceAmountFromStr(
 var
   fs : TFormatSettings;
 begin
+  Result := 0;
+  if _Val = '' then
+    exit;
   fs.ThousandSeparator := ',';
   fs.DecimalSeparator := '.';
   Result := StrToCurrDef(_Val,0,fs);
@@ -1396,9 +1382,19 @@ begin
       TZUGFeRDTaxCategoryCodes.Z : lInvoiceLine.TaxCategory := idtfcc_Z_ZeroRatedGoods;
       else lInvoiceLine.TaxCategory := idtfcc_None; //TODO weitere Category Types von ZUGFeRD
     end;
-    lInvoiceLine.PriceAmount := _InvoiceDescriptor.TradeLineItems[i].NetUnitPrice.GetValueOrDefault(0);
+    lInvoiceLine.GrossPriceAmount := _InvoiceDescriptor.TradeLineItems[i].GrossUnitPrice.GetValueOrDefault(0);
+    for j := 0 to _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges.Count-1 do
+    begin
+      //wegen XRechnung UBL nur ein Item möglich mit ChargeIndicator = false
+      //weitere Felder aus TradeAllowanceCharge werden auch nicht verwendet
+      if _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ChargeIndicator = true then
+        continue;
+      lInvoiceLine.DiscountOnTheGrossPrice := _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ActualAmount;
+      break;
+    end;
+    lInvoiceLine.NetPriceAmount := _InvoiceDescriptor.TradeLineItems[i].NetUnitPrice.GetValueOrDefault(0);
     lInvoiceLine.BaseQuantity := _InvoiceDescriptor.TradeLineItems[i].UnitQuantity.GetValueOrDefault(0);
-    lInvoiceLine.BaseQuantityUnitCode := lInvoiceLine.UnitCode;
+    lInvoiceLine.BaseQuantityUnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(TZUGFeRDQuantityCodesExtensions.EnumToString(_InvoiceDescriptor.TradeLineItems[i].UnitCode));
     lInvoiceLine.LineAmount := _InvoiceDescriptor.TradeLineItems[i].LineTotalAmount.GetValueOrDefault(0);
     for j := 0 to _InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges.Count-1 do
     with lInvoiceLine.AllowanceCharges.AddAllowanceCharge do

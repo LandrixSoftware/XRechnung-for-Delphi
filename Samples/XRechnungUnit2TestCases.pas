@@ -107,7 +107,9 @@ begin
     SellersItemIdentification := 'A0815'; //Artikelnummer
     TaxPercent := 19.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
-    PriceAmount := 1000; //Einzelpreis
+    GrossPriceAmount := 1000; //Brutto-Einzelpreis
+    DiscountOnTheGrossPrice := 0;
+    NetPriceAmount := 1000; //Netto-Einzelpreis
     BaseQuantity := 0; //Preiseinheit 0 = wird nicht ausgegeben, entspricht default = 1
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
     LineAmount := 1000;
@@ -122,7 +124,9 @@ begin
     UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
     TaxPercent := 19.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
-    PriceAmount := 100; //Einzelpreis
+    GrossPriceAmount := 100; //Brutto-Einzelpreis
+    DiscountOnTheGrossPrice := 0;
+    NetPriceAmount := 100; //Netto-Einzelpreis
     BaseQuantity := 0; //Preiseinheit 0 = wird nicht ausgegeben, entspricht default = 1
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
     LineAmount := 100;
@@ -136,7 +140,9 @@ begin
     UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
     TaxPercent := 0.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_Z_ZeroRatedGoods;
-    PriceAmount := 100; //Einzelpreis
+    GrossPriceAmount := 100; //Brutto-Einzelpreis
+    DiscountOnTheGrossPrice := 0;
+    NetPriceAmount := 100; //Netto-Einzelpreis
     BaseQuantity := 0; //Preiseinheit 0 = wird nicht ausgegeben, entspricht default = 1
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
     LineAmount := -100;
@@ -150,7 +156,9 @@ begin
     UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Std',suc); //Mengeneinheit
     TaxPercent := 19.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
-    PriceAmount := 500; //Einzelpreis
+    GrossPriceAmount := 500; //Brutto-Einzelpreis
+    DiscountOnTheGrossPrice := 0;
+    NetPriceAmount := 500; //Netto-Einzelpreis
     BaseQuantity := 0; //Preiseinheit 0 = wird nicht ausgegeben, entspricht default = 1
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
     LineAmount := 500;
@@ -248,7 +256,9 @@ begin
     UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
     TaxPercent := 0.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
-    PriceAmount := 5000; //Einzelpreis
+    GrossPriceAmount := 5000; //Brutto-Einzelpreis
+    DiscountOnTheGrossPrice := 0;
+    NetPriceAmount := 5000; //Netto-Einzelpreis
     BaseQuantity := 0; //Preiseinheit 0 = wird nicht ausgegeben, entspricht default = 1
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
     LineAmount := 5000;
@@ -455,7 +465,9 @@ begin
     SellersItemIdentification := 'A0815'; //Artikelnummer
     TaxPercent := 7.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
-    PriceAmount := 50; //Einzelpreis
+    GrossPriceAmount := 50; //Brutto-Einzelpreis
+    DiscountOnTheGrossPrice := 0;
+    NetPriceAmount := 50; //Netto-Einzelpreis
     BaseQuantity := 0; //Preiseinheit 0 = wird nicht ausgegeben, entspricht default = 1
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
     LineAmount := 100;
@@ -472,7 +484,18 @@ begin
     SellersItemIdentification := 'A0816'; //Artikelnummer
     TaxPercent := 19.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
-    PriceAmount := 100; //Einzelpreis
+
+    //Rabatt auf den Bruttopreis generieren
+    if NachlaesseZuschlaegeVerwenden then
+    begin
+      GrossPriceAmount := 150; //Brutto-Einzelpreis
+      DiscountOnTheGrossPrice := 50; //50 EUR Rabatt
+    end else
+    begin
+      GrossPriceAmount := 100; //Brutto-Einzelpreis
+      DiscountOnTheGrossPrice := 0;
+    end;
+    NetPriceAmount := 100; //Netto-Einzelpreis
     BaseQuantity := 0; //Preiseinheit 0 = wird nicht ausgegeben, entspricht default = 1
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
     LineAmount := 100;
@@ -483,8 +506,8 @@ begin
     begin
       ChargeIndicator := false;
       ReasonCodeAllowance := TInvoiceAllowanceOrChargeIdentCode.iacic_Discount;
-      BaseAmount := 50.00;
-      MultiplierFactorNumeric := 10; //10 Prozent auf 50 EUR
+      BaseAmount := 100.00;
+      MultiplierFactorNumeric := 5; //5 Prozent auf 100 EUR
       Amount := 5.00;
       //Nicht erforderlich TaxPercent := 19.0;
       //Nicht erforderlich TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
@@ -666,7 +689,9 @@ begin
     UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
     TaxPercent := 0.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
-    PriceAmount := 500; //Einzelpreis
+    GrossPriceAmount := 500; //Brutto-Einzelpreis
+    DiscountOnTheGrossPrice := 0;
+    NetPriceAmount := 500; //Netto-Einzelpreis
     BaseQuantity := 0; //Preiseinheit 0 = wird nicht ausgegeben, entspricht default = 1
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
     LineAmount := 500;
@@ -754,7 +779,9 @@ begin
     UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
     TaxPercent := 0.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
-    PriceAmount := 5000; //Einzelpreis
+    GrossPriceAmount := 5000; //Brutto-Einzelpreis
+    DiscountOnTheGrossPrice := 0;
+    NetPriceAmount := 5000; //Netto-Einzelpreis
     BaseQuantity := 0; //Preiseinheit 0 = wird nicht ausgegeben, entspricht default = 1
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
     LineAmount := 5000;
@@ -834,7 +861,9 @@ begin
     UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
     TaxPercent := 19.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
-    PriceAmount := 360; //Einzelpreis
+    GrossPriceAmount := 360; //Brutto-Einzelpreis
+    DiscountOnTheGrossPrice := 0;
+    NetPriceAmount := 360; //Netto-Einzelpreis
     BaseQuantity := 0; //Preiseinheit
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
     LineAmount := 360;
@@ -923,7 +952,9 @@ begin
     SellersItemIdentification := 'A0815'; //Artikelnummer
     TaxPercent := 0.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_AE_VATReverseCharge;
-    PriceAmount := 50.00; //Einzelpreis
+    GrossPriceAmount := 50; //Brutto-Einzelpreis
+    DiscountOnTheGrossPrice := 0;
+    NetPriceAmount := 50; //Netto-Einzelpreis
     BaseQuantity := 0; //Preiseinheit 0 = wird nicht ausgegeben, entspricht default = 1
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
     LineAmount := 200.00;
@@ -1002,7 +1033,9 @@ begin
     UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
     TaxPercent := 19.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
-    PriceAmount := 360; //Einzelpreis
+    GrossPriceAmount := 360; //Brutto-Einzelpreis
+    DiscountOnTheGrossPrice := 0;
+    NetPriceAmount := 360; //Netto-Einzelpreis
     BaseQuantity := 10; //Preiseinheit
     BaseQuantityUnitCode := UnitCode; //Preiseinheit Mengeneinheit
     LineAmount := 36;
@@ -1092,7 +1125,9 @@ begin
     UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
     TaxPercent := 19.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
-    PriceAmount := 400; //Einzelpreis
+    GrossPriceAmount := 400; //Brutto-Einzelpreis
+    DiscountOnTheGrossPrice := 0;
+    NetPriceAmount := 400; //Netto-Einzelpreis
     BaseQuantity := 0; //Preiseinheit
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
     LineAmount := 400;
@@ -1107,7 +1142,9 @@ begin
       SellersItemIdentification := 'A0815'; //Artikelnummer
       TaxPercent := 19.0; //MwSt
       TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
-      PriceAmount := 50; //Einzelpreis
+      GrossPriceAmount := 50; //Brutto-Einzelpreis
+      DiscountOnTheGrossPrice := 0;
+      NetPriceAmount := 50; //Netto-Einzelpreis
       BaseQuantity := 0; //Preiseinheit 0 = wird nicht ausgegeben, entspricht default = 1
       BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
       LineAmount := 200;
@@ -1122,7 +1159,9 @@ begin
       SellersItemIdentification := 'A0816'; //Artikelnummer
       TaxPercent := 19.0; //MwSt
       TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
-      PriceAmount := 50; //Einzelpreis
+      GrossPriceAmount := 50; //Brutto-Einzelpreis
+      DiscountOnTheGrossPrice := 0;
+      NetPriceAmount := 50; //Netto-Einzelpreis
       BaseQuantity := 0; //Preiseinheit 0 = wird nicht ausgegeben, entspricht default = 1
       BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
       LineAmount := 200;

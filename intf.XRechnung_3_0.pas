@@ -427,6 +427,11 @@ var
       _Invoiceline.SellersItemIdentification := TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:SellerAssignedID');
       _Invoiceline.Name := TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:Name');
       _Invoiceline.Description := TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:Description');
+      //<ram:ApplicableProductCharacteristic>
+      //<ram:TypeCode>ADR</ram:TypeCode>
+      //<ram:Description>METALLZUSCHLAG KUPFER</ram:Description>
+      //<ram:Value>METALLZUSCHLAG KUPFER</ram:Value>
+      //</ram:ApplicableProductCharacteristic>
     end;
     if TXRechnungXMLHelper.SelectNode(_Node,'.//ram:SpecifiedLineTradeAgreement',node2) then
     begin
@@ -916,7 +921,8 @@ var
                TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(allowanceCharge.ReasonCodeAllowance));
       if not allowanceCharge.Reason.IsEmpty then
         AddChild('cbc:AllowanceChargeReason').Text := allowanceCharge.Reason;
-      AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
+      if allowanceCharge.MultiplierFactorNumeric <> 0 then
+        AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
       with AddChild('cbc:Amount') do
       begin
         Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
@@ -1423,7 +1429,8 @@ var
       with AddChild('ram:SpecifiedTradeAllowanceCharge') do
       begin
         AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := LowerCase(BoolToStr(allowanceCharge.ChargeIndicator,true));
-        AddChild('ram:CalculationPercent').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
+        if allowanceCharge.MultiplierFactorNumeric <> 0 then
+          AddChild('ram:CalculationPercent').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
         AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(allowanceCharge.BaseAmount);
         AddChild('ram:ActualAmount').Text := TXRechnungHelper.AmountToStr(allowanceCharge.Amount);
         AddChild('ram:ReasonCode').Text :=

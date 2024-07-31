@@ -145,8 +145,10 @@ end;
 procedure TForm1.Button2Click(Sender: TObject);
 var
   inv : TInvoice;
+  version : TXRechnungVersion;
   error : String;
   od : TOpenDialog;
+  xml,xmltest : String;
 begin
   inv := TInvoice.Create;
   od := TOpenDialog.Create(nil);
@@ -159,9 +161,25 @@ begin
     if not TXRechnungInvoiceAdapter.LoadFromFile(inv, od.FileName,error) then
       memo3.Lines.Text := error
     else
-      ShowMessage('Eingelesen');
+    if (MessageDlg('Eingelesen'+#10+'Soll die Eingabedatei mit der Bibliothek-Ausgabedatei verglichen werden?', mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
+    begin
+      version := TXRechnungValidationHelper.GetXRechnungVersion(od.FileName);
+      if version = XRechnungVersion_ReadingSupport_ZUGFeRDFacturX then
+        version := XRechnungVersion_30x_UNCEFACT;
+
+      xml := TFile.ReadAllText(od.FileName,TEncoding.UTF8);
+      TXRechnungInvoiceAdapter.SaveToXMLStr(inv,version,xmltest);
+      if not SameStr(xml,xmltest) then
+      begin
+        TFile.WriteAllText(ExtractFilePath(Application.ExeName)+'xrechnung_original.xml',xml,TEncoding.UTF8);
+        TFile.WriteAllText(ExtractFilePath(Application.ExeName)+'xrechnung_test.xml',xmltest,TEncoding.UTF8);
+        if MessageDlg('Testrechnung unterscheidet sich vom Original.'+#10+'Im Explorer anzeigen?', mtError, [mbYes,mbNo], 0) = mrYes then
+          ShellExecuteW(0,'open','EXPLORER.EXE',PChar('/select,'+ExtractFilePath(Application.ExeName)+'xrechnung_original.xml'),'%SystemRoot%',SW_SHOWNORMAL);
+      end;
+    end;
 
     //Lesen von zusaätzlichen ZUGFeRD-Daten, die nicht im XRechnungs-Profil enthalten sind
+    //Setzt Compilerschalter $DEFINE ZUGFeRD_Support in intf.XRechnung.pas voraus
     //var invAdditionalData : TZUGFeRDAdditionalContent := TZUGFeRDAdditionalContent.Create;
     //try
     //  if not TXRechnungInvoiceAdapter.LoadFromFile(inv, od.FileName,error,invAdditionalData) then

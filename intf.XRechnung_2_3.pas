@@ -916,7 +916,8 @@ var
                TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(allowanceCharge.ReasonCodeCharge),
                TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(allowanceCharge.ReasonCodeAllowance));
       AddChild('cbc:AllowanceChargeReason').Text := allowanceCharge.Reason;
-      AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
+      if allowanceCharge.MultiplierFactorNumeric <> 0 then
+        AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
       with AddChild('cbc:Amount') do
       begin
         Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
@@ -1254,7 +1255,8 @@ begin
              TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(allowanceCharge.ReasonCodeCharge),
              TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(allowanceCharge.ReasonCodeAllowance));
     AddChild('cbc:AllowanceChargeReason').Text := allowanceCharge.Reason;
-    AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
+    if allowanceCharge.MultiplierFactorNumeric <> 0 then
+      AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
     with AddChild('cbc:Amount') do
     begin
       Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
@@ -1418,7 +1420,8 @@ var
       with AddChild('ram:SpecifiedTradeAllowanceCharge') do
       begin
         AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := LowerCase(BoolToStr(allowanceCharge.ChargeIndicator,true));
-        AddChild('ram:CalculationPercent').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
+        if allowanceCharge.MultiplierFactorNumeric <> 0 then
+          AddChild('ram:CalculationPercent').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
         AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(allowanceCharge.BaseAmount);
         AddChild('ram:ActualAmount').Text := TXRechnungHelper.AmountToStr(allowanceCharge.Amount);
         AddChild('ram:ReasonCode').Text :=
@@ -1713,7 +1716,8 @@ begin
       with AddChild('ram:SpecifiedTradeAllowanceCharge') do
       begin
         AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := LowerCase(BoolToStr(allowanceCharge.ChargeIndicator,true));
-        AddChild('ram:CalculationPercent').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
+        if allowanceCharge.MultiplierFactorNumeric <> 0 then
+          AddChild('ram:CalculationPercent').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
         AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(allowanceCharge.BaseAmount);
         AddChild('ram:ActualAmount').Text := TXRechnungHelper.AmountToStr(allowanceCharge.Amount);
         AddChild('ram:ReasonCode').Text :=

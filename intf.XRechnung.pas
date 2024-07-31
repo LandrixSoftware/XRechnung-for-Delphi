@@ -1456,6 +1456,7 @@ begin
   begin
     var lAttachment : TInvoiceAttachment := TInvoiceAttachment.Create(iat_application_None);
     lAttachment.ID := _InvoiceDescriptor.AdditionalReferencedDocuments[i].ID;
+    //TODO fehlt in ZUGFeRD lAttachment.ExternalReference
     lAttachment.DocumentDescription := _InvoiceDescriptor.AdditionalReferencedDocuments[i].Name;
     lAttachment.Filename := _InvoiceDescriptor.AdditionalReferencedDocuments[i].Filename;
     lAttachment.AttachmentType := TInvoiceAttachmentTypeHelper.GetTypeFromFilename(_InvoiceDescriptor.AdditionalReferencedDocuments[i].Filename);
@@ -1531,6 +1532,8 @@ begin
 
   //Achtung, CII-Format maximal ein Element erlaubt, UBL-Format beliebig viele
   if _InvoiceDescriptor.InvoiceReferencedDocument <> nil then
+  if (_InvoiceDescriptor.InvoiceReferencedDocument.ID <> '') and
+     (_InvoiceDescriptor.InvoiceReferencedDocument.IssueDateTime.GetValueOrDefault > 100) then
   with _Invoice.PrecedingInvoiceReferences.AddPrecedingInvoiceReference do
   begin
     ID := _InvoiceDescriptor.InvoiceReferencedDocument.ID;
@@ -1542,7 +1545,7 @@ begin
   for i := 0 to _InvoiceDescriptor.Taxes.Count-1 do
   begin
     _Invoice.TaxAmountSubtotals[i].TaxableAmount := _InvoiceDescriptor.Taxes[i].BasisAmount;
-    //TODO fehlt in ZUGFeRD Lib _Invoice.TaxAmountSubtotals[i].TaxAmount := _InvoiceDescriptor.Taxes[i].TaxAmount
+    _Invoice.TaxAmountSubtotals[i].TaxAmount := _InvoiceDescriptor.Taxes[i].TaxAmount;
     _Invoice.TaxAmountSubtotals[i].TaxPercent := _InvoiceDescriptor.Taxes[i].Percent;
     //TODO DEFAULT VAT_InvoiceDescriptor.Taxes[i].TypeCode
     case _InvoiceDescriptor.Taxes[i].CategoryCode of

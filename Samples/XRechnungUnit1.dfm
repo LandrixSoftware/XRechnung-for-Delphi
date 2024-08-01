@@ -200,7 +200,8 @@ object Form1: TForm1
       'Titel/Positionsgruppen'
       'Gutschrift'
       'Minimalrechnung B2B'
-      'Preiseinheit')
+      'Preiseinheit'
+      'Lastschrift')
     TabOrder = 16
   end
   object cbValidateWithJava: TCheckBox

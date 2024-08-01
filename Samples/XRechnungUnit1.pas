@@ -335,6 +335,7 @@ begin
       5 : TInvoiceTestCases.Gutschrift(inv);
       6 : TInvoiceTestCases.MinimalbeispielB2BOhneLeitwegID(inv);
       7 : TInvoiceTestCases.PreiseinheitGroesser1(inv);
+      8 : TInvoiceTestCases.Lastschrift(inv);
     end;
 
     Generate(inv);

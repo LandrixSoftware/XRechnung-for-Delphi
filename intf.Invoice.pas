@@ -445,6 +445,7 @@ type
     Address : TInvoiceAddress;
 
     IdentifierSellerBuyer : String; //Kreditor-Nr AccountingSupplierParty / Debitor-Nr AccountingCustomerParty
+    BankAssignedCreditorIdentifier : String; //Gläubiger-ID (BT-90)
 
     VATCompanyID : String;   //BT-31
     VATCompanyNumber: String;//BT-32
@@ -511,10 +512,11 @@ type
     //TODO weitere Zahlungswege, als Liste
     //TODO Auch 0 prüfen
     PaymentMeansCode : TInvoicePaymentMeansCode;
-    PaymentID : String; //Verwendungszweck der Ueberweisung, optional
-    PayeeFinancialAccount : String;
-    PayeeFinancialAccountName : String;
-    PayeeFinancialInstitutionBranch : String; //BIC
+    PaymentID : String; //Verwendungszweck der Ueberweisung/Lastschrift
+    PaymentFinancialAccount : String; //sowohl Payee (Überweisung 58) als auch Payer (Lastschrift 59)
+    PaymentFinancialAccountName : String; //sowohl Payee (Überweisung 58) als auch Payer (Lastschrift 59)
+    PaymentFinancialInstitutionBranch : String; //BIC sowohl Payee (Überweisung 58) als auch Payer (Lastschrift 59)
+    PaymentMandateID : String; //Lastschrift (59) Mandatsreferenz BT-89
 
     //Infos unter
     //https://www.e-rechnung-bund.de/wp-content/uploads/2023/04/Angabe-Skonto-Upload.pdf

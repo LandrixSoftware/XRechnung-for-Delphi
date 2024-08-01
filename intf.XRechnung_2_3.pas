@@ -212,7 +212,16 @@ var
     if TXRechnungXMLHelper.SelectNode(_Node,'.//cbc:EndpointID',node) then
     if (TXRechnungXMLHelper.SelectAttributeText(node,'schemeID') = 'EM') then
       _Party.ElectronicAddressSellerBuyer := node.text;
-    _Party.IdentifierSellerBuyer := TXRechnungXMLHelper.SelectNodeText(_Node,'.//cac:PartyIdentification/cbc:ID');
+    if TXRechnungXMLHelper.SelectNodes(_Node,'.//cac:PartyIdentification',nodes) then
+    for i := 0 to nodes.length-1 do
+    if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//cbc:ID',node) then
+    begin
+      if SameText(TXRechnungXMLHelper.SelectAttributeText(node,'schemeID'),'0088') then
+        _Party.IdentifierSellerBuyer := node.text
+      else
+      if SameText(TXRechnungXMLHelper.SelectAttributeText(node,'schemeID'),'SEPA') then
+        _Party.BankAssignedCreditorIdentifier := node.text;
+    end;
     _Party.Name := TXRechnungXMLHelper.SelectNodeText(_Node,'.//cac:PartyName/cbc:Name');
     _Party.Address.StreetName := TXRechnungXMLHelper.SelectNodeText(_Node,'.//cac:PostalAddress/cbc:StreetName');
     _Party.Address.AdditionalStreetName := TXRechnungXMLHelper.SelectNodeText(_Node,'.//cac:PostalAddress/cbc:AdditionalStreetName');
@@ -327,11 +336,15 @@ begin
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:PaymentMeans/cbc:PaymentID',node) then
       _Invoice.PaymentID := node.text;
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:PaymentMeans/cac:PayeeFinancialAccount/cbc:ID',node) then
-      _Invoice.PayeeFinancialAccount := node.text;
+      _Invoice.PaymentFinancialAccount := node.text;
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:PaymentMeans/cac:PayeeFinancialAccount/cbc:Name',node) then
-      _Invoice.PayeeFinancialAccountName := node.text;
+      _Invoice.PaymentFinancialAccountName := node.text;
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:PaymentMeans/cac:PayeeFinancialAccount/cac:FinancialInstitutionBranch/cbc:ID',node) then
-      _Invoice.PayeeFinancialInstitutionBranch := node.text;
+      _Invoice.PaymentFinancialInstitutionBranch := node.text;
+    if TXRechnungXMLHelper.SelectNode(xml,'//cac:PaymentMeans/cac:PaymentMandate/cbc:ID',node) then
+      _Invoice.PaymentMandateID := node.text;
+    if TXRechnungXMLHelper.SelectNode(xml,'//cac:PaymentMeans/cac:PaymentMandate/cac:PayerFinancialAccount/cbc:ID',node) then
+      _Invoice.PaymentFinancialAccount := node.text;
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:PaymentTerms/cbc:Note',node) then
       TXRechnungInvoiceAdapter230.InternalReadPaymentTerms(_Invoice,node.text);
 
@@ -701,6 +714,7 @@ begin
     end;
     if TXRechnungXMLHelper.SelectNode(nodeSupplyChainTradeTransaction,'.//ram:ApplicableHeaderTradeSettlement',nodeApplicableHeaderTradeAgreement) then
     begin
+      _Invoice.AccountingSupplierParty.BankAssignedCreditorIdentifier := TXRechnungXMLHelper.SelectNodeText(nodeApplicableHeaderTradeAgreement,'.//ram:CreditorReferenceID');
       _Invoice.PaymentID := TXRechnungXMLHelper.SelectNodeText(nodeApplicableHeaderTradeAgreement,'.//ram:PaymentReference');
       _Invoice.InvoiceCurrencyCode := TXRechnungXMLHelper.SelectNodeText(nodeApplicableHeaderTradeAgreement,'.//ram:InvoiceCurrencyCode');
       if TXRechnungXMLHelper.SelectNode(nodeApplicableHeaderTradeAgreement,'.//ram:SpecifiedTradeSettlementPaymentMeans',node2) then
@@ -709,11 +723,13 @@ begin
           _Invoice.PaymentMeansCode := TXRechnungHelper.InvoicePaymentMeansCodeFromStr(node.text);
         if TXRechnungXMLHelper.SelectNode(node2,'.//ram:PayeePartyCreditorFinancialAccount',node3) then
         begin
-          _Invoice.PayeeFinancialAccount := TXRechnungXMLHelper.SelectNodeText(node3,'.//ram:IBANID');
-          _Invoice.PayeeFinancialAccountName := TXRechnungXMLHelper.SelectNodeText(node3,'.//ram:AccountName');
+          _Invoice.PaymentFinancialAccount := TXRechnungXMLHelper.SelectNodeText(node3,'.//ram:IBANID');
+          _Invoice.PaymentFinancialAccountName := TXRechnungXMLHelper.SelectNodeText(node3,'.//ram:AccountName');
         end;
         if TXRechnungXMLHelper.SelectNode(node2,'.//ram:PayeeSpecifiedCreditorFinancialInstitution',node3) then
-          _Invoice.PayeeFinancialInstitutionBranch := TXRechnungXMLHelper.SelectNodeText(node3,'.//ram:BICID');
+          _Invoice.PaymentFinancialInstitutionBranch := TXRechnungXMLHelper.SelectNodeText(node3,'.//ram:BICID');
+        if TXRechnungXMLHelper.SelectNode(node2,'.//ram:PayerPartyDebtorFinancialAccount',node3) then
+          _Invoice.PaymentFinancialAccount := TXRechnungXMLHelper.SelectNodeText(node3,'.//ram:IBANID');
       end;
       if TXRechnungXMLHelper.SelectNodes(nodeApplicableHeaderTradeAgreement,'.//ram:ApplicableTradeTax',nodes) then
       for i := 0 to nodes.length-1 do
@@ -756,6 +772,9 @@ begin
 
       if TXRechnungXMLHelper.SelectNodes(nodeApplicableHeaderTradeAgreement,'.//ram:SpecifiedTradePaymentTerms',nodes) then
       begin
+        if (nodes.length > 0) then
+        if TXRechnungXMLHelper.FindNode(nodes[0],'.//ram:DirectDebitMandateID') then
+          _Invoice.PaymentMandateID := TXRechnungXMLHelper.SelectNodeText(nodes[0],'.//ram:DirectDebitMandateID');
         _Invoice.PaymentTermsType := iptt_None;
         //XRechnung-Variante?
         if (nodes.length = 1) then
@@ -894,20 +913,19 @@ var
   end;
 
   procedure InternalAddInvoiceLine(_Invoiceline : TInvoiceLine; _Node : IXMLNode);
-  var subinvoiceline : TInvoiceLine;
+  var
+    subinvoiceline : TInvoiceLine;
     allowanceCharge : TInvoiceAllowanceCharge;
   begin
-  with _Node do
-  begin
-    AddChild('cbc:ID').Text := _Invoiceline.ID;
+    _Node.AddChild('cbc:ID').Text := _Invoiceline.ID;
     if _Invoiceline.Note <> '' then
-      AddChild('cbc:Note').Text := _Invoiceline.Note;
-    with AddChild('cbc:InvoicedQuantity') do
+      _Node.AddChild('cbc:Note').Text := _Invoiceline.Note;
+    with _Node.AddChild('cbc:InvoicedQuantity') do
     begin
       Attributes['unitCode'] := TXRechnungHelper.InvoiceUnitCodeToStr(_Invoiceline.UnitCode);
       Text := TXRechnungHelper.QuantityToStr(_Invoiceline.Quantity);
     end;
-    with AddChild('cbc:LineExtensionAmount') do
+    with _Node.AddChild('cbc:LineExtensionAmount') do
     begin
       Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
       Text := TXRechnungHelper.AmountToStr(_Invoiceline.LineAmount);
@@ -917,14 +935,15 @@ var
     //     <cbc:DocumentType>916</cbc:DocumentType>
     //  </cac:DocumentReference>
     for allowanceCharge in _Invoiceline.AllowanceCharges do
-    with AddChild('cac:AllowanceCharge') do
+    with _Node.AddChild('cac:AllowanceCharge') do
     begin
       AddChild('cbc:ChargeIndicator').Text := LowerCase(BoolToStr(allowanceCharge.ChargeIndicator,true));
       AddChild('cbc:AllowanceChargeReasonCode').Text :=
                IfThen(allowanceCharge.ChargeIndicator,
                TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(allowanceCharge.ReasonCodeCharge),
                TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(allowanceCharge.ReasonCodeAllowance));
-      AddChild('cbc:AllowanceChargeReason').Text := allowanceCharge.Reason;
+      if not allowanceCharge.Reason.IsEmpty then
+        AddChild('cbc:AllowanceChargeReason').Text := allowanceCharge.Reason;
       if allowanceCharge.MultiplierFactorNumeric <> 0 then
         AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
       with AddChild('cbc:Amount') do
@@ -938,9 +957,10 @@ var
         Text := TXRechnungHelper.AmountToStr(allowanceCharge.BaseAmount);
       end;
     end;
-    with AddChild('cac:Item') do
+    with _Node.AddChild('cac:Item') do
     begin
-      AddChild('cbc:Description').Text := _Invoiceline.Description;
+      if not _Invoiceline.Description.IsEmpty then
+        AddChild('cbc:Description').Text := _Invoiceline.Description;
       AddChild('cbc:Name').Text := _Invoiceline.Name;
       //   <cac:BuyersItemIdentification>
       //      <cbc:ID/>
@@ -960,7 +980,7 @@ var
         AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
       end;
     end;
-    with AddChild('cac:Price') do
+    with _Node.AddChild('cac:Price') do
     begin
       with AddChild('cbc:PriceAmount') do
       begin
@@ -991,7 +1011,6 @@ var
     end;
     for subinvoiceline in _Invoiceline.SubInvoiceLines do
       InternalAddInvoiceLine(subinvoiceline,_Node.AddChild('cac:SubInvoiceLine'));
-  end;
   end;
 
 begin
@@ -1080,9 +1099,16 @@ begin
       Text := _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer;
     end;
     if _Invoice.AccountingSupplierParty.IdentifierSellerBuyer <> '' then
-    with AddChild('cac:PartyIdentification') do
+    with AddChild('cac:PartyIdentification').AddChild('cbc:ID') do
     begin
-      AddChild('cbc:ID').Text := _Invoice.AccountingSupplierParty.IdentifierSellerBuyer;
+      Attributes['schemeID'] := '0088';
+      Text := _Invoice.AccountingSupplierParty.IdentifierSellerBuyer;
+    end;
+    if _Invoice.AccountingSupplierParty.BankAssignedCreditorIdentifier <> '' then
+    with AddChild('cac:PartyIdentification').AddChild('cbc:ID') do
+    begin
+      Attributes['schemeID'] := 'SEPA';
+      Text := _Invoice.AccountingSupplierParty.BankAssignedCreditorIdentifier;
     end;
     with AddChild('cac:PartyName') do
     begin
@@ -1138,9 +1164,10 @@ begin
       Text := _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer;
     end;
     if _Invoice.AccountingCustomerParty.IdentifierSellerBuyer <> '' then
-    with AddChild('cac:PartyIdentification') do
+    with AddChild('cac:PartyIdentification').AddChild('cbc:ID') do
     begin
-      AddChild('cbc:ID').Text := _Invoice.AccountingCustomerParty.IdentifierSellerBuyer;
+      Attributes['schemeID'] := '0088';
+      Text := _Invoice.AccountingCustomerParty.IdentifierSellerBuyer;
     end;
     with AddChild('cac:PartyName') do
     begin
@@ -1225,19 +1252,33 @@ begin
     AddChild('cbc:PaymentMeansCode').Text := TXRechnungHelper.InvoicePaymentMeansCodeToStr(_Invoice.PaymentMeansCode);
     if _Invoice.PaymentID <> '' then
       AddChild('cbc:PaymentID').Text := _Invoice.PaymentID;
-    if (_Invoice.PayeeFinancialAccount <> '') then
-    with AddChild('cac:PayeeFinancialAccount') do
+    if (_Invoice.PaymentFinancialAccount <> '') then
     begin
-      AddChild('cbc:ID').Text := _Invoice.PayeeFinancialAccount;
-      if _Invoice.PayeeFinancialAccountName <> '' then
-        AddChild('cbc:Name').Text := _Invoice.PayeeFinancialAccountName;
-      if _Invoice.PayeeFinancialInstitutionBranch <> '' then
-        AddChild('cac:FinancialInstitutionBranch').AddChild('cbc:ID').Text := _Invoice.PayeeFinancialInstitutionBranch;
+      if _Invoice.PaymentMeansCode = ipmc_SEPADirectDebit then
+      begin
+        with AddChild('cac:PaymentMandate') do
+        begin
+          AddChild('cbc:ID').Text := _Invoice.PaymentMandateID;
+          with AddChild('cac:PayerFinancialAccount') do
+            AddChild('cbc:ID').Text := _Invoice.PaymentFinancialAccount;
+        end;
+      end else
+      begin
+        with AddChild('cac:PayeeFinancialAccount') do
+        begin
+          AddChild('cbc:ID').Text := _Invoice.PaymentFinancialAccount;
+          if _Invoice.PaymentFinancialAccountName <> '' then
+            AddChild('cbc:Name').Text := _Invoice.PaymentFinancialAccountName;
+          if _Invoice.PaymentFinancialInstitutionBranch <> '' then
+            AddChild('cac:FinancialInstitutionBranch').AddChild('cbc:ID').Text := _Invoice.PaymentFinancialInstitutionBranch;
+        end;
+      end;
     end;
   end;
 
   case _Invoice.PaymentTermsType of
     iptt_Net:
+      if _Invoice.PaymentTermNetNote <> '' then
       with xRoot.AddChild('cac:PaymentTerms') do
       begin
         AddChild('cbc:Note').Text := System.StrUtils.ReplaceText(_Invoice.PaymentTermNetNote,'#',' ');
@@ -1278,7 +1319,8 @@ begin
              IfThen(allowanceCharge.ChargeIndicator,
              TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(allowanceCharge.ReasonCodeCharge),
              TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(allowanceCharge.ReasonCodeAllowance));
-    AddChild('cbc:AllowanceChargeReason').Text := allowanceCharge.Reason;
+    if not allowanceCharge.Reason.IsEmpty then
+      AddChild('cbc:AllowanceChargeReason').Text := allowanceCharge.Reason;
     if allowanceCharge.MultiplierFactorNumeric <> 0 then
       AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
     with AddChild('cbc:Amount') do
@@ -1286,6 +1328,7 @@ begin
       Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
       Text := TXRechnungHelper.AmountToStr(allowanceCharge.Amount);
     end;
+    if allowanceCharge.BaseAmount <> 0 then
     with AddChild('cbc:BaseAmount') do
     begin
       Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
@@ -1403,7 +1446,8 @@ var
           Text := _Invoiceline.GlobalID_EAN_GTIN;
         end;
       end;
-      AddChild('ram:SellerAssignedID').Text := _Invoiceline.SellersItemIdentification;
+      if not _Invoiceline.SellersItemIdentification.IsEmpty then
+        AddChild('ram:SellerAssignedID').Text := _Invoiceline.SellersItemIdentification;
       AddChild('ram:Name').Text := _Invoiceline.Name;
       if not _Invoiceline.Description.IsEmpty then
         AddChild('ram:Description').Text := _Invoiceline.Description;
@@ -1471,7 +1515,8 @@ var
                  IfThen(allowanceCharge.ChargeIndicator,
                  TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(allowanceCharge.ReasonCodeCharge),
                  TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(allowanceCharge.ReasonCodeAllowance));
-        AddChild('ram:Reason').Text := allowanceCharge.Reason;
+        if not allowanceCharge.Reason.IsEmpty then
+          AddChild('ram:Reason').Text := allowanceCharge.Reason;
       end;
       with AddChild('ram:SpecifiedTradeSettlementLineMonetarySummation') do
       begin
@@ -1663,6 +1708,7 @@ begin
           end;
         end;
       end;
+      if not _Invoice.ProjectReference.IsEmpty then
       with AddChild('ram:SpecifiedProcuringProject') do
       begin
         AddChild('ram:ID').Text := _Invoice.ProjectReference;
@@ -1709,6 +1755,8 @@ begin
     end;
     with AddChild('ram:ApplicableHeaderTradeSettlement') do
     begin
+      if _Invoice.AccountingSupplierParty.BankAssignedCreditorIdentifier <> '' then
+        AddChild('ram:CreditorReferenceID').Text := _Invoice.AccountingSupplierParty.BankAssignedCreditorIdentifier;
       if _Invoice.PaymentID <> '' then
         AddChild('ram:PaymentReference').Text := _Invoice.PaymentID;
       //zuviel AddChild('ram:TaxCurrencyCode').Text := _Invoice.TaxCurrencyCode;
@@ -1716,18 +1764,24 @@ begin
       with AddChild('ram:SpecifiedTradeSettlementPaymentMeans') do
       begin
         AddChild('ram:TypeCode').Text := TXRechnungHelper.InvoicePaymentMeansCodeToStr(_Invoice.PaymentMeansCode);
-        if (_Invoice.PayeeFinancialAccount <> '') then
-        with AddChild('ram:PayeePartyCreditorFinancialAccount') do
+        if (_Invoice.PaymentFinancialAccount <> '') then
         begin
-          AddChild('ram:IBANID').Text := _Invoice.PayeeFinancialAccount;
-          if _Invoice.PayeeFinancialAccountName <> '' then
-            AddChild('ram:AccountName').Text := _Invoice.PayeeFinancialAccountName;
-        end;
-        if _Invoice.PayeeFinancialInstitutionBranch <> '' then
-        with AddChild('ram:PayeeSpecifiedCreditorFinancialInstitution') do
-        begin
-          AddChild('ram:BICID').Text := _Invoice.PayeeFinancialInstitutionBranch;
-          //TODO <ram:Name>Name der Bank</ram:Name>
+          if _Invoice.PaymentMeansCode = ipmc_SEPADirectDebit then
+          begin
+            with AddChild('ram:PayerPartyDebtorFinancialAccount') do
+              AddChild('ram:IBANID').Text := _Invoice.PaymentFinancialAccount;
+          end else
+          begin
+            with AddChild('ram:PayeePartyCreditorFinancialAccount') do
+            begin
+              AddChild('ram:IBANID').Text := _Invoice.PaymentFinancialAccount;
+              if _Invoice.PaymentFinancialAccountName <> '' then
+                AddChild('ram:AccountName').Text := _Invoice.PaymentFinancialAccountName;
+            end;
+            if _Invoice.PaymentFinancialInstitutionBranch <> '' then
+            with AddChild('ram:PayeeSpecifiedCreditorFinancialInstitution') do
+              AddChild('ram:BICID').Text := _Invoice.PaymentFinancialInstitutionBranch;
+          end;
         end;
       end;
       for taxSubtotal in _Invoice.TaxAmountSubtotals do
@@ -1761,13 +1815,15 @@ begin
         AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := LowerCase(BoolToStr(allowanceCharge.ChargeIndicator,true));
         if allowanceCharge.MultiplierFactorNumeric <> 0 then
           AddChild('ram:CalculationPercent').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
-        AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(allowanceCharge.BaseAmount);
+        if allowanceCharge.BaseAmount <> 0 then
+          AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(allowanceCharge.BaseAmount);
         AddChild('ram:ActualAmount').Text := TXRechnungHelper.AmountToStr(allowanceCharge.Amount);
         AddChild('ram:ReasonCode').Text :=
                  IfThen(allowanceCharge.ChargeIndicator,
                  TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(allowanceCharge.ReasonCodeCharge),
                  TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(allowanceCharge.ReasonCodeAllowance));
-        AddChild('ram:Reason').Text := allowanceCharge.Reason;
+        if not allowanceCharge.Reason.IsEmpty then
+          AddChild('ram:Reason').Text := allowanceCharge.Reason;
         with AddChild('ram:CategoryTradeTax') do
         begin
           AddChild('ram:TypeCode').Text := 'VAT';
@@ -1809,6 +1865,8 @@ begin
           Attributes['format'] := '102';
           Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.InvoiceDueDate);
         end;
+        if _Invoice.PaymentMandateID <> '' then
+          AddChild('ram:DirectDebitMandateID').Text := _Invoice.PaymentMandateID;
       end;
       with AddChild('ram:SpecifiedTradeSettlementHeaderMonetarySummation') do
       begin

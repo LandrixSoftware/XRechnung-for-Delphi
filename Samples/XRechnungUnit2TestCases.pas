@@ -34,6 +34,7 @@ type
     class procedure MinimalbeispielB2BOhneLeitwegID(inv : TInvoice);
     class procedure Gutschrift(inv : TInvoice);
     class procedure PreiseinheitGroesser1(inv : TInvoice);
+    class procedure Lastschrift(inv : TInvoice);
   end;
 
 implementation
@@ -90,8 +91,8 @@ begin
 
   inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
   inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
-  inv.PayeeFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
-  inv.PayeeFinancialAccountName := 'Fa. XY';
+  inv.PaymentFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+  inv.PaymentFinancialAccountName := 'Fa. XY';
   //inv.PayeeFinancialInstitutionBranch := 'DEU...'; //BIC
 
   inv.PaymentTermsType := iptt_Net;
@@ -237,8 +238,8 @@ begin
 
   inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
   inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
-  inv.PayeeFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
-  inv.PayeeFinancialAccountName := 'Fa. XY';
+  inv.PaymentFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+  inv.PaymentFinancialAccountName := 'Fa. XY';
   //inv.PayeeFinancialInstitutionBranch := 'DEU...'; //BIC
 
   inv.PaymentTermsType := iptt_Net;
@@ -355,8 +356,8 @@ begin
 
   inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
   inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
-  inv.PayeeFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
-  inv.PayeeFinancialAccountName := 'Fa. XY';
+  inv.PaymentFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+  inv.PaymentFinancialAccountName := 'Fa. XY';
   //inv.PayeeFinancialInstitutionBranch := 'DEU...'; //BIC
 
   //verschiedene Zahlungsbedingungen, Verzugszinsen fehlt noch
@@ -674,8 +675,8 @@ begin
 
   inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
   inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
-  inv.PayeeFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
-  inv.PayeeFinancialAccountName := 'Fa. XY';
+  inv.PaymentFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+  inv.PaymentFinancialAccountName := 'Fa. XY';
 
   inv.PaymentTermsType := iptt_Net;
   inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceIssueDate)]);
@@ -764,8 +765,8 @@ begin
 
   inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
   inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
-  inv.PayeeFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
-  inv.PayeeFinancialAccountName := 'Fa. XY';
+  inv.PaymentFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+  inv.PaymentFinancialAccountName := 'Fa. XY';
 
   inv.PaymentTermsType := iptt_Net;
   inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceIssueDate)]);
@@ -802,6 +803,90 @@ begin
   inv.ChargeTotalAmount := 0; //Zuschlaege
   inv.PrepaidAmount := 0; //Anzahlungen
   inv.PayableAmount := 5000.00;      //Summe Zahlbar MwSt
+end;
+
+class procedure TInvoiceTestCases.Lastschrift(inv: TInvoice);
+var
+  suc : Boolean;
+begin
+  inv.InvoiceNumber := 'R2020-0815';
+  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
+  inv.InvoiceDueDate := Date+30;         //Fälligkeitsdatum
+  inv.InvoicePeriodStartDate := Date-30;
+  inv.InvoicePeriodEndDate := Date-1;
+  inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
+  inv.InvoiceCurrencyCode := 'EUR';
+  inv.TaxCurrencyCode := 'EUR';
+  inv.BuyerReference := TInvoiceEmptyLeitwegID.NON_EXISTENT; //B2B ohne Leitweg-ID
+
+  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingSupplierParty.CompanyID :=  '';
+  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstraße 1';
+  inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
+  inv.AccountingSupplierParty.Address.PostalZone := '01234';
+  inv.AccountingSupplierParty.Address.CountryCode := 'DE';
+  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678';
+  inv.AccountingSupplierParty.VATCompanyNumber := '222/111/4444';
+  inv.AccountingSupplierParty.ContactName := 'Meier';
+  inv.AccountingSupplierParty.ContactTelephone := '030 0815';
+  inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
+  //BT-34 Gibt die elektronische Adresse des Verkäufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
+  //Aktuell nur Unterstuetzung fuer schemeID=EM ElectronicMail
+  //Weitere Codes auf Anfrage
+  //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+
+  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
+  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstraße 1';
+  inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
+  inv.AccountingCustomerParty.Address.PostalZone := '05678';
+  inv.AccountingCustomerParty.Address.CountryCode := 'DE';
+  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
+  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+
+  inv.PaymentMeansCode := ipmc_SEPADirectDebit; //Lastschrift
+  inv.PaymentID := 'Verwendungszweck der Lastschrift...R2020-0815';
+  inv.PaymentFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+  inv.PaymentMandateID := 'MANDATID'; //Mandats-ID
+  inv.AccountingSupplierParty.BankAssignedCreditorIdentifier := '111111'; //Gläubiger-ID
+
+  inv.PaymentTermsType := iptt_None;
+
+  with inv.InvoiceLines.AddInvoiceLine do
+  begin
+    ID := '01'; //Positionsnummer
+    Name := 'Kurzinfo Artikel 1'; //Kurztext
+    Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
+    Quantity := 1; //Menge
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    TaxPercent := 19.0; //MwSt
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    GrossPriceAmount := 360; //Brutto-Einzelpreis
+    DiscountOnTheGrossPrice := 0;
+    NetPriceAmount := 360; //Netto-Einzelpreis
+    BaseQuantity := 0; //Preiseinheit
+    BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
+    LineAmount := 360;
+  end;
+
+  inv.TaxAmountTotal := 68.40; //Summe der gesamten MwSt
+  SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
+  inv.TaxAmountSubtotals[0].TaxPercent := 19.0;
+  inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+  inv.TaxAmountSubtotals[0].TaxableAmount := 360.0;
+  inv.TaxAmountSubtotals[0].TaxAmount := 68.40;
+
+  inv.LineAmount := 360.0;         //Summe
+  inv.TaxExclusiveAmount := 360.00; //Summe ohne MwSt
+  inv.TaxInclusiveAmount := 428.40; //Summe inkl MwSt
+  inv.AllowanceTotalAmount := 0; //Abzuege
+  inv.ChargeTotalAmount := 0; //Zuschlaege
+  inv.PrepaidAmount := 0; //Anzahlungen
+  inv.PayableAmount := 428.40;      //Summe Zahlbar MwSt
 end;
 
 class procedure TInvoiceTestCases.MinimalbeispielB2BOhneLeitwegID(
@@ -935,8 +1020,8 @@ begin
 
   inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
   inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
-  inv.PayeeFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
-  inv.PayeeFinancialAccountName := 'Fa. XY';
+  inv.PaymentFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+  inv.PaymentFinancialAccountName := 'Fa. XY';
   //inv.PayeeFinancialInstitutionBranch := 'DEU...'; //BIC
 
   inv.PaymentTermsType := iptt_Net;
@@ -1109,8 +1194,8 @@ begin
 
   inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
   inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
-  inv.PayeeFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
-  inv.PayeeFinancialAccountName := 'Fa. XY';
+  inv.PaymentFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+  inv.PaymentFinancialAccountName := 'Fa. XY';
   //inv.PayeeFinancialInstitutionBranch := 'DEU...'; //BIC
 
   inv.PaymentTermsType := iptt_Net;

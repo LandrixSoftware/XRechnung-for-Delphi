@@ -1295,35 +1295,38 @@ begin
   _Invoice.DeliveryInformation.ActualDeliveryDate := _InvoiceDescriptor.ActualDeliveryDate.GetValueOrDefault(0);
 
   case _InvoiceDescriptor.PaymentMeans.TypeCode of
+    InCash: _Invoice.PaymentMeansCode := ipmc_InCash;
+    Cheque: _Invoice.PaymentMeansCode := ipmc_Cheque;
+    CreditTransfer: _Invoice.PaymentMeansCode := ipmc_CreditTransfer;
+    //Fehlt : _Invoice.PaymentMeansCode := ipmc_CreditCard; 54
     SEPACreditTransfer: _Invoice.PaymentMeansCode := ipmc_SEPACreditTransfer;
+    SEPADirectDebit: _Invoice.PaymentMeansCode := ipmc_SEPADirectDebit;
     NotDefined: _Invoice.PaymentMeansCode := ipmc_InstrumentNotDefined;
     else _Invoice.PaymentMeansCode := ipmc_NotImplemented;
-    //    Unknown: ;
     //    AutomatedClearingHouseDebit: ;
-    //    InCash: ;
-    //    Cheque: ;
-    //    CreditTransfer: ;
     //    DebitTransfer: ;
     //    PaymentToBankAccount: ;
-    //    BankCard: ;
-    //    DirectDebit: ;
+    //    BankCard: 48
     //    StandingAgreement: ;
-    //    SEPADirectDebit: ;
     //    ClearingBetweenPartners: ;
   end;
   _Invoice.PaymentID := _InvoiceDescriptor.PaymentReference;
+  if _InvoiceDescriptor.PaymentMeans <> nil then
+    _Invoice.AccountingSupplierParty.BankAssignedCreditorIdentifier := _InvoiceDescriptor.PaymentMeans.SEPACreditorIdentifier;
   //TODO Mehrere Bankverbindungen
   if _InvoiceDescriptor.CreditorBankAccounts.Count > 0 then
   begin
-    _Invoice.PayeeFinancialAccount := _InvoiceDescriptor.CreditorBankAccounts[0].IBAN;
-    _Invoice.PayeeFinancialAccountName := _InvoiceDescriptor.CreditorBankAccounts[0].Name;
-    _Invoice.PayeeFinancialInstitutionBranch := _InvoiceDescriptor.CreditorBankAccounts[0].BIC;
+    _Invoice.PaymentFinancialAccount := _InvoiceDescriptor.CreditorBankAccounts[0].IBAN;
+    _Invoice.PaymentFinancialAccountName := _InvoiceDescriptor.CreditorBankAccounts[0].Name;
+    _Invoice.PaymentFinancialInstitutionBranch := _InvoiceDescriptor.CreditorBankAccounts[0].BIC;
   end;
 
   //TODO #SKONTO Type
   _Invoice.PaymentTermsType := iptt_None;
   for i := 0 to _InvoiceDescriptor.PaymentTermsList.Count-1 do
   begin
+    if _InvoiceDescriptor.PaymentTermsList[i].DirectDebitMandateID <> '' then //Könnte Probleme bei mehrere Einträgen der Art geben
+      _Invoice.PaymentMandateID := _InvoiceDescriptor.PaymentTermsList[i].DirectDebitMandateID;
     if (_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.CalculationPercent = 0) and
        (_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisAmount = 0) then
     begin

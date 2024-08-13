@@ -30,7 +30,7 @@ interface
 uses
   System.SysUtils,System.Classes,System.Types
   ,System.StrUtils,System.Generics.Collections
-  ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema,intf.XRechnungMSXML2_TLB
+  ,Xml.XMLDoc,Xml.XMLIntf
   {$IFDEF ZUGFeRD_Support}
   ,intf.ZUGFeRDInvoiceDescriptor
   ,intf.ZUGFeRDCurrencyCodes

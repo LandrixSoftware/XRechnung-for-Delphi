@@ -1,4 +1,4 @@
-﻿{
+{
 License XRechnung-for-Delphi
 
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
@@ -1145,12 +1145,15 @@ class function TZUGFeRDInvoiceAdapter.LoadFromInvoiceDescriptor(
   out _Error : String) : Boolean;
 var
   i,j : Integer;
+  firstDiscount : Boolean;
 begin
   Result := false;
   if _Invoice = nil then
     exit;
   if _InvoiceDescriptor = nil then
     exit;
+
+  firstDiscount := true;
 
   _Invoice.InvoiceNumber := _InvoiceDescriptor.InvoiceNo;
   _Invoice.InvoiceIssueDate := _InvoiceDescriptor.InvoiceDate;
@@ -1389,11 +1392,65 @@ begin
     for j := 0 to _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges.Count-1 do
     begin
       //wegen XRechnung UBL nur ein Item möglich mit ChargeIndicator = false
-      //weitere Felder aus TradeAllowanceCharge werden auch nicht verwendet
-      if _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ChargeIndicator = true then
-        continue;
-      lInvoiceLine.DiscountOnTheGrossPrice := _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ActualAmount;
-      break;
+      //weitere Felder aus TradeAllowanceCharge werden nach lInvoiceLine.AllowanceCharges
+      //transferiert
+      //z.B. liefern manche Lieferanten Rohstoffzuschläge an dieser Stelle
+      if (_InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ChargeIndicator = false) and firstDiscount then
+      begin
+        firstDiscount := false;
+        lInvoiceLine.DiscountOnTheGrossPrice := _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ActualAmount;
+      end else
+      begin
+        with lInvoiceLine.AllowanceCharges.AddAllowanceCharge do
+        begin
+          ChargeIndicator := _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ChargeIndicator;
+          ReasonCodeAllowance := iacic_None;
+          ReasonCodeCharge := issdc_None;
+          if ChargeIndicator then
+            case _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ReasonCodeCharge of
+              AA_Advertising : ReasonCodeCharge := issdc_AA_Advertising;
+              AAA_Telecommunication : ReasonCodeCharge := issdc_AAA_Telecommunication;
+              ABK_Miscellaneous : ReasonCodeCharge := issdc_ABK_Miscellaneous;
+              ABL_AdditionalPackaging : ReasonCodeCharge := issdc_ABL_AdditionalPackaging;
+              ADR_OtherServices : ReasonCodeCharge := issdc_ADR_OtherServices;
+              ADT_Pickup : ReasonCodeCharge := issdc_ADT_Pickup;
+              FC_FreightService : ReasonCodeCharge := issdc_FC_FreightService;
+              FI_Financing : ReasonCodeCharge := issdc_FI_Financing;
+              LA_Labelling : ReasonCodeCharge := issdc_LA_Labelling;
+              PC_Packing  : ReasonCodeCharge := issdc_PC_Packing;
+              else ReasonCodeCharge := issdc_None;
+            end
+          else
+            case _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ReasonCodeAllowance of
+              BonusForWorksAheadOfSchedule : ReasonCodeAllowance := iacic_BonusForWorksAheadOfSchedule;
+              OtherBonus : ReasonCodeAllowance := iacic_OtherBonus;
+              ManufacturersConsumerDiscount : ReasonCodeAllowance :=  iacic_ManufacturersConsumerDiscount;
+              DueToMilitaryStatus : ReasonCodeAllowance :=  iacic_DueToMilitaryStatus;
+              DueToWorkAccident : ReasonCodeAllowance :=  iacic_DueToWorkAccident;
+              SpecialAgreement : ReasonCodeAllowance :=  iacic_SpecialAgreement;
+              ProductionErrorDiscount : ReasonCodeAllowance :=  iacic_ProductionErrorDiscount;
+              NewOutletDiscount : ReasonCodeAllowance :=  iacic_NewOutletDiscount;
+              SampleDiscount : ReasonCodeAllowance :=  iacic_SampleDiscount;
+              EndOfRangeDiscount : ReasonCodeAllowance :=  iacic_EndOfRangeDiscount;
+              IncotermDiscount : ReasonCodeAllowance :=  iacic_IncotermDiscount;
+              PointOfSalesThresholdAllowance : ReasonCodeAllowance :=  iacic_PointOfSalesThresholdAllowance;
+              MaterialSurchargeDeduction : ReasonCodeAllowance :=  iacic_MaterialSurchargeDeduction;
+              Discount : ReasonCodeAllowance :=  iacic_Discount;
+              SpecialRebate : ReasonCodeAllowance :=  iacic_SpecialRebate;
+              FixedLongTerm : ReasonCodeAllowance :=  iacic_FixedLongTerm;
+              Temporary : ReasonCodeAllowance :=  iacic_Temporary;
+              Standard : ReasonCodeAllowance :=  iacic_Standard;
+              YearlyTurnover : ReasonCodeAllowance :=  iacic_YearlyTurnover;
+              else ReasonCodeAllowance := iacic_None;
+            end;
+          Reason := _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].Reason;
+          BaseAmount := _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].BasisAmount;
+          MultiplierFactorNumeric := _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ChargePercentage;
+          Amount := _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ActualAmount;
+          TaxPercent := 0; //Nicht in Position vorhanden
+          TaxCategory := idtfcc_None; //Nicht in Position vorhanden
+        end;
+      end;
     end;
     lInvoiceLine.NetPriceAmount := _InvoiceDescriptor.TradeLineItems[i].NetUnitPrice.GetValueOrDefault(0);
     lInvoiceLine.BaseQuantity := _InvoiceDescriptor.TradeLineItems[i].UnitQuantity.GetValueOrDefault(0);

@@ -35,6 +35,7 @@ type
     class procedure Gutschrift(inv : TInvoice);
     class procedure PreiseinheitGroesser1(inv : TInvoice);
     class procedure Lastschrift(inv : TInvoice);
+    class procedure InnergemeinschaftlicheLieferungEUohneMehrwertsteuer(inv : TInvoice);
   end;
 
 implementation
@@ -651,7 +652,7 @@ begin
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
   inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
-  inv.AccountingSupplierParty.AdditionalLegalInformationSeller := 'Kein Ausweis von Umsatzsteuer, da Kleinunternehmer gemäß § 19 UStG';
+  inv.AccountingSupplierParty.AdditionalLegalInformationSeller := 'Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemäß § 19 UStG';
   //BT-34 Gibt die elektronische Adresse des Verkäufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
   //Aktuell nur Unterstuetzung fuer schemeID=EM ElectronicMail
   //Weitere Codes auf Anfrage
@@ -702,7 +703,7 @@ begin
   SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
   inv.TaxAmountSubtotals[0].TaxPercent := 0.0;
   inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
-  inv.TaxAmountSubtotals[0].TaxExemptionReason := 'Kein Ausweis von Umsatzsteuer, da Kleinunternehmer gemäß § 19 UStG';
+  inv.TaxAmountSubtotals[0].TaxExemptionReason := 'Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemäß § 19 UStG';
   inv.TaxAmountSubtotals[0].TaxableAmount := 500.00;
   inv.TaxAmountSubtotals[0].TaxAmount     := 00.00;
 
@@ -713,6 +714,104 @@ begin
   inv.ChargeTotalAmount := 0; //Zuschlaege
   inv.PrepaidAmount := 0; //Anzahlungen
   inv.PayableAmount := 500.00;      //Summe Zahlbar MwSt
+end;
+
+class procedure TInvoiceTestCases.InnergemeinschaftlicheLieferungEUohneMehrwertsteuer(
+  inv: TInvoice);
+var
+  suc : Boolean;
+begin
+  inv.InvoiceNumber := 'R2020-0815';
+  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
+  inv.InvoiceDueDate := Date+30;         //Fälligkeitsdatum
+  inv.InvoicePeriodStartDate := Date-30;
+  inv.InvoicePeriodEndDate := Date-1;
+  inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
+  inv.InvoiceCurrencyCode := 'EUR';
+  inv.TaxCurrencyCode := 'EUR';
+  inv.BuyerReference := TInvoiceEmptyLeitwegID.NON_EXISTENT; //B2B ohne Leitweg-ID
+
+  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingSupplierParty.CompanyID :=  '';
+  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstraße 1';
+  inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
+  inv.AccountingSupplierParty.Address.PostalZone := '01234';
+  inv.AccountingSupplierParty.Address.CountryCode := 'DE';
+  inv.AccountingSupplierParty.VATCompanyID := 'DE12345678';
+  inv.AccountingSupplierParty.VATCompanyNumber := '222/111/4444';
+  inv.AccountingSupplierParty.ContactName := 'Meier';
+  inv.AccountingSupplierParty.ContactTelephone := '030 0815';
+  inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
+  inv.AccountingSupplierParty.AdditionalLegalInformationSeller := 'Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemäß § 19 UStG';
+  //BT-34 Gibt die elektronische Adresse des Verkäufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
+  //Aktuell nur Unterstuetzung fuer schemeID=EM ElectronicMail
+  //Weitere Codes auf Anfrage
+  //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
+  //Pflichtangabe
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+
+  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
+  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstraße 1';
+  inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
+  inv.AccountingCustomerParty.Address.PostalZone := '05678';
+  inv.AccountingCustomerParty.Address.CountryCode := 'AT';
+  inv.AccountingCustomerParty.VATCompanyID := 'AT12345678';
+//  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
+  inv.AccountingCustomerParty.ContactName := 'Müller';
+  inv.AccountingCustomerParty.ContactTelephone := '030 1508';
+  inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.at';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.at'; //BT-49
+
+  inv.DeliveryInformation.Name := 'Firma die es bekommt';
+  inv.DeliveryInformation.Address.StreetName := 'Lieferstraße 1';
+  inv.DeliveryInformation.Address.City := 'Lieferstadt';
+  inv.DeliveryInformation.Address.PostalZone := '05678';
+  inv.DeliveryInformation.Address.CountryCode := 'AT';
+  inv.DeliveryInformation.ActualDeliveryDate := Date-1;
+
+  inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
+  inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
+  inv.PaymentFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+  inv.PaymentFinancialAccountName := 'Fa. XY';
+
+  inv.PaymentTermsType := iptt_Net;
+  inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceIssueDate)]);
+
+  with inv.InvoiceLines.AddInvoiceLine do
+  begin
+    ID := '01'; //Positionsnummer
+    Name := 'Homepage erstellt'; //Kurztext
+    Description := 'Homepage erstellt'; //Laengere Beschreibung
+    Quantity := 1; //Menge
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    TaxPercent := 0.0; //MwSt
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices;
+    GrossPriceAmount := 5000; //Brutto-Einzelpreis
+    DiscountOnTheGrossPrice := 0;
+    NetPriceAmount := 5000; //Netto-Einzelpreis
+    BaseQuantity := 0; //Preiseinheit 0 = wird nicht ausgegeben, entspricht default = 1
+    BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
+    LineAmount := 5000;
+  end;
+
+  inv.TaxAmountTotal := 0.00; //Summe der gesamten MwSt
+  SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
+  inv.TaxAmountSubtotals[0].TaxPercent := 0.0;
+  inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices;
+  inv.TaxAmountSubtotals[0].TaxExemptionReason := 'Keine Ausweisung der Umsatzsteuer - innergemeinschaftliche Lieferung EU';
+  inv.TaxAmountSubtotals[0].TaxableAmount := 5000.00;
+  inv.TaxAmountSubtotals[0].TaxAmount     := 00.00;
+
+  inv.LineAmount := 5000.00;         //Summe
+  inv.TaxExclusiveAmount := 5000.00; //Summe ohne MwSt
+  inv.TaxInclusiveAmount := 5000.00; //Summe inkl MwSt
+  inv.AllowanceTotalAmount := 0; //Abzuege
+  inv.ChargeTotalAmount := 0; //Zuschlaege
+  inv.PrepaidAmount := 0; //Anzahlungen
+  inv.PayableAmount := 5000.00;      //Summe Zahlbar MwSt
 end;
 
 class procedure TInvoiceTestCases.Kleinunternehmerregelung(inv: TInvoice);
@@ -741,7 +840,7 @@ begin
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
   inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
-  inv.AccountingSupplierParty.AdditionalLegalInformationSeller := 'Kein Ausweis von Umsatzsteuer, da Kleinunternehmer gemäß § 19 UStG';
+  inv.AccountingSupplierParty.AdditionalLegalInformationSeller := 'Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemäß § 19 UStG';
   //BT-34 Gibt die elektronische Adresse des Verkäufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
   //Aktuell nur Unterstuetzung fuer schemeID=EM ElectronicMail
   //Weitere Codes auf Anfrage
@@ -792,7 +891,7 @@ begin
   SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
   inv.TaxAmountSubtotals[0].TaxPercent := 0.0;
   inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
-  inv.TaxAmountSubtotals[0].TaxExemptionReason := 'Kein Ausweis von Umsatzsteuer, da Kleinunternehmer gemäß § 19 UStG';
+  inv.TaxAmountSubtotals[0].TaxExemptionReason := 'Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemäß § 19 UStG';
   inv.TaxAmountSubtotals[0].TaxableAmount := 5000.00;
   inv.TaxAmountSubtotals[0].TaxAmount     := 00.00;
 

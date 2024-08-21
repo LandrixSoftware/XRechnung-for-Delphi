@@ -336,6 +336,7 @@ begin
       6 : TInvoiceTestCases.MinimalbeispielB2BOhneLeitwegID(inv);
       7 : TInvoiceTestCases.PreiseinheitGroesser1(inv);
       8 : TInvoiceTestCases.Lastschrift(inv);
+      9 : TInvoiceTestCases.InnergemeinschaftlicheLieferungEUohneMehrwertsteuer(inv);
     end;
 
     Generate(inv);

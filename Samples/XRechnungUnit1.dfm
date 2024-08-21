@@ -18,7 +18,7 @@ object Form1: TForm1
   TextHeight = 13
   object Label3: TLabel
     Left = 8
-    Top = 392
+    Top = 378
     Width = 82
     Height = 13
     Caption = 'Weitere Beispiele'
@@ -188,9 +188,9 @@ object Form1: TForm1
   end
   object ListBox1: TListBox
     Left = 8
-    Top = 408
+    Top = 394
     Width = 130
-    Height = 128
+    Height = 142
     ItemHeight = 13
     Items.Strings = (
       'Kleinunternehmerregelung'
@@ -201,7 +201,8 @@ object Form1: TForm1
       'Gutschrift'
       'Minimalrechnung B2B'
       'Preiseinheit'
-      'Lastschrift')
+      'Lastschrift'
+      'Innergem.Lief.EUoMwSt')
     TabOrder = 16
   end
   object cbValidateWithJava: TCheckBox

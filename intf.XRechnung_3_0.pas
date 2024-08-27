@@ -261,7 +261,7 @@ begin
       _Invoice.InvoiceDueDate := TXRechnungHelper.DateFromStrUBLFormat(node.Text);
     if TXRechnungXMLHelper.SelectNode(xml,'//cbc:InvoiceTypeCode',node) then
       _Invoice.InvoiceTypeCode := TXRechnungHelper.InvoiceTypeCodeFromStr(node.Text);
-    if TXRechnungXMLHelper.SelectNodes(xml,'//ubl:Invoice/cbc:Note',nodes) then
+    if TXRechnungXMLHelper.SelectNodes(xml,'//*[local-name()="Invoice"]/cbc:Note',nodes) then
     for i := 0  to nodes.length-1 do
       _Invoice.Notes.AddNote.Content := nodes.item[i].Text;
     if TXRechnungXMLHelper.SelectNode(xml,'//cbc:DocumentCurrencyCode',node) then
@@ -349,7 +349,7 @@ begin
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:PaymentTerms/cbc:Note',node) then
       TXRechnungInvoiceAdapter301.InternalReadPaymentTerms(_Invoice,node.text);
 
-    if TXRechnungXMLHelper.SelectNodes(xml,'//ubl:Invoice/cac:AllowanceCharge',nodes) then
+    if TXRechnungXMLHelper.SelectNodes(xml,'//*[local-name()="Invoice"]/cac:AllowanceCharge',nodes) then
     for i := 0 to nodes.length-1 do
     with _Invoice.AllowanceCharges.AddAllowanceCharge do
     begin

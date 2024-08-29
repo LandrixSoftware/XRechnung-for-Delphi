@@ -1,4 +1,4 @@
-{
+﻿{
 License XRechnung-for-Delphi
 
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
@@ -25,7 +25,7 @@ interface
 
 //setzt ZUGFeRD-for-Delphi voraus
 //https://github.com/LandrixSoftware/ZUGFeRD-for-Delphi
-{.$DEFINE ZUGFeRD_Support}
+{$DEFINE ZUGFeRD_Support}
 
 uses
   System.SysUtils,System.Classes,System.Types
@@ -110,9 +110,14 @@ type
   {$IFDEF ZUGFeRD_Support}
   TZUGFeRDAdditionalContent = class
   public
+    ZUGFeRDInvoice : TZUGFeRDInvoiceDescriptor;
+
     InvoiceeTradePartyFound : Boolean;
     InvoiceeTradeParty : TInvoiceAccountingParty;
+
+    SpecifiedLogisticsServiceChargeFound : Boolean;
     constructor Create;
+    destructor Destroy; override;
   end;
   {$ENDIF}
 
@@ -1115,9 +1120,14 @@ begin
   try
     Result := TZUGFeRDInvoiceAdapter.LoadFromInvoiceDescriptor(_Invoice,desc,_Error);
     if _AdditionalContent <> nil then
+    begin
       TZUGFeRDInvoiceAdapter.LoadAdditionalContentFromXMLDocument(_AdditionalContent,desc);
+      _AdditionalContent.ZUGFeRDInvoice := desc;
+      desc := nil;
+    end;
   finally
-    desc.Free;
+    if desc <> nil then
+      desc.Free;
   end;
 end;
 
@@ -1664,13 +1674,23 @@ begin
     _AdditionalContent.InvoiceeTradeParty.Address.CountryCode := TZUGFeRDCountryCodesExtensions.EnumToString(_InvoiceDescriptor.Invoicee.Country);
     _AdditionalContent.InvoiceeTradeParty.IdentifierSellerBuyer := _InvoiceDescriptor.Invoicee.ID.ID;
   end;
+
+  _AdditionalContent.SpecifiedLogisticsServiceChargeFound := _InvoiceDescriptor.ServiceCharges.Count > 0;
 end;
 
 { TZUGFeRDAdditionalContent }
 
 constructor TZUGFeRDAdditionalContent.Create;
 begin
+  ZUGFeRDInvoice := nil;
   InvoiceeTradePartyFound := false;
+  SpecifiedLogisticsServiceChargeFound := false;
+end;
+
+destructor TZUGFeRDAdditionalContent.Destroy;
+begin
+  if Assigned(ZUGFeRDInvoice) then begin ZUGFeRDInvoice.Free; ZUGFeRDInvoice := nil; end;
+  inherited;
 end;
 
 {$ENDIF}

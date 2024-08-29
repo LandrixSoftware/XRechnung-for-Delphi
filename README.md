@@ -30,13 +30,32 @@ Aktivieren Sie dazu auch in der Unit intf.XRechnung.pas den Compiler-Schalter ZU
 ```delphi
 {$DEFINE ZUGFeRD_Support}
 ```
-Ebenso steht zusätzlich eine Klasse TZUGFeRDAdditionalContent zur Verfügung, um weitere ZUGFeRD-Profil-Inhalte zu laden, die nicht vom XRechnungs-Profil unterstützt werden, z.B. die abweichende Rechnungsanschrift. Eine Instanz dieser Klasse kann man optional an die Methode TXRechnungInvoiceAdapter.LoadFrom...() übergeben. Nicht implementierte Werte bitte selbst ergänzen oder anfragen.
+Ebenso steht zusätzlich eine Klasse TZUGFeRDAdditionalContent zur Verfügung, um weitere ZUGFeRD-Profil-Inhalte zu laden, die nicht vom XRechnungs-Profil unterstützt werden, z.B. die abweichende Rechnungsanschrift. Eine Instanz dieser Klasse kann man optional an die Methode TXRechnungInvoiceAdapter.LoadFrom...() übergeben. Sie enthält außerdem die geladene ZUGFeRD-Rechnung als 
+komplettes Objekt. Hier kann man selbst weitere ZUGFeRD-Inhalte auslesen.
 
 ```delphi
   TZUGFeRDAdditionalContent = class
   public
+    ZUGFeRDInvoice : TZUGFeRDInvoiceDescriptor;
+
     InvoiceeTradePartyFound : Boolean;
     InvoiceeTradeParty : TInvoiceAccountingParty;
+
+    SpecifiedLogisticsServiceChargeFound : Boolean;
+  end;
+
+  var error : String;
+  var inv : TInvoice := TInvoice.Create;
+  var invAdditionalData : TZUGFeRDAdditionalContent := TZUGFeRDAdditionalContent.Create;
+  try
+    if TXRechnungInvoiceAdapter.LoadFromFile(inv, aFileName,
+                                  error, invAdditionalData) then
+    begin
+      invAdditionalData.ZUGFeRDInvoice. .....
+    end;  
+  finally
+    invAdditionalData.Free;
+    inv.Free;
   end;
 ```
 

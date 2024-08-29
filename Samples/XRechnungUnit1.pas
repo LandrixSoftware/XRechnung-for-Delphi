@@ -180,6 +180,8 @@ begin
 
     //Lesen von zusaätzlichen ZUGFeRD-Daten, die nicht im XRechnungs-Profil enthalten sind
     //Setzt Compilerschalter $DEFINE ZUGFeRD_Support in intf.XRechnung.pas voraus
+    //invAdditionalData enthaelt als Ergebnis die komplette ZUGFeRD-Rechnung fuer eigene
+    //Auswertungen
     //var invAdditionalData : TZUGFeRDAdditionalContent := TZUGFeRDAdditionalContent.Create;
     //try
     //  if not TXRechnungInvoiceAdapter.LoadFromFile(inv, od.FileName,error,invAdditionalData) then

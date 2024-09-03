@@ -25,11 +25,11 @@ interface
 
 //setzt ZUGFeRD-for-Delphi voraus
 //https://github.com/LandrixSoftware/ZUGFeRD-for-Delphi
-{$DEFINE ZUGFeRD_Support}
+{.$DEFINE ZUGFeRD_Support}
 
 uses
   System.SysUtils,System.Classes,System.Types
-  ,System.StrUtils,System.Generics.Collections
+  ,System.StrUtils,System.Generics.Collections,System.DateUtils
   ,Xml.XMLDoc,Xml.XMLIntf
   {$IFDEF ZUGFeRD_Support}
   ,intf.ZUGFeRDInvoiceDescriptor
@@ -1351,14 +1351,14 @@ begin
     if (_Invoice.PaymentTermsType in [iptt_None,iptt_Net]) then
     begin
       _Invoice.PaymentTermsType := iptt_CashDiscount1;
-      //TODO _Invoice.PaymentTermCashDiscount1Days :=
+      _Invoice.PaymentTermCashDiscount1Days := DaysBetween(_Invoice.InvoiceIssueDate,_InvoiceDescriptor.PaymentTermsList[i].DueDate);
       _Invoice.PaymentTermCashDiscount1Percent := _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.CalculationPercent;
       _Invoice.PaymentTermCashDiscount1Base := _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisAmount;
     end else
     if _Invoice.PaymentTermsType = iptt_CashDiscount1 then
     begin
       _Invoice.PaymentTermsType := iptt_CashDiscount2;
-      //TODO _Invoice.PaymentTermCashDiscount2Days :=
+      _Invoice.PaymentTermCashDiscount2Days := DaysBetween(_Invoice.InvoiceIssueDate,_InvoiceDescriptor.PaymentTermsList[i].DueDate);
       _Invoice.PaymentTermCashDiscount2Percent := _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.CalculationPercent;
       _Invoice.PaymentTermCashDiscount2Base := _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisAmount;
     end;

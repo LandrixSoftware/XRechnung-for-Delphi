@@ -295,8 +295,7 @@ begin
       if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//cac:Attachment',node) then
       begin
         if TXRechnungXMLHelper.FindNode(node,'.//cac:ExternalReference/cbc:URI') then
-          ExternalReference := TXRechnungXMLHelper.SelectNodeText(node,'.//cac:ExternalReference/cbc:URI')
-        else
+          ExternalReference := TXRechnungXMLHelper.SelectNodeText(node,'.//cac:ExternalReference/cbc:URI');
         if TXRechnungXMLHelper.SelectNode(node,'.//cbc:EmbeddedDocumentBinaryObject',node2) then
         begin
           AttachmentType := TXRechnungHelper.InvoiceAttachmentTypeFromStr(TXRechnungXMLHelper.SelectAttributeText(node2,'mimeCode'));
@@ -665,8 +664,7 @@ begin
         ID := TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//ram:IssuerAssignedID');
         DocumentDescription := TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//ram:Name');
         if TXRechnungXMLHelper.FindNode(nodes.item[i],'.//ram:URIID') then
-          ExternalReference := TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//ram:URIID')
-        else
+          ExternalReference := TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//ram:URIID');
         if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//ram:AttachmentBinaryObject',node) then
         begin
           AttachmentType := TXRechnungHelper.InvoiceAttachmentTypeFromStr(TXRechnungXMLHelper.SelectAttributeText(node,'mimeCode'));
@@ -1074,16 +1072,15 @@ begin
         AddChild('cbc:DocumentDescription').Text := _Invoice.Attachments[i].DocumentDescription;
       with AddChild('cac:Attachment') do
       begin
-        if _Invoice.Attachments[i].ExternalReference <> '' then
-        begin
-          AddChild('cac:ExternalReference').AddChild('cbc:URI').Text := _Invoice.Attachments[i].ExternalReference;
-        end else
+        if _Invoice.Attachments[i].ContainsBinaryObject then
         with AddChild('cbc:EmbeddedDocumentBinaryObject') do
         begin
           Attributes['mimeCode'] := TXRechnungHelper.InvoiceAttachmentTypeToStr(_Invoice.Attachments[i].AttachmentType);
           Attributes['filename'] := _Invoice.Attachments[i].Filename;
           Text := _Invoice.Attachments[i].GetDataAsBase64;
         end;
+        if _Invoice.Attachments[i].ExternalReference <> '' then
+          AddChild('cac:ExternalReference').AddChild('cbc:URI').Text := _Invoice.Attachments[i].ExternalReference;
       end;
     end;
   end;
@@ -1700,7 +1697,7 @@ begin
           AddChild('ram:TypeCode').Text := '916';
           if _Invoice.Attachments[i].DocumentDescription <> '' then
             AddChild('ram:Name').Text := _Invoice.Attachments[i].DocumentDescription;
-          if _Invoice.Attachments[i].ExternalReference = '' then
+          if _Invoice.Attachments[i].ContainsBinaryObject then
           with AddChild('ram:AttachmentBinaryObject') do
           begin
             Attributes['mimeCode'] := TXRechnungHelper.InvoiceAttachmentTypeToStr(_Invoice.Attachments[i].AttachmentType);

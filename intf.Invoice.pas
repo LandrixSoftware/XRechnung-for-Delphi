@@ -185,6 +185,7 @@ type
     procedure EmbedDataFromFile(const _Filename : String);
     function GetDataAsBase64 : String;
     procedure SetDataFromBase64(const _Val : String);
+    function ContainsBinaryObject : Boolean;
   end;
 
   TInvoiceAttachmentList = class(TObjectList<TInvoiceAttachment>)
@@ -786,6 +787,11 @@ begin
 end;
 
 { TInvoiceAttachment }
+
+function TInvoiceAttachment.ContainsBinaryObject: Boolean;
+begin
+  Result := Data.Size > 0;
+end;
 
 constructor TInvoiceAttachment.Create(_AttachmentType: TInvoiceAttachmentType);
 begin

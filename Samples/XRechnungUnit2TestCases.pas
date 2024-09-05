@@ -449,7 +449,8 @@ begin
     begin
       ID := 'attachment-external.pdf';
       Filename := 'attachment-external.pdf';
-      ExternalReference := 'http://meinserver.de/attachment-external.pdf'
+      ExternalReference := 'http://meinserver.de/attachment-external.pdf';
+      EmbedDataFromFile(ExtractFilePath(ExtractFileDir(ExtractFileDir(Application.ExeName))) +'attachment.pdf');
     end;
   end;
 

@@ -1,4 +1,4 @@
-﻿{
+{
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
 Version 3.0.1
@@ -418,7 +418,7 @@ begin
              QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
              ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml'))+
              ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\xr-pdf.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-.fo'))); // geändert von pdf auf fo
+             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-.fo'))); // geaendert von pdf auf fo
 
     cmd.SaveToFile(tmpFilename+'.bat',TEncoding.ANSI); //ToDo
     //cmd.SaveToFile(_InvoiceXMLFilename+'.bat');
@@ -433,7 +433,7 @@ begin
       exit;
 
     ////////////////////////////////////////////////////////////////////////////
-    // Fopper aufrufen. Datei ist eine fo Datei. Saxon HE gibt eine fo-Datei zurück!
+    // Fopper aufrufen. Datei ist eine fo Datei. Saxon HE gibt eine fo-Datei zurueck!
     // cmd Inhalt aus der apache-fop\foop\fop.bat ausgelesen mit echo "%JAVACMD%" %JAVAOPTS% %LOGCHOICE% %LOGLEVEL% -cp "%LOCALCLASSPATH%" %FOP_OPTS% org.apache.fop.cli.Main %FOP_CMD_LINE_ARGS%
     if FileExists(ChangeFileExt(tmpFilename,'-.fo')) then
     begin
@@ -591,7 +591,7 @@ begin
              QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
              ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-xr.xml'))+
              ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\xr-pdf.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-.fo'))); // geändert von pdf auf fo
+             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-.fo'))); // geaendert von pdf auf fo
 
     cmd.SaveToFile(_InvoiceXMLFilename+'.bat',TEncoding.ANSI); //ToDo
     //cmd.SaveToFile(_InvoiceXMLFilename+'.bat');
@@ -606,7 +606,7 @@ begin
       exit;
 
     ////////////////////////////////////////////////////////////////////////////
-    // Fopper aufrufen. Datei ist eine fo Datei. Saxon HE gibt eine fo-Datei zurück!
+    // Fopper aufrufen. Datei ist eine fo Datei. Saxon HE gibt eine fo-Datei zurueck!
     // cmd Inhalt aus der apache-fop\foop\fop.bat ausgelesen mit echo "%JAVACMD%" %JAVAOPTS% %LOGCHOICE% %LOGLEVEL% -cp "%LOCALCLASSPATH%" %FOP_OPTS% org.apache.fop.cli.Main %FOP_CMD_LINE_ARGS%
     if FileExists(ChangeFileExt(_InvoiceXMLFilename,'-.fo')) then
     begin

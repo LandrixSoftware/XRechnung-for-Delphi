@@ -1,4 +1,4 @@
-﻿{
+{
 License XRechnung-for-Delphi
 
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
@@ -37,34 +37,34 @@ type
   TInvoiceTypeCode = (
     itc_None,
 
-    ///TypeCode: 84 –
+    ///TypeCode: 84
     itc_DebitnoteRelatedToFinancialAdjustments, // 84 - nicht in XRechnung verwenden
 
-    ///TypeCode: 261 –
+    ///TypeCode: 261
     itc_SelfBilledCreditNote, // 261 - nicht in XRechnung verwenden
 
-    ///TypeCode: 326 – Teilrechnung (eigentlich: Teilschlussrechnung)
+    ///TypeCode: 326 Teilrechnung (eigentlich: Teilschlussrechnung)
     ///Die Teilrechnung ist eine normale Rechnung mit der eine oder
     ///mehrere erbrachte Leistungsposten abgerechnet werden. Dies ist
-    ///meisten der Fall bei längeren Projekten oder z.B. gestaffelten
+    ///meisten der Fall bei laengeren Projekten oder z.B. gestaffelten
     ///Warenlieferungen. Im Gegensatz zu einer Abschlagsrechnung, die
-    ///unabhängig von der bereits erbrachten Leistung ist, werden mit
-    ///einer Teilrechnung nur tatsächlich erbrachte Leistungen abgerechnet
-    ///mit allen damit verbundenen Gewährleistungspflichten.
+    ///unabhaengig von der bereits erbrachten Leistung ist, werden mit
+    ///einer Teilrechnung nur tatsaechlich erbrachte Leistungen abgerechnet
+    ///mit allen damit verbundenen Gewaehrleistungspflichten.
     itc_PartialInvoice, //326
 
-    ///TypeCode: 380 – Rechnung
-    ///Dieser Typ beschreibt den „Normalfall“ einer Waren- oder
-    ///Handelsrechnung und ist der gebräuchlichste Typ für die meisten
+    ///TypeCode: 380 Rechnung
+    ///Dieser Typ beschreibt den Normalfall einer Waren- oder
+    ///Handelsrechnung und ist der gebraeuchlichste Typ fuer die meisten
     ///Rechnungen.
     itc_CommercialInvoice, //380
 
     itc_DebitNote, // 383 Belastungsanzeige - nicht in XRechnung verwenden
 
-    ///TypeCode: 384 – Rechnungskorrektur
+    ///TypeCode: 384 Rechnungskorrektur
     ///Eine Rechnungskorrektur (oder auch Stornorechnung) wird erstellt,
     ///wenn eine Rechnung falsch erstellt wurde oder die Leistung nicht
-    ///vollständig oder mangelhaft erbracht wurde und damit der
+    ///vollstaendig oder mangelhaft erbracht wurde und damit der
     ///Rechnungsbetrag reduziert werden muss. Eine Rechnungskorrektur
     ///muss sich dabei immer auf eine bereits erstellte Rechnung beziehen.
     itc_CorrectedInvoice, //384
@@ -73,50 +73,50 @@ type
 
     itc_Cancellation, // 457 Storno - nicht in XRechnung verwenden
 
-    ///TypeCode: 389 – Selbstfakturierte Rechnung
+    ///TypeCode: 389 Selbstfakturierte Rechnung
     ///Eine selbstfakturierte Rechnung wird vom Kunden ausgestellt.
-    ///Der Lieferant erhält eine Rechnungskopie und die Zahlung von
+    ///Der Lieferant erhaelt eine Rechnungskopie und die Zahlung von
     ///dem Kunde.
-    ///Für die Abrechnung von Bauleistungen müssen gemäß §§ 14 und 16 VOB/B
+    ///Fuer die Abrechnung von Bauleistungen muessen gemaess Paragraph 14 und 16 VOB/B
     ///folgende Rechnungstypen verwendet werden.
     itc_SelfbilledInvoice,
 
-    ///TypeCode: 381 – Gutschrift
+    ///TypeCode: 381 Gutschrift
     ///Eine Gutschrift ist steuerrechtlich eine Rechnung, die -im Gegensatz
-    ///zur Rechnung- vom Leistungsempfänger ausgestellt wird. Nicht zu
+    ///zur Rechnung- vom Leistungsempfaenger ausgestellt wird. Nicht zu
     ///verwechseln ist die Gutschrift mit einer Rechnungskorrektur die
-    ///landläufig auch als „Gutschrift“ bezeichnet wird.
+    ///landlaeufig auch als Gutschrift bezeichnet wird.
     ///Die Gutschrift weist immer einen positiven Betrag aus.
     itc_CreditNote,
 
-    ///TypeCode: 875 – Abschlagsrechnung (Bauleistung)
-    ///Eine Abschlagsrechnung für Bauleistung. Eine Abschlagsrechnung
+    ///TypeCode: 875 Abschlagsrechnung (Bauleistung)
+    ///Eine Abschlagsrechnung fuer Bauleistung. Eine Abschlagsrechnung
     ///hat nicht dieselbe Verbindlichkeit wie eine Teilschluss- oder
     ///Schlussrechnung.
     itc_PartialConstructionInvoice,
 
-    ///Typecode: 876 – Teilschlussrechnung (Bauleistung)
+    ///Typecode: 876 Teilschlussrechnung (Bauleistung)
     ///Eine Teilschlussrechnung hat denselben Charakter wie eine
     ///Schlussrechnung. Mit einer Teilschlussrechnung werden bereits
     ///geleistet Arbeiten im Rahmen einer Teilabnahme abgerechnet.
     itc_PartialFinalConstructionInvoice,
 
-    ///TypeCode: 877 – Schlussrechnung (Bauleistung)
-    ///Grundlage für die Schlussrechnung ist die Fertigstellung und die
+    ///TypeCode: 877 Schlussrechnung (Bauleistung)
+    ///Grundlage fuer die Schlussrechnung ist die Fertigstellung und die
     ///Abnahme der vereinbarten Leistungen zzgl. etwaiger Nachforderungen.
     itc_FinalConstructionInvoice
   );
 
-  //TODO prüfen, ob es noch mehr gibt
+  //TODO pruefen, ob es noch mehr gibt
   //https://www.xrepository.de/details/urn:xoev-de:xrechnung:codeliste:untdid.4461_2
   TInvoicePaymentMeansCode = (
     ipmc_NotImplemented,
     ipmc_InstrumentNotDefined, //1  Keine Angaben
     ipmc_InCash,               //10 Barzahlung
     ipmc_Cheque,               //20 Scheck
-    ipmc_CreditTransfer,       //30 Überweisung - Ausland (nicht SEPA)
+    ipmc_CreditTransfer,       //30 Ueberweisung - Ausland (nicht SEPA)
     ipmc_CreditCard,           //54 Kreditkarte
-    ipmc_SEPACreditTransfer,   //58 Überweisung (SEPA)
+    ipmc_SEPACreditTransfer,   //58 Ueberweisung (SEPA)
     ipmc_SEPADirectDebit       //59 Lastschrift (SEPA)
   );
 
@@ -199,7 +199,7 @@ type
   end;
 
   //cbc:ChargeIndicator = false dann sind folgende Code erlaubt 41 42 60 62 63 64 65 66 67 68 70 71 88 95 100 102 103 104 105
-  //Keine anderen Codes in XRechnung möglich !!!
+  //Keine anderen Codes in XRechnung moeglich !!!
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:untdid.5189_3
   TInvoiceAllowanceOrChargeIdentCode = (
     iacic_None,
@@ -390,7 +390,7 @@ type
     TaxPercent : double; //MwSt
     TaxCategory : TInvoiceDutyTaxFeeCategoryCode; //MwSt-Einordnung
     GrossPriceAmount : Currency; //Brutto-Einzelpreis
-    DiscountOnTheGrossPrice : Currency; //Rabatt auf den Bruttopreis ergibt Nettopreis, nur ein Rabatt möglich wegen UBL, obwohl CII mehrere erlaubt
+    DiscountOnTheGrossPrice : Currency; //Rabatt auf den Bruttopreis ergibt Nettopreis, nur ein Rabatt moeglich wegen UBL, obwohl CII mehrere erlaubt
     NetPriceAmount : Currency; //Netto-Einzelpreis
     BaseQuantity : double; //Preiseinheit
     BaseQuantityUnitCode : TInvoiceUnitCode; //Preiseinheit Mengeneinheit
@@ -445,7 +445,7 @@ type
     Address : TInvoiceAddress;
 
     IdentifierSellerBuyer : String; //Kreditor-Nr AccountingSupplierParty / Debitor-Nr AccountingCustomerParty
-    BankAssignedCreditorIdentifier : String; //Gläubiger-ID (BT-90)
+    BankAssignedCreditorIdentifier : String; //Glaeubiger-ID (BT-90)
 
     VATCompanyID : String;   //BT-31
     VATCompanyNumber: String;//BT-32
@@ -453,7 +453,7 @@ type
     ContactName : String;
     ContactTelephone : String;
     ContactElectronicMail : String;
-    AdditionalLegalInformationSeller : String; //BT-33 Weitere rechtliche Informationen zum Verkäufer
+    AdditionalLegalInformationSeller : String; //BT-33 Weitere rechtliche Informationen zum Verkaeufer
     ElectronicAddressSellerBuyer : String; //BT-34, BT-49 Pflicht
   end;
 
@@ -485,6 +485,7 @@ type
   TInvoiceNotes = class(TObjectList<TInvoiceNote>)
   public
     function AddNote: TInvoiceNote;
+    function NodeContentsAsText : String;
   end;
 
   TInvoice = class(TObject)
@@ -503,19 +504,19 @@ type
     PurchaseOrderReference : String; //Bestellnummer oder Vertragsnummer des Kaeufers
     ProjectReference : String;
     ContractDocumentReference : String;
-    DeliveryReceiptNumber : String; //Lieferscheinnummer (Lieferscheindatum fehlt und würde nur in ZUGFeRD unterstützt)
+    DeliveryReceiptNumber : String; //Lieferscheinnummer (Lieferscheindatum fehlt und wuerde nur in ZUGFeRD unterstuetzt)
 
     AccountingSupplierParty : TInvoiceAccountingParty;
     AccountingCustomerParty : TInvoiceAccountingParty;
     DeliveryInformation : TInvoiceDeliveryInformation;
 
     //TODO weitere Zahlungswege, als Liste
-    //TODO Auch 0 prüfen
+    //TODO Auch 0 pruefen
     PaymentMeansCode : TInvoicePaymentMeansCode;
     PaymentID : String; //Verwendungszweck der Ueberweisung/Lastschrift
-    PaymentFinancialAccount : String; //sowohl Payee (Überweisung 58) als auch Payer (Lastschrift 59)
-    PaymentFinancialAccountName : String; //sowohl Payee (Überweisung 58) als auch Payer (Lastschrift 59)
-    PaymentFinancialInstitutionBranch : String; //BIC sowohl Payee (Überweisung 58) als auch Payer (Lastschrift 59)
+    PaymentFinancialAccount : String; //sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59)
+    PaymentFinancialAccountName : String; //sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59)
+    PaymentFinancialInstitutionBranch : String; //BIC sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59)
     PaymentMandateID : String; //Lastschrift (59) Mandatsreferenz BT-89
 
     //Infos unter
@@ -632,6 +633,19 @@ function TInvoiceNotes.AddNote: TInvoiceNote;
 begin
   Result := TInvoiceNote.Create;
   Add(Result);
+end;
+
+function TInvoiceNotes.NodeContentsAsText: String;
+var
+  i : Integer;
+begin
+  Result := '';
+  for i := 0 to Count-1 do
+  begin
+    Result := Result + Items[i].Content;
+    if i < Count-1 then
+      Result := Result + #13#10;
+  end;
 end;
 
 { TInvoiceLine }

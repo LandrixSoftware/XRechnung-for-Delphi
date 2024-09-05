@@ -1,4 +1,4 @@
-﻿{
+{
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
 Version 3.0.1
@@ -49,19 +49,19 @@ begin
   //https://www.comarch.de/produkte/datenaustausch-und-dokumentenmanagement/altteilsteuer-in-der-xrechnung/
   inv.InvoiceNumber := 'R2020-0815';
   inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Fälligkeitsdatum
+  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
   inv.InvoicePeriodStartDate := Date-30;
   inv.InvoicePeriodEndDate := Date-1;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
   inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
-  inv.Notes.AddNote.Content := 'Rechnung enthält 100 EUR (Umsatz)Steuer auf Altteile gem. Abschn. 10.5 Abs. 3 UStAE';
+  inv.Notes.AddNote.Content := 'Rechnung enthaelt 100 EUR (Umsatz)Steuer auf Altteile gem. Abschn. 10.5 Abs. 3 UStAE';
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
-  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
-  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstraße 1';
+  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
   inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
   inv.AccountingSupplierParty.Address.PostalZone := '01234';
   inv.AccountingSupplierParty.Address.CountryCode := 'DE';
@@ -70,22 +70,22 @@ begin
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
   inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
-  //BT-34 Gibt die elektronische Adresse des Verkäufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
+  //BT-34 Gibt die elektronische Adresse des Verkaeufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
   //Aktuell nur Unterstuetzung fuer schemeID=EM ElectronicMail
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
   inv.AccountingCustomerParty.Name := 'Kaeufername';
-  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
-  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstraße 1';
+  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
   inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
-  inv.AccountingCustomerParty.ContactName := 'Müller';
+  inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
@@ -192,23 +192,23 @@ class procedure TInvoiceTestCases.Differenzbesteuerung(inv: TInvoice);
 var
   suc : Boolean;
 begin
-  //Das Beispiel für eine Differenzbesteuerung ist ein Vorschlag und wurde offiziell nicht validiert.
+  //Das Beispiel fuer eine Differenzbesteuerung ist ein Vorschlag und wurde offiziell nicht validiert.
   //https://www.comarch.de/produkte/datenaustausch-und-dokumentenmanagement/altteilsteuer-in-der-xrechnung/
   inv.InvoiceNumber := 'R2020-0815';
   inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Fälligkeitsdatum
+  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
   inv.InvoicePeriodStartDate := Date-30;
   inv.InvoicePeriodEndDate := Date-1;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
   inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
-  inv.Notes.AddNote.Content := 'Das Fahrzeug/der Artikel ist differenzbesteuert nach §25a UStG Sonderregelung für Gebrauchtgegenstände';
+  inv.Notes.AddNote.Content := 'Das Fahrzeug/der Artikel ist differenzbesteuert nach Paragraph 25a UStG Sonderregelung fuer Gebrauchtgegenstaende';
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
-  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
-  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstraße 1';
+  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
   inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
   inv.AccountingSupplierParty.Address.PostalZone := '01234';
   inv.AccountingSupplierParty.Address.CountryCode := 'DE';
@@ -217,22 +217,22 @@ begin
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
   inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
-  //BT-34 Gibt die elektronische Adresse des Verkäufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
+  //BT-34 Gibt die elektronische Adresse des Verkaeufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
   //Aktuell nur Unterstuetzung fuer schemeID=EM ElectronicMail
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
   inv.AccountingCustomerParty.Name := 'Kaeufername';
-  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
-  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstraße 1';
+  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
   inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
-  inv.AccountingCustomerParty.ContactName := 'Müller';
+  inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
@@ -292,7 +292,7 @@ var
 begin
   inv.InvoiceNumber := 'R2020-0815';
   inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Fälligkeitsdatum
+  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
   inv.InvoicePeriodStartDate := Date-30; //Leistungs-/Lieferzeitpunkt Beginn
   inv.InvoicePeriodEndDate := Date-1;    //Leistungs-/Lieferzeitpunkt Ende
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
@@ -308,7 +308,7 @@ begin
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
-  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstraße 1';
+  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
   inv.AccountingSupplierParty.Address.AdditionalStreetName := 'Hinterhaus'; //optional
   inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
   inv.AccountingSupplierParty.Address.PostalZone := '01234';
@@ -320,35 +320,35 @@ begin
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
   inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
-  //BT-34 Gibt die elektronische Adresse des Verkäufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
+  //BT-34 Gibt die elektronische Adresse des Verkaeufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
   //Aktuell nur Unterstuetzung fuer schemeID=EM ElectronicMail
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
   inv.AccountingCustomerParty.Name := 'Kaeufername';
-  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
-  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstraße 1';
+  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
   inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
-  inv.AccountingCustomerParty.ContactName := 'Müller';
+  inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
-  //Eine Gruppe von Informationselementen, die Informationen über die Anschrift liefern, an die
+  //Eine Gruppe von Informationselementen, die Informationen ueber die Anschrift liefern, an die
   //die Waren geliefert oder an der die Dienstleistungen erbracht werden. Die Gruppe ist nur zu
   //verwenden, wenn die Lieferanschrift von der Erwerberanschrift abweicht. Wenn die Waren
-  //abgeholt werden, ist die Abholadresse die Lieferadresse. Eine vollständige gültige Anschrift
+  //abgeholt werden, ist die Abholadresse die Lieferadresse. Eine vollstaendige gueltige Anschrift
   //ist anzugeben.
   if LieferanschriftAusgeben then
   begin
     inv.DeliveryInformation.Name := 'Firma die es bekommt';
-    inv.DeliveryInformation.Address.StreetName := 'Lieferstraße 1';
+    inv.DeliveryInformation.Address.StreetName := 'Lieferstrasse 1';
     inv.DeliveryInformation.Address.City := 'Lieferstadt';
     inv.DeliveryInformation.Address.PostalZone := '05678';
     inv.DeliveryInformation.Address.CountryCode := 'DE';
@@ -389,12 +389,12 @@ begin
       inv.PaymentTermsType := iptt_None;
   end;
 
-  // Der Dateiname des angehängten Dokuments muss innerhalb einer
+  // Der Dateiname des angehaengten Dokuments muss innerhalb einer
   //Rechnung eindeutig sein (nicht case-sensitiv). Die Dateinamenserweiterung (extension), in der meist der Typ der
   //Datei angegeben wird, ist dabei Teil des Dateinamens und wird bei der Bestimmung der Eindeutigkeit einbezogen.
 
-  //Sofern das Binärobjekt vom Typ XML ist, darf das angehängte XML keine Elemente beinhalten, welche
-  //wiederum ein eigenständiges XML-Dokument beinhaltet. Rechnungssteller und Rechnungsempfänger sollten sich
+  //Sofern das Binaerobjekt vom Typ XML ist, darf das angehaengte XML keine Elemente beinhalten, welche
+  //wiederum ein eigenstaendiges XML-Dokument beinhaltet. Rechnungssteller und Rechnungsempfaenger sollten sich
   //zur Sicherstellung der Verarbeitung bzgl. des zu nutzenden XML vorab abstimmen.
   if AnhaengeVerwenden then
   begin
@@ -517,7 +517,7 @@ begin
     end;
   end;
 
-  //Nachlaesse oder Zuschläge zur Rechnung generieren
+  //Nachlaesse oder Zuschlaege zur Rechnung generieren
   if NachlaesseZuschlaegeVerwenden then
   begin
     with inv.AllowanceCharges.AddAllowanceCharge do
@@ -526,7 +526,7 @@ begin
 
       //41 Bonus for works ahead of schedule - Bonus fuer fruehzeitig erfuellte Aufgaben
       //42 Other bonus - sonstiger Bonus
-      //60 Manufacturer’s consumer discount - Verbrauchernachlass des Herstellers
+      //60 Manufacturer s consumer discount - Verbrauchernachlass des Herstellers
       //62 Due to military status - Wegen militaerischem Status
       //63 Due to work accident - Wegen Arbeitsunfall
       //64 Special agreement - Sondervereinbarung
@@ -594,7 +594,7 @@ begin
   inv.PrepaidAmount := 0; //Anzahlungen
   inv.PayableAmount := 226.00;      //Summe Zahlbar MwSt
 
-  //Wenn Nachlässe oder Zuschläge zur Rechnung vorhanden sind
+  //Wenn Nachlaesse oder Zuschlaege zur Rechnung vorhanden sind
   //Rechnungssummen anpassen
   if NachlaesseZuschlaegeVerwenden then
   begin
@@ -610,10 +610,10 @@ begin
   end;
 
   //Abschlagszahlungen abziehen
-  //Hinweise: Evtl könnte man noch die Abschlagsrechnungen als Anhang anhängen
+  //Hinweise: Evtl koennte man noch die Abschlagsrechnungen als Anhang anhaengen
   if AbschlagsrechnungAbziehen then
   begin
-    //Im CII-ZUGFeRD-Format ist hier nur maximal eine Referenz möglich
+    //Im CII-ZUGFeRD-Format ist hier nur maximal eine Referenz moeglich
     with inv.PrecedingInvoiceReferences.AddPrecedingInvoiceReference do
     begin
       ID := 'R2020-0001';
@@ -632,7 +632,7 @@ var
 begin
   inv.InvoiceNumber := 'R2020-0815';
   inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Fälligkeitsdatum
+  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
   inv.InvoicePeriodStartDate := Date-30;
   inv.InvoicePeriodEndDate := Date-1;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CreditNote; //Gutschrift
@@ -641,9 +641,9 @@ begin
   inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
-  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
-  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstraße 1';
+  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
   inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
   inv.AccountingSupplierParty.Address.PostalZone := '01234';
   inv.AccountingSupplierParty.Address.CountryCode := 'DE';
@@ -652,8 +652,8 @@ begin
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
   inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
-  inv.AccountingSupplierParty.AdditionalLegalInformationSeller := 'Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemäß § 19 UStG';
-  //BT-34 Gibt die elektronische Adresse des Verkäufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
+  inv.AccountingSupplierParty.AdditionalLegalInformationSeller := 'Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemaess Paragraph 19 UStG';
+  //BT-34 Gibt die elektronische Adresse des Verkaeufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
   //Aktuell nur Unterstuetzung fuer schemeID=EM ElectronicMail
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
@@ -661,15 +661,15 @@ begin
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
   inv.AccountingCustomerParty.Name := 'Kaeufername';
-  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
-  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstraße 1';
+  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
   inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
-  inv.AccountingCustomerParty.ContactName := 'Müller';
+  inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
@@ -703,7 +703,7 @@ begin
   SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
   inv.TaxAmountSubtotals[0].TaxPercent := 0.0;
   inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
-  inv.TaxAmountSubtotals[0].TaxExemptionReason := 'Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemäß § 19 UStG';
+  inv.TaxAmountSubtotals[0].TaxExemptionReason := 'Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemaess Paragraph 19 UStG';
   inv.TaxAmountSubtotals[0].TaxableAmount := 500.00;
   inv.TaxAmountSubtotals[0].TaxAmount     := 00.00;
 
@@ -723,7 +723,7 @@ var
 begin
   inv.InvoiceNumber := 'R2020-0815';
   inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Fälligkeitsdatum
+  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
   inv.InvoicePeriodStartDate := Date-30;
   inv.InvoicePeriodEndDate := Date-1;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
@@ -732,9 +732,9 @@ begin
   inv.BuyerReference := TInvoiceEmptyLeitwegID.NON_EXISTENT; //B2B ohne Leitweg-ID
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
-  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
-  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstraße 1';
+  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
   inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
   inv.AccountingSupplierParty.Address.PostalZone := '01234';
   inv.AccountingSupplierParty.Address.CountryCode := 'DE';
@@ -743,8 +743,8 @@ begin
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
   inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
-  inv.AccountingSupplierParty.AdditionalLegalInformationSeller := 'Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemäß § 19 UStG';
-  //BT-34 Gibt die elektronische Adresse des Verkäufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
+  inv.AccountingSupplierParty.AdditionalLegalInformationSeller := 'Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemaess Paragraph 19 UStG';
+  //BT-34 Gibt die elektronische Adresse des Verkaeufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
   //Aktuell nur Unterstuetzung fuer schemeID=EM ElectronicMail
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
@@ -752,21 +752,21 @@ begin
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
   inv.AccountingCustomerParty.Name := 'Kaeufername';
-  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
-  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstraße 1';
+  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'AT';
   inv.AccountingCustomerParty.VATCompanyID := 'AT12345678';
 //  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
-  inv.AccountingCustomerParty.ContactName := 'Müller';
+  inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.at';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.at'; //BT-49
 
   inv.DeliveryInformation.Name := 'Firma die es bekommt';
-  inv.DeliveryInformation.Address.StreetName := 'Lieferstraße 1';
+  inv.DeliveryInformation.Address.StreetName := 'Lieferstrasse 1';
   inv.DeliveryInformation.Address.City := 'Lieferstadt';
   inv.DeliveryInformation.Address.PostalZone := '05678';
   inv.DeliveryInformation.Address.CountryCode := 'AT';
@@ -820,7 +820,7 @@ var
 begin
   inv.InvoiceNumber := 'R2020-0815';
   inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Fälligkeitsdatum
+  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
   inv.InvoicePeriodStartDate := Date-30;
   inv.InvoicePeriodEndDate := Date-1;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
@@ -829,9 +829,9 @@ begin
   inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
-  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
-  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstraße 1';
+  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
   inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
   inv.AccountingSupplierParty.Address.PostalZone := '01234';
   inv.AccountingSupplierParty.Address.CountryCode := 'DE';
@@ -840,8 +840,8 @@ begin
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
   inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
-  inv.AccountingSupplierParty.AdditionalLegalInformationSeller := 'Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemäß § 19 UStG';
-  //BT-34 Gibt die elektronische Adresse des Verkäufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
+  inv.AccountingSupplierParty.AdditionalLegalInformationSeller := 'Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemaess Paragraph 19 UStG';
+  //BT-34 Gibt die elektronische Adresse des Verkaeufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
   //Aktuell nur Unterstuetzung fuer schemeID=EM ElectronicMail
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
@@ -849,15 +849,15 @@ begin
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
   inv.AccountingCustomerParty.Name := 'Kaeufername';
-  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
-  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstraße 1';
+  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
   inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
-  inv.AccountingCustomerParty.ContactName := 'Müller';
+  inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
@@ -891,7 +891,7 @@ begin
   SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
   inv.TaxAmountSubtotals[0].TaxPercent := 0.0;
   inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
-  inv.TaxAmountSubtotals[0].TaxExemptionReason := 'Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemäß § 19 UStG';
+  inv.TaxAmountSubtotals[0].TaxExemptionReason := 'Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemaess Paragraph 19 UStG';
   inv.TaxAmountSubtotals[0].TaxableAmount := 5000.00;
   inv.TaxAmountSubtotals[0].TaxAmount     := 00.00;
 
@@ -910,7 +910,7 @@ var
 begin
   inv.InvoiceNumber := 'R2020-0815';
   inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Fälligkeitsdatum
+  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
   inv.InvoicePeriodStartDate := Date-30;
   inv.InvoicePeriodEndDate := Date-1;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
@@ -919,9 +919,9 @@ begin
   inv.BuyerReference := TInvoiceEmptyLeitwegID.NON_EXISTENT; //B2B ohne Leitweg-ID
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
-  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
-  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstraße 1';
+  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
   inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
   inv.AccountingSupplierParty.Address.PostalZone := '01234';
   inv.AccountingSupplierParty.Address.CountryCode := 'DE';
@@ -930,16 +930,16 @@ begin
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
   inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
-  //BT-34 Gibt die elektronische Adresse des Verkäufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
+  //BT-34 Gibt die elektronische Adresse des Verkaeufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
   //Aktuell nur Unterstuetzung fuer schemeID=EM ElectronicMail
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
   inv.AccountingCustomerParty.Name := 'Kaeufername';
-  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
-  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstraße 1';
+  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
@@ -951,7 +951,7 @@ begin
   inv.PaymentID := 'Verwendungszweck der Lastschrift...R2020-0815';
   inv.PaymentFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
   inv.PaymentMandateID := 'MANDATID'; //Mandats-ID
-  inv.AccountingSupplierParty.BankAssignedCreditorIdentifier := '111111'; //Gläubiger-ID
+  inv.AccountingSupplierParty.BankAssignedCreditorIdentifier := '111111'; //Glaeubiger-ID
 
   inv.PaymentTermsType := iptt_None;
 
@@ -995,7 +995,7 @@ var
 begin
   inv.InvoiceNumber := 'R2020-0815';
   inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Fälligkeitsdatum
+  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
   inv.InvoicePeriodStartDate := Date-30;
   inv.InvoicePeriodEndDate := Date-1;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
@@ -1004,9 +1004,9 @@ begin
   inv.BuyerReference := TInvoiceEmptyLeitwegID.NON_EXISTENT; //B2B ohne Leitweg-ID
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
-  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
-  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstraße 1';
+  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
   inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
   inv.AccountingSupplierParty.Address.PostalZone := '01234';
   inv.AccountingSupplierParty.Address.CountryCode := 'DE';
@@ -1015,16 +1015,16 @@ begin
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
   inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
-  //BT-34 Gibt die elektronische Adresse des Verkäufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
+  //BT-34 Gibt die elektronische Adresse des Verkaeufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
   //Aktuell nur Unterstuetzung fuer schemeID=EM ElectronicMail
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
   inv.AccountingCustomerParty.Name := 'Kaeufername';
-  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
-  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstraße 1';
+  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
@@ -1075,7 +1075,7 @@ var
 begin
   inv.InvoiceNumber := 'R2020-0815';
   inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Fälligkeitsdatum
+  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
   inv.InvoicePeriodStartDate := Date-30;
   inv.InvoicePeriodEndDate := Date-1;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
@@ -1085,9 +1085,9 @@ begin
   inv.Notes.AddNote.Content := 'keine';
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
-  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
-  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstraße 1';
+  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
   inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
   inv.AccountingSupplierParty.Address.PostalZone := '01234';
   inv.AccountingSupplierParty.Address.CountryCode := 'DE';
@@ -1096,7 +1096,7 @@ begin
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
   inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
-  //BT-34 Gibt die elektronische Adresse des Verkäufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
+  //BT-34 Gibt die elektronische Adresse des Verkaeufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
   //Aktuell nur Unterstuetzung fuer schemeID=EM ElectronicMail
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
@@ -1104,15 +1104,15 @@ begin
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
   inv.AccountingCustomerParty.Name := 'Kaeufername';
-  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
-  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstraße 1';
+  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
   inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
-  inv.AccountingCustomerParty.ContactName := 'Müller';
+  inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
@@ -1148,7 +1148,7 @@ begin
   SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Satz
   inv.TaxAmountSubtotals[0].TaxPercent := 0;
   inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_AE_VATReverseCharge;
-  inv.TaxAmountSubtotals[0].TaxExemptionReason := 'Hiermit erlaube ich mir folgende Rechnung für Bauleistungen zu stellen. Die Umsatzsteuer für diese Leistung schuldet nach §13b UStG der Leistungsempfänger.';
+  inv.TaxAmountSubtotals[0].TaxExemptionReason := 'Hiermit erlaube ich mir folgende Rechnung fuer Bauleistungen zu stellen. Die Umsatzsteuer fuer diese Leistung schuldet nach Paragraph 13b UStG der Leistungsempfaenger.';
   inv.TaxAmountSubtotals[0].TaxableAmount := 200.0;
   inv.TaxAmountSubtotals[0].TaxAmount := 0.0;
 
@@ -1167,7 +1167,7 @@ var
 begin
   inv.InvoiceNumber := 'R2020-0815';
   inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Fälligkeitsdatum
+  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
   inv.InvoicePeriodStartDate := Date-30;
   inv.InvoicePeriodEndDate := Date-1;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
@@ -1176,9 +1176,9 @@ begin
   inv.BuyerReference := TInvoiceEmptyLeitwegID.NON_EXISTENT; //B2B ohne Leitweg-ID
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
-  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
-  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstraße 1';
+  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
   inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
   inv.AccountingSupplierParty.Address.PostalZone := '01234';
   inv.AccountingSupplierParty.Address.CountryCode := 'DE';
@@ -1187,16 +1187,16 @@ begin
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
   inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
-  //BT-34 Gibt die elektronische Adresse des Verkäufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
+  //BT-34 Gibt die elektronische Adresse des Verkaeufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
   //Aktuell nur Unterstuetzung fuer schemeID=EM ElectronicMail
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
   inv.AccountingCustomerParty.Name := 'Kaeufername';
-  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
-  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstraße 1';
+  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
@@ -1250,7 +1250,7 @@ begin
 
   inv.InvoiceNumber := 'R2020-0815';
   inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Fälligkeitsdatum
+  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
   inv.InvoicePeriodStartDate := Date-30;
   inv.InvoicePeriodEndDate := Date-1;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
@@ -1260,9 +1260,9 @@ begin
   inv.Notes.AddNote.Content := 'keine';
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
-  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
-  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstraße 1';
+  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
   inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
   inv.AccountingSupplierParty.Address.PostalZone := '01234';
   inv.AccountingSupplierParty.Address.CountryCode := 'DE';
@@ -1271,22 +1271,22 @@ begin
   inv.AccountingSupplierParty.ContactName := 'Meier';
   inv.AccountingSupplierParty.ContactTelephone := '030 0815';
   inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
-  //BT-34 Gibt die elektronische Adresse des Verkäufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
+  //BT-34 Gibt die elektronische Adresse des Verkaeufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
   //Aktuell nur Unterstuetzung fuer schemeID=EM ElectronicMail
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
   inv.AccountingCustomerParty.Name := 'Kaeufername';
-  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefüllt werden
+  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
-  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstraße 1';
+  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
   inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
-  inv.AccountingCustomerParty.ContactName := 'Müller';
+  inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49

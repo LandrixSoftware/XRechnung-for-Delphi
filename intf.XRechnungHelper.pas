@@ -1,4 +1,4 @@
-﻿{
+{
 License XRechnung-for-Delphi
 
 Copyright (C) 2024 Landrix Software GmbH & Co. KG

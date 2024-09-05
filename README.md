@@ -71,7 +71,7 @@ TXRechnungInvoiceAdapter.ConsistencyCheck(_Invoice : TInvoice; _Version : TXRech
 ## Weitere Informationen zu XRechnung
 
 - UBL-Format
-     https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice
+  https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice
 
 - CII-Format
   https://portal3.gefeg.com/invoice/tthome/index/617afdc4-623f-44e0-a05b-5b878840e508

@@ -1,4 +1,4 @@
-﻿{
+{
 License XRechnung-for-Delphi
 
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
@@ -118,6 +118,7 @@ type
     SpecifiedLogisticsServiceChargeFound : Boolean;
     constructor Create;
     destructor Destroy; override;
+    procedure Clear;
   end;
   {$ENDIF}
 
@@ -216,7 +217,7 @@ class function TXRechnungInvoiceAdapter.ConsistencyCheck(_Invoice: TInvoice;
 begin
   Result := true;
 
-  //Beide Felder sind in UBL nicht möglich
+  //Beide Felder sind in UBL nicht moeglich
   if (_Version in [TXRechnungVersion.XRechnungVersion_230_UBL,
                    TXRechnungVersion.XRechnungVersion_30x_UBL]) then
   if (_Invoice.PurchaseOrderReference <> '') and
@@ -226,7 +227,7 @@ begin
     exit;
   end;
 
-  //In XRechnung nicht unterstützte Rechnungsarten
+  //In XRechnung nicht unterstuetzte Rechnungsarten
   if (_Version in [TXRechnungVersion.XRechnungVersion_230_UBL,
                    TXRechnungVersion.XRechnungVersion_230_UNCEFACT,
                    TXRechnungVersion.XRechnungVersion_30x_UBL,
@@ -1054,7 +1055,7 @@ end;
 ////        flk.OwnerDocument.LoadFromXML(XMLDoc.FormatXMLData(flk.OwnerDocument.XML.Text));
 ////        flk.OwnerDocument.SaveToFile(FileName);
 //        //raise Exception.Create(ExtractFileName(xml_file) +
-//        //                       ' не соответствует своей XSD схеме ' + ExtractFileName(xsd_file) + #13#10 + s);
+//        //  ExtractFileName(xsd_file) + #13#10 + s);
 //    end else
 //      Result := true;
 //    FXMLParserError:= nil;
@@ -1338,7 +1339,7 @@ begin
   _Invoice.PaymentTermsType := iptt_None;
   for i := 0 to _InvoiceDescriptor.PaymentTermsList.Count-1 do
   begin
-    if _InvoiceDescriptor.PaymentTermsList[i].DirectDebitMandateID <> '' then //Könnte Probleme bei mehrere Einträgen der Art geben
+    if _InvoiceDescriptor.PaymentTermsList[i].DirectDebitMandateID <> '' then //Koennte Probleme bei mehrere Eintraegen der Art geben
       _Invoice.PaymentMandateID := _InvoiceDescriptor.PaymentTermsList[i].DirectDebitMandateID;
     if (_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.CalculationPercent = 0) and
        (_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisAmount = 0) then
@@ -1401,10 +1402,10 @@ begin
     lInvoiceLine.GrossPriceAmount := _InvoiceDescriptor.TradeLineItems[i].GrossUnitPrice.GetValueOrDefault(0);
     for j := 0 to _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges.Count-1 do
     begin
-      //wegen XRechnung UBL nur ein Item möglich mit ChargeIndicator = false
+      //wegen XRechnung UBL nur ein Item moeglich mit ChargeIndicator = false
       //weitere Felder aus TradeAllowanceCharge werden nach lInvoiceLine.AllowanceCharges
       //transferiert
-      //z.B. liefern manche Lieferanten Rohstoffzuschläge an dieser Stelle
+      //z.B. liefern manche Lieferanten Rohstoffzuschlaege an dieser Stelle
       if (_InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ChargeIndicator = false) and firstDiscount then
       begin
         firstDiscount := false;
@@ -1680,11 +1681,17 @@ end;
 
 { TZUGFeRDAdditionalContent }
 
+procedure TZUGFeRDAdditionalContent.Clear;
+begin
+  if Assigned(ZUGFeRDInvoice) then begin ZUGFeRDInvoice.Free; ZUGFeRDInvoice := nil; end;
+  InvoiceeTradePartyFound := false;
+  SpecifiedLogisticsServiceChargeFound := false;
+end;
+
 constructor TZUGFeRDAdditionalContent.Create;
 begin
   ZUGFeRDInvoice := nil;
-  InvoiceeTradePartyFound := false;
-  SpecifiedLogisticsServiceChargeFound := false;
+  Clear;
 end;
 
 destructor TZUGFeRDAdditionalContent.Destroy;

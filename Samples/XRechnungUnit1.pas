@@ -1,4 +1,4 @@
-﻿{
+{
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
 Version 3.0.1
@@ -123,7 +123,7 @@ begin
   WebBrowser2.Align := alClient;
   TabSheet2.TabVisible := false;
   TabSheet3.TabVisible := false;
-  MessageDlg('Für vollen Browsersupport bitte Edge nutzen: USE_EDGE_BROWSER', mtWarning, [mbOK], 0);
+  MessageDlg('Fuer vollen Browsersupport bitte Edge nutzen: USE_EDGE_BROWSER', mtWarning, [mbOK], 0);
   {$ELSE}
   if not FileExists(ExtractFilePath(Application.ExeName)+'WebView2Loader.dll') then
     MessageDlg('WebView2Loader.dll nicht gefunden, Edge-Browser nicht nutzbar!', mtError, [mbOK], 0);
@@ -178,7 +178,7 @@ begin
       end;
     end;
 
-    //Lesen von zusaätzlichen ZUGFeRD-Daten, die nicht im XRechnungs-Profil enthalten sind
+    //Lesen von zusaetzlichen ZUGFeRD-Daten, die nicht im XRechnungs-Profil enthalten sind
     //Setzt Compilerschalter $DEFINE ZUGFeRD_Support in intf.XRechnung.pas voraus
     //invAdditionalData enthaelt als Ergebnis die komplette ZUGFeRD-Rechnung fuer eigene
     //Auswertungen
@@ -330,7 +330,7 @@ begin
   try
     case ListBox1.ItemIndex of
       0 : TInvoiceTestCases.Kleinunternehmerregelung(inv);//Kleinunternehmerregelung
-      1 : TInvoiceTestCases.Paragr13b(inv);//§13b UStG
+      1 : TInvoiceTestCases.Paragr13b(inv);//Paragr13b UStG
       2 : TInvoiceTestCases.Austauschteilesteuer(inv);//Austauschteilesteuer
       3 : TInvoiceTestCases.Differenzbesteuerung(inv);//Differenzbesteuerung
       4 : TInvoiceTestCases.TitelPositionsgruppen(inv);//Titel/Positionsgruppen
@@ -373,7 +373,7 @@ begin
 
   if not TXRechnungInvoiceAdapter.ConsistencyCheck(inv,version) then
   begin
-    MessageDlg('Die Rechnung enthält für das XRechnung-Format ungültige Werte', mtError, [mbOK], 0);
+    MessageDlg('Die Rechnung enthaelt fuer das XRechnung-Format ungueltige Werte', mtError, [mbOK], 0);
     exit;
   end;
 

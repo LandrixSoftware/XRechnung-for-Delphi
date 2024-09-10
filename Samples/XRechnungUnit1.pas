@@ -238,9 +238,6 @@ begin
     TInvoiceTestCases.Gesamtbeispiel(inv,rbPaymentTerms.ItemIndex,
                           cbAllowanceCharges.Checked,cbPrepaidAmount.Checked,
                           cbAttachments.Checked,cbDeliveriyInf.Checked);
-    if (inv.DeliveryReceiptNumber <> '') and
-       (rbFormat.ItemIndex = 1) then
-      ShowMessage('inv.DeliveryReceiptNumber / Lieferscheinnummer ist im ZUGFeRD Format XRechnung nicht vorgesehen');
 
     Generate(inv);
 

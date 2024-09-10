@@ -718,7 +718,7 @@ begin
       if TXRechnungXMLHelper.SelectNode(node3,'.//udt:DateTimeString',node) then
         _Invoice.DeliveryInformation.ActualDeliveryDate := TXRechnungHelper.DateFromStrUNCEFACTFormat(node.Text);
 
-      if TXRechnungXMLHelper.SelectNode(nodeApplicableHeaderTradeAgreement,'.//ram:DeliveryNoteReferencedDocument',node2) then
+      if TXRechnungXMLHelper.SelectNode(nodeApplicableHeaderTradeAgreement,'.//ram:DespatchAdviceReferencedDocument',node2) then
       if TXRechnungXMLHelper.SelectNode(node2,'.//ram:IssuerAssignedID',node3) then
         _Invoice.DeliveryReceiptNumber := Node3.text;
     end;
@@ -1495,9 +1495,9 @@ var
         with AddChild('ram:AppliedTradeAllowanceCharge') do
         begin
           AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := 'false';
-          //<ram:CalculationPercent>45</ram:CalculationPercent> nicht mï¿½glich bei UBL
+          //<ram:CalculationPercent>45</ram:CalculationPercent> nicht möglich bei UBL
           AddChild('ram:ActualAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoiceline.DiscountOnTheGrossPrice);
-          //<ram:Reason>Rabatt1</ram:Reason> nicht mï¿½glich bei UBL
+          //<ram:Reason>Rabatt1</ram:Reason> nicht möglich bei UBL
         end;
       end;
       with AddChild('ram:NetPriceProductTradePrice') do
@@ -1773,7 +1773,7 @@ begin
         Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.DeliveryInformation.ActualDeliveryDate);
       end;
       if _Invoice.DeliveryReceiptNumber <> '' then
-      with AddChild('ram:DeliveryNoteReferencedDocument')
+      with AddChild('ram:DespatchAdviceReferencedDocument')
            .AddChild('ram:IssuerAssignedID') do
       begin
         Text := _Invoice.DeliveryReceiptNumber;

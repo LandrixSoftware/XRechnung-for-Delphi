@@ -56,8 +56,6 @@ type
     class function DateFromStrUNCEFACTFormat(const _Val : String) : TDateTime;
     class function DateToStrUBLFormat(const _Val : TDateTime) : String;
     class function DateToStrUNCEFACTFormat(const _Val : TDateTime) : String;
-//    class function StrToCurr(_Val : String) : Currency;
-//    class function StrToFloat(_Val : String) : double;
     class function AmountToStr(_Val : Currency) : String;
     class function AmountFromStr(_Val : String) : Currency;
     class function UnitPriceAmountToStr(_Val : Currency) : String;
@@ -913,20 +911,6 @@ begin
   Result := System.StrUtils.ReplaceText(Format('%.4f',[_Val]),',','.');
 end;
 
-//class function TXRechnungHelper.StrToCurr(
-//  _Val: String): Currency;
-//begin
-//  _Val := System.StrUtils.ReplaceText(_Val,'.',FormatSettings.DecimalSeparator);
-//  result := StrToCurrDef(_Val,0);
-//end;
-//
-//class function TXRechnungHelper.StrToFloat(
-//  _Val: String): double;
-//begin
-//  _Val := System.StrUtils.ReplaceText(_Val,'.',FormatSettings.DecimalSeparator);
-//  result := StrToFloatDef(_Val,0);
-//end;
-
 { TXRechnungValidationHelper }
 
 class function TXRechnungValidationHelper.GetXRechnungVersion(
@@ -937,7 +921,10 @@ begin
   Result := XRechnungVersion_Unknown;
   if _XML = nil then
     exit;
-  if (SameText(_XML.DocumentElement.NodeName,'Invoice') or SameText(_XML.DocumentElement.NodeName,'ubl:Invoice')) then
+  if (SameText(_XML.DocumentElement.NodeName,'Invoice') or
+      SameText(_XML.DocumentElement.NodeName,'ubl:Invoice') or
+      SameText(_XML.DocumentElement.NodeName,'CreditNote') or
+      SameText(_XML.DocumentElement.NodeName,'ubl:CreditNote')) then
   begin
     if not TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'cbc:CustomizationID',node) then
       exit;

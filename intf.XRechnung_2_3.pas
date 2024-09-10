@@ -152,6 +152,11 @@ var
       _Invoiceline.UnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(TXRechnungXMLHelper.SelectAttributeText(node,'unitCode'));
       _Invoiceline.Quantity := TXRechnungHelper.QuantityFromStr(node.text);
     end;
+    if TXRechnungXMLHelper.SelectNode(_Node,'.//cbc:CreditedQuantity',node) then
+    begin
+      _Invoiceline.UnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(TXRechnungXMLHelper.SelectAttributeText(node,'unitCode'));
+      _Invoiceline.Quantity := TXRechnungHelper.QuantityFromStr(node.text);
+    end;
     if TXRechnungXMLHelper.SelectNode(_Node,'.//cbc:LineExtensionAmount',node) then
       _Invoiceline.LineAmount := TXRechnungHelper.AmountFromStr(node.text);
     if TXRechnungXMLHelper.SelectNodes(_Node,'cac:AllowanceCharge',nodes) then
@@ -260,8 +265,11 @@ begin
     if TXRechnungXMLHelper.SelectNode(xml,'//cbc:DueDate',node) then
       _Invoice.InvoiceDueDate := TXRechnungHelper.DateFromStrUBLFormat(node.Text);
     if TXRechnungXMLHelper.SelectNode(xml,'//cbc:InvoiceTypeCode',node) then
+      _Invoice.InvoiceTypeCode := TXRechnungHelper.InvoiceTypeCodeFromStr(node.Text)
+    else
+    if TXRechnungXMLHelper.SelectNode(xml,'//cbc:CreditNoteTypeCode',node) then
       _Invoice.InvoiceTypeCode := TXRechnungHelper.InvoiceTypeCodeFromStr(node.Text);
-    if TXRechnungXMLHelper.SelectNodes(xml,'//*[local-name()="Invoice"]/cbc:Note',nodes) then
+    if TXRechnungXMLHelper.SelectNodes(xml,'//*[local-name()="'+IfThen(_Invoice.InvoiceTypeCode = itc_CreditNote,'CreditNote','Invoice')+'"]/cbc:Note',nodes) then
     for i := 0  to nodes.length-1 do
       _Invoice.Notes.AddNote.Content := nodes.item[i].Text;
     if TXRechnungXMLHelper.SelectNode(xml,'//cbc:DocumentCurrencyCode',node) then
@@ -348,7 +356,7 @@ begin
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:PaymentTerms/cbc:Note',node) then
       TXRechnungInvoiceAdapter230.InternalReadPaymentTerms(_Invoice,node.text);
 
-    if TXRechnungXMLHelper.SelectNodes(xml,'//*[local-name()="Invoice"]/cac:AllowanceCharge',nodes) then
+    if TXRechnungXMLHelper.SelectNodes(xml,'//*[local-name()="'+IfThen(_Invoice.InvoiceTypeCode = itc_CreditNote,'CreditNote','Invoice')+'"]/cac:AllowanceCharge',nodes) then
     for i := 0 to nodes.length-1 do
     with _Invoice.AllowanceCharges.AddAllowanceCharge do
     begin
@@ -406,6 +414,9 @@ begin
     _Invoice.PayableAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(xml,'//cac:LegalMonetaryTotal/cbc:PayableAmount'));
 
     if TXRechnungXMLHelper.SelectNodes(xml,'.//cac:InvoiceLine',nodes) then
+    for i := 0 to nodes.length-1 do
+      InternalReadInvoiceLine(_Invoice.InvoiceLines.AddInvoiceLine,nodes[i]);
+    if TXRechnungXMLHelper.SelectNodes(xml,'.//cac:CreditNoteLine',nodes) then
     for i := 0 to nodes.length-1 do
       InternalReadInvoiceLine(_Invoice.InvoiceLines.AddInvoiceLine,nodes[i]);
 
@@ -895,20 +906,15 @@ var
   precedingInvoiceReference : TInvoicePrecedingInvoiceReference;
 
   function InternalExtensionEnabled : Boolean;
-  //var a : Integer;
   begin
     Result := false;
+    if _Invoice.InvoiceTypeCode = itc_CreditNote then
+      exit;
     if _Invoice.InvoiceLines.Count > 0 then
     begin
       Result := true;
       exit;
     end;
-    //for a := 0 to _Invoice.Attachments.Count-1 do
-    //if _Invoice.Attachments[a].AttachmentType = TInvoiceAttachmentType.iat_application_xml then
-    //begin
-    //  Result := true;
-    //  exit;
-    //end;
   end;
 
   procedure InternalAddInvoiceLine(_Invoiceline : TInvoiceLine; _Node : IXMLNode);
@@ -919,7 +925,7 @@ var
     _Node.AddChild('cbc:ID').Text := _Invoiceline.ID;
     if _Invoiceline.Note <> '' then
       _Node.AddChild('cbc:Note').Text := _Invoiceline.Note;
-    with _Node.AddChild('cbc:InvoicedQuantity') do
+    with _Node.AddChild('cbc:'+IfThen(_Invoice.InvoiceTypeCode = itc_CreditNote,'CreditedQuantity','InvoicedQuantity')) do
     begin
       Attributes['unitCode'] := TXRechnungHelper.InvoiceUnitCodeToStr(_Invoiceline.UnitCode);
       Text := TXRechnungHelper.QuantityToStr(_Invoiceline.Quantity);
@@ -1008,6 +1014,7 @@ var
         end;
       end;
     end;
+    if (_Invoice.InvoiceTypeCode <> itc_CreditNote) then
     for subinvoiceline in _Invoiceline.SubInvoiceLines do
       InternalAddInvoiceLine(subinvoiceline,_Node.AddChild('cac:SubInvoiceLine'));
   end;
@@ -1023,9 +1030,15 @@ begin
 
   _Xml.Options := [doNodeAutoCreate, doNodeAutoIndent, doAttrNull];
 
-  xRoot := _Xml.AddChild('ubl:Invoice');
-
-  xRoot.DeclareNamespace('ubl','urn:oasis:names:specification:ubl:schema:xsd:Invoice-2');
+  if _Invoice.InvoiceTypeCode = itc_CreditNote then
+  begin
+    xRoot := _Xml.AddChild('ubl:CreditNote');
+    xRoot.DeclareNamespace('ubl','urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2');
+  end else
+  begin
+    xRoot := _Xml.AddChild('ubl:Invoice');
+    xRoot.DeclareNamespace('ubl','urn:oasis:names:specification:ubl:schema:xsd:Invoice-2');
+  end;
   xRoot.DeclareNamespace('cac','urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
   xRoot.DeclareNamespace('cbc','urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
 
@@ -1035,7 +1048,12 @@ begin
   xRoot.AddChild('cbc:ID').Text := _Invoice.InvoiceNumber;
   xRoot.AddChild('cbc:IssueDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoiceIssueDate);
   if _Invoice.InvoiceDueDate > 100 then xRoot.AddChild('cbc:DueDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoiceDueDate);
-  xRoot.AddChild('cbc:InvoiceTypeCode').Text := TXRechnungHelper.InvoiceTypeCodeToStr(_Invoice.InvoiceTypeCode);
+
+  if _Invoice.InvoiceTypeCode = itc_CreditNote then
+    xRoot.AddChild('cbc:CreditNoteTypeCode').Text := TXRechnungHelper.InvoiceTypeCodeToStr(_Invoice.InvoiceTypeCode)
+  else
+    xRoot.AddChild('cbc:InvoiceTypeCode').Text := TXRechnungHelper.InvoiceTypeCodeToStr(_Invoice.InvoiceTypeCode);
+
   for i := 0 to _Invoice.Notes.Count-1 do
     xRoot.AddChild('cbc:Note').Text := _Invoice.Notes[i].Content;
   xRoot.AddChild('cbc:DocumentCurrencyCode').Text := _Invoice.InvoiceCurrencyCode;
@@ -1412,7 +1430,7 @@ begin
   end;
 
   for i := 0 to _Invoice.InvoiceLines.Count-1 do
-    InternalAddInvoiceLine(_Invoice.InvoiceLines[i],xRoot.AddChild('cac:InvoiceLine'));
+    InternalAddInvoiceLine(_Invoice.InvoiceLines[i],xRoot.AddChild('cac:'+IfThen(_Invoice.InvoiceTypeCode = itc_CreditNote,'CreditNoteLine','InvoiceLine')));
 end;
 
 class procedure TXRechnungInvoiceAdapter230.SaveDocumentUNCEFACT(

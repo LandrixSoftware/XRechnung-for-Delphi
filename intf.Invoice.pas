@@ -125,7 +125,6 @@ type
                       iptt_CashDiscount1,
                       iptt_CashDiscount2);
 
-  {$region 'TInvoiceUnitCode'}
   TInvoiceUnitCode = (iuc_None //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:rec20_1
                       ,iuc_one   //C62 A unit of count defining the number of pieces
                       ,iuc_piece //H87
@@ -150,7 +149,6 @@ type
                       ,iuc_kilowatt_hour
                       );
   //mehr Einheiten in Res\intf.Invoice.unusedUnits.pas
-  {$endregion}
 
   TInvoiceAttachmentType = (iat_application_None,
                       iat_application_pdf,

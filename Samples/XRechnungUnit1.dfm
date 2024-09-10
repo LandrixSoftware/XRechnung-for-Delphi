@@ -110,7 +110,7 @@ object Form1: TForm1
   end
   object Button2: TButton
     Left = 8
-    Top = 585
+    Top = 596
     Width = 129
     Height = 25
     Caption = 'Datei laden'
@@ -119,7 +119,7 @@ object Form1: TForm1
   end
   object Button3: TButton
     Left = 8
-    Top = 616
+    Top = 624
     Width = 130
     Height = 25
     Caption = 'XRechnung validieren'
@@ -128,7 +128,7 @@ object Form1: TForm1
   end
   object Button5: TButton
     Left = 8
-    Top = 647
+    Top = 652
     Width = 130
     Height = 25
     Caption = 'XRechnung als HTML'
@@ -137,7 +137,7 @@ object Form1: TForm1
   end
   object Button6: TButton
     Left = 8
-    Top = 678
+    Top = 681
     Width = 130
     Height = 25
     Caption = 'XRechnung als PDF'
@@ -179,7 +179,7 @@ object Form1: TForm1
   end
   object Button9: TButton
     Left = 8
-    Top = 542
+    Top = 554
     Width = 130
     Height = 25
     Caption = 'Erzeugen'
@@ -190,7 +190,7 @@ object Form1: TForm1
     Left = 8
     Top = 394
     Width = 130
-    Height = 142
+    Height = 154
     ItemHeight = 13
     Items.Strings = (
       'Kleinunternehmerregelung'
@@ -199,6 +199,7 @@ object Form1: TForm1
       'Differenzbesteuerung'
       'Titel/Positionsgruppen'
       'Gutschrift'
+      'Rechnungskorrektur/Storno'
       'Minimalrechnung B2B'
       'Preiseinheit'
       'Lastschrift'

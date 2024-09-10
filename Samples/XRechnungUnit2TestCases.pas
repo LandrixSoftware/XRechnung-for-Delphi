@@ -353,8 +353,10 @@ begin
     inv.DeliveryInformation.Address.City := 'Lieferstadt';
     inv.DeliveryInformation.Address.PostalZone := '05678';
     inv.DeliveryInformation.Address.CountryCode := 'DE';
-    inv.DeliveryInformation.ActualDeliveryDate := Date-1;
   end;
+
+  //Lieferdatum
+  inv.DeliveryInformation.ActualDeliveryDate := Date-1;
 
   inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
   inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';

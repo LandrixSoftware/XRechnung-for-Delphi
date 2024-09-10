@@ -1242,17 +1242,21 @@ begin
   begin
     if (_Invoice.DeliveryInformation.ActualDeliveryDate > 0) then
       AddChild('cbc:ActualDeliveryDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.DeliveryInformation.ActualDeliveryDate);
+    if (_Invoice.DeliveryInformation.Address.CountryCode <> '') then
     with AddChild('cac:DeliveryLocation') do
     begin
       //if (_Invoice.DeliveryInformation.LocationIdentifier <> '') then
       //  AddChild('cbc:ID').Text := _Invoice.DeliveryInformation.LocationIdentifier; //TODO schemeID https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/cac-Delivery/cac-DeliveryLocation/cbc-ID/
       with AddChild('cac:Address') do
       begin
-        AddChild('cbc:StreetName').Text := _Invoice.DeliveryInformation.Address.StreetName;
+        if _Invoice.DeliveryInformation.Address.StreetName <> '' then
+          AddChild('cbc:StreetName').Text := _Invoice.DeliveryInformation.Address.StreetName;
         if _Invoice.DeliveryInformation.Address.AdditionalStreetName <> '' then
           AddChild('cbc:AdditionalStreetName').Text := _Invoice.DeliveryInformation.Address.AdditionalStreetName;
-        AddChild('cbc:CityName').Text := _Invoice.DeliveryInformation.Address.City;
-        AddChild('cbc:PostalZone').Text := _Invoice.DeliveryInformation.Address.PostalZone;
+        if _Invoice.DeliveryInformation.Address.City <> '' then
+          AddChild('cbc:CityName').Text := _Invoice.DeliveryInformation.Address.City;
+        if _Invoice.DeliveryInformation.Address.PostalZone <> '' then
+          AddChild('cbc:PostalZone').Text := _Invoice.DeliveryInformation.Address.PostalZone;
         if _Invoice.DeliveryInformation.Address.CountrySubentity <> '' then
           AddChild('cbc:CountrySubentity').Text := _Invoice.DeliveryInformation.Address.CountrySubentity;
         if _Invoice.DeliveryInformation.Address.AddressLine <> '' then
@@ -1491,9 +1495,9 @@ var
         with AddChild('ram:AppliedTradeAllowanceCharge') do
         begin
           AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := 'false';
-          //<ram:CalculationPercent>45</ram:CalculationPercent> nicht möglich bei UBL
+          //<ram:CalculationPercent>45</ram:CalculationPercent> nicht mï¿½glich bei UBL
           AddChild('ram:ActualAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoiceline.DiscountOnTheGrossPrice);
-          //<ram:Reason>Rabatt1</ram:Reason> nicht möglich bei UBL
+          //<ram:Reason>Rabatt1</ram:Reason> nicht mï¿½glich bei UBL
         end;
       end;
       with AddChild('ram:NetPriceProductTradePrice') do

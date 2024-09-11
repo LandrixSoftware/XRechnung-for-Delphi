@@ -26,7 +26,7 @@ interface
 uses
   System.SysUtils,System.Classes,System.Types,System.StrUtils
   ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema
-  ,Xml.Win.msxmldom, Winapi.MSXMLIntf, Winapi.msxml
+  ,Xml.Win.msxmldom, Winapi.MSXMLIntf
   ,intf.Invoice
   ,intf.XRechnungHelper
   ;
@@ -35,7 +35,7 @@ type
   TXRechnungInvoiceAdapter301 = class
   private
     class procedure InternalReadPaymentTerms(_Invoice: TInvoice;
-      _PaymentTermsText: String); static;
+      _PaymentTermsText: String);
   public
     class procedure SaveDocumentUNCEFACT(_Invoice: TInvoice;_Xml : IXMLDocument);
     class procedure SaveDocumentUBL(_Invoice: TInvoice;_Xml : IXMLDocument);
@@ -1015,8 +1015,6 @@ var
   end;
 
 begin
-  {$IFDEF USE_OXMLDomVendor}TXMLDocument(_Xml).DOMVendor := Xml.xmldom.GetDOMVendor(sOXmlDOMVendor);{$ENDIF}
-  //Result := xmldoc.GetDocBinding('rsm:CrossIndustryInvoice', TXMLCrossIndustryDocumentType) as IXMLCrossIndustryDocumentType;
   TXMLDocument(_Xml).Options := TXMLDocument(_Xml).Options + [doNodeAutoIndent];
   _Xml.Active := True;
   _Xml.Version := '1.0';
@@ -1541,8 +1539,6 @@ var
   end;
 
 begin
-  {$IFDEF USE_OXMLDomVendor}TXMLDocument(_Xml).DOMVendor := Xml.xmldom.GetDOMVendor(sOXmlDOMVendor);{$ENDIF}
-  //Result := xmldoc.GetDocBinding('rsm:CrossIndustryInvoice', TXMLCrossIndustryDocumentType) as IXMLCrossIndustryDocumentType;
   TXMLDocument(_Xml).Options := TXMLDocument(_Xml).Options + [doNodeAutoIndent];
   _Xml.Active := True;
   _Xml.Version := '1.0';

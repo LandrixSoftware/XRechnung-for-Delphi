@@ -90,12 +90,6 @@ type
                        XRechnungVersion_ReadingSupport_ZUGFeRDFacturX);
 
   TXRechnungValidationHelper = class(TObject)
-  public type
-    TValidationError = record
-    public
-      Reason : String;
-      SrcText : String;
-    end;
   public
     class function GetXRechnungVersion(const _Filename : String) : TXRechnungVersion; overload;
     class function GetXRechnungVersion(_Xml : IXMLDocument) : TXRechnungVersion; overload;

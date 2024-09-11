@@ -31,10 +31,7 @@ uses
 
 type
   TXRechnungXMLHelper = class(TObject)
-  public type
-    TXMLLoadCallback = procedure(Node : IXMLNode) of object;
   public
-    class procedure LoadFromChilds(const _NodeName : String; _Node : IXMLNode; _Callback : TXMLLoadCallback);
     class function FindChild(_Node : IXMLNode; const _NodeName : String; out _Result : IXMLNode) : Boolean;
     class function SelectNode(_XnRoot: IXMLDOMNode; const _NodePath: String; out _Result : IXMLDOMNode): Boolean;
     class function SelectNodes(_XnRoot: IXMLDOMNode; const _NodePath: String; out _Result : IXMLDOMNodeList): Boolean;
@@ -101,17 +98,6 @@ begin
     exit;
   _Result := _Node.ChildNodes.FindNode(_NodeName,'');
   Result := _Result <> nil;
-end;
-
-class procedure TXRechnungXMLHelper.LoadFromChilds(const _NodeName: String; _Node: IXMLNode;
-  _Callback: TXMLLoadCallback);
-var
-  Node : IXMLNode;
-begin
-  Node := _Node.ChildNodes.FindNode(_NodeName,'');
-  if Node = nil then
-    exit;
-  _Callback(Node);
 end;
 
 class function TXRechnungXMLHelper.PrepareDocumentForXPathQuerys(_Xml: IXMLDocument): IXMLDOMDocument2;

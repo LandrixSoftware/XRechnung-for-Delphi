@@ -208,7 +208,7 @@ var
       InternalReadInvoiceLine(_InvoiceLine.SubInvoiceLines.AddInvoiceLine,nodes.item[i]);
   end;
 
-  procedure InternalReadParty(var _Party : TInvoiceAccountingParty; _Node : IXMLDOMNode);
+  procedure InternalReadParty(_Party : TInvoiceAccountingParty; _Node : IXMLDOMNode);
   var
     node : IXMLDOMNode;
     nodes : IXMLDOMNodeList;
@@ -393,13 +393,13 @@ begin
       end;
       if TXRechnungXMLHelper.SelectNodes(node,'.//cac:TaxSubtotal',nodes) then
       for i := 0  to nodes.length-1 do
+      with _Invoice.TaxAmountSubtotals.AddTaxAmount do
       begin
-        SetLength(_Invoice.TaxAmountSubtotals,Length(_Invoice.TaxAmountSubtotals)+1);
-        _Invoice.TaxAmountSubtotals[Length(_Invoice.TaxAmountSubtotals)-1].TaxAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//cbc:TaxAmount'));
-        _Invoice.TaxAmountSubtotals[Length(_Invoice.TaxAmountSubtotals)-1].TaxExemptionReason := TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//cac:TaxCategory/cbc:TaxExemptionReason');
-        _Invoice.TaxAmountSubtotals[Length(_Invoice.TaxAmountSubtotals)-1].TaxableAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//cbc:TaxableAmount'));
-        _Invoice.TaxAmountSubtotals[Length(_Invoice.TaxAmountSubtotals)-1].TaxCategory := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//cac:TaxCategory/cbc:ID'));
-        _Invoice.TaxAmountSubtotals[Length(_Invoice.TaxAmountSubtotals)-1].TaxPercent := TXRechnungHelper.PercentageFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//cac:TaxCategory/cbc:Percent'));
+        TaxAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//cbc:TaxAmount'));
+        TaxExemptionReason := TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//cac:TaxCategory/cbc:TaxExemptionReason');
+        TaxableAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//cbc:TaxableAmount'));
+        TaxCategory := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//cac:TaxCategory/cbc:ID'));
+        TaxPercent := TXRechnungHelper.PercentageFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//cac:TaxCategory/cbc:Percent'));
         //TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//cac:TaxCategory/cac:TaxScheme/cbc:ID') Ausgabe VAT fest programmiert
       end;
     end;
@@ -742,13 +742,13 @@ begin
       end;
       if TXRechnungXMLHelper.SelectNodes(nodeApplicableHeaderTradeAgreement,'.//ram:ApplicableTradeTax',nodes) then
       for i := 0 to nodes.length-1 do
+      with _Invoice.TaxAmountSubtotals.AddTaxAmount do
       begin
-        SetLength(_Invoice.TaxAmountSubtotals,Length(_Invoice.TaxAmountSubtotals)+1);
-        _Invoice.TaxAmountSubtotals[Length(_Invoice.TaxAmountSubtotals)-1].TaxAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:CalculatedAmount'));
-        _Invoice.TaxAmountSubtotals[Length(_Invoice.TaxAmountSubtotals)-1].TaxExemptionReason := TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:ExemptionReason');
-        _Invoice.TaxAmountSubtotals[Length(_Invoice.TaxAmountSubtotals)-1].TaxableAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:BasisAmount'));
-        _Invoice.TaxAmountSubtotals[Length(_Invoice.TaxAmountSubtotals)-1].TaxCategory := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:CategoryCode'));
-        _Invoice.TaxAmountSubtotals[Length(_Invoice.TaxAmountSubtotals)-1].TaxPercent := TXRechnungHelper.PercentageFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:RateApplicablePercent'));
+        TaxAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:CalculatedAmount'));
+        TaxExemptionReason := TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:ExemptionReason');
+        TaxableAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:BasisAmount'));
+        TaxCategory := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:CategoryCode'));
+        TaxPercent := TXRechnungHelper.PercentageFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:RateApplicablePercent'));
       end;
       if TXRechnungXMLHelper.SelectNode(nodeApplicableHeaderTradeAgreement,'.//ram:BillingSpecifiedPeriod',node2) then
       begin

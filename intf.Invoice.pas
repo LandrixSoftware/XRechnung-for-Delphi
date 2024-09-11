@@ -430,25 +430,32 @@ type
     function AddInvoiceLine : TInvoiceLine;
   end;
 
-  TInvoiceTaxAmount = record
+  TInvoiceTaxAmount = class(TObject)
+  public
     TaxableAmount : Currency;
     TaxAmount : Currency;
     TaxPercent : double;
     TaxCategory : TInvoiceDutyTaxFeeCategoryCode;
     TaxExemptionReason : String; //sollte gesetzt werden bei TaxCategory = AE,E,O,Z
+  public
+    constructor Create;
   end;
 
-  TInvoiceTaxAmountArray = TArray<TInvoiceTaxAmount>;
-
-  {$IF CompilerVersion >= 33.0}
-  TInvoiceTaxAmountArrayHelper = record helper for TInvoiceTaxAmountArray
+  TInvoiceTaxAmounts = class(TObjectList)
+  protected
+    function GetItem(Index: Integer): TInvoiceTaxAmount;
+    procedure SetItem(Index: Integer; AItem: TInvoiceTaxAmount);
+  public
+	  function  Extract(Item: TObject): TInvoiceTaxAmount;
+	  function  First: TInvoiceTaxAmount;
+	  function  Last: TInvoiceTaxAmount;
+	  property  Items[Index: Integer]: TInvoiceTaxAmount read GetItem write SetItem; default;
   public
     function AddTaxAmountIfTaxExists(_TaxPercent : double; _TaxableAmount,_TaxAmount : Currency) : Boolean;
-    procedure SetCapacity(_Capacity : Integer);
+    function AddTaxAmount : TInvoiceTaxAmount;
   end;
-  {$ENDIF}
 
-  TInvoiceAddress = record
+  TInvoiceAddress = class(TObject)
   public
     StreetName : String;
     AdditionalStreetName : String;
@@ -459,7 +466,7 @@ type
     CountryCode : String;
   end;
 
-  TInvoiceAccountingParty = record
+  TInvoiceAccountingParty = class(TObject)
   public
     Name : String;
     RegistrationName : String;
@@ -478,14 +485,20 @@ type
     ContactElectronicMail : String;
     AdditionalLegalInformationSeller : String; //BT-33 Weitere rechtliche Informationen zum Verkaeufer
     ElectronicAddressSellerBuyer : String; //BT-34, BT-49 Pflicht
+  public
+    constructor Create;
+    destructor Destroy; override;
   end;
 
-  TInvoiceDeliveryInformation = record
+  TInvoiceDeliveryInformation = class(TObject)
   public
     Name : String;
     //LocationIdentifier : String; //optional Ein Bezeichner fuer den Ort, an den die Waren geliefert oder an dem die Dienstleistungen erbracht werden.
     Address : TInvoiceAddress;
     ActualDeliveryDate : TDate; //Lieferdatum
+  public
+    constructor Create;
+    destructor Destroy; override;
   end;
 
   TInvoicePrecedingInvoiceReference = class(TObject)
@@ -578,7 +591,7 @@ type
     PrecedingInvoiceReferences : TInvoicePrecedingInvoiceReferences;
 
     TaxAmountTotal : Currency;
-    TaxAmountSubtotals : TInvoiceTaxAmountArray;
+    TaxAmountSubtotals : TInvoiceTaxAmounts;
 
     LineAmount : Currency;
     TaxExclusiveAmount : Currency;
@@ -603,7 +616,11 @@ begin
   Attachments := TInvoiceAttachmentList.Create;
   AllowanceCharges := TInvoiceAllowanceCharges.Create;
   PrecedingInvoiceReferences := TInvoicePrecedingInvoiceReferences.Create;
+  TaxAmountSubtotals := TInvoiceTaxAmounts.Create;
   Notes := TInvoiceNotes.Create;
+  AccountingSupplierParty := TInvoiceAccountingParty.Create;
+  AccountingCustomerParty := TInvoiceAccountingParty.Create;
+  DeliveryInformation := TInvoiceDeliveryInformation.Create;
   PaymentMeansCode := ipmc_NotImplemented;
   PaymentTermsType := iptt_None;
   Clear;
@@ -615,7 +632,11 @@ begin
   if Assigned(Attachments) then begin Attachments.Free; Attachments := nil; end;
   if Assigned(AllowanceCharges) then begin AllowanceCharges.Free; AllowanceCharges := nil; end;
   if Assigned(PrecedingInvoiceReferences) then begin PrecedingInvoiceReferences.Free; PrecedingInvoiceReferences := nil; end;
+  if Assigned(TaxAmountSubtotals) then begin TaxAmountSubtotals.Free; TaxAmountSubtotals := nil; end;
   if Assigned(Notes) then begin Notes.Free; Notes := nil; end;
+  if Assigned(AccountingSupplierParty) then begin AccountingSupplierParty.Free; AccountingSupplierParty := nil; end;
+  if Assigned(AccountingCustomerParty) then begin AccountingCustomerParty.Free; AccountingCustomerParty := nil; end;
+  if Assigned(DeliveryInformation) then begin DeliveryInformation.Free; DeliveryInformation := nil; end;
   inherited;
 end;
 
@@ -625,7 +646,7 @@ begin
   AllowanceCharges.Clear;
   PrecedingInvoiceReferences.Clear;
   Notes.Clear;
-  SetLength(TaxAmountSubtotals,0);
+  TaxAmountSubtotals.Clear;
   PaymentTermsType := iptt_None;
 end;
 
@@ -1054,32 +1075,81 @@ begin
     Result := iat_application_xml;
 end;
 
-{$IF CompilerVersion >= 33.0}
+{ TInvoiceTaxAmount }
 
-{ TInvoiceTaxAmountArrayHelper }
+constructor TInvoiceTaxAmount.Create;
+begin
+  TaxableAmount := 0;
+  TaxAmount := 0;
+  TaxPercent := 0;
+  TaxCategory := idtfcc_None;
+  TaxExemptionReason := '';
+end;
 
-function TInvoiceTaxAmountArrayHelper.AddTaxAmountIfTaxExists(
+{ TInvoiceTaxAmounts }
+
+function TInvoiceTaxAmounts.Extract(Item: TObject): TInvoiceTaxAmount;
+begin Result := TInvoiceTaxAmount(inherited Extract(Item)); end;
+
+function TInvoiceTaxAmounts.First: TInvoiceTaxAmount;
+begin if Count = 0 then Result := nil else Result := TInvoiceTaxAmount(inherited First); end;
+
+function TInvoiceTaxAmounts.GetItem(Index: Integer): TInvoiceTaxAmount;
+begin Result := TInvoiceTaxAmount(inherited Items[Index]); end;
+
+function TInvoiceTaxAmounts.Last: TInvoiceTaxAmount;
+begin if Count = 0 then Result := nil else Result := TInvoiceTaxAmount(inherited Last); end;
+
+procedure TInvoiceTaxAmounts.SetItem(Index: Integer; AItem: TInvoiceTaxAmount);
+begin inherited Items[Index] := AItem; end;
+
+function TInvoiceTaxAmounts.AddTaxAmount: TInvoiceTaxAmount;
+begin
+  Result := TInvoiceTaxAmount.Create;
+  Add(Result);
+end;
+
+function TInvoiceTaxAmounts.AddTaxAmountIfTaxExists(
   _TaxPercent: double; _TaxableAmount, _TaxAmount: Currency): Boolean;
 var
   i : Integer;
 begin
   Result := false;
-  for i := 0 to Length(self)-1 do
-  if self[i].TaxPercent = _TaxPercent then
+  for i := 0 to Count-1 do
+  if Items[i].TaxPercent = _TaxPercent then
   begin
-    self[i].TaxableAmount := self[i].TaxableAmount + _TaxableAmount;
-    self[i].TaxAmount := self[i].TaxAmount + _TaxAmount;
+    Items[i].TaxableAmount := Items[i].TaxableAmount + _TaxableAmount;
+    Items[i].TaxAmount := Items[i].TaxAmount + _TaxAmount;
     Result := true;
     break;
   end;
 end;
 
-procedure TInvoiceTaxAmountArrayHelper.SetCapacity(_Capacity: Integer);
+{ TInvoiceAccountingParty }
+
+constructor TInvoiceAccountingParty.Create;
 begin
-  SetLength(self,_Capacity);
+  Address := TInvoiceAddress.Create;
 end;
 
-{$ENDIF}
+destructor TInvoiceAccountingParty.Destroy;
+begin
+  if Assigned(Address) then begin Address.Free; Address := nil; end;
+  inherited;
+end;
+
+{ TInvoiceDeliveryInformation }
+
+constructor TInvoiceDeliveryInformation.Create;
+begin
+  Address := TInvoiceAddress.Create;
+end;
+
+destructor TInvoiceDeliveryInformation.Destroy;
+begin
+  if Assigned(Address) then begin Address.Free; Address := nil; end;
+  inherited;
+end;
 
 end.
 

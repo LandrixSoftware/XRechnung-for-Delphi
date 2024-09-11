@@ -29,7 +29,7 @@ interface
 
 uses
   System.SysUtils,System.Classes,System.Types
-  ,System.StrUtils,System.DateUtils
+  ,System.StrUtils,System.DateUtils,System.Contnrs
   ,Xml.XMLDoc,Xml.XMLIntf
   {$IFDEF ZUGFeRD_Support}
   ,intf.ZUGFeRDInvoiceDescriptor
@@ -1595,25 +1595,25 @@ begin
   end;
 
   _Invoice.TaxAmountTotal := _InvoiceDescriptor.TaxTotalAmount.GetValueOrDefault(0);
-  SetLength(_Invoice.TaxAmountSubtotals,_InvoiceDescriptor.Taxes.Count);
   for i := 0 to _InvoiceDescriptor.Taxes.Count-1 do
+  with _Invoice.TaxAmountSubtotals.AddTaxAmount do
   begin
-    _Invoice.TaxAmountSubtotals[i].TaxableAmount := _InvoiceDescriptor.Taxes[i].BasisAmount;
-    _Invoice.TaxAmountSubtotals[i].TaxAmount := _InvoiceDescriptor.Taxes[i].TaxAmount;
-    _Invoice.TaxAmountSubtotals[i].TaxPercent := _InvoiceDescriptor.Taxes[i].Percent;
+    TaxableAmount := _InvoiceDescriptor.Taxes[i].BasisAmount;
+    TaxAmount := _InvoiceDescriptor.Taxes[i].TaxAmount;
+    TaxPercent := _InvoiceDescriptor.Taxes[i].Percent;
     //TODO DEFAULT VAT_InvoiceDescriptor.Taxes[i].TypeCode
     case _InvoiceDescriptor.Taxes[i].CategoryCode of
-      TZUGFeRDTaxCategoryCodes.AE : _Invoice.TaxAmountSubtotals[i].TaxCategory := idtfcc_AE_VATReverseCharge;
-      TZUGFeRDTaxCategoryCodes.E : _Invoice.TaxAmountSubtotals[i].TaxCategory := idtfcc_E_ExemptFromTax;
-      TZUGFeRDTaxCategoryCodes.G : _Invoice.TaxAmountSubtotals[i].TaxCategory := idtfcc_G_FreeExportItemTaxNotCharged;
-      TZUGFeRDTaxCategoryCodes.K : _Invoice.TaxAmountSubtotals[i].TaxCategory := idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices;
-      TZUGFeRDTaxCategoryCodes.L : _Invoice.TaxAmountSubtotals[i].TaxCategory := idtfcc_L_CanaryIslandsGeneralIndirectTax;
-      TZUGFeRDTaxCategoryCodes.M : _Invoice.TaxAmountSubtotals[i].TaxCategory := idtfcc_M_TaxForProductionServicesAndImportationInCeutaAndMelilla;
-      TZUGFeRDTaxCategoryCodes.S : _Invoice.TaxAmountSubtotals[i].TaxCategory := idtfcc_S_StandardRate;
-      TZUGFeRDTaxCategoryCodes.Z : _Invoice.TaxAmountSubtotals[i].TaxCategory := idtfcc_Z_ZeroRatedGoods;
-      else _Invoice.TaxAmountSubtotals[i].TaxCategory := idtfcc_None; //TODO weitere Category Types von ZUGFeRD
+      TZUGFeRDTaxCategoryCodes.AE : TaxCategory := idtfcc_AE_VATReverseCharge;
+      TZUGFeRDTaxCategoryCodes.E : TaxCategory := idtfcc_E_ExemptFromTax;
+      TZUGFeRDTaxCategoryCodes.G : TaxCategory := idtfcc_G_FreeExportItemTaxNotCharged;
+      TZUGFeRDTaxCategoryCodes.K : TaxCategory := idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices;
+      TZUGFeRDTaxCategoryCodes.L : TaxCategory := idtfcc_L_CanaryIslandsGeneralIndirectTax;
+      TZUGFeRDTaxCategoryCodes.M : TaxCategory := idtfcc_M_TaxForProductionServicesAndImportationInCeutaAndMelilla;
+      TZUGFeRDTaxCategoryCodes.S : TaxCategory := idtfcc_S_StandardRate;
+      TZUGFeRDTaxCategoryCodes.Z : TaxCategory := idtfcc_Z_ZeroRatedGoods;
+      else TaxCategory := idtfcc_None; //TODO weitere Category Types von ZUGFeRD
     end;
-    _Invoice.TaxAmountSubtotals[i].TaxExemptionReason := _InvoiceDescriptor.Taxes[i].ExemptionReason;
+    TaxExemptionReason := _InvoiceDescriptor.Taxes[i].ExemptionReason;
   end;
 
   _Invoice.LineAmount := _InvoiceDescriptor.LineTotalAmount.GetValueOrDefault(0);
@@ -1678,12 +1678,14 @@ end;
 constructor TZUGFeRDAdditionalContent.Create;
 begin
   ZUGFeRDInvoice := nil;
+  InvoiceeTradeParty := TInvoiceAccountingParty.Create;
   Clear;
 end;
 
 destructor TZUGFeRDAdditionalContent.Destroy;
 begin
   if Assigned(ZUGFeRDInvoice) then begin ZUGFeRDInvoice.Free; ZUGFeRDInvoice := nil; end;
+  if Assigned(InvoiceeTradeParty) then begin InvoiceeTradeParty.Free; InvoiceeTradeParty := nil; end;
   inherited;
 end;
 

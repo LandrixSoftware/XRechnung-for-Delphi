@@ -168,17 +168,23 @@ begin
   end;
 
   inv.TaxAmountTotal := 304.00; //Summe der gesamten MwSt
-  SetLength(inv.TaxAmountSubtotals,2); //2 MwSt-Saetze
-  inv.TaxAmountSubtotals[0].TaxPercent := 19.0;
-  inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
-  inv.TaxAmountSubtotals[0].TaxExemptionReason := '';
-  inv.TaxAmountSubtotals[0].TaxableAmount := 1000.00+100.00+500.00;
-  inv.TaxAmountSubtotals[0].TaxAmount     := 190.00 +19.00 +95.00;
-  inv.TaxAmountSubtotals[1].TaxPercent := 0.0;
-  inv.TaxAmountSubtotals[1].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_Z_ZeroRatedGoods;
-  inv.TaxAmountSubtotals[1].TaxExemptionReason := '';
-  inv.TaxAmountSubtotals[1].TaxableAmount := -100.0;
-  inv.TaxAmountSubtotals[1].TaxAmount := 0.0;
+  //2 MwSt-Saetze
+  with inv.TaxAmountSubtotals.AddTaxAmount do
+  begin
+    TaxPercent := 19.0;
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    TaxExemptionReason := '';
+    TaxableAmount := 1000.00+100.00+500.00;
+    TaxAmount     := 190.00 +19.00 +95.00;
+  end;
+  with inv.TaxAmountSubtotals.AddTaxAmount do
+  begin
+    TaxPercent := 0.0;
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_Z_ZeroRatedGoods;
+    TaxExemptionReason := '';
+    TaxableAmount := -100.0;
+    TaxAmount := 0.0;
+  end;
 
   inv.LineAmount := 1000.00+100.00-100.00+500.00;         //Summe
   inv.TaxExclusiveAmount := 1000.00+100.00-100.00+500.00; //Summe ohne MwSt
@@ -268,12 +274,14 @@ begin
   end;
 
   inv.TaxAmountTotal := 0.00; //Summe der gesamten MwSt
-  SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
-  inv.TaxAmountSubtotals[0].TaxPercent := 0.0;
-  inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
-  inv.TaxAmountSubtotals[0].TaxExemptionReason := 'Differenzbesteuerung';
-  inv.TaxAmountSubtotals[0].TaxableAmount := 5000.00;
-  inv.TaxAmountSubtotals[0].TaxAmount     := 00.00;
+  with inv.TaxAmountSubtotals.AddTaxAmount do
+  begin
+    TaxPercent := 0.0;
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
+    TaxExemptionReason := 'Differenzbesteuerung';
+    TaxableAmount := 5000.00;
+    TaxAmount     := 00.00;
+  end;
 
   inv.LineAmount := 5000.00;         //Summe
   inv.TaxExclusiveAmount := 5000.00; //Summe ohne MwSt
@@ -580,15 +588,20 @@ begin
   end;
 
   inv.TaxAmountTotal := 26.0; //Summe der gesamten MwSt
-  SetLength(inv.TaxAmountSubtotals,2); //2 MwSt-Saetze
-  inv.TaxAmountSubtotals[0].TaxPercent := 7.0;
-  inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
-  inv.TaxAmountSubtotals[0].TaxableAmount := 100.0;
-  inv.TaxAmountSubtotals[0].TaxAmount := 7.0;
-  inv.TaxAmountSubtotals[1].TaxPercent := 19.0;
-  inv.TaxAmountSubtotals[1].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
-  inv.TaxAmountSubtotals[1].TaxableAmount := 100.0;
-  inv.TaxAmountSubtotals[1].TaxAmount := 19.0;
+  with inv.TaxAmountSubtotals.AddTaxAmount do
+  begin
+    TaxPercent := 7.0;
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    TaxableAmount := 100.0;
+    TaxAmount := 7.0;
+  end;
+  with inv.TaxAmountSubtotals.AddTaxAmount do
+  begin
+    TaxPercent := 19.0;
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    TaxableAmount := 100.0;
+    TaxAmount := 19.0;
+  end;
 
   inv.LineAmount := 200.0;         //Summe
   inv.TaxExclusiveAmount := 200.00; //Summe ohne MwSt
@@ -705,12 +718,14 @@ begin
   end;
 
   inv.TaxAmountTotal := 0.00; //Summe der gesamten MwSt
-  SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
-  inv.TaxAmountSubtotals[0].TaxPercent := 0.0;
-  inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
-  inv.TaxAmountSubtotals[0].TaxExemptionReason := 'Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemaess Paragraph 19 UStG';
-  inv.TaxAmountSubtotals[0].TaxableAmount := 500.00;
-  inv.TaxAmountSubtotals[0].TaxAmount     := 00.00;
+  with inv.TaxAmountSubtotals.AddTaxAmount do
+  begin
+    TaxPercent := 0.0;
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
+    TaxExemptionReason := 'Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemaess Paragraph 19 UStG';
+    TaxableAmount := 500.00;
+    TaxAmount     := 00.00;
+  end;
 
   inv.LineAmount := 500.00;         //Summe
   inv.TaxExclusiveAmount := 500.00; //Summe ohne MwSt
@@ -803,12 +818,14 @@ begin
   end;
 
   inv.TaxAmountTotal := 0.00; //Summe der gesamten MwSt
-  SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
-  inv.TaxAmountSubtotals[0].TaxPercent := 0.0;
-  inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices;
-  inv.TaxAmountSubtotals[0].TaxExemptionReason := 'Keine Ausweisung der Umsatzsteuer - innergemeinschaftliche Lieferung EU';
-  inv.TaxAmountSubtotals[0].TaxableAmount := 5000.00;
-  inv.TaxAmountSubtotals[0].TaxAmount     := 00.00;
+  with inv.TaxAmountSubtotals.AddTaxAmount do
+  begin
+    TaxPercent := 0.0;
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices;
+    TaxExemptionReason := 'Keine Ausweisung der Umsatzsteuer - innergemeinschaftliche Lieferung EU';
+    TaxableAmount := 5000.00;
+    TaxAmount     := 00.00;
+  end;
 
   inv.LineAmount := 5000.00;         //Summe
   inv.TaxExclusiveAmount := 5000.00; //Summe ohne MwSt
@@ -893,12 +910,14 @@ begin
   end;
 
   inv.TaxAmountTotal := 0.00; //Summe der gesamten MwSt
-  SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
-  inv.TaxAmountSubtotals[0].TaxPercent := 0.0;
-  inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
-  inv.TaxAmountSubtotals[0].TaxExemptionReason := 'Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemaess Paragraph 19 UStG';
-  inv.TaxAmountSubtotals[0].TaxableAmount := 5000.00;
-  inv.TaxAmountSubtotals[0].TaxAmount     := 00.00;
+  with inv.TaxAmountSubtotals.AddTaxAmount do
+  begin
+    TaxPercent := 0.0;
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
+    TaxExemptionReason := 'Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemaess Paragraph 19 UStG';
+    TaxableAmount := 5000.00;
+    TaxAmount     := 00.00;
+  end;
 
   inv.LineAmount := 5000.00;         //Summe
   inv.TaxExclusiveAmount := 5000.00; //Summe ohne MwSt
@@ -978,11 +997,13 @@ begin
   end;
 
   inv.TaxAmountTotal := 68.40; //Summe der gesamten MwSt
-  SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
-  inv.TaxAmountSubtotals[0].TaxPercent := 19.0;
-  inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
-  inv.TaxAmountSubtotals[0].TaxableAmount := 360.0;
-  inv.TaxAmountSubtotals[0].TaxAmount := 68.40;
+  with inv.TaxAmountSubtotals.AddTaxAmount do
+  begin
+    TaxPercent := 19.0;
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    TaxableAmount := 360.0;
+    TaxAmount := 68.40;
+  end;
 
   inv.LineAmount := 360.0;         //Summe
   inv.TaxExclusiveAmount := 360.00; //Summe ohne MwSt
@@ -1059,11 +1080,13 @@ begin
   end;
 
   inv.TaxAmountTotal := 68.40; //Summe der gesamten MwSt
-  SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
-  inv.TaxAmountSubtotals[0].TaxPercent := 19.0;
-  inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
-  inv.TaxAmountSubtotals[0].TaxableAmount := 360.0;
-  inv.TaxAmountSubtotals[0].TaxAmount := 68.40;
+  with inv.TaxAmountSubtotals.AddTaxAmount do
+  begin
+    TaxPercent := 19.0;
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    TaxableAmount := 360.0;
+    TaxAmount := 68.40;
+  end;
 
   inv.LineAmount := 360.0;         //Summe
   inv.TaxExclusiveAmount := 360.00; //Summe ohne MwSt
@@ -1150,12 +1173,14 @@ begin
   end;
 
   inv.TaxAmountTotal := 0.0; //Summe der gesamten MwSt
-  SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Satz
-  inv.TaxAmountSubtotals[0].TaxPercent := 0;
-  inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_AE_VATReverseCharge;
-  inv.TaxAmountSubtotals[0].TaxExemptionReason := 'Hiermit erlaube ich mir folgende Rechnung fuer Bauleistungen zu stellen. Die Umsatzsteuer fuer diese Leistung schuldet nach Paragraph 13b UStG der Leistungsempfaenger.';
-  inv.TaxAmountSubtotals[0].TaxableAmount := 200.0;
-  inv.TaxAmountSubtotals[0].TaxAmount := 0.0;
+  with inv.TaxAmountSubtotals.AddTaxAmount do
+  begin
+    TaxPercent := 0;
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_AE_VATReverseCharge;
+    TaxExemptionReason := 'Hiermit erlaube ich mir folgende Rechnung fuer Bauleistungen zu stellen. Die Umsatzsteuer fuer diese Leistung schuldet nach Paragraph 13b UStG der Leistungsempfaenger.';
+    TaxableAmount := 200.0;
+    TaxAmount := 0.0;
+  end;
 
   inv.LineAmount := 200.0;         //Summe
   inv.TaxExclusiveAmount := 200.00; //Summe ohne MwSt
@@ -1231,11 +1256,13 @@ begin
   end;
 
   inv.TaxAmountTotal := 6.84; //Summe der gesamten MwSt
-  SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
-  inv.TaxAmountSubtotals[0].TaxPercent := 19.0;
-  inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
-  inv.TaxAmountSubtotals[0].TaxableAmount := 36.0;
-  inv.TaxAmountSubtotals[0].TaxAmount := 6.84;
+  with inv.TaxAmountSubtotals.AddTaxAmount do
+  begin
+    TaxPercent := 19.0;
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    TaxableAmount := 36.0;
+    TaxAmount := 6.84;
+  end;
 
   inv.LineAmount := 36.0;         //Summe
   inv.TaxExclusiveAmount := 36.00; //Summe ohne MwSt
@@ -1317,11 +1344,13 @@ begin
   end;
 
   inv.TaxAmountTotal := -68.40; //Summe der gesamten MwSt
-  SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
-  inv.TaxAmountSubtotals[0].TaxPercent := 19.0;
-  inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
-  inv.TaxAmountSubtotals[0].TaxableAmount := -360.0;
-  inv.TaxAmountSubtotals[0].TaxAmount := -68.40;
+  with inv.TaxAmountSubtotals.AddTaxAmount do
+  begin
+    TaxPercent := 19.0;
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    TaxableAmount := -360.0;
+    TaxAmount := -68.40;
+  end;
 
   inv.LineAmount := -360.0;         //Summe
   inv.TaxExclusiveAmount := -360.00; //Summe ohne MwSt
@@ -1454,11 +1483,13 @@ begin
   end;
 
   inv.TaxAmountTotal := 68.40; //Summe der gesamten MwSt
-  SetLength(inv.TaxAmountSubtotals,1); //1 MwSt-Saetze
-  inv.TaxAmountSubtotals[0].TaxPercent := 19.0;
-  inv.TaxAmountSubtotals[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
-  inv.TaxAmountSubtotals[0].TaxableAmount := 360.0;
-  inv.TaxAmountSubtotals[0].TaxAmount := 68.40;
+  with inv.TaxAmountSubtotals.AddTaxAmount do
+  begin
+    TaxPercent := 19.0;
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    TaxableAmount := 360.0;
+    TaxAmount := 68.40;
+  end;
 
   inv.LineAmount := 360.0;         //Summe
   inv.TaxExclusiveAmount := 360.00; //Summe ohne MwSt

@@ -29,7 +29,7 @@ interface
 
 uses
   System.SysUtils,System.Classes,System.Types
-  ,System.StrUtils,System.Generics.Collections,System.DateUtils
+  ,System.StrUtils,System.DateUtils
   ,Xml.XMLDoc,Xml.XMLIntf
   {$IFDEF ZUGFeRD_Support}
   ,intf.ZUGFeRDInvoiceDescriptor

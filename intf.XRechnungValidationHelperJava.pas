@@ -15,7 +15,8 @@ unit intf.XRechnungValidationHelperJava;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes
+  Winapi.Windows, Winapi.Messages
+  ,System.SysUtils, System.Variants, System.Classes
   ,System.IOUtils,System.Win.COMObj,System.UITypes
   ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema
   ;

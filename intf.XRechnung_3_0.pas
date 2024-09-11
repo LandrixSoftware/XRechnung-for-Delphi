@@ -24,8 +24,7 @@ unit intf.XRechnung_3_0;
 interface
 
 uses
-  System.SysUtils,System.Classes,System.Types
-  ,System.StrUtils,System.Generics.Collections
+  System.SysUtils,System.Classes,System.Types,System.StrUtils
   ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema
   ,Xml.Win.msxmldom, Winapi.MSXMLIntf, Winapi.msxml
   ,intf.Invoice

@@ -153,7 +153,7 @@ object Form1: TForm1
     ItemIndex = 1
     Items.Strings = (
       '2.3.1'
-      '3.0.1')
+      '3.0.2')
     TabOrder = 13
     OnClick = rbVersionClick
   end

@@ -1,7 +1,7 @@
 {
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
-Version 3.0.1
+Version 3.0.2
 
 License
 This file is not official part of the package XRechnung-for-Delphi.

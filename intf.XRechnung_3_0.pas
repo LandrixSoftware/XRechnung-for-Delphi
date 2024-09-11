@@ -899,10 +899,7 @@ class procedure TXRechnungInvoiceAdapter301.SaveDocumentUBL(_Invoice: TInvoice;
   _Xml: IXMLDocument);
 var
   xRoot : IXMLNode;
-  allowanceCharge : TInvoiceAllowanceCharge;
-  taxSubtotal : TInvoiceTaxAmount;
   i : Integer;
-  precedingInvoiceReference : TInvoicePrecedingInvoiceReference;
 
   function InternalExtensionEnabled : Boolean;
   begin
@@ -918,8 +915,7 @@ var
 
   procedure InternalAddInvoiceLine(_Invoiceline : TInvoiceLine; _Node : IXMLNode);
   var
-    subinvoiceline : TInvoiceLine;
-    allowanceCharge : TInvoiceAllowanceCharge;
+    i : Integer;
   begin
     _Node.AddChild('cbc:ID').Text := _Invoiceline.ID;
     if _Invoiceline.Note <> '' then
@@ -938,27 +934,27 @@ var
     //     <cbc:ID/>
     //     <cbc:DocumentType>916</cbc:DocumentType>
     //  </cac:DocumentReference>
-    for allowanceCharge in _Invoiceline.AllowanceCharges do
+    for i := 0 to _Invoiceline.AllowanceCharges.Count-1 do
     with _Node.AddChild('cac:AllowanceCharge') do
     begin
-      AddChild('cbc:ChargeIndicator').Text := LowerCase(BoolToStr(allowanceCharge.ChargeIndicator,true));
+      AddChild('cbc:ChargeIndicator').Text := LowerCase(BoolToStr(_Invoiceline.AllowanceCharges[i].ChargeIndicator,true));
       AddChild('cbc:AllowanceChargeReasonCode').Text :=
-               IfThen(allowanceCharge.ChargeIndicator,
-               TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(allowanceCharge.ReasonCodeCharge),
-               TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(allowanceCharge.ReasonCodeAllowance));
-      if not allowanceCharge.Reason.IsEmpty then
-        AddChild('cbc:AllowanceChargeReason').Text := allowanceCharge.Reason;
-      if allowanceCharge.MultiplierFactorNumeric <> 0 then
-        AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
+               IfThen(_Invoiceline.AllowanceCharges[i].ChargeIndicator,
+               TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(_Invoiceline.AllowanceCharges[i].ReasonCodeCharge),
+               TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(_Invoiceline.AllowanceCharges[i].ReasonCodeAllowance));
+      if not _Invoiceline.AllowanceCharges[i].Reason.IsEmpty then
+        AddChild('cbc:AllowanceChargeReason').Text := _Invoiceline.AllowanceCharges[i].Reason;
+      if _Invoiceline.AllowanceCharges[i].MultiplierFactorNumeric <> 0 then
+        AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(_Invoiceline.AllowanceCharges[i].MultiplierFactorNumeric);
       with AddChild('cbc:Amount') do
       begin
         Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
-        Text := TXRechnungHelper.AmountToStr(allowanceCharge.Amount);
+        Text := TXRechnungHelper.AmountToStr(_Invoiceline.AllowanceCharges[i].Amount);
       end;
       with AddChild('cbc:BaseAmount') do
       begin
         Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
-        Text := TXRechnungHelper.AmountToStr(allowanceCharge.BaseAmount);
+        Text := TXRechnungHelper.AmountToStr(_Invoiceline.AllowanceCharges[i].BaseAmount);
       end;
     end;
     with _Node.AddChild('cac:Item') do
@@ -1014,8 +1010,8 @@ var
       end;
     end;
     if (_Invoice.InvoiceTypeCode <> itc_CreditNote) then
-    for subinvoiceline in _Invoiceline.SubInvoiceLines do
-      InternalAddInvoiceLine(subinvoiceline,_Node.AddChild('cac:SubInvoiceLine'));
+    for i := 0 to _Invoiceline.SubInvoiceLines.Count-1 do
+      InternalAddInvoiceLine(_Invoiceline.SubInvoiceLines[i],_Node.AddChild('cac:SubInvoiceLine'));
   end;
 
 begin
@@ -1070,11 +1066,11 @@ begin
   else
   if _Invoice.SellerOrderReference <> '' then
     xRoot.AddChild('cac:OrderReference').AddChild('cbc:ID').Text := _Invoice.SellerOrderReference;
-  for precedingInvoiceReference in _Invoice.PrecedingInvoiceReferences do
+  for i := 0 to _Invoice.PrecedingInvoiceReferences.Count-1 do
   with xRoot.AddChild('cac:BillingReference').AddChild('cac:InvoiceDocumentReference') do
   begin
-    AddChild('cbc:ID').Text := precedingInvoiceReference.ID;
-    AddChild('cbc:IssueDate').Text := TXRechnungHelper.DateToStrUBLFormat(precedingInvoiceReference.IssueDate);
+    AddChild('cbc:ID').Text := _Invoice.PrecedingInvoiceReferences[i].ID;
+    AddChild('cbc:IssueDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.PrecedingInvoiceReferences[i].IssueDate);
   end;
   if _Invoice.DeliveryReceiptNumber <> '' then
     xRoot.AddChild('cac:DespatchDocumentReference').AddChild('cbc:ID').Text := _Invoice.DeliveryReceiptNumber;
@@ -1331,33 +1327,33 @@ begin
     end;
   end;
 
-  for allowanceCharge in _Invoice.AllowanceCharges do
+  for i := 0 to _Invoice.AllowanceCharges.Count-1 do
   with xRoot.AddChild('cac:AllowanceCharge') do
   begin
-    AddChild('cbc:ChargeIndicator').Text := LowerCase(BoolToStr(allowanceCharge.ChargeIndicator,true));
+    AddChild('cbc:ChargeIndicator').Text := LowerCase(BoolToStr(_Invoice.AllowanceCharges[i].ChargeIndicator,true));
     AddChild('cbc:AllowanceChargeReasonCode').Text :=
-             IfThen(allowanceCharge.ChargeIndicator,
-             TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(allowanceCharge.ReasonCodeCharge),
-             TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(allowanceCharge.ReasonCodeAllowance));
-    if not allowanceCharge.Reason.IsEmpty then
-      AddChild('cbc:AllowanceChargeReason').Text := allowanceCharge.Reason;
-    if allowanceCharge.MultiplierFactorNumeric <> 0 then
-      AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
+             IfThen(_Invoice.AllowanceCharges[i].ChargeIndicator,
+             TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(_Invoice.AllowanceCharges[i].ReasonCodeCharge),
+             TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(_Invoice.AllowanceCharges[i].ReasonCodeAllowance));
+    if not _Invoice.AllowanceCharges[i].Reason.IsEmpty then
+      AddChild('cbc:AllowanceChargeReason').Text := _Invoice.AllowanceCharges[i].Reason;
+    if _Invoice.AllowanceCharges[i].MultiplierFactorNumeric <> 0 then
+      AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(_Invoice.AllowanceCharges[i].MultiplierFactorNumeric);
     with AddChild('cbc:Amount') do
     begin
       Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
-      Text := TXRechnungHelper.AmountToStr(allowanceCharge.Amount);
+      Text := TXRechnungHelper.AmountToStr(_Invoice.AllowanceCharges[i].Amount);
     end;
-    if allowanceCharge.BaseAmount <> 0 then
+    if _Invoice.AllowanceCharges[i].BaseAmount <> 0 then
     with AddChild('cbc:BaseAmount') do
     begin
       Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
-      Text := TXRechnungHelper.AmountToStr(allowanceCharge.BaseAmount);
+      Text := TXRechnungHelper.AmountToStr(_Invoice.AllowanceCharges[i].BaseAmount);
     end;
     with AddChild('cac:TaxCategory') do
     begin
-      AddChild('cbc:ID').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(allowanceCharge.TaxCategory);
-      AddChild('cbc:Percent').Text := TXRechnungHelper.PercentageToStr(allowanceCharge.TaxPercent);
+      AddChild('cbc:ID').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(_Invoice.AllowanceCharges[i].TaxCategory);
+      AddChild('cbc:Percent').Text := TXRechnungHelper.PercentageToStr(_Invoice.AllowanceCharges[i].TaxPercent);
       AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
     end;
   end;
@@ -1369,25 +1365,25 @@ begin
       Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
       Text := TXRechnungHelper.AmountToStr(_Invoice.TaxAmountTotal);
     end;
-    for taxSubtotal in _Invoice.TaxAmountSubtotals do
+    for i := 0 to _Invoice.TaxAmountSubtotals.Count-1 do
     with AddChild('cac:TaxSubtotal') do
     begin
       with AddChild('cbc:TaxableAmount') do
       begin
         Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
-        Text := TXRechnungHelper.AmountToStr(taxSubtotal.TaxableAmount);
+        Text := TXRechnungHelper.AmountToStr(_Invoice.TaxAmountSubtotals[i].TaxableAmount);
       end;
       with AddChild('cbc:TaxAmount') do
       begin
         Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
-        Text := TXRechnungHelper.AmountToStr(taxSubtotal.TaxAmount);
+        Text := TXRechnungHelper.AmountToStr(_Invoice.TaxAmountSubtotals[i].TaxAmount);
       end;
       with AddChild('cac:TaxCategory') do
       begin
-        AddChild('cbc:ID').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(taxSubtotal.TaxCategory);
-        AddChild('cbc:Percent').Text := TXRechnungHelper.PercentageToStr(taxSubtotal.TaxPercent);
-        if taxSubtotal.TaxExemptionReason <> '' then
-          AddChild('cbc:TaxExemptionReason').Text := taxSubtotal.TaxExemptionReason;
+        AddChild('cbc:ID').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(_Invoice.TaxAmountSubtotals[i].TaxCategory);
+        AddChild('cbc:Percent').Text := TXRechnungHelper.PercentageToStr(_Invoice.TaxAmountSubtotals[i].TaxPercent);
+        if _Invoice.TaxAmountSubtotals[i].TaxExemptionReason <> '' then
+          AddChild('cbc:TaxExemptionReason').Text := _Invoice.TaxAmountSubtotals[i].TaxExemptionReason;
         AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
       end;
     end;
@@ -1441,14 +1437,11 @@ class procedure TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(
   _Invoice: TInvoice; _Xml: IXMLDocument);
 var
   xRoot : IXMLNode;
-  allowanceCharge : TInvoiceAllowanceCharge;
-  taxSubtotal : TInvoiceTaxAmount;
   i : Integer;
-  precedingInvoiceReference : TInvoicePrecedingInvoiceReference;
 
   procedure InternalAddInvoiceLine(_Invoiceline : TInvoiceLine; _Node : IXMLNode);
   var
-    allowanceCharge : TInvoiceAllowanceCharge;
+    i : Integer;
   begin
     with _Node.AddChild('ram:AssociatedDocumentLineDocument') do
     begin
@@ -1523,20 +1516,20 @@ var
         AddChild('ram:CategoryCode').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(_Invoiceline.TaxCategory);
         AddChild('ram:RateApplicablePercent').Text := TXRechnungHelper.PercentageToStr(_Invoiceline.TaxPercent);
       end;
-      for allowanceCharge in _Invoiceline.AllowanceCharges do
+      for i := 0 to _Invoiceline.AllowanceCharges.Count-1 do
       with AddChild('ram:SpecifiedTradeAllowanceCharge') do
       begin
-        AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := LowerCase(BoolToStr(allowanceCharge.ChargeIndicator,true));
-        if allowanceCharge.MultiplierFactorNumeric <> 0 then
-          AddChild('ram:CalculationPercent').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
-        AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(allowanceCharge.BaseAmount);
-        AddChild('ram:ActualAmount').Text := TXRechnungHelper.AmountToStr(allowanceCharge.Amount);
+        AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := LowerCase(BoolToStr(_Invoiceline.AllowanceCharges[i].ChargeIndicator,true));
+        if _Invoiceline.AllowanceCharges[i].MultiplierFactorNumeric <> 0 then
+          AddChild('ram:CalculationPercent').Text := TXRechnungHelper.FloatToStr(_Invoiceline.AllowanceCharges[i].MultiplierFactorNumeric);
+        AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(_Invoiceline.AllowanceCharges[i].BaseAmount);
+        AddChild('ram:ActualAmount').Text := TXRechnungHelper.AmountToStr(_Invoiceline.AllowanceCharges[i].Amount);
         AddChild('ram:ReasonCode').Text :=
-                 IfThen(allowanceCharge.ChargeIndicator,
-                 TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(allowanceCharge.ReasonCodeCharge),
-                 TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(allowanceCharge.ReasonCodeAllowance));
-        if not allowanceCharge.Reason.IsEmpty then
-          AddChild('ram:Reason').Text := allowanceCharge.Reason;
+                 IfThen(_Invoiceline.AllowanceCharges[i].ChargeIndicator,
+                 TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(_Invoiceline.AllowanceCharges[i].ReasonCodeCharge),
+                 TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(_Invoiceline.AllowanceCharges[i].ReasonCodeAllowance));
+        if not _Invoiceline.AllowanceCharges[i].Reason.IsEmpty then
+          AddChild('ram:Reason').Text := _Invoiceline.AllowanceCharges[i].Reason;
       end;
       with AddChild('ram:SpecifiedTradeSettlementLineMonetarySummation') do
       begin
@@ -1809,16 +1802,16 @@ begin
           end;
         end;
       end;
-      for taxSubtotal in _Invoice.TaxAmountSubtotals do
+      for i := 0 to _Invoice.TaxAmountSubtotals.Count-1 do
       with AddChild('ram:ApplicableTradeTax') do
       begin
-        AddChild('ram:CalculatedAmount').Text := TXRechnungHelper.AmountToStr(taxSubtotal.TaxAmount);
+        AddChild('ram:CalculatedAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.TaxAmountSubtotals[i].TaxAmount);
         AddChild('ram:TypeCode').Text := 'VAT';
-        if taxSubtotal.TaxExemptionReason <> '' then
-          AddChild('ram:ExemptionReason').Text := taxSubtotal.TaxExemptionReason;
-        AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(taxSubtotal.TaxableAmount);
-        AddChild('ram:CategoryCode').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(taxSubtotal.TaxCategory);
-        AddChild('ram:RateApplicablePercent').Text := TXRechnungHelper.PercentageToStr(taxSubtotal.TaxPercent);
+        if _Invoice.TaxAmountSubtotals[i].TaxExemptionReason <> '' then
+          AddChild('ram:ExemptionReason').Text := _Invoice.TaxAmountSubtotals[i].TaxExemptionReason;
+        AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.TaxAmountSubtotals[i].TaxableAmount);
+        AddChild('ram:CategoryCode').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(_Invoice.TaxAmountSubtotals[i].TaxCategory);
+        AddChild('ram:RateApplicablePercent').Text := TXRechnungHelper.PercentageToStr(_Invoice.TaxAmountSubtotals[i].TaxPercent);
       end;
       if (_Invoice.InvoicePeriodStartDate > 100) and (_Invoice.InvoicePeriodEndDate > 100) then
       with AddChild('ram:BillingSpecifiedPeriod') do
@@ -1834,26 +1827,26 @@ begin
           Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.InvoicePeriodEndDate);
         end;
       end;
-      for allowanceCharge in _Invoice.AllowanceCharges do
+      for i := 0 to _Invoice.AllowanceCharges.Count-1 do
       with AddChild('ram:SpecifiedTradeAllowanceCharge') do
       begin
-        AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := LowerCase(BoolToStr(allowanceCharge.ChargeIndicator,true));
-        if allowanceCharge.MultiplierFactorNumeric <> 0 then
-          AddChild('ram:CalculationPercent').Text := TXRechnungHelper.FloatToStr(allowanceCharge.MultiplierFactorNumeric);
-        if allowanceCharge.BaseAmount <> 0 then
-          AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(allowanceCharge.BaseAmount);
-        AddChild('ram:ActualAmount').Text := TXRechnungHelper.AmountToStr(allowanceCharge.Amount);
+        AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := LowerCase(BoolToStr(_Invoice.AllowanceCharges[i].ChargeIndicator,true));
+        if _Invoice.AllowanceCharges[i].MultiplierFactorNumeric <> 0 then
+          AddChild('ram:CalculationPercent').Text := TXRechnungHelper.FloatToStr(_Invoice.AllowanceCharges[i].MultiplierFactorNumeric);
+        if _Invoice.AllowanceCharges[i].BaseAmount <> 0 then
+          AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.AllowanceCharges[i].BaseAmount);
+        AddChild('ram:ActualAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.AllowanceCharges[i].Amount);
         AddChild('ram:ReasonCode').Text :=
-                 IfThen(allowanceCharge.ChargeIndicator,
-                 TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(allowanceCharge.ReasonCodeCharge),
-                 TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(allowanceCharge.ReasonCodeAllowance));
-        if not allowanceCharge.Reason.IsEmpty then
-          AddChild('ram:Reason').Text := allowanceCharge.Reason;
+                 IfThen(_Invoice.AllowanceCharges[i].ChargeIndicator,
+                 TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(_Invoice.AllowanceCharges[i].ReasonCodeCharge),
+                 TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(_Invoice.AllowanceCharges[i].ReasonCodeAllowance));
+        if not _Invoice.AllowanceCharges[i].Reason.IsEmpty then
+          AddChild('ram:Reason').Text := _Invoice.AllowanceCharges[i].Reason;
         with AddChild('ram:CategoryTradeTax') do
         begin
           AddChild('ram:TypeCode').Text := 'VAT';
-          AddChild('ram:CategoryCode').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(allowanceCharge.TaxCategory);
-          AddChild('ram:RateApplicablePercent').Text := TXRechnungHelper.PercentageToStr(allowanceCharge.TaxPercent);
+          AddChild('ram:CategoryCode').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(_Invoice.AllowanceCharges[i].TaxCategory);
+          AddChild('ram:RateApplicablePercent').Text := TXRechnungHelper.PercentageToStr(_Invoice.AllowanceCharges[i].TaxPercent);
         end;
       end;
       with AddChild('ram:SpecifiedTradePaymentTerms') do
@@ -1909,18 +1902,17 @@ begin
         AddChild('ram:TotalPrepaidAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.PrepaidAmount);
         AddChild('ram:DuePayableAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.PayableAmount);
       end;
-      for precedingInvoiceReference in _Invoice.PrecedingInvoiceReferences do
+      for i := 0 to _Invoice.PrecedingInvoiceReferences.Count-1 do
       with AddChild('ram:InvoiceReferencedDocument') do
       begin
-        AddChild('ram:IssuerAssignedID').Text := precedingInvoiceReference.ID;
+        AddChild('ram:IssuerAssignedID').Text := _Invoice.PrecedingInvoiceReferences[i].ID;
         with AddChild('ram:FormattedIssueDateTime').AddChild('qdt:DateTimeString') do
         begin
           Attributes['format'] := '102';
-          Text := TXRechnungHelper.DateToStrUNCEFACTFormat(precedingInvoiceReference.IssueDate);
+          Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.PrecedingInvoiceReferences[i].IssueDate);
         end;
         break; //only one item allowed in cii
       end;
-
     end;
   end;
 end;

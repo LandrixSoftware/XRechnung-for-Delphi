@@ -942,7 +942,7 @@ var
                IfThen(_Invoiceline.AllowanceCharges[i].ChargeIndicator,
                TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(_Invoiceline.AllowanceCharges[i].ReasonCodeCharge),
                TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(_Invoiceline.AllowanceCharges[i].ReasonCodeAllowance));
-      if not _Invoiceline.AllowanceCharges[i].Reason.IsEmpty then
+      if not (_Invoiceline.AllowanceCharges[i].Reason = '') then
         AddChild('cbc:AllowanceChargeReason').Text := _Invoiceline.AllowanceCharges[i].Reason;
       if _Invoiceline.AllowanceCharges[i].MultiplierFactorNumeric <> 0 then
         AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(_Invoiceline.AllowanceCharges[i].MultiplierFactorNumeric);
@@ -959,13 +959,13 @@ var
     end;
     with _Node.AddChild('cac:Item') do
     begin
-      if not _Invoiceline.Description.IsEmpty then
+      if not (_Invoiceline.Description = '') then
         AddChild('cbc:Description').Text := _Invoiceline.Description;
       AddChild('cbc:Name').Text := _Invoiceline.Name;
       //   <cac:BuyersItemIdentification>
       //      <cbc:ID/>
       //   </cac:BuyersItemIdentification>
-      if not _Invoiceline.SellersItemIdentification.IsEmpty then
+      if not (_Invoiceline.SellersItemIdentification = '') then
         AddChild('cac:SellersItemIdentification').AddChild('cbc:ID').Text := _Invoiceline.SellersItemIdentification;
       if _Invoiceline.GlobalID_EAN_GTIN <> '' then
       with AddChild('cac:StandardItemIdentification').AddChild('cbc:ID') do
@@ -1154,7 +1154,7 @@ begin
       AddChild('cbc:RegistrationName').Text := _Invoice.AccountingSupplierParty.RegistrationName;
       if _Invoice.AccountingSupplierParty.CompanyID <> '' then
         AddChild('cbc:CompanyID').Text := _Invoice.AccountingSupplierParty.CompanyID;
-      if not _Invoice.AccountingSupplierParty.AdditionalLegalInformationSeller.IsEmpty then
+      if not (_Invoice.AccountingSupplierParty.AdditionalLegalInformationSeller = '') then
         AddChild('cbc:CompanyLegalForm').Text := _Invoice.AccountingSupplierParty.AdditionalLegalInformationSeller;
     end;
     with AddChild('cac:Contact') do
@@ -1333,7 +1333,7 @@ begin
              IfThen(_Invoice.AllowanceCharges[i].ChargeIndicator,
              TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(_Invoice.AllowanceCharges[i].ReasonCodeCharge),
              TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(_Invoice.AllowanceCharges[i].ReasonCodeAllowance));
-    if not _Invoice.AllowanceCharges[i].Reason.IsEmpty then
+    if not (_Invoice.AllowanceCharges[i].Reason = '') then
       AddChild('cbc:AllowanceChargeReason').Text := _Invoice.AllowanceCharges[i].Reason;
     if _Invoice.AllowanceCharges[i].MultiplierFactorNumeric <> 0 then
       AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(_Invoice.AllowanceCharges[i].MultiplierFactorNumeric);
@@ -1457,10 +1457,10 @@ var
           Text := _Invoiceline.GlobalID_EAN_GTIN;
         end;
       end;
-      if not _Invoiceline.SellersItemIdentification.IsEmpty then
+      if not (_Invoiceline.SellersItemIdentification = '') then
         AddChild('ram:SellerAssignedID').Text := _Invoiceline.SellersItemIdentification;
       AddChild('ram:Name').Text := _Invoiceline.Name;
-      if not _Invoiceline.Description.IsEmpty then
+      if not (_Invoiceline.Description = '') then
         AddChild('ram:Description').Text := _Invoiceline.Description;
     end;
     with _Node.AddChild('ram:SpecifiedLineTradeAgreement') do
@@ -1526,7 +1526,7 @@ var
                  IfThen(_Invoiceline.AllowanceCharges[i].ChargeIndicator,
                  TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(_Invoiceline.AllowanceCharges[i].ReasonCodeCharge),
                  TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(_Invoiceline.AllowanceCharges[i].ReasonCodeAllowance));
-        if not _Invoiceline.AllowanceCharges[i].Reason.IsEmpty then
+        if not (_Invoiceline.AllowanceCharges[i].Reason = '') then
           AddChild('ram:Reason').Text := _Invoiceline.AllowanceCharges[i].Reason;
       end;
       with AddChild('ram:SpecifiedTradeSettlementLineMonetarySummation') do
@@ -1722,7 +1722,7 @@ begin
           end;
         end;
       end;
-      if not _Invoice.ProjectReference.IsEmpty then
+      if not (_Invoice.ProjectReference = '') then
       with AddChild('ram:SpecifiedProcuringProject') do
       begin
         AddChild('ram:ID').Text := _Invoice.ProjectReference;
@@ -1836,7 +1836,7 @@ begin
                  IfThen(_Invoice.AllowanceCharges[i].ChargeIndicator,
                  TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(_Invoice.AllowanceCharges[i].ReasonCodeCharge),
                  TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(_Invoice.AllowanceCharges[i].ReasonCodeAllowance));
-        if not _Invoice.AllowanceCharges[i].Reason.IsEmpty then
+        if not (_Invoice.AllowanceCharges[i].Reason = '') then
           AddChild('ram:Reason').Text := _Invoice.AllowanceCharges[i].Reason;
         with AddChild('ram:CategoryTradeTax') do
         begin

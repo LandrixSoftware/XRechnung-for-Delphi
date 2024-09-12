@@ -133,9 +133,9 @@ begin
         sNSUri := hList.item[i].nodeValue;
       end;
       s := sNSN + '="'+sNSUri+'"';
-      if ContainsText(sNsLine, s) then
+      if Pos(AnsiUpperCase(s), AnsiUpperCase(sNsLine)) > 0 then
         continue;
-      if ContainsText(sNsLine,sNSN+'="') then
+      if Pos(AnsiUpperCase(sNSN+'="'), AnsiUpperCase(sNsLine)) > 0 then
         continue;
       sNsLine := ' '+s + sNsLine;
     end;

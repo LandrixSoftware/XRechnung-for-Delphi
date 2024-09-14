@@ -80,6 +80,8 @@ type
     class function InvoiceDutyTaxFeeCategoryCodeFromStr(_Val : String) : TInvoiceDutyTaxFeeCategoryCode;
     class function InvoiceAttachmentTypeToStr(_Val : TInvoiceAttachmentType) : String;
     class function InvoiceAttachmentTypeFromStr(_Val : String) : TInvoiceAttachmentType;
+    class procedure ReadPaymentTerms(_Invoice: TInvoice; _PaymentTermsText: String);
+
   end;
 
   TXRechnungVersion = (XRechnungVersion_Unknown,
@@ -903,6 +905,86 @@ end;
 class function TXRechnungHelper.QuantityToStr(_Val: double): String;
 begin
   Result := System.StrUtils.ReplaceText(Format('%.4f',[_Val]),',','.');
+end;
+
+class procedure TXRechnungHelper.ReadPaymentTerms(_Invoice: TInvoice;
+  _PaymentTermsText: String);
+var
+  paymentTerms,paymentTerm : TArray<String>;
+begin
+  if _PaymentTermsText = '' then
+    exit;
+  if Pos('#SKONTO#',_PaymentTermsText) = 0 then
+  begin
+    _Invoice.PaymentTermsType := iptt_Net;
+    _Invoice.PaymentTermNetNote := _PaymentTermsText;
+  end else
+  if (Pos('#SKONTO#',_PaymentTermsText) = 1) and (Pos(#10,Trim(_PaymentTermsText)) > 1) then //zweimal Skonto
+  begin
+    _Invoice.PaymentTermsType := iptt_CashDiscount2;
+    paymentTerms := _PaymentTermsText.Split([#10]);
+    if (Length(paymentTerms) >= 2) then if (Pos('#SKONTO#',paymentTerms[1]) = 1) then
+    begin
+      paymentTerm := paymentTerms[1].Split(['#']); //0 Leer, 1 Skonto, 2 Tage, 3 Prozent, 4 Leer o. Basiswert
+      if (Length(paymentTerm) >= 5) then
+      begin
+        Delete(paymentTerm[2],1,5);
+        _Invoice.PaymentTermCashDiscount2Days := StrToIntDef(paymentTerm[2],0);
+        Delete(paymentTerm[3],1,8);
+        _Invoice.PaymentTermCashDiscount2Percent := TXRechnungHelper.FloatFromStr(paymentTerm[3]);
+        if Pos('BASISBETRAG=',paymentTerm[4])=1 then
+        begin
+          Delete(paymentTerm[4],1,12);
+          _Invoice.PaymentTermCashDiscount2Base := TXRechnungHelper.AmountFromStr(paymentTerm[4]);
+        end
+        else
+          _Invoice.PaymentTermCashDiscount2Base := 0;
+      end;
+    end else
+      _Invoice.PaymentTermsType := iptt_CashDiscount1;
+    if (Length(paymentTerms) >= 1) then if (Pos('#SKONTO#',paymentTerms[0]) = 1) then
+    begin
+      paymentTerm := paymentTerms[0].Split(['#']); //0 Leer, 1 Skonto, 2 Tage, 3 Prozent, 4 Leer o. Basiswert
+      if (Length(paymentTerm) >= 5) then
+      begin
+        Delete(paymentTerm[2],1,5);
+        _Invoice.PaymentTermCashDiscount1Days := StrToIntDef(paymentTerm[2],0);
+        Delete(paymentTerm[3],1,8);
+        _Invoice.PaymentTermCashDiscount1Percent := TXRechnungHelper.FloatFromStr(paymentTerm[3]);
+        if Pos('BASISBETRAG=',paymentTerm[4])=1 then
+        begin
+          Delete(paymentTerm[4],1,12);
+          _Invoice.PaymentTermCashDiscount1Base := TXRechnungHelper.AmountFromStr(paymentTerm[4]);
+        end
+        else
+          _Invoice.PaymentTermCashDiscount1Base := 0;
+      end;
+    end else
+      _Invoice.PaymentTermsType := iptt_Net;
+  end else
+  if Pos('#SKONTO#',_PaymentTermsText) = 1 then //einmal Skonto
+  begin
+    _Invoice.PaymentTermsType := iptt_CashDiscount1;
+    paymentTerm := _PaymentTermsText.Split(['#']); //0 Leer, 1 Skonto, 2 Tage, 3 Prozent, 4 Leer o. Basiswert
+    if (Length(paymentTerm) >= 5) then
+    begin
+      Delete(paymentTerm[2],1,5);
+      _Invoice.PaymentTermCashDiscount1Days := StrToIntDef(paymentTerm[2],0);
+      Delete(paymentTerm[3],1,8);
+      _Invoice.PaymentTermCashDiscount1Percent := TXRechnungHelper.FloatFromStr(paymentTerm[3]);
+      if Pos('BASISBETRAG=',paymentTerm[4])=1 then
+      begin
+        Delete(paymentTerm[4],1,12);
+        _Invoice.PaymentTermCashDiscount1Base := TXRechnungHelper.AmountFromStr(paymentTerm[4]);
+      end
+      else
+        _Invoice.PaymentTermCashDiscount1Base := 0;
+    end;
+  end else
+  begin
+    _Invoice.PaymentTermsType := iptt_None;
+    _Invoice.PaymentTermNetNote := _PaymentTermsText;
+  end;
 end;
 
 { TXRechnungValidationHelper }

@@ -33,9 +33,6 @@ uses
 
 type
   TXRechnungInvoiceAdapter230 = class
-  private
-    class procedure InternalReadPaymentTerms(_Invoice: TInvoice;
-      _PaymentTermsText: String);
   public
     class procedure SaveDocumentUNCEFACT(_Invoice: TInvoice;_Xml : IXMLDocument);
     class procedure SaveDocumentUBL(_Invoice: TInvoice;_Xml : IXMLDocument);
@@ -49,86 +46,6 @@ uses
   intf.XRechnung;
 
 { TXRechnungInvoiceAdapter230 }
-
-class procedure TXRechnungInvoiceAdapter230.InternalReadPaymentTerms(
-  _Invoice: TInvoice; _PaymentTermsText: String);
-var
-  paymentTerms,paymentTerm : TArray<String>;
-begin
-  if _PaymentTermsText = '' then
-    exit;
-  if Pos('#SKONTO#',_PaymentTermsText) = 0 then
-  begin
-    _Invoice.PaymentTermsType := iptt_Net;
-    _Invoice.PaymentTermNetNote := _PaymentTermsText;
-  end else
-  if (Pos('#SKONTO#',_PaymentTermsText) = 1) and (Pos(#10,Trim(_PaymentTermsText)) > 1) then //zweimal Skonto
-  begin
-    _Invoice.PaymentTermsType := iptt_CashDiscount2;
-    paymentTerms := _PaymentTermsText.Split([#10]);
-    if (Length(paymentTerms) >= 2) then if (Pos('#SKONTO#',paymentTerms[1]) = 1) then
-    begin
-      paymentTerm := paymentTerms[1].Split(['#']); //0 Leer, 1 Skonto, 2 Tage, 3 Prozent, 4 Leer o. Basiswert
-      if (Length(paymentTerm) >= 5) then
-      begin
-        Delete(paymentTerm[2],1,5);
-        _Invoice.PaymentTermCashDiscount2Days := StrToIntDef(paymentTerm[2],0);
-        Delete(paymentTerm[3],1,8);
-        _Invoice.PaymentTermCashDiscount2Percent := TXRechnungHelper.FloatFromStr(paymentTerm[3]);
-        if Pos('BASISBETRAG=',paymentTerm[4])=1 then
-        begin
-          Delete(paymentTerm[4],1,12);
-          _Invoice.PaymentTermCashDiscount2Base := TXRechnungHelper.AmountFromStr(paymentTerm[4]);
-        end
-        else
-          _Invoice.PaymentTermCashDiscount2Base := 0;
-      end;
-    end else
-      _Invoice.PaymentTermsType := iptt_CashDiscount1;
-    if (Length(paymentTerms) >= 1) then if (Pos('#SKONTO#',paymentTerms[0]) = 1) then
-    begin
-      paymentTerm := paymentTerms[0].Split(['#']); //0 Leer, 1 Skonto, 2 Tage, 3 Prozent, 4 Leer o. Basiswert
-      if (Length(paymentTerm) >= 5) then
-      begin
-        Delete(paymentTerm[2],1,5);
-        _Invoice.PaymentTermCashDiscount1Days := StrToIntDef(paymentTerm[2],0);
-        Delete(paymentTerm[3],1,8);
-        _Invoice.PaymentTermCashDiscount1Percent := TXRechnungHelper.FloatFromStr(paymentTerm[3]);
-        if Pos('BASISBETRAG=',paymentTerm[4])=1 then
-        begin
-          Delete(paymentTerm[4],1,12);
-          _Invoice.PaymentTermCashDiscount1Base := TXRechnungHelper.AmountFromStr(paymentTerm[4]);
-        end
-        else
-          _Invoice.PaymentTermCashDiscount1Base := 0;
-      end;
-    end else
-      _Invoice.PaymentTermsType := iptt_Net;
-  end else
-  if Pos('#SKONTO#',_PaymentTermsText) = 1 then //einmal Skonto
-  begin
-    _Invoice.PaymentTermsType := iptt_CashDiscount1;
-    paymentTerm := _PaymentTermsText.Split(['#']); //0 Leer, 1 Skonto, 2 Tage, 3 Prozent, 4 Leer o. Basiswert
-    if (Length(paymentTerm) >= 5) then
-    begin
-      Delete(paymentTerm[2],1,5);
-      _Invoice.PaymentTermCashDiscount1Days := StrToIntDef(paymentTerm[2],0);
-      Delete(paymentTerm[3],1,8);
-      _Invoice.PaymentTermCashDiscount1Percent := TXRechnungHelper.FloatFromStr(paymentTerm[3]);
-      if Pos('BASISBETRAG=',paymentTerm[4])=1 then
-      begin
-        Delete(paymentTerm[4],1,12);
-        _Invoice.PaymentTermCashDiscount1Base := TXRechnungHelper.AmountFromStr(paymentTerm[4]);
-      end
-      else
-        _Invoice.PaymentTermCashDiscount1Base := 0;
-    end;
-  end else
-  begin
-    _Invoice.PaymentTermsType := iptt_None;
-    _Invoice.PaymentTermNetNote := _PaymentTermsText;
-  end;
-end;
 
 class function TXRechnungInvoiceAdapter230.LoadDocumentUBL(_Invoice: TInvoice;
   _Xml: IXMLDocument; out _Error : String) : Boolean;
@@ -353,7 +270,7 @@ begin
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:PaymentMeans/cac:PaymentMandate/cac:PayerFinancialAccount/cbc:ID',node) then
       _Invoice.PaymentFinancialAccount := node.text;
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:PaymentTerms/cbc:Note',node) then
-      TXRechnungInvoiceAdapter230.InternalReadPaymentTerms(_Invoice,node.text);
+      TXRechnungHelper.ReadPaymentTerms(_Invoice,node.text);
 
     if TXRechnungXMLHelper.SelectNodes(xml,'//*[local-name()="'+IfThen(_Invoice.InvoiceTypeCode = itc_CreditNote,'CreditNote','Invoice')+'"]/cac:AllowanceCharge',nodes) then
     for i := 0 to nodes.length-1 do
@@ -790,7 +707,7 @@ begin
         if (TXRechnungXMLHelper.FindNode(nodes[0],'.//ram:DueDateDateTime') or
             (Pos('#SKONTO#',TXRechnungXMLHelper.SelectNodeText(nodes[0],'.//ram:Description')) > 0) ) then
         begin
-          TXRechnungInvoiceAdapter230.InternalReadPaymentTerms(
+          TXRechnungHelper.ReadPaymentTerms(
             _Invoice,TXRechnungXMLHelper.SelectNodeText(nodes[0],'.//ram:Description'));
           if TXRechnungXMLHelper.SelectNode(nodes[0],'.//ram:DueDateDateTime',node3) then
           if TXRechnungXMLHelper.SelectNode(node3,'.//udt:DateTimeString',node) then

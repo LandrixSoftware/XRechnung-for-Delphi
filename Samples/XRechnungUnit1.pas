@@ -507,12 +507,9 @@ begin
 end;
 
 procedure TForm1.ShowXMLAsHtml(_Content: String);
-{$IFDEF USE_EDGE_BROWSER}
 var
   cmdoutput,htmlresult : String;
-{$IFEND}
 begin
-{$IFDEF USE_EDGE_BROWSER}
   GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
       .SetValidatorLibPath(ValidatorLibPath)
       .SetVisualizationLibPath(VisualizationLibPath)
@@ -523,18 +520,19 @@ begin
   if htmlresult = '' then
     htmlresult := '<html><body>Visualisierung nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
   TFile.WriteAllText(WebBrowserContentFilenameHtml,htmlresult,TEncoding.UTF8);
+
+{$IFDEF USE_EDGE_BROWSER}
   EdgeBrowser2.Navigate('file:///'+WebBrowserContentFilenameHtml);
+{$ELSE}
+  ShellExecute(0,'open',PChar(WebBrowserContentFilenameHtml),'','',SW_SHOWNORMAL);
 {$IFEND}
 end;
 
 procedure TForm1.ShowXMLAsPdf(_Content: String);
-{$IFDEF USE_EDGE_BROWSER}
 var
   cmdoutput : String;
   pdfresult : TMemoryStream;
-{$IFEND}
 begin
-{$IFDEF USE_EDGE_BROWSER}
   GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
       .SetValidatorLibPath(ValidatorLibPath)
       .SetVisualizationLibPath(VisualizationLibPath)
@@ -547,12 +545,17 @@ begin
   begin
     pdfresult.SaveToFile(WebBrowserContentFilenamePdf);
     pdfresult.Free;
+{$IFDEF USE_EDGE_BROWSER}
     EdgeBrowser3.Navigate('file:///'+WebBrowserContentFilenamePdf);
+{$ELSE}
+    ShellExecute(0,'open',PChar(WebBrowserContentFilenamePdf),'','',SW_SHOWNORMAL);
+{$IFEND}
   end else
   begin
+{$IFDEF USE_EDGE_BROWSER}
     EdgeBrowser3.Navigate('about:blank');
-  end;
 {$IFEND}
+  end;
 end;
 
 end.

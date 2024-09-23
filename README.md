@@ -59,6 +59,12 @@ komplettes Objekt. Hier kann man selbst weitere ZUGFeRD-Inhalte auslesen.
   end;
 ```
 
+## Delphi 6 Support
+
+Für Delphi 6 gibt es eine spezielle Version, die unter dem Verzeichnis Delphi6 zu finden ist. 
+Diese Version enthält keine ZUGFeRD-for-Delphi-Unterstützung. Derzeit ist eine komplette ZUGFeRD-Unterstützung 
+für Delphi 6 nicht geplant.
+
 ## Hilfsfunktion für den XRechnung-Export
 
 Prüft, ob die zu exportierende Rechnung den Anforderungen der XRechnung entspricht. Gibt False zurück, wenn die Rechnung Werte enthält, die nicht im XRechnung-Profil erlaubt sind. Die Funktion ist nicht vollständig und wird ständig erweitert.

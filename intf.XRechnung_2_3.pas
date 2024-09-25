@@ -327,6 +327,7 @@ begin
     _Invoice.AllowanceTotalAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(xml,'//cac:LegalMonetaryTotal/cbc:AllowanceTotalAmount'));
     _Invoice.ChargeTotalAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(xml,'//cac:LegalMonetaryTotal/cbc:ChargeTotalAmount'));
     _Invoice.PrepaidAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(xml,'//cac:LegalMonetaryTotal/cbc:PrepaidAmount'));
+    _Invoice.PayableRoundingAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(xml,'//cac:LegalMonetaryTotal/cbc:PayableRoundingAmount'));
     _Invoice.PayableAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(xml,'//cac:LegalMonetaryTotal/cbc:PayableAmount'));
 
     if TXRechnungXMLHelper.SelectNodes(xml,'.//cac:InvoiceLine',nodes) then
@@ -791,6 +792,7 @@ begin
           _Invoice.TaxCurrencyCode := TXRechnungXMLHelper.SelectAttributeText(node,'currencyID');
           _Invoice.TaxAmountTotal := TXRechnungHelper.AmountFromStr(node.text);
         end;
+        _Invoice.PayableRoundingAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:RoundingAmount'));
         _Invoice.TaxInclusiveAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:GrandTotalAmount'));
         _Invoice.PrepaidAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:TotalPrepaidAmount'));
         _Invoice.PayableAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:DuePayableAmount'));
@@ -1335,7 +1337,12 @@ begin
         Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
         Text := TXRechnungHelper.AmountToStr(_Invoice.PrepaidAmount);
       end;
-      //      <cbc:PayableRoundingAmount currencyID="EUR">0</cbc:PayableRoundingAmount>
+      if _Invoice.PayableRoundingAmount <> 0.0 then
+      with AddChild('cbc:PayableRoundingAmount') do
+      begin
+        Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
+        Text := TXRechnungHelper.AmountToStr(_Invoice.PayableRoundingAmount);
+      end;
       with AddChild('cbc:PayableAmount') do
       begin
         Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
@@ -1804,7 +1811,8 @@ begin
           Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
           Text :=  TXRechnungHelper.AmountToStr(_Invoice.TaxAmountTotal);
         end;
-        //        <ram:RoundingAmount>0</ram:RoundingAmount>
+        if _Invoice.PayableRoundingAmount <> 0.0 then
+          AddChild('ram:RoundingAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.PayableRoundingAmount);
         AddChild('ram:GrandTotalAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.TaxInclusiveAmount);
         AddChild('ram:TotalPrepaidAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.PrepaidAmount);
         AddChild('ram:DuePayableAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.PayableAmount);

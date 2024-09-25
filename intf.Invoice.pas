@@ -599,6 +599,7 @@ type
     AllowanceTotalAmount : Currency;
     ChargeTotalAmount : Currency;
     PrepaidAmount : Currency;
+    PayableRoundingAmount : Currency; //BT-114
     PayableAmount : Currency;
   public
     constructor Create;
@@ -648,6 +649,15 @@ begin
   Notes.Clear;
   TaxAmountSubtotals.Clear;
   PaymentTermsType := iptt_None;
+
+  LineAmount := 0;
+  TaxExclusiveAmount := 0;
+  TaxInclusiveAmount := 0;
+  AllowanceTotalAmount := 0;
+  ChargeTotalAmount := 0;
+  PrepaidAmount := 0;
+  PayableRoundingAmount := 0;
+  PayableAmount := 0;
 end;
 
 { TInvoiceLines }

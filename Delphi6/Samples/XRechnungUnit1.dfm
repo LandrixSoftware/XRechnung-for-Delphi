@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 195
-  Top = 176
+  Left = 18
+  Top = 153
   Width = 1630
   Height = 748
   Caption = 'XRechnung for Delphi v3.0.x'

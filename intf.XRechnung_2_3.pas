@@ -107,6 +107,13 @@ var
         _Invoiceline.GlobalID_EAN_GTIN := node2.text;
       _Invoiceline.TaxCategory := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeFromStr(TXRechnungXMLHelper.SelectNodeText(node,'.//cac:ClassifiedTaxCategory/cbc:ID'));
       _Invoiceline.TaxPercent := TXRechnungHelper.PercentageFromStr(TXRechnungXMLHelper.SelectNodeText(node,'.//cac:ClassifiedTaxCategory/cbc:Percent'));
+      if TXRechnungXMLHelper.SelectNodes(node,'.//cac:AdditionalItemProperty',nodes) then
+      for i := 0 to nodes.length-1 do
+      with _Invoiceline.ItemAttributes.AddItemAttribute do
+      begin
+        Name := TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//cbc:Name');
+        Value := TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//cbc:Value');
+      end;
       //VAT := TXRechnungXMLHelper.SelectNodeText(node,'.//cac:TaxScheme/cbc:ID');
     end;
     _Invoiceline.NetPriceAmount := TXRechnungHelper.UnitPriceAmountFromStr(TXRechnungXMLHelper.SelectNodeText(_Node,'.//cac:Price/cbc:PriceAmount'));
@@ -372,6 +379,13 @@ var
       _Invoiceline.SellersItemIdentification := TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:SellerAssignedID');
       _Invoiceline.Name := TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:Name');
       _Invoiceline.Description := TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:Description');
+      if TXRechnungXMLHelper.SelectNodes(node2,'.//ram:ApplicableProductCharacteristic',nodes) then
+      for i := 0 to nodes.length-1 do
+      with _Invoiceline.ItemAttributes.AddItemAttribute do
+      begin
+        Name := TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:Description');
+        Value := TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:Value');
+      end;
     end;
     if TXRechnungXMLHelper.SelectNode(_Node,'.//ram:SpecifiedLineTradeAgreement',node2) then
     begin
@@ -898,6 +912,12 @@ var
         AddChild('cbc:Percent').Text := TXRechnungHelper.PercentageToStr(_Invoiceline.TaxPercent);
         AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
       end;
+      for i := 0 to _Invoiceline.ItemAttributes.Count-1 do
+      with AddChild('cac:AdditionalItemProperty') do
+      begin
+        AddChild('cbc:Name').Text := _Invoiceline.ItemAttributes[i].Name;
+        AddChild('cbc:Value').Text := _Invoiceline.ItemAttributes[i].Value;
+      end;
     end;
     with _Node.AddChild('cac:Price') do
     begin
@@ -1385,6 +1405,14 @@ var
       AddChild('ram:Name').Text := _Invoiceline.Name;
       if not (_Invoiceline.Description = '') then
         AddChild('ram:Description').Text := _Invoiceline.Description;
+      for i := 0 to _Invoiceline.ItemAttributes.Count-1 do
+      with AddChild('ram:ApplicableProductCharacteristic') do
+      begin
+        if _Invoiceline.ItemAttributes[i].Name <> '' then
+          AddChild('ram:Description').Text := _Invoiceline.ItemAttributes[i].Name;
+        if _Invoiceline.ItemAttributes[i].Value <> '' then
+          AddChild('ram:Value').Text := _Invoiceline.ItemAttributes[i].Value;
+      end;
     end;
     with _Node.AddChild('ram:SpecifiedLineTradeAgreement') do
     begin

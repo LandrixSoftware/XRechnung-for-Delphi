@@ -1,7 +1,7 @@
 {
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
-Version 3.0.1
+Version 3.0.2
 
 License
 This file is not official part of the package XRechnung-for-Delphi.
@@ -484,6 +484,17 @@ begin
     BaseQuantity := 0; //Preiseinheit 0 = wird nicht ausgegeben, entspricht default = 1
     BaseQuantityUnitCode := iuc_None; //Preiseinheit Mengeneinheit
     LineAmount := 100;
+
+    with ItemAttributes.AddItemAttribute do
+    begin
+      Name := 'Key1';
+      Value := 'xyz';
+    end;
+    with ItemAttributes.AddItemAttribute do
+    begin
+      Name := 'Key2';
+      Value := '123';
+    end;
   end;
   with inv.InvoiceLines.AddInvoiceLine do
   begin

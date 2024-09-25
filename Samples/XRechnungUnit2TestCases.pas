@@ -485,6 +485,17 @@ begin
     BaseQuantity := 0; //Preiseinheit 0 = wird nicht ausgegeben, entspricht default = 1
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
     LineAmount := 100;
+
+    with ItemAttributes.AddItemAttribute do
+    begin
+      Name := 'Key1';
+      Value := 'xyz';
+    end;
+    with ItemAttributes.AddItemAttribute do
+    begin
+      Name := 'Key2';
+      Value := '123';
+    end;
   end;
   with inv.InvoiceLines.AddInvoiceLine do
   begin

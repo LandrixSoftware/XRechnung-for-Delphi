@@ -81,7 +81,6 @@ type
     class function InvoiceAttachmentTypeToStr(_Val : TInvoiceAttachmentType) : String;
     class function InvoiceAttachmentTypeFromStr(_Val : String) : TInvoiceAttachmentType;
     class procedure ReadPaymentTerms(_Invoice: TInvoice; _PaymentTermsText: String);
-
   end;
 
   TXRechnungVersion = (XRechnungVersion_Unknown,
@@ -1580,6 +1579,13 @@ begin
       TaxPercent := 0; //Nicht in Position vorhanden
       TaxCategory := idtfcc_None; //Nicht in Position vorhanden
     end;
+
+    for j := 0 to _InvoiceDescriptor.TradeLineItems[i].ApplicableProductCharacteristics.Count-1 do
+    with lInvoiceLine.ItemAttributes.AddItemAttribute do
+    begin
+      Name := _InvoiceDescriptor.TradeLineItems[i].ApplicableProductCharacteristics[j].Description;
+      Value := _InvoiceDescriptor.TradeLineItems[i].ApplicableProductCharacteristics[j].Value;
+    end;
   end;
 
   for i := 0 to _InvoiceDescriptor.AdditionalReferencedDocuments.Count-1 do
@@ -1698,6 +1704,7 @@ begin
   _Invoice.AllowanceTotalAmount := _InvoiceDescriptor.AllowanceTotalAmount.GetValueOrDefault(0);
   _Invoice.ChargeTotalAmount := _InvoiceDescriptor.ChargeTotalAmount.GetValueOrDefault(0);
   _Invoice.PrepaidAmount := _InvoiceDescriptor.TotalPrepaidAmount.GetValueOrDefault(0);
+  _Invoice.PayableRoundingAmount := _InvoiceDescriptor.RoundingAmount.GetValueOrDefault(0);
   _Invoice.PayableAmount := _InvoiceDescriptor.DuePayableAmount.GetValueOrDefault(0);
   Result := True;
 end;

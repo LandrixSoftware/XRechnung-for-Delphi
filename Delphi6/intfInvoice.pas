@@ -391,6 +391,25 @@ type
 
   TInvoiceLines = class;
 
+  TInvoiceLineItemAttribute = class(TObject)
+  public
+    Name : String; //BT-160
+    Value : String; //BT-161
+  end;
+
+  TInvoiceLineItemAttributes = class(TObjectList)
+  protected
+    function GetItem(Index: Integer): TInvoiceLineItemAttribute;
+    procedure SetItem(Index: Integer; AItem: TInvoiceLineItemAttribute);
+  public
+	  function  Extract(Item: TObject): TInvoiceLineItemAttribute;
+	  function  First: TInvoiceLineItemAttribute;
+	  function  Last: TInvoiceLineItemAttribute;
+	  property  Items[Index: Integer]: TInvoiceLineItemAttribute read GetItem write SetItem; default;
+  public
+    function  AddItemAttribute : TInvoiceLineItemAttribute;
+  end;
+
   TInvoiceLine = class(TObject)
   public
     ID : String; //Positionsnummer
@@ -411,6 +430,7 @@ type
     LineAmount : Currency;
     AllowanceCharges : TInvoiceAllowanceCharges;
     SubInvoiceLines : TInvoiceLines;
+    ItemAttributes : TInvoiceLineItemAttributes;
   public
     constructor Create;
     destructor Destroy; override;
@@ -598,6 +618,7 @@ type
     AllowanceTotalAmount : Currency;
     ChargeTotalAmount : Currency;
     PrepaidAmount : Currency;
+    PayableRoundingAmount : Currency; //BT-114
     PayableAmount : Currency;
   public
     constructor Create;
@@ -647,6 +668,15 @@ begin
   Notes.Clear;
   TaxAmountSubtotals.Clear;
   PaymentTermsType := iptt_None;
+
+  LineAmount := 0;
+  TaxExclusiveAmount := 0;
+  TaxInclusiveAmount := 0;
+  AllowanceTotalAmount := 0;
+  ChargeTotalAmount := 0;
+  PrepaidAmount := 0;
+  PayableRoundingAmount := 0;
+  PayableAmount := 0;
 end;
 
 { TInvoiceLines }
@@ -781,12 +811,14 @@ constructor TInvoiceLine.Create;
 begin
   AllowanceCharges := TInvoiceAllowanceCharges.Create;
   SubInvoiceLines := TInvoiceLines.Create;
+  ItemAttributes := TInvoiceLineItemAttributes.Create;
 end;
 
 destructor TInvoiceLine.Destroy;
 begin
   if Assigned(AllowanceCharges) then begin AllowanceCharges.Free; AllowanceCharges := nil; end;
   if Assigned(SubInvoiceLines) then begin SubInvoiceLines.Free; SubInvoiceLines := nil; end;
+  if Assigned(ItemAttributes) then begin ItemAttributes.Free; ItemAttributes := nil; end;
   inherited;
 end;
 
@@ -1135,6 +1167,29 @@ begin
   if Assigned(Address) then begin Address.Free; Address := nil; end;
   inherited;
 end;
+
+{ TInvoiceLineItemAttributes }
+
+function TInvoiceLineItemAttributes.AddItemAttribute: TInvoiceLineItemAttribute;
+begin
+  Result := TInvoiceLineItemAttribute.Create;
+  Add(Result);
+end;
+
+function TInvoiceLineItemAttributes.Extract(Item: TObject): TInvoiceLineItemAttribute;
+begin Result := TInvoiceLineItemAttribute(inherited Extract(Item)); end;
+
+function TInvoiceLineItemAttributes.First: TInvoiceLineItemAttribute;
+begin if Count = 0 then Result := nil else Result := TInvoiceLineItemAttribute(inherited First); end;
+
+function TInvoiceLineItemAttributes.GetItem(Index: Integer): TInvoiceLineItemAttribute;
+begin Result := TInvoiceLineItemAttribute(inherited Items[Index]); end;
+
+function TInvoiceLineItemAttributes.Last: TInvoiceLineItemAttribute;
+begin if Count = 0 then Result := nil else Result := TInvoiceLineItemAttribute(inherited Last); end;
+
+procedure TInvoiceLineItemAttributes.SetItem(Index: Integer; AItem: TInvoiceLineItemAttribute);
+begin inherited Items[Index] := AItem; end;
 
 end.
 

@@ -76,14 +76,15 @@ TXRechnungInvoiceAdapter.ConsistencyCheck(_Invoice : TInvoice; _Version : TXRech
 ```
 ## Weitere Informationen zu XRechnung
 
-- UBL-Format
+- UBL-Formatv
   https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice
 
-- CII-Format
+- CII-Format\
   https://portal3.gefeg.com/invoice/tthome/index/617afdc4-623f-44e0-a05b-5b878840e508
 
-- Validieren von XRechnung
-  https://ecosio.com/de/peppol-und-xml-dokumente-online-validieren/
+- Validieren von XRechnung\
+  https://ecosio.com/de/peppol-und-xml-dokumente-online-validieren/ \
+  https://www.portinvoice.com/
 
 - https://portal3.gefeg.com/projectdata/invoice/deliverables/installed/publishingproject/factur-x%20(zugferd%202.0)/factur-x;%20draft;%20extended.scm/html/021.htm?https://portal3.gefeg.com/projectdata/invoice/deliverables/installed/publishingproject/factur-x%20(zugferd%202.0)/factur-x;%20draft;%20extended.scm/html/02233.htm
 

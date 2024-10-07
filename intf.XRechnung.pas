@@ -1666,14 +1666,14 @@ begin
     end;
   end;
 
-  //Achtung, CII-Format maximal ein Element erlaubt, UBL-Format beliebig viele
-  if _InvoiceDescriptor.InvoiceReferencedDocument <> nil then
-  if (_InvoiceDescriptor.InvoiceReferencedDocument.ID <> '') and
-     (_InvoiceDescriptor.InvoiceReferencedDocument.IssueDateTime.GetValueOrDefault > 100) then
+  //Achtung, CII-Format <= v2.2 maximal ein Element erlaubt, UBL-Format beliebig viele
+  for i := 0 to _InvoiceDescriptor.InvoiceReferencedDocuments.Count-1 do
+  if (_InvoiceDescriptor.InvoiceReferencedDocuments[i].ID <> '') and
+     (_InvoiceDescriptor.InvoiceReferencedDocuments[i].IssueDateTime.GetValueOrDefault > 100) then
   with _Invoice.PrecedingInvoiceReferences.AddPrecedingInvoiceReference do
   begin
-    ID := _InvoiceDescriptor.InvoiceReferencedDocument.ID;
-    IssueDate := _InvoiceDescriptor.InvoiceReferencedDocument.IssueDateTime.GetValueOrDefault(0);
+    ID := _InvoiceDescriptor.InvoiceReferencedDocuments[i].ID;
+    IssueDate := _InvoiceDescriptor.InvoiceReferencedDocuments[i].IssueDateTime.GetValueOrDefault(0);
   end;
 
   _Invoice.TaxAmountTotal := _InvoiceDescriptor.TaxTotalAmount.GetValueOrDefault(0);

@@ -884,6 +884,7 @@ var
         Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
         Text := TXRechnungHelper.AmountToStr(_Invoiceline.AllowanceCharges[i].Amount);
       end;
+      if _Invoiceline.AllowanceCharges[i].MultiplierFactorNumeric <> 0 then
       with AddChild('cbc:BaseAmount') do
       begin
         Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
@@ -1471,8 +1472,10 @@ var
       begin
         AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := LowerCase(BoolToStr(_Invoiceline.AllowanceCharges[i].ChargeIndicator,true));
         if _Invoiceline.AllowanceCharges[i].MultiplierFactorNumeric <> 0 then
+        begin
           AddChild('ram:CalculationPercent').Text := TXRechnungHelper.FloatToStr(_Invoiceline.AllowanceCharges[i].MultiplierFactorNumeric);
-        AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(_Invoiceline.AllowanceCharges[i].BaseAmount);
+          AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(_Invoiceline.AllowanceCharges[i].BaseAmount);
+        end;
         AddChild('ram:ActualAmount').Text := TXRechnungHelper.AmountToStr(_Invoiceline.AllowanceCharges[i].Amount);
         AddChild('ram:ReasonCode').Text :=
                  IfThen(_Invoiceline.AllowanceCharges[i].ChargeIndicator,

@@ -527,16 +527,27 @@ begin
 
     //Nachlass zur Position generieren
     if NachlaesseZuschlaegeVerwenden then
-    with AllowanceCharges.AddAllowanceCharge do
     begin
-      ChargeIndicator := false;
-      ReasonCodeAllowance := TInvoiceAllowanceOrChargeIdentCode.iacic_Discount;
-      BaseAmount := 100.00;
-      MultiplierFactorNumeric := 5; //5 Prozent auf 100 EUR
-      Amount := 5.00;
-      //Nicht erforderlich TaxPercent := 19.0;
-      //Nicht erforderlich TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
-      LineAmount := LineAmount - Amount; //Positionssumme um Nachlass reduzieren
+      with AllowanceCharges.AddAllowanceCharge do
+      begin
+        ChargeIndicator := false;
+        ReasonCodeAllowance := TInvoiceAllowanceOrChargeIdentCode.iacic_Discount;
+        BaseAmount := 50.00;
+        MultiplierFactorNumeric := 5; //5 Prozent auf 50 EUR
+        Amount := 2.50;
+        //Nicht erforderlich TaxPercent := 19.0;
+        //Nicht erforderlich TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+        LineAmount := LineAmount - Amount; //Positionssumme um Nachlass reduzieren
+      end;
+      with AllowanceCharges.AddAllowanceCharge do
+      begin
+        ChargeIndicator := false;
+        ReasonCodeAllowance := TInvoiceAllowanceOrChargeIdentCode.iacic_Discount;
+        BaseAmount := 0;
+        MultiplierFactorNumeric := 0;
+        Amount := 2.50;
+        LineAmount := LineAmount - Amount; //Positionssumme um Nachlass reduzieren
+      end;
     end;
   end;
 

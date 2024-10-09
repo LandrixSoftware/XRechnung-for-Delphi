@@ -1390,11 +1390,11 @@ begin
   if _InvoiceDescriptor.PaymentMeans <> nil then
     _Invoice.AccountingSupplierParty.BankAssignedCreditorIdentifier := _InvoiceDescriptor.PaymentMeans.SEPACreditorIdentifier;
   //TODO Mehrere Bankverbindungen
-  if _InvoiceDescriptor.CreditorBankAccounts.Count > 0 then
+  if _InvoiceDescriptor.DebitorBankAccounts.Count > 0 then
   begin
-    _Invoice.PaymentFinancialAccount := _InvoiceDescriptor.CreditorBankAccounts[0].IBAN;
-    _Invoice.PaymentFinancialAccountName := _InvoiceDescriptor.CreditorBankAccounts[0].Name;
-    _Invoice.PaymentFinancialInstitutionBranch := _InvoiceDescriptor.CreditorBankAccounts[0].BIC;
+    _Invoice.PaymentFinancialAccount := _InvoiceDescriptor.DebitorBankAccounts[0].IBAN;
+    _Invoice.PaymentFinancialAccountName := _InvoiceDescriptor.DebitorBankAccounts[0].Name;
+    _Invoice.PaymentFinancialInstitutionBranch := _InvoiceDescriptor.DebitorBankAccounts[0].BIC;
   end;
 
   //TODO #SKONTO Type

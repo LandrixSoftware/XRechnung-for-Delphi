@@ -96,7 +96,8 @@ type
   public
     class function GetXRechnungVersion(const _Filename : String) : TXRechnungVersion; overload;
     class function GetXRechnungVersion(_Xml : IXMLDocument) : TXRechnungVersion; overload;
-    class function GetXRechnungVersion(const _Stream: TStream) : TXRechnungVersion; overload;
+    class function GetXRechnungVersion(_Stream: TStream) : TXRechnungVersion; overload;
+    class function GetXRechnungVersionFromString(const _XML: String) : TXRechnungVersion;
 
     //First thoughts on the topic
     //class function Validate(_XSDFilename, _XmlFilename: String) : Boolean;
@@ -1067,7 +1068,7 @@ begin
 end;
 
 class function TXRechnungValidationHelper.GetXRechnungVersion(
-  const _Stream: TStream): TXRechnungVersion;
+  _Stream: TStream): TXRechnungVersion;
 var
   xml : IXMLDocument;
   currentStreamPosition : Int64;
@@ -1080,6 +1081,23 @@ begin
   try
     xml.LoadFromStream(_Stream);
     _Stream.Position := currentStreamPosition;
+    Result := TXRechnungValidationHelper.GetXRechnungVersion(xml);
+  finally
+    xml := nil;
+  end;
+end;
+
+class function TXRechnungValidationHelper.GetXRechnungVersionFromString(
+  const _XML: String): TXRechnungVersion;
+var
+  xml : IXMLDocument;
+begin
+  Result := XRechnungVersion_Unknown;
+  if (_XML = '') then
+    exit;
+  xml := TXMLDocument.Create(nil);
+  try
+    xml.LoadFromXML(_XML);
     Result := TXRechnungValidationHelper.GetXRechnungVersion(xml);
   finally
     xml := nil;

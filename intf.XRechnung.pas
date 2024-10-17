@@ -25,7 +25,7 @@ interface
 
 //setzt ZUGFeRD-for-Delphi voraus
 //https://github.com/LandrixSoftware/ZUGFeRD-for-Delphi
-{$DEFINE ZUGFeRD_Support}
+{.$DEFINE ZUGFeRD_Support}
 
 uses
   System.SysUtils,System.Classes,System.Types

@@ -893,7 +893,7 @@ class procedure TXRechnungHelper.ReadPaymentTerms(_Invoice: TInvoice;
   _PaymentTermsText: String);
 var
   posLineBreak, posSkonto, posBasis: Integer;
-  term1, term2, str: String;
+  term1, term2: String;
 begin
   if _PaymentTermsText = '' then
     exit;

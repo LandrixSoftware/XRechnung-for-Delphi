@@ -530,7 +530,7 @@ begin
       with AllowanceCharges.AddAllowanceCharge do
       begin
         ChargeIndicator := false;
-        ReasonCodeAllowance := TInvoiceAllowanceOrChargeIdentCode.iacic_Discount;
+        ReasonCodeAllowance := iacic_Discount;
         BaseAmount := 50.00;
         MultiplierFactorNumeric := 5; //5 Prozent auf 50 EUR
         Amount := 2.50;
@@ -541,7 +541,7 @@ begin
       with AllowanceCharges.AddAllowanceCharge do
       begin
         ChargeIndicator := false;
-        ReasonCodeAllowance := TInvoiceAllowanceOrChargeIdentCode.iacic_Discount;
+        ReasonCodeAllowance := iacic_Discount;
         BaseAmount := 0;
         MultiplierFactorNumeric := 0;
         Amount := 2.50;

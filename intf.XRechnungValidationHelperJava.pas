@@ -244,6 +244,7 @@ function TXRechnungValidationHelperJava.ValidateFile(
   _ValidationResultAsXML, _ValidationResultAsHTML: String): Boolean;
 var
   hstrl,cmd: TStringList;
+  lInvoiceXMLFilename: String;
 begin
   Result := false;
   if _InvoiceXMLFilename = '' then
@@ -275,18 +276,22 @@ begin
 
     DeleteFile(_InvoiceXMLFilename+'.bat');
 
-    if FileExists(ChangeFileExt(_InvoiceXMLFilename,'-report.xml')) then
+    lInvoiceXMLFilename := ExtractFileName(_InvoiceXMLFilename);
+    lInvoiceXMLFilename := StringReplace(lInvoiceXMLFilename,' ','%20',[rfReplaceAll]);
+    lInvoiceXMLFilename := ExtractFilePath(_InvoiceXMLFilename)+lInvoiceXMLFilename;
+
+    if FileExists(ChangeFileExt(lInvoiceXMLFilename,'-report.xml')) then
     begin
-      hstrl.LoadFromFile(ChangeFileExt(_InvoiceXMLFilename,'-report.xml'),TEncoding.UTF8);
+      hstrl.LoadFromFile(ChangeFileExt(lInvoiceXMLFilename,'-report.xml'),TEncoding.UTF8);
       _ValidationResultAsXML := hstrl.Text;
-      DeleteFile(ChangeFileExt(_InvoiceXMLFilename,'-report.xml'));
+      DeleteFile(ChangeFileExt(lInvoiceXMLFilename,'-report.xml'));
     end;
 
-    if FileExists(ChangeFileExt(_InvoiceXMLFilename,'-report.html')) then
+    if FileExists(ChangeFileExt(lInvoiceXMLFilename,'-report.html')) then
     begin
-      hstrl.LoadFromFile(ChangeFileExt(_InvoiceXMLFilename,'-report.html'),TEncoding.UTF8);
+      hstrl.LoadFromFile(ChangeFileExt(lInvoiceXMLFilename,'-report.html'),TEncoding.UTF8);
       _ValidationResultAsHTML := hstrl.Text;
-      DeleteFile(ChangeFileExt(_InvoiceXMLFilename,'-report.html'));
+      DeleteFile(ChangeFileExt(lInvoiceXMLFilename,'-report.html'));
     end;
   finally
     hstrl.Free;
@@ -538,7 +543,8 @@ begin
       hstrl.LoadFromFile(ChangeFileExt(_InvoiceXMLFilename,'-.html'),TEncoding.UTF8);
       _VisualizationAsHTML := hstrl.Text;
       DeleteFile(ChangeFileExt(_InvoiceXMLFilename,'-.html'));
-    end;
+    end else
+      Result := false;
 
   finally
     hstrl.Free;

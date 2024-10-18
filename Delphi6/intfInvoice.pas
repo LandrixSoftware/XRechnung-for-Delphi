@@ -831,114 +831,112 @@ begin
   _Success := false;
   _UnitOfMeasure := Trim(_UnitOfMeasure);
   if _UnitOfMeasure = '' then
-  begin
-    _Success := true;
     exit;
-  end;
   if SameText(_UnitOfMeasure,'st') or
+     SameText(_UnitOfMeasure,'st.') or
      SameText(_UnitOfMeasure,'stk.') or
      SameText(_UnitOfMeasure,'stk') or
      SameText(_UnitOfMeasure,'stck') or
      SameText(_UnitOfMeasure,'psch') then
   begin
-    result := iuc_piece;
+    Result := iuc_piece;
     _Success := true;
     exit;
   end;
   if SameText(_UnitOfMeasure,'mal') then
   begin
-    result := iuc_one;
+    Result := iuc_one;
     _Success := true;
     exit;
   end;
   if SameText(_UnitOfMeasure,'std') or SameText(_UnitOfMeasure,'std.') then
   begin
-    result := iuc_hour;
+    Result := iuc_hour;
     _Success := true;
     exit;
   end;
   if SameText(_UnitOfMeasure,'tag') or SameText(_UnitOfMeasure,'tage') then
   begin
-    result := iuc_day;
+    Result := iuc_day;
     _Success := true;
     exit;
   end;
   if SameText(_UnitOfMeasure,'monat') then
   begin
-    result := iuc_month;
+    Result := iuc_month;
     _Success := true;
     exit;
   end;
   if SameText(_UnitOfMeasure,'woche') then
   begin
-    result := iuc_week;
+    Result := iuc_week;
     _Success := true;
     exit;
   end;
   if SameText(_UnitOfMeasure,'kg') then
   begin
-    result := iuc_kilogram;
+    Result := iuc_kilogram;
     _Success := true;
     exit;
   end;
   if SameText(_UnitOfMeasure,'km') then
   begin
-    result := iuc_kilometre;
+    Result := iuc_kilometre;
     _Success := true;
     exit;
   end;
   if SameText(_UnitOfMeasure,'kwh') then
   begin
-    result := iuc_kilowatt_hour;
+    Result := iuc_kilowatt_hour;
     _Success := true;
     exit;
   end;
   if SameText(_UnitOfMeasure,'t') or SameText(_UnitOfMeasure,'tonne') then
   begin
-    result := iuc_tonne_metric_ton;
+    Result := iuc_tonne_metric_ton;
     _Success := true;
     exit;
   end;
   if SameText(_UnitOfMeasure,'qm') or
      SameText(_UnitOfMeasure,'m2') then
   begin
-    result := iuc_square_metre;
+    Result := iuc_square_metre;
     _Success := true;
     exit;
   end;
   if SameText(_UnitOfMeasure,'qqm') then
   begin
-    result := iuc_cubic_metre;
+    Result := iuc_cubic_metre;
     _Success := true;
     exit;
   end;
   if SameText(_UnitOfMeasure,'m') then
   begin
-    result := iuc_metre;
+    Result := iuc_metre;
     _Success := true;
     exit;
   end;
   if SameText(_UnitOfMeasure,'mm') then
   begin
-    result := iuc_millimetre;
+    Result := iuc_millimetre;
     _Success := true;
     exit;
   end;
   if SameText(_UnitOfMeasure,'min') then
   begin
-    result := iuc_minute_unit_of_time;
+    Result := iuc_minute_unit_of_time;
     _Success := true;
     exit;
   end;
   if SameText(_UnitOfMeasure,'sek') then
   begin
-    result := iuc_second_unit_of_time;
+    Result := iuc_second_unit_of_time;
     _Success := true;
     exit;
   end;
   if SameText(_UnitOfMeasure,'l') then
   begin
-    result := iuc_litre;
+    Result := iuc_litre;
     _Success := true;
     exit;
   end;

@@ -1307,8 +1307,8 @@ begin
     _Invoice.ProjectReference := _InvoiceDescriptor.SpecifiedProcuringProject.ID;
   if _InvoiceDescriptor.ContractReferencedDocument <> nil then
     _Invoice.ContractDocumentReference := _InvoiceDescriptor.ContractReferencedDocument.ID;
-  if _InvoiceDescriptor.DeliveryNoteReferencedDocument <> nil then
-    _Invoice.DeliveryReceiptNumber := _InvoiceDescriptor.DeliveryNoteReferencedDocument.ID;
+  if _InvoiceDescriptor.DespatchAdviceReferencedDocument <> nil then
+    _Invoice.DeliveryReceiptNumber := _InvoiceDescriptor.DespatchAdviceReferencedDocument.ID;
   //Seller
   if _InvoiceDescriptor.Seller <> nil then
   begin
@@ -1428,11 +1428,22 @@ begin
   if _InvoiceDescriptor.PaymentMeans <> nil then
     _Invoice.AccountingSupplierParty.BankAssignedCreditorIdentifier := _InvoiceDescriptor.PaymentMeans.SEPACreditorIdentifier;
   //TODO Mehrere Bankverbindungen
-  if _InvoiceDescriptor.CreditorBankAccounts.Count > 0 then
+  if _Invoice.PaymentMeansCode = ipmc_SEPADirectDebit then
   begin
-    _Invoice.PaymentFinancialAccount := _InvoiceDescriptor.CreditorBankAccounts[0].IBAN;
-    _Invoice.PaymentFinancialAccountName := _InvoiceDescriptor.CreditorBankAccounts[0].Name;
-    _Invoice.PaymentFinancialInstitutionBranch := _InvoiceDescriptor.CreditorBankAccounts[0].BIC;
+    if _InvoiceDescriptor.DebitorBankAccounts.Count > 0 then
+    begin
+      _Invoice.PaymentFinancialAccount := _InvoiceDescriptor.DebitorBankAccounts[0].IBAN;
+      _Invoice.PaymentFinancialAccountName := _InvoiceDescriptor.DebitorBankAccounts[0].Name;
+      _Invoice.PaymentFinancialInstitutionBranch := _InvoiceDescriptor.DebitorBankAccounts[0].BIC;
+    end;
+  end else
+  begin
+    if _InvoiceDescriptor.CreditorBankAccounts.Count > 0 then
+    begin
+      _Invoice.PaymentFinancialAccount := _InvoiceDescriptor.CreditorBankAccounts[0].IBAN;
+      _Invoice.PaymentFinancialAccountName := _InvoiceDescriptor.CreditorBankAccounts[0].Name;
+      _Invoice.PaymentFinancialInstitutionBranch := _InvoiceDescriptor.CreditorBankAccounts[0].BIC;
+    end;
   end;
 
   //TODO #SKONTO Type
@@ -1617,6 +1628,13 @@ begin
       TaxPercent := 0; //Nicht in Position vorhanden
       TaxCategory := idtfcc_None; //Nicht in Position vorhanden
     end;
+
+    for j := 0 to _InvoiceDescriptor.TradeLineItems[i].ApplicableProductCharacteristics.Count-1 do
+    with lInvoiceLine.ItemAttributes.AddItemAttribute do
+    begin
+      Name := _InvoiceDescriptor.TradeLineItems[i].ApplicableProductCharacteristics[j].Description;
+      Value := _InvoiceDescriptor.TradeLineItems[i].ApplicableProductCharacteristics[j].Value;
+    end;
   end;
 
   for i := 0 to _InvoiceDescriptor.AdditionalReferencedDocuments.Count-1 do
@@ -1697,14 +1715,14 @@ begin
     end;
   end;
 
-  //Achtung, CII-Format maximal ein Element erlaubt, UBL-Format beliebig viele
-  if _InvoiceDescriptor.InvoiceReferencedDocument <> nil then
-  if (_InvoiceDescriptor.InvoiceReferencedDocument.ID <> '') and
-     (_InvoiceDescriptor.InvoiceReferencedDocument.IssueDateTime.GetValueOrDefault > 100) then
+  //Achtung, CII-Format <= v2.2 maximal ein Element erlaubt, UBL-Format beliebig viele
+  for i := 0 to _InvoiceDescriptor.InvoiceReferencedDocuments.Count-1 do
+  if (_InvoiceDescriptor.InvoiceReferencedDocuments[i].ID <> '') and
+     (_InvoiceDescriptor.InvoiceReferencedDocuments[i].IssueDateTime.GetValueOrDefault > 100) then
   with _Invoice.PrecedingInvoiceReferences.AddPrecedingInvoiceReference do
   begin
-    ID := _InvoiceDescriptor.InvoiceReferencedDocument.ID;
-    IssueDate := _InvoiceDescriptor.InvoiceReferencedDocument.IssueDateTime.GetValueOrDefault(0);
+    ID := _InvoiceDescriptor.InvoiceReferencedDocuments[i].ID;
+    IssueDate := _InvoiceDescriptor.InvoiceReferencedDocuments[i].IssueDateTime.GetValueOrDefault(0);
   end;
 
   _Invoice.TaxAmountTotal := _InvoiceDescriptor.TaxTotalAmount.GetValueOrDefault(0);
@@ -1735,6 +1753,7 @@ begin
   _Invoice.AllowanceTotalAmount := _InvoiceDescriptor.AllowanceTotalAmount.GetValueOrDefault(0);
   _Invoice.ChargeTotalAmount := _InvoiceDescriptor.ChargeTotalAmount.GetValueOrDefault(0);
   _Invoice.PrepaidAmount := _InvoiceDescriptor.TotalPrepaidAmount.GetValueOrDefault(0);
+  _Invoice.PayableRoundingAmount := _InvoiceDescriptor.RoundingAmount.GetValueOrDefault(0);
   _Invoice.PayableAmount := _InvoiceDescriptor.DuePayableAmount.GetValueOrDefault(0);
   Result := True;
 end;

@@ -1287,8 +1287,8 @@ begin
     _Invoice.ProjectReference := _InvoiceDescriptor.SpecifiedProcuringProject.ID;
   if _InvoiceDescriptor.ContractReferencedDocument <> nil then
     _Invoice.ContractDocumentReference := _InvoiceDescriptor.ContractReferencedDocument.ID;
-  if _InvoiceDescriptor.DeliveryNoteReferencedDocument <> nil then
-    _Invoice.DeliveryReceiptNumber := _InvoiceDescriptor.DeliveryNoteReferencedDocument.ID;
+  if _InvoiceDescriptor.DespatchAdviceReferencedDocument <> nil then
+    _Invoice.DeliveryReceiptNumber := _InvoiceDescriptor.DespatchAdviceReferencedDocument.ID;
   //Seller
   if _InvoiceDescriptor.Seller <> nil then
   begin
@@ -1408,11 +1408,22 @@ begin
   if _InvoiceDescriptor.PaymentMeans <> nil then
     _Invoice.AccountingSupplierParty.BankAssignedCreditorIdentifier := _InvoiceDescriptor.PaymentMeans.SEPACreditorIdentifier;
   //TODO Mehrere Bankverbindungen
-  if _InvoiceDescriptor.DebitorBankAccounts.Count > 0 then
+  if _Invoice.PaymentMeansCode = ipmc_SEPADirectDebit then
   begin
-    _Invoice.PaymentFinancialAccount := _InvoiceDescriptor.DebitorBankAccounts[0].IBAN;
-    _Invoice.PaymentFinancialAccountName := _InvoiceDescriptor.DebitorBankAccounts[0].Name;
-    _Invoice.PaymentFinancialInstitutionBranch := _InvoiceDescriptor.DebitorBankAccounts[0].BIC;
+    if _InvoiceDescriptor.DebitorBankAccounts.Count > 0 then
+    begin
+      _Invoice.PaymentFinancialAccount := _InvoiceDescriptor.DebitorBankAccounts[0].IBAN;
+      _Invoice.PaymentFinancialAccountName := _InvoiceDescriptor.DebitorBankAccounts[0].Name;
+      _Invoice.PaymentFinancialInstitutionBranch := _InvoiceDescriptor.DebitorBankAccounts[0].BIC;
+    end;
+  end else
+  begin
+    if _InvoiceDescriptor.CreditorBankAccounts.Count > 0 then
+    begin
+      _Invoice.PaymentFinancialAccount := _InvoiceDescriptor.CreditorBankAccounts[0].IBAN;
+      _Invoice.PaymentFinancialAccountName := _InvoiceDescriptor.CreditorBankAccounts[0].Name;
+      _Invoice.PaymentFinancialInstitutionBranch := _InvoiceDescriptor.CreditorBankAccounts[0].BIC;
+    end;
   end;
 
   //TODO #SKONTO Type

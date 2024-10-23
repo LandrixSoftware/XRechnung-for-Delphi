@@ -15,7 +15,7 @@ Sollte bei der Ausführung des Skripts folgende Fehlermeldung erscheinen:
         + CategoryInfo          : Sicherheitsfehler: (:) [], PSSecurityException
         + FullyQualifiedErrorId : UnauthorizedAccess
 
-Dann bitte folgende Schritte durhführen:
+Dann bitte folgende Schritte durchführen:
 
  - Drücke die [Windows]-Taste und tippe dann PowerShell ein.
  - Führe es als Administrator aus.

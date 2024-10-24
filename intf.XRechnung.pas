@@ -1437,20 +1437,32 @@ begin
     begin
       if _Invoice.PaymentTermsType = iptt_None then
         _Invoice.PaymentTermsType := iptt_Net;
-      _Invoice.InvoiceDueDate := _InvoiceDescriptor.PaymentTermsList[i].DueDate;
+      if _InvoiceDescriptor.PaymentTermsList[i].DueDate.GetValueOrDefault > 0 then
+        _Invoice.InvoiceDueDate := _InvoiceDescriptor.PaymentTermsList[i].DueDate
+      else
+      if _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisPeriodMeasure.Value > 0 then
+        _Invoice.InvoiceDueDate := Trunc(_Invoice.InvoiceIssueDate)+ Trunc(_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisPeriodMeasure.Value);
       _Invoice.PaymentTermNetNote := _InvoiceDescriptor.PaymentTermsList[i].Description;
     end else
     if (_Invoice.PaymentTermsType in [iptt_None,iptt_Net]) then
     begin
       _Invoice.PaymentTermsType := iptt_CashDiscount1;
-      _Invoice.PaymentTermCashDiscount1Days := DaysBetween(_Invoice.InvoiceIssueDate,_InvoiceDescriptor.PaymentTermsList[i].DueDate);
+      if _InvoiceDescriptor.PaymentTermsList[i].DueDate.GetValueOrDefault > 0 then
+        _Invoice.PaymentTermCashDiscount1Days := DaysBetween(_Invoice.InvoiceIssueDate,_InvoiceDescriptor.PaymentTermsList[i].DueDate)
+      else
+      if _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisPeriodMeasure.Value > 0 then
+        _Invoice.PaymentTermCashDiscount2Days := Trunc(_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisPeriodMeasure.Value);
       _Invoice.PaymentTermCashDiscount1Percent := _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.CalculationPercent;
       _Invoice.PaymentTermCashDiscount1Base := _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisAmount;
     end else
     if _Invoice.PaymentTermsType = iptt_CashDiscount1 then
     begin
       _Invoice.PaymentTermsType := iptt_CashDiscount2;
-      _Invoice.PaymentTermCashDiscount2Days := DaysBetween(_Invoice.InvoiceIssueDate,_InvoiceDescriptor.PaymentTermsList[i].DueDate);
+      if _InvoiceDescriptor.PaymentTermsList[i].DueDate.GetValueOrDefault > 0 then
+        _Invoice.PaymentTermCashDiscount2Days := DaysBetween(_Invoice.InvoiceIssueDate,_InvoiceDescriptor.PaymentTermsList[i].DueDate)
+      else
+      if _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisPeriodMeasure.Value > 0 then
+        _Invoice.PaymentTermCashDiscount2Days := Trunc(_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisPeriodMeasure.Value);
       _Invoice.PaymentTermCashDiscount2Percent := _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.CalculationPercent;
       _Invoice.PaymentTermCashDiscount2Base := _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisAmount;
     end;

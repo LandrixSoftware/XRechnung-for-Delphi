@@ -9,7 +9,7 @@ The commercial license for XRechnung-for-Delphi gives you the right to:
 - sell any number of applications in any quantity without any additional run-time fees required
 
 A commercial licence is sold per company developing applications that use XRechnung-for-Delphi. 
-The cost is 200,00 EUR plus VAT per company.
+The cost is 450,00 EUR plus VAT per company.
 
 Please send an e-mail to info@landrix.de to request an invoice which will contain the bank details.
 

@@ -116,7 +116,7 @@ Offenlegung Ihres Quellcodes oder Änderungen an die Landrix Software oder einer
 Eine kommerzielle Lizenz gilt auf Dauer und berechtigt Sie kostenlos zu allen zukünftigen Updates.
 
 Jede Firma, die Anwendungen mit der Bibliothek XRechnung-for-Delphi entwickelt, benötigt eine Lizenz.
-Die Kosten dafür betragen 200,00 EUR zzgl. MwSt. pro Firma.
+Die Kosten dafür betragen 450,00 EUR zzgl. MwSt. pro Firma.
 
 Bitte senden Sie eine E-Mail an info@landrix.de, um eine Rechnung mit den Zahlungsinformationen anzufordern.
 
@@ -135,7 +135,7 @@ Landrix Software to any other party. A commercial licence lasts into perpetuity,
 entitles you to all future updates, free of charge.
 
 A commercial licence is sold per company developing applications that use XRechnung-for-Delphi. 
-The cost is 200,00 EUR plus VAT per company.
+The cost is 450,00 EUR plus VAT per company.
 
 Please send an e-mail to info@landrix.de to request an invoice which will contain the bank details.
 

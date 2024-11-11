@@ -848,6 +848,8 @@ begin
     Result := iuc_kilometre else
   if SameText(_Val,'KWH') then
     Result := iuc_kilowatt_hour else
+  if SameText(_Val,'P1') then
+    Result := iuc_percent else
   Result := iuc_one; //C62
 end;
 
@@ -876,6 +878,7 @@ begin
     iuc_kilogram : Result := 'KGM';
     iuc_kilometre : Result := 'KMT';
     iuc_kilowatt_hour : Result := 'KWH';
+    iuc_percent : Result := 'P1';
   end;
 end;
 

@@ -1657,7 +1657,6 @@ begin
         AddChild('ram:BuyerOrderReferencedDocument').AddChild('ram:IssuerAssignedID').Text := _Invoice.PurchaseOrderReference;
       if _Invoice.ContractDocumentReference <> '' then
         AddChild('ram:ContractReferencedDocument').AddChild('ram:IssuerAssignedID').Text := _Invoice.ContractDocumentReference;
-
       for i := 0 to _Invoice.Attachments.Count -1 do
       begin
         with AddChild('ram:AdditionalReferencedDocument') do
@@ -1783,7 +1782,7 @@ begin
       begin
         AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := LowerCase(BoolToStr(_Invoice.AllowanceCharges[i].ChargeIndicator,true));
         if _Invoice.AllowanceCharges[i].MultiplierFactorNumeric <> 0 then
-          AddChild('ram:CalculationPercent').Text := TXRechnungHelper.FloatToStr(_Invoice.AllowanceCharges[i].MultiplierFactorNumeric);
+          AddChild('ram:CalculationPercent').Text := TXRechnungHelper.FloatToStr(_Invoice.AllowanceCharges[i].MultiplierFactorNumeric,4);
         if _Invoice.AllowanceCharges[i].BaseAmount <> 0 then
           AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.AllowanceCharges[i].BaseAmount);
         AddChild('ram:ActualAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.AllowanceCharges[i].Amount);

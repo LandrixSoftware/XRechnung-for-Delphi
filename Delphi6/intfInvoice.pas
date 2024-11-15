@@ -146,6 +146,7 @@ type
                       ,iuc_kilogram
                       ,iuc_kilometre
                       ,iuc_kilowatt_hour
+                      ,iuc_percent
                       );
   //mehr Einheiten in Res\intf.Invoice.unusedUnits.pas
 
@@ -849,7 +850,9 @@ begin
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'std') or SameText(_UnitOfMeasure,'std.') then
+  if SameText(_UnitOfMeasure,'std') or
+     SameText(_UnitOfMeasure,'std.') or
+     SameText(_UnitOfMeasure,'h') then
   begin
     Result := iuc_hour;
     _Success := true;
@@ -864,6 +867,12 @@ begin
   if SameText(_UnitOfMeasure,'monat') then
   begin
     Result := iuc_month;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'%') then
+  begin
+    Result := iuc_percent;
     _Success := true;
     exit;
   end;
@@ -1077,7 +1086,7 @@ begin
   if SameText(fileExt,'.csv') then
     Result := iat_text_csv
   else
-  if SameText(fileExt,'.jpg') then
+  if SameText(fileExt,'.jpg') or SameText(fileExt,'.jpeg') then
     Result := iat_image_jpeg
   else
   if SameText(fileExt,'.pdf') then

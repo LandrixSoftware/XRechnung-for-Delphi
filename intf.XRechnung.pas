@@ -60,7 +60,7 @@ type
     class function AmountFromStr(_Val : String) : Currency;
     class function UnitPriceAmountToStr(_Val : Currency) : String;
     class function UnitPriceAmountFromStr(_Val : String) : Currency;
-    class function FloatToStr(_Val : double) : String;
+    class function FloatToStr(_Val : double; _DecimalPlaces : Integer = 2) : String;
     class function FloatFromStr(_Val : String) : double;
     class function PercentageToStr(_Val : double) : String;
     class function PercentageFromStr(_Val : String) : double;
@@ -306,9 +306,9 @@ begin
   case TXRechnungValidationHelper.GetXRechnungVersion(_XmlDocument) of
     XRechnungVersion_230_UBL      : Result := TXRechnungInvoiceAdapter230.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
     XRechnungVersion_30x_UBL      : Result := TXRechnungInvoiceAdapter301.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
-    {$IFNDEF ZUGFeRD_Support}
     XRechnungVersion_230_UNCEFACT : Result := TXRechnungInvoiceAdapter230.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
-    XRechnungVersion_30x_UNCEFACT,
+    XRechnungVersion_30x_UNCEFACT : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
+    {$IFNDEF ZUGFeRD_Support}
     XRechnungVersion_ReadingSupport_ZUGFeRDFacturX : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     else exit;
     {$ELSE}
@@ -425,9 +425,11 @@ begin
 end;
 
 class function TXRechnungHelper.FloatToStr(
-  _Val: double): String;
+  _Val: double; _DecimalPlaces : Integer = 2): String;
 begin
-  Result := System.StrUtils.ReplaceText(Format('%.2f',[_Val]),',','.');
+  if _DecimalPlaces < 0 then
+    _DecimalPlaces := 0;
+  Result := System.StrUtils.ReplaceText(Format('%.'+IntToStr(_DecimalPlaces)+'f',[_Val]),',','.');
 end;
 
 class function TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeFromStr(

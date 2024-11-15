@@ -165,7 +165,13 @@ begin
     begin
       version := TXRechnungValidationHelper.GetXRechnungVersion(od.FileName);
       if version = XRechnungVersion_ReadingSupport_ZUGFeRDFacturX then
-        version := XRechnungVersion_30x_UNCEFACT;
+        version := XRechnungVersion_30x_UNCEFACT
+      else
+      if version = XRechnungVersion_Unknown then
+      begin
+        MessageDlg('Unbekannte ZUGFeRD-Version', mtError, [mbOK], 0);
+        exit;
+      end;
 
       xml := TFile.ReadAllText(od.FileName,TEncoding.UTF8);
       TXRechnungInvoiceAdapter.SaveToXMLStr(inv,version,xmltest);

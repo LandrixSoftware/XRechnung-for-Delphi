@@ -62,7 +62,7 @@ type
     class function AmountFromStr(_Val : String) : Currency;
     class function UnitPriceAmountToStr(_Val : Currency) : String;
     class function UnitPriceAmountFromStr(_Val : String) : Currency;
-    class function FloatToStr(_Val : double) : String;
+    class function FloatToStr(_Val : double; _DecimalPlaces : Integer = 2) : String;
     class function FloatFromStr(_Val : String) : double;
     class function PercentageToStr(_Val : double) : String;
     class function PercentageFromStr(_Val : String) : double;
@@ -308,9 +308,9 @@ begin
   case TXRechnungValidationHelper.GetXRechnungVersion(_XmlDocument) of
     XRechnungVersion_230_UBL      : Result := TXRechnungInvoiceAdapter230.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
     XRechnungVersion_30x_UBL      : Result := TXRechnungInvoiceAdapter301.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
-    {$IFNDEF ZUGFeRD_Support}
     XRechnungVersion_230_UNCEFACT : Result := TXRechnungInvoiceAdapter230.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
-    XRechnungVersion_30x_UNCEFACT,
+    XRechnungVersion_30x_UNCEFACT : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
+    {$IFNDEF ZUGFeRD_Support}
     XRechnungVersion_ReadingSupport_ZUGFeRDFacturX : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     else exit;
     {$ELSE}
@@ -415,9 +415,11 @@ begin
 end;
 
 class function TXRechnungHelper.FloatToStr(
-  _Val: double): String;
+  _Val: double; _DecimalPlaces : Integer = 2): String;
 begin
-  Result := StringReplace(Format('%.2f',[_Val]),',','.',[rfIgnoreCase,rfReplaceAll]);
+  if _DecimalPlaces < 0 then
+    _DecimalPlaces := 0;
+  Result := StringReplace(Format('%.'+IntToStr(_DecimalPlaces)+'f',[_Val]),',','.',[rfIgnoreCase,rfReplaceAll]);
 end;
 
 class function TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeFromStr(
@@ -838,6 +840,8 @@ begin
     Result := iuc_kilometre else
   if SameText(_Val,'KWH') then
     Result := iuc_kilowatt_hour else
+  if SameText(_Val,'P1') then
+    Result := iuc_percent else
   Result := iuc_one; //C62
 end;
 
@@ -866,6 +870,7 @@ begin
     iuc_kilogram : Result := 'KGM';
     iuc_kilometre : Result := 'KMT';
     iuc_kilowatt_hour : Result := 'KWH';
+    iuc_percent : Result := 'P1';
   end;
 end;
 

@@ -607,6 +607,17 @@ begin
       TaxPercent := 19.0;
       TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
     end;
+    with inv.AllowanceCharges.AddAllowanceCharge do
+    begin
+      ChargeIndicator := false;
+      ReasonCodeAllowance := TInvoiceAllowanceOrChargeIdentCode.iacic_Discount;
+      Reason := 'Nachlass mit Nachlassprozente 4 Nachkommastellen.';
+      BaseAmount := 4174.45;
+      MultiplierFactorNumeric := 0.3255;
+      Amount := 13.59;
+      TaxPercent := 19.0;
+      TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    end;
   end;
 
   inv.TaxAmountTotal := 26.0; //Summe der gesamten MwSt
@@ -640,11 +651,11 @@ begin
     inv.LineAmount := inv.LineAmount - 5.00;
     inv.AllowanceTotalAmount := 5.00 + 5.00;
     inv.ChargeTotalAmount := 1.00;
-    inv.TaxAmountSubtotals[1].TaxableAmount := inv.TaxAmountSubtotals[1].TaxableAmount - 5.00 - 5.00 + 1.00 - 5.00;
-    inv.TaxAmountSubtotals[1].TaxAmount := inv.TaxAmountSubtotals[1].TaxAmount - 0.95 - 0.95 + 0.19 - 0.95;
-    inv.TaxAmountTotal := inv.TaxAmountTotal - 0.95 - 0.95 + 0.19 - 0.95;
+    inv.TaxAmountSubtotals[1].TaxableAmount := inv.TaxAmountSubtotals[1].TaxableAmount - 5.00 - 5.00 + 1.00 - 5.00 - 13.59;
+    inv.TaxAmountSubtotals[1].TaxAmount := inv.TaxAmountSubtotals[1].TaxAmount - 0.95 - 0.95 + 0.19 - 0.95 - 2.58;
+    inv.TaxAmountTotal := inv.TaxAmountTotal - 0.95 - 0.95 + 0.19 - 0.95 - 2.58;
     inv.TaxExclusiveAmount := inv.TaxExclusiveAmount - inv.AllowanceTotalAmount + inv.ChargeTotalAmount - 5.00;
-    inv.TaxInclusiveAmount := inv.TaxInclusiveAmount - 5.00 - 0.95 - 5.00 - 0.95 + 1.00 + 0.19 - 5.00 -0.95;
+    inv.TaxInclusiveAmount := inv.TaxInclusiveAmount - 5.00 - 0.95 - 5.00 - 0.95 + 1.00 + 0.19 - 5.00 -0.95 - 13.59;
     inv.PayableAmount := inv.TaxInclusiveAmount;
   end;
 

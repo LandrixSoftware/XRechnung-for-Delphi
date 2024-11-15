@@ -1276,7 +1276,7 @@ begin
     if not (_Invoice.AllowanceCharges[i].Reason = '') then
       AddChild('cbc:AllowanceChargeReason').Text := _Invoice.AllowanceCharges[i].Reason;
     if _Invoice.AllowanceCharges[i].MultiplierFactorNumeric <> 0 then
-      AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(_Invoice.AllowanceCharges[i].MultiplierFactorNumeric);
+      AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(_Invoice.AllowanceCharges[i].MultiplierFactorNumeric,4);
     with AddChild('cbc:Amount') do
     begin
       Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
@@ -1438,9 +1438,9 @@ var
         with AddChild('ram:AppliedTradeAllowanceCharge') do
         begin
           AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := 'false';
-          //<ram:CalculationPercent>45</ram:CalculationPercent> nicht mï¿½glich bei UBL
+          //<ram:CalculationPercent>45</ram:CalculationPercent> nicht möglich bei UBL
           AddChild('ram:ActualAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoiceline.DiscountOnTheGrossPrice);
-          //<ram:Reason>Rabatt1</ram:Reason> nicht mï¿½glich bei UBL
+          //<ram:Reason>Rabatt1</ram:Reason> nicht möglich bei UBL
         end;
       end;
       with AddChild('ram:NetPriceProductTradePrice') do
@@ -1782,7 +1782,7 @@ begin
       begin
         AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := LowerCase(BoolToStr(_Invoice.AllowanceCharges[i].ChargeIndicator,true));
         if _Invoice.AllowanceCharges[i].MultiplierFactorNumeric <> 0 then
-          AddChild('ram:CalculationPercent').Text := TXRechnungHelper.FloatToStr(_Invoice.AllowanceCharges[i].MultiplierFactorNumeric);
+          AddChild('ram:CalculationPercent').Text := TXRechnungHelper.FloatToStr(_Invoice.AllowanceCharges[i].MultiplierFactorNumeric,4);
         if _Invoice.AllowanceCharges[i].BaseAmount <> 0 then
           AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.AllowanceCharges[i].BaseAmount);
         AddChild('ram:ActualAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.AllowanceCharges[i].Amount);

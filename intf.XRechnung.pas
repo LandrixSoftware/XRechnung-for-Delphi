@@ -642,6 +642,9 @@ begin
   if SameText(_Val,'M') then
     Result := idtfcc_M_TaxForProductionServicesAndImportationInCeutaAndMelilla
   else
+  if SameText(_Val,'O') then
+    Result := idtfcc_O_ServicesOutsideScopeOfTax
+  else
   if SameText(_Val,'S') then
     Result := idtfcc_S_StandardRate
   else
@@ -672,7 +675,7 @@ begin
     idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices: Result := 'K';
     idtfcc_L_CanaryIslandsGeneralIndirectTax: Result := 'L';
     idtfcc_M_TaxForProductionServicesAndImportationInCeutaAndMelilla: Result := 'M';
-    //idtfcc_O_ServicesOutsideScopeOfTax: Result := 'O';
+    idtfcc_O_ServicesOutsideScopeOfTax: Result := 'O';
     idtfcc_S_StandardRate: Result := 'S';
     idtfcc_Z_ZeroRatedGoods: Result := 'Z';
     else Result := '';
@@ -1503,6 +1506,7 @@ begin
       TZUGFeRDTaxCategoryCodes.K : lInvoiceLine.TaxCategory := idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices;
       TZUGFeRDTaxCategoryCodes.L : lInvoiceLine.TaxCategory := idtfcc_L_CanaryIslandsGeneralIndirectTax;
       TZUGFeRDTaxCategoryCodes.M : lInvoiceLine.TaxCategory := idtfcc_M_TaxForProductionServicesAndImportationInCeutaAndMelilla;
+      TZUGFeRDTaxCategoryCodes.O : lInvoiceLine.TaxCategory := idtfcc_O_ServicesOutsideScopeOfTax;
       TZUGFeRDTaxCategoryCodes.S : lInvoiceLine.TaxCategory := idtfcc_S_StandardRate;
       TZUGFeRDTaxCategoryCodes.Z : lInvoiceLine.TaxCategory := idtfcc_Z_ZeroRatedGoods;
       else lInvoiceLine.TaxCategory := idtfcc_None; //TODO weitere Category Types von ZUGFeRD
@@ -1706,6 +1710,7 @@ begin
       TZUGFeRDTaxCategoryCodes.K : TaxCategory := idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices;
       TZUGFeRDTaxCategoryCodes.L : TaxCategory := idtfcc_L_CanaryIslandsGeneralIndirectTax;
       TZUGFeRDTaxCategoryCodes.M : TaxCategory := idtfcc_M_TaxForProductionServicesAndImportationInCeutaAndMelilla;
+      TZUGFeRDTaxCategoryCodes.O : TaxCategory := idtfcc_O_ServicesOutsideScopeOfTax;
       TZUGFeRDTaxCategoryCodes.S : TaxCategory := idtfcc_S_StandardRate;
       TZUGFeRDTaxCategoryCodes.Z : TaxCategory := idtfcc_Z_ZeroRatedGoods;
       else TaxCategory := idtfcc_None; //TODO weitere Category Types von ZUGFeRD
@@ -1737,6 +1742,7 @@ begin
       TZUGFeRDTaxCategoryCodes.K : TaxCategory := idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices;
       TZUGFeRDTaxCategoryCodes.L : TaxCategory := idtfcc_L_CanaryIslandsGeneralIndirectTax;
       TZUGFeRDTaxCategoryCodes.M : TaxCategory := idtfcc_M_TaxForProductionServicesAndImportationInCeutaAndMelilla;
+      TZUGFeRDTaxCategoryCodes.O : TaxCategory := idtfcc_O_ServicesOutsideScopeOfTax;
       TZUGFeRDTaxCategoryCodes.S : TaxCategory := idtfcc_S_StandardRate;
       TZUGFeRDTaxCategoryCodes.Z : TaxCategory := idtfcc_Z_ZeroRatedGoods;
       else TaxCategory := idtfcc_None; //TODO weitere Category Types von ZUGFeRD

@@ -1434,7 +1434,6 @@ begin
     end;
   end;
 
-  //TODO #SKONTO Type
   _Invoice.PaymentTermsType := iptt_None;
   for i := 0 to _InvoiceDescriptor.PaymentTermsList.Count-1 do
   begin
@@ -1459,7 +1458,7 @@ begin
         _Invoice.PaymentTermCashDiscount1Days := DaysBetween(_Invoice.InvoiceIssueDate,_InvoiceDescriptor.PaymentTermsList[i].DueDate)
       else
       if _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisPeriodMeasure.Value > 0 then
-        _Invoice.PaymentTermCashDiscount2Days := Trunc(_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisPeriodMeasure.Value);
+        _Invoice.PaymentTermCashDiscount1Days := Trunc(_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisPeriodMeasure.Value);
       _Invoice.PaymentTermCashDiscount1Percent := _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.CalculationPercent;
       _Invoice.PaymentTermCashDiscount1Base := _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisAmount;
     end else

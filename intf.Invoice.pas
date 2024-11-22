@@ -562,6 +562,28 @@ type
     procedure ReplaceContentWith(_Content : String);
   end;
 
+  TInvoicePaymentType = class(TObject)
+  public
+    PaymentMeansCode : TInvoicePaymentMeansCode;
+    FinancialAccount : String; //sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59)
+    FinancialAccountName : String; //sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59)
+    FinancialInstitutionBranch : String; //BIC sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59)
+  public
+    constructor Create;
+  end;
+
+  TInvoicePaymentTypeList = class(TObjectList)
+  protected
+    function GetItem(Index: Integer): TInvoicePaymentType;
+    procedure SetItem(Index: Integer; AItem: TInvoicePaymentType);
+  public
+	  function  Extract(Item: TObject): TInvoicePaymentType;
+	  function  First: TInvoicePaymentType;
+	  function  Last: TInvoicePaymentType;
+    function  AddPaymentType : TInvoicePaymentType;
+	  property  Items[Index: Integer]: TInvoicePaymentType read GetItem write SetItem; default;
+  end;
+
   TInvoice = class(TObject)
   public
     InvoiceNumber : String;  //Rechnungsnummer
@@ -584,14 +606,9 @@ type
     AccountingCustomerParty : TInvoiceAccountingParty;
     DeliveryInformation : TInvoiceDeliveryInformation;
 
-    //TODO weitere Zahlungswege, als Liste
-    //TODO Auch 0 pruefen
-    PaymentMeansCode : TInvoicePaymentMeansCode;
     PaymentID : String; //Verwendungszweck der Ueberweisung/Lastschrift
-    PaymentFinancialAccount : String; //sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59)
-    PaymentFinancialAccountName : String; //sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59)
-    PaymentFinancialInstitutionBranch : String; //BIC sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59)
-    PaymentMandateID : String; //Lastschrift (59) Mandatsreferenz BT-89
+    PaymentTypes : TInvoicePaymentTypeList; //Zahlungswege
+    PaymentMandateID : String; //Lastschrift (59) Mandatsreferenz BT-89 !!Nur eine pro Rechnung moeglich
 
     //Infos unter
     //https://www.e-rechnung-bund.de/wp-content/uploads/2023/04/Angabe-Skonto-Upload.pdf
@@ -634,6 +651,7 @@ implementation
 
 constructor TInvoice.Create;
 begin
+  PaymentTypes := TInvoicePaymentTypeList.Create;
   InvoiceLines := TInvoiceLines.Create;
   Attachments := TInvoiceAttachmentList.Create;
   AllowanceCharges := TInvoiceAllowanceCharges.Create;
@@ -643,13 +661,13 @@ begin
   AccountingSupplierParty := TInvoiceAccountingParty.Create;
   AccountingCustomerParty := TInvoiceAccountingParty.Create;
   DeliveryInformation := TInvoiceDeliveryInformation.Create;
-  PaymentMeansCode := ipmc_NotImplemented;
   PaymentTermsType := iptt_None;
   Clear;
 end;
 
 destructor TInvoice.Destroy;
 begin
+  if Assigned(PaymentTypes) then begin PaymentTypes.Free; PaymentTypes := nil; end;
   if Assigned(InvoiceLines) then begin InvoiceLines.Free; InvoiceLines := nil; end;
   if Assigned(Attachments) then begin Attachments.Free; Attachments := nil; end;
   if Assigned(AllowanceCharges) then begin AllowanceCharges.Free; AllowanceCharges := nil; end;
@@ -1212,6 +1230,39 @@ begin if Count = 0 then Result := nil else Result := TInvoiceLineItemAttribute(i
 
 procedure TInvoiceLineItemAttributes.SetItem(Index: Integer; AItem: TInvoiceLineItemAttribute);
 begin inherited Items[Index] := AItem; end;
+
+{ TInvoicePaymentType }
+
+constructor TInvoicePaymentType.Create;
+begin
+  PaymentMeansCode := ipmc_NotImplemented;
+  FinancialAccount := '';
+  FinancialAccountName := '';
+  FinancialInstitutionBranch := '';
+end;
+
+{ TInvoicePaymentTypeList }
+
+function TInvoicePaymentTypeList.Extract(Item: TObject): TInvoicePaymentType;
+begin Result := TInvoicePaymentType(inherited Extract(Item)); end;
+
+function TInvoicePaymentTypeList.First: TInvoicePaymentType;
+begin if Count = 0 then Result := nil else Result := TInvoicePaymentType(inherited First); end;
+
+function TInvoicePaymentTypeList.GetItem(Index: Integer): TInvoicePaymentType;
+begin Result := TInvoicePaymentType(inherited Items[Index]); end;
+
+function TInvoicePaymentTypeList.Last: TInvoicePaymentType;
+begin if Count = 0 then Result := nil else Result := TInvoicePaymentType(inherited Last); end;
+
+procedure TInvoicePaymentTypeList.SetItem(Index: Integer; AItem: TInvoicePaymentType);
+begin inherited Items[Index] := AItem; end;
+
+function TInvoicePaymentTypeList.AddPaymentType : TInvoicePaymentType;
+begin
+  Result := TInvoicePaymentType.Create;
+  Add(Result);
+end;
 
 end.
 

@@ -91,11 +91,14 @@ begin
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
-  inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
   inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
-  inv.PaymentFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
-  inv.PaymentFinancialAccountName := 'Fa. XY';
-  //inv.PayeeFinancialInstitutionBranch := 'DEU...'; //BIC
+  with inv.PaymentTypes.AddPaymentType do
+  begin
+    PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
+    FinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+    FinancialAccountName := 'Fa. XY';
+    //inv.PayeeFinancialInstitutionBranch := 'DEU...'; //BIC
+  end;
 
   inv.PaymentTermsType := iptt_Net;
   inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceDueDate)]);
@@ -244,11 +247,13 @@ begin
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
-  inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
   inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
-  inv.PaymentFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
-  inv.PaymentFinancialAccountName := 'Fa. XY';
-  //inv.PayeeFinancialInstitutionBranch := 'DEU...'; //BIC
+  with inv.PaymentTypes.AddPaymentType do
+  begin
+    PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
+    FinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+    FinancialAccountName := 'Fa. XY';
+  end;
 
   inv.PaymentTermsType := iptt_Net;
   inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceDueDate)]);
@@ -366,11 +371,20 @@ begin
   //Lieferdatum
   inv.DeliveryInformation.ActualDeliveryDate := Date-1;
 
-  inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
-  inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
-  inv.PaymentFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
-  inv.PaymentFinancialAccountName := 'Fa. XY';
-  //inv.PayeeFinancialInstitutionBranch := 'DEU...'; //BIC
+  //Zwei Zahlungswege
+  inv.PaymentID := 'Verwendungszweck R2020-0815';
+  with inv.PaymentTypes.AddPaymentType do
+  begin
+    PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
+    FinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+    FinancialAccountName := 'Fa. XY';
+  end;
+  with inv.PaymentTypes.AddPaymentType do
+  begin
+    PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
+    FinancialAccount := 'DE02100500000054540402'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+    FinancialAccountName := 'Fa. XY';
+  end;
 
   //verschiedene Zahlungsbedingungen, Verzugszinsen fehlt noch
   case Zahlungsbedingung of
@@ -669,6 +683,11 @@ begin
       ID := 'R2020-0001';
       IssueDate := Date-100; //Rechnungsdatum
     end;
+    with inv.PrecedingInvoiceReferences.AddPrecedingInvoiceReference do
+    begin
+      ID := 'R2020-0002';
+      IssueDate := Date-50; //Rechnungsdatum
+    end;
     inv.PrepaidAmount := 100.00; //Euro angezahlt
     inv.PayableAmount := inv.PayableAmount - inv.PrepaidAmount; //Vom Zahlbetrag abziehen
   end;
@@ -725,10 +744,13 @@ begin
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
-  inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
   inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
-  inv.PaymentFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
-  inv.PaymentFinancialAccountName := 'Fa. XY';
+  with inv.PaymentTypes.AddPaymentType do
+  begin
+    PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
+    FinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+    FinancialAccountName := 'Fa. XY';
+  end;
 
   inv.PaymentTermsType := iptt_Net;
   inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceDueDate)]);
@@ -825,10 +847,13 @@ begin
   inv.DeliveryInformation.Address.CountryCode := 'AT';
   inv.DeliveryInformation.ActualDeliveryDate := Date-1;
 
-  inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
   inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
-  inv.PaymentFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
-  inv.PaymentFinancialAccountName := 'Fa. XY';
+  with inv.PaymentTypes.AddPaymentType do
+  begin
+    PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
+    FinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+    FinancialAccountName := 'Fa. XY';
+  end;
 
   inv.PaymentTermsType := iptt_Net;
   inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceDueDate)]);
@@ -917,10 +942,13 @@ begin
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
-  inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
   inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
-  inv.PaymentFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
-  inv.PaymentFinancialAccountName := 'Fa. XY';
+  with inv.PaymentTypes.AddPaymentType do
+  begin
+    PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
+    FinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+    FinancialAccountName := 'Fa. XY';
+  end;
 
   inv.PaymentTermsType := iptt_Net;
   inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceDueDate)]);
@@ -1004,9 +1032,12 @@ begin
   inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
-  inv.PaymentMeansCode := ipmc_SEPADirectDebit; //Lastschrift
-  inv.PaymentID := 'Verwendungszweck der Lastschrift...R2020-0815';
-  inv.PaymentFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+  inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
+  with inv.PaymentTypes.AddPaymentType do
+  begin
+    PaymentMeansCode := ipmc_SEPADirectDebit; //Lastschrift
+    FinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+  end;
   inv.PaymentMandateID := 'MANDATID'; //Mandats-ID
   inv.AccountingSupplierParty.BankAssignedCreditorIdentifier := '111111'; //Glaeubiger-ID
 
@@ -1091,7 +1122,7 @@ begin
   inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
-  inv.PaymentMeansCode := ipmc_InstrumentNotDefined; //Nicht definiert
+  inv.PaymentTypes.Clear; //Nicht definiert
 
   inv.PaymentTermsType := iptt_None;
 
@@ -1178,11 +1209,13 @@ begin
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
-  inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
   inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
-  inv.PaymentFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
-  inv.PaymentFinancialAccountName := 'Fa. XY';
-  //inv.PayeeFinancialInstitutionBranch := 'DEU...'; //BIC
+  with inv.PaymentTypes.AddPaymentType do
+  begin
+    PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
+    FinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+    FinancialAccountName := 'Fa. XY';
+  end;
 
   inv.PaymentTermsType := iptt_Net;
   inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceDueDate)]);
@@ -1267,7 +1300,7 @@ begin
   inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
-  inv.PaymentMeansCode := ipmc_InstrumentNotDefined; //Nicht definiert
+  inv.PaymentTypes.Clear; //Nicht definiert
 
   inv.PaymentTermsType := iptt_None;
 
@@ -1355,7 +1388,7 @@ begin
   inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
-  inv.PaymentMeansCode := ipmc_InstrumentNotDefined; //Nicht definiert
+  inv.PaymentTypes.Clear; //Nicht definiert
 
   inv.PaymentTermsType := iptt_None;
 
@@ -1444,11 +1477,13 @@ begin
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
-  inv.PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
   inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
-  inv.PaymentFinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
-  inv.PaymentFinancialAccountName := 'Fa. XY';
-  //inv.PayeeFinancialInstitutionBranch := 'DEU...'; //BIC
+  with inv.PaymentTypes.AddPaymentType do
+  begin
+    PaymentMeansCode := ipmc_SEPACreditTransfer; //Ueberweisung
+    FinancialAccount := 'DE75512108001245126199'; //dies ist eine nicht existerende aber valide IBAN als test dummy
+    FinancialAccountName := 'Fa. XY';
+  end;
 
   inv.PaymentTermsType := iptt_Net;
   inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceDueDate)]);

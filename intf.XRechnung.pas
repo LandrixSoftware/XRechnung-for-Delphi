@@ -1396,15 +1396,16 @@ begin
   end;
   _Invoice.DeliveryInformation.ActualDeliveryDate := _InvoiceDescriptor.ActualDeliveryDate.GetValueOrDefault(0);
 
+  var lPaymentMeansCode : TInvoicePaymentMeansCode := ipmc_NotImplemented;
+  if _InvoiceDescriptor.PaymentMeans <> nil then
   case _InvoiceDescriptor.PaymentMeans.TypeCode of
-    InCash: _Invoice.PaymentMeansCode := ipmc_InCash;
-    Cheque: _Invoice.PaymentMeansCode := ipmc_Cheque;
-    CreditTransfer: _Invoice.PaymentMeansCode := ipmc_CreditTransfer;
+    InCash: lPaymentMeansCode := ipmc_InCash;
+    Cheque: lPaymentMeansCode := ipmc_Cheque;
+    CreditTransfer: lPaymentMeansCode := ipmc_CreditTransfer;
     //Fehlt : _Invoice.PaymentMeansCode := ipmc_CreditCard; 54
-    SEPACreditTransfer: _Invoice.PaymentMeansCode := ipmc_SEPACreditTransfer;
-    SEPADirectDebit: _Invoice.PaymentMeansCode := ipmc_SEPADirectDebit;
-    NotDefined: _Invoice.PaymentMeansCode := ipmc_InstrumentNotDefined;
-    else _Invoice.PaymentMeansCode := ipmc_NotImplemented;
+    SEPACreditTransfer: lPaymentMeansCode := ipmc_SEPACreditTransfer;
+    SEPADirectDebit: lPaymentMeansCode := ipmc_SEPADirectDebit;
+    NotDefined: lPaymentMeansCode := ipmc_InstrumentNotDefined;
     //    AutomatedClearingHouseDebit: ;
     //    DebitTransfer: ;
     //    PaymentToBankAccount: ;
@@ -1415,22 +1416,26 @@ begin
   _Invoice.PaymentID := _InvoiceDescriptor.PaymentReference;
   if _InvoiceDescriptor.PaymentMeans <> nil then
     _Invoice.AccountingSupplierParty.BankAssignedCreditorIdentifier := _InvoiceDescriptor.PaymentMeans.SEPACreditorIdentifier;
-  //TODO Mehrere Bankverbindungen
-  if _Invoice.PaymentMeansCode = ipmc_SEPADirectDebit then
+  if lPaymentMeansCode = ipmc_SEPADirectDebit then
   begin
-    if _InvoiceDescriptor.DebitorBankAccounts.Count > 0 then
+    for i := 0 to _InvoiceDescriptor.DebitorBankAccounts.Count-1 do
+    with _Invoice.PaymentTypes.AddPaymentType do
     begin
-      _Invoice.PaymentFinancialAccount := _InvoiceDescriptor.DebitorBankAccounts[0].IBAN;
-      _Invoice.PaymentFinancialAccountName := _InvoiceDescriptor.DebitorBankAccounts[0].Name;
-      _Invoice.PaymentFinancialInstitutionBranch := _InvoiceDescriptor.DebitorBankAccounts[0].BIC;
+      PaymentMeansCode := lPaymentMeansCode;
+      FinancialAccount := _InvoiceDescriptor.DebitorBankAccounts[i].IBAN;
+      FinancialAccountName := _InvoiceDescriptor.DebitorBankAccounts[i].Name;
+      FinancialInstitutionBranch := _InvoiceDescriptor.DebitorBankAccounts[i].BIC;
     end;
   end else
+  if lPaymentMeansCode <> ipmc_NotImplemented then
   begin
-    if _InvoiceDescriptor.CreditorBankAccounts.Count > 0 then
+    for i := 0 to _InvoiceDescriptor.CreditorBankAccounts.Count-1 do
+    with _Invoice.PaymentTypes.AddPaymentType do
     begin
-      _Invoice.PaymentFinancialAccount := _InvoiceDescriptor.CreditorBankAccounts[0].IBAN;
-      _Invoice.PaymentFinancialAccountName := _InvoiceDescriptor.CreditorBankAccounts[0].Name;
-      _Invoice.PaymentFinancialInstitutionBranch := _InvoiceDescriptor.CreditorBankAccounts[0].BIC;
+      PaymentMeansCode := lPaymentMeansCode;
+      FinancialAccount := _InvoiceDescriptor.CreditorBankAccounts[i].IBAN;
+      FinancialAccountName := _InvoiceDescriptor.CreditorBankAccounts[i].Name;
+      FinancialInstitutionBranch := _InvoiceDescriptor.CreditorBankAccounts[i].BIC;
     end;
   end;
 

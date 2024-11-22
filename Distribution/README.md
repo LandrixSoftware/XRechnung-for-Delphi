@@ -28,6 +28,10 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope LocalMachine
 
 ## Historie
 
+- 19.11.2024 Update\
+  https://github.com/itplr-kosit/xrechnung-schematron/releases/download/release-2.2.0/xrechnung-3.0.2-schematron-2.2.0.zip\
+  https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/release-2024-10-31/validator-configuration-xrechnung_3.0.2_2024-10-31.zip
+
 - 21.02.2024 Update\
   https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/release-2024-06-20/validator-configuration-xrechnung_3.0.2_2024-06-20.zip\
   https://github.com/itplr-kosit/xrechnung-visualization/releases/download/v2024-06-20/xrechnung-3.0.2-xrechnung-visualization-2024-06-20.zip

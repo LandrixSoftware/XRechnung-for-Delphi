@@ -24,6 +24,12 @@ Dann bitte folgende Schritte durchführen:
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope LocalMachine
 ```
+oder auch
+
+```powershell
+Set-ExecutionPolicy Unrestricted
+```
+
  - Schließe PowerShell und versuche es erneut.
 
 ## Historie

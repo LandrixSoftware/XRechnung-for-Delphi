@@ -267,8 +267,10 @@ begin
     with _Invoice.PaymentTypes.AddPaymentType do
     begin
       if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//cbc:PaymentMeansCode',node) then
+      begin
         PaymentMeansCode := TXRechnungHelper.InvoicePaymentMeansCodeFromStr(node.text);
-      PaymentMeansInformation := TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//cbc:InstructionNote');
+        PaymentMeansInformation := TXRechnungXMLHelper.SelectAttributeText(node,'name');
+      end;
       if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//cbc:PaymentID',node) then
         _Invoice.PaymentID := node.text;
       if PaymentMeansCode = ipmc_SEPADirectDebit then
@@ -1237,9 +1239,12 @@ begin
   if _Invoice.PaymentTypes[i].PaymentMeansCode <> ipmc_NotImplemented then
   with xRoot.AddChild('cac:PaymentMeans') do
   begin
-    AddChild('cbc:PaymentMeansCode').Text := TXRechnungHelper.InvoicePaymentMeansCodeToStr(_Invoice.PaymentTypes[i].PaymentMeansCode);
-    if _Invoice.PaymentTypes[i].PaymentMeansInformation <> '' then
-      AddChild('cbc:InstructionNote').Text := _Invoice.PaymentTypes[i].PaymentMeansInformation;
+    with AddChild('cbc:PaymentMeansCode') do
+    begin
+      Text := TXRechnungHelper.InvoicePaymentMeansCodeToStr(_Invoice.PaymentTypes[i].PaymentMeansCode);
+      if _Invoice.PaymentTypes[i].PaymentMeansInformation <> '' then
+        Attributes['name'] := _Invoice.PaymentTypes[i].PaymentMeansInformation;
+    end;
     if _Invoice.PaymentID <> '' then
       AddChild('cbc:PaymentID').Text := _Invoice.PaymentID;
     if _Invoice.PaymentTypes[i].PaymentMeansCode = ipmc_SEPADirectDebit then

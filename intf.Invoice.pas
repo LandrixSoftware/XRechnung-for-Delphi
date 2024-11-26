@@ -128,6 +128,7 @@ type
   TInvoiceUnitCode = (iuc_None //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:rec20_1
                       ,iuc_one   //C62 A unit of count defining the number of pieces
                       ,iuc_piece //H87
+                      ,iuc_flaterate //Pauschale
                       ,iuc_number_of_articles
                       ,iuc_set
                       ,iuc_week
@@ -144,10 +145,12 @@ type
                       ,iuc_second_unit_of_time
                       ,iuc_litre
                       ,iuc_hour
+                      ,iuc_gram
                       ,iuc_kilogram
                       ,iuc_kilometre
                       ,iuc_kilowatt_hour
                       ,iuc_percent
+                      ,iuc_packaging //Verpackung
                       );
   //mehr Einheiten in Res\intf.Invoice.unusedUnits.pas
 
@@ -847,6 +850,8 @@ end;
 class function TInvoiceUnitCodeHelper.MapUnitOfMeasure(_UnitOfMeasure: String; out _Success: Boolean;
   _DefaultOnFailure: TInvoiceUnitCode): TInvoiceUnitCode;
 begin
+  //https://apps.datev.de/help-center/documents/1020477
+
   Result := _DefaultOnFailure;
   _Success := false;
   _UnitOfMeasure := Trim(_UnitOfMeasure);
@@ -856,10 +861,19 @@ begin
      SameText(_UnitOfMeasure,'st.') or
      SameText(_UnitOfMeasure,'stk.') or
      SameText(_UnitOfMeasure,'stk') or
-     SameText(_UnitOfMeasure,'stck') or
-     SameText(_UnitOfMeasure,'psch') then
+     SameText(_UnitOfMeasure,'stck') then
   begin
     Result := iuc_piece;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'Pauschale') or
+     SameText(_UnitOfMeasure,'psch') or
+     SameText(_UnitOfMeasure,'psch.') or
+     SameText(_UnitOfMeasure,'pschl') or
+     SameText(_UnitOfMeasure,'pschl.') then
+  begin
+    Result := iuc_flaterate;
     _Success := true;
     exit;
   end;
@@ -898,6 +912,13 @@ begin
   if SameText(_UnitOfMeasure,'woche') then
   begin
     Result := iuc_week;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'g') or
+     SameText(_UnitOfMeasure,'Gramm') then
+  begin
+    Result := iuc_gram;
     _Success := true;
     exit;
   end;
@@ -965,6 +986,13 @@ begin
   if SameText(_UnitOfMeasure,'l') then
   begin
     Result := iuc_litre;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'Paket') or
+     SameText(_UnitOfMeasure,'Pack') then
+  begin
+    Result := iuc_packaging;
     _Success := true;
     exit;
   end;

@@ -815,6 +815,8 @@ class function TXRechnungHelper.InvoiceUnitCodeFromStr(
 begin
   if SameText(_Val,'H87') then
     Result := iuc_piece else
+  if SameText(_Val,'LS') then
+    Result := iuc_flaterate else
   if SameText(_Val,'NAR') then
     Result := iuc_number_of_articles else
   if SameText(_Val,'SET') then
@@ -847,6 +849,8 @@ begin
     Result := iuc_litre else
   if SameText(_Val,'HUR') then
     Result := iuc_hour else
+  if SameText(_Val,'GRM') then
+    Result := iuc_gram else
   if SameText(_Val,'KGM') then
     Result := iuc_kilogram else
   if SameText(_Val,'KMT') then
@@ -855,6 +859,8 @@ begin
     Result := iuc_kilowatt_hour else
   if SameText(_Val,'P1') then
     Result := iuc_percent else
+  if SameText(_Val,'XPK') then
+    Result := iuc_packaging else
   Result := iuc_one; //C62
 end;
 
@@ -864,6 +870,7 @@ begin
   case _Val of
     iuc_one : Result := 'C62';
     iuc_piece : Result := 'H87';
+    iuc_flaterate : Result := 'LS';
     iuc_number_of_articles : Result := 'NAR';
     iuc_set : Result := 'SET';
     iuc_week : Result := 'WEE';
@@ -881,9 +888,11 @@ begin
     iuc_litre : Result := 'LTR';
     iuc_hour : Result := 'HUR';
     iuc_kilogram : Result := 'KGM';
+    iuc_gram : Result := 'GRM';
     iuc_kilometre : Result := 'KMT';
     iuc_kilowatt_hour : Result := 'KWH';
     iuc_percent : Result := 'P1';
+    iuc_packaging : Result := 'XPK';
   end;
 end;
 

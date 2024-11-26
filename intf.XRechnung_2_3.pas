@@ -206,6 +206,8 @@ begin
     end;
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:OrderReference/cbc:ID',node) then
       _Invoice.PurchaseOrderReference := node.Text;
+    if TXRechnungXMLHelper.SelectNode(xml,'//cac:OrderReference/cbc:SalesOrderID',node) then
+      _Invoice.SellerOrderReference := node.Text;
     if TXRechnungXMLHelper.SelectNodes(xml,'//cac:BillingReference/cac:InvoiceDocumentReference',nodes) then
     for i := 0  to nodes.length-1 do
     with _Invoice.PrecedingInvoiceReferences.AddPrecedingInvoiceReference do
@@ -1032,11 +1034,17 @@ begin
     AddChild('cbc:StartDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoicePeriodStartDate);
     AddChild('cbc:EndDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoicePeriodEndDate);
   end;
-  if _Invoice.PurchaseOrderReference <> '' then
-    xRoot.AddChild('cac:OrderReference').AddChild('cbc:ID').Text := _Invoice.PurchaseOrderReference
-  else
-  if _Invoice.SellerOrderReference <> '' then
-    xRoot.AddChild('cac:OrderReference').AddChild('cbc:ID').Text := _Invoice.SellerOrderReference;
+  if (_Invoice.PurchaseOrderReference <> '') or
+     (_Invoice.SellerOrderReference <> '') then
+  with xRoot.AddChild('cac:OrderReference') do
+  begin
+    if _Invoice.PurchaseOrderReference = '' then
+      AddChild('cbc:ID').Text := 'NA'
+    else
+      AddChild('cbc:ID').Text := _Invoice.PurchaseOrderReference;
+    if _Invoice.SellerOrderReference <> '' then
+      AddChild('cbc:SalesOrderID').Text := _Invoice.SellerOrderReference;
+  end;
   for i := 0 to _Invoice.PrecedingInvoiceReferences.Count-1 do
   with xRoot.AddChild('cac:BillingReference').AddChild('cac:InvoiceDocumentReference') do
   begin

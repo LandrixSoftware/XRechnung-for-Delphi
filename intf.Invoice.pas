@@ -601,7 +601,7 @@ type
     TaxCurrencyCode : String;     //EUR
     BuyerReference : String; //Pflicht - Leitweg-ID - https://leitweg-id.de/home/ wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
     Notes : TInvoiceNotes; //Hinweise zur Rechnung allgemein
-    SellerOrderReference : String; //!! in UBL entweder SellerOrderReference oder PurchaseOrderReference
+    SellerOrderReference : String; //Auftragsnummer der Verkaeufers
     PurchaseOrderReference : String; //Bestellnummer oder Vertragsnummer des Kaeufers
     ProjectReference : String;
     ContractDocumentReference : String;

@@ -220,16 +220,6 @@ begin
     exit;
   end;
 
-  //Beide Felder sind in UBL nicht moeglich
-  if (_Version in [TXRechnungVersion.XRechnungVersion_230_UBL_Deprecated,
-                   TXRechnungVersion.XRechnungVersion_30x_UBL]) then
-  if (_Invoice.PurchaseOrderReference <> '') and
-     (_Invoice.SellerOrderReference <> '') then
-  begin
-    Result := false;
-    exit;
-  end;
-
   //In XRechnung nicht unterstuetzte Rechnungsarten
   if (_Version in [TXRechnungVersion.XRechnungVersion_230_UBL_Deprecated,
                    TXRechnungVersion.XRechnungVersion_230_UNCEFACT_Deprecated,

@@ -268,6 +268,7 @@ begin
     begin
       if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//cbc:PaymentMeansCode',node) then
         PaymentMeansCode := TXRechnungHelper.InvoicePaymentMeansCodeFromStr(node.text);
+      PaymentMeansInformation := TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//cbc:InstructionNote');
       if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//cbc:PaymentID',node) then
         _Invoice.PaymentID := node.text;
       if PaymentMeansCode = ipmc_SEPADirectDebit then
@@ -681,7 +682,7 @@ begin
       begin
         if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//ram:TypeCode',node) then
           PaymentMeansCode := TXRechnungHelper.InvoicePaymentMeansCodeFromStr(node.text);
-
+        PaymentMeansInformation := TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//ram:Information');
         if PaymentMeansCode = ipmc_SEPADirectDebit then
         begin
           if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//ram:PayerPartyDebtorFinancialAccount',node3) then
@@ -1237,10 +1238,10 @@ begin
   with xRoot.AddChild('cac:PaymentMeans') do
   begin
     AddChild('cbc:PaymentMeansCode').Text := TXRechnungHelper.InvoicePaymentMeansCodeToStr(_Invoice.PaymentTypes[i].PaymentMeansCode);
+    if _Invoice.PaymentTypes[i].PaymentMeansInformation <> '' then
+      AddChild('cbc:InstructionNote').Text := _Invoice.PaymentTypes[i].PaymentMeansInformation;
     if _Invoice.PaymentID <> '' then
       AddChild('cbc:PaymentID').Text := _Invoice.PaymentID;
-    //if _Invoice.PaymentTypes[i].PaymentMeansInformation <> '' then
-    //  AddChild('cbc:InstructionNote').Text := _Invoice.PaymentTypes[i].PaymentMeansInformation;
     if _Invoice.PaymentTypes[i].PaymentMeansCode = ipmc_SEPADirectDebit then
     begin
       with AddChild('cac:PaymentMandate') do
@@ -1777,8 +1778,8 @@ begin
       with AddChild('ram:SpecifiedTradeSettlementPaymentMeans') do
       begin
         AddChild('ram:TypeCode').Text := TXRechnungHelper.InvoicePaymentMeansCodeToStr(_Invoice.PaymentTypes[i].PaymentMeansCode);
-        //if _Invoice.PaymentTypes[i].PaymentMeansInformation <> '' then
-        //  AddChild('ram:Information').Text := _Invoice.PaymentTypes[i].PaymentMeansInformation;
+        if _Invoice.PaymentTypes[i].PaymentMeansInformation <> '' then
+          AddChild('ram:Information').Text := _Invoice.PaymentTypes[i].PaymentMeansInformation;
         if (_Invoice.PaymentTypes[i].FinancialAccount <> '') then
         begin
           if _Invoice.PaymentTypes[i].PaymentMeansCode = ipmc_SEPADirectDebit then

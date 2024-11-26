@@ -569,7 +569,7 @@ type
   TInvoicePaymentType = class(TObject)
   public
     PaymentMeansCode : TInvoicePaymentMeansCode;
-    //PaymentMeansInformation : String; Nicht XRechnung
+    PaymentMeansInformation : String;
     FinancialAccount : String; //sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59) oder CreditCard
     FinancialAccountName : String; //sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59) oder CreditCard Holder
     FinancialInstitutionBranch : String; //BIC sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59)
@@ -1266,7 +1266,7 @@ begin inherited Items[Index] := AItem; end;
 constructor TInvoicePaymentType.Create;
 begin
   PaymentMeansCode := ipmc_NotImplemented;
-  //PaymentMeansInformation := '';
+  PaymentMeansInformation := '';
   FinancialAccount := '';
   FinancialAccountName := '';
   FinancialInstitutionBranch := '';

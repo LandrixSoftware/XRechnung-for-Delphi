@@ -1401,7 +1401,7 @@ begin
   begin
     //PaymentMeansCode := ipmc_CreditTransfer; //auch moeglich
     PaymentMeansCode := ipmc_MutuallyDefined;
-    //PaymentMeansInformation := 'https://mypaymentgateway.example.com/resource'; Nicht XRechnung
+    //PaymentMeansInformation := 'https://mypaymentgateway.example.com/resource';
     FinancialAccount := 'meine@paypaladresse.de';
     FinancialAccountName := 'Robert Mustermann';
   end;

@@ -114,10 +114,11 @@ type
     ipmc_InstrumentNotDefined, //1  Keine Angaben
     ipmc_InCash,               //10 Barzahlung
     ipmc_Cheque,               //20 Scheck
-    ipmc_CreditTransfer,       //30 Ueberweisung - Ausland (nicht SEPA)
+    ipmc_CreditTransfer,       //30 Ueberweisung nicht SEPA (nicht SEPA,PayPal, etc.)
     ipmc_CreditCard,           //54 Kreditkarte
     ipmc_SEPACreditTransfer,   //58 Ueberweisung (SEPA)
-    ipmc_SEPADirectDebit       //59 Lastschrift (SEPA)
+    ipmc_SEPADirectDebit,      //59 Lastschrift (SEPA)
+    ipmc_MutuallyDefined       //ZZZ Gegenseitig definiert (PayPal, etc.)
   );
 
   TInvoicePaymentTermsType = (iptt_None,
@@ -568,8 +569,9 @@ type
   TInvoicePaymentType = class(TObject)
   public
     PaymentMeansCode : TInvoicePaymentMeansCode;
-    FinancialAccount : String; //sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59)
-    FinancialAccountName : String; //sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59)
+    //PaymentMeansInformation : String; Nicht XRechnung
+    FinancialAccount : String; //sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59) oder CreditCard
+    FinancialAccountName : String; //sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59) oder CreditCard Holder
     FinancialInstitutionBranch : String; //BIC sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59)
   public
     constructor Create;
@@ -1264,6 +1266,7 @@ begin inherited Items[Index] := AItem; end;
 constructor TInvoicePaymentType.Create;
 begin
   PaymentMeansCode := ipmc_NotImplemented;
+  //PaymentMeansInformation := '';
   FinancialAccount := '';
   FinancialAccountName := '';
   FinancialInstitutionBranch := '';

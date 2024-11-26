@@ -208,8 +208,17 @@ end;
 
 class function TXRechnungInvoiceAdapter.ConsistencyCheck(_Invoice: TInvoice;
   _Version: TXRechnungVersion): Boolean;
+var
+  lCount,i : Integer;
 begin
   Result := true;
+
+  //Mindestens eine Zahlungsanweisung notwendig
+  if (_Invoice.PaymentTypes.Count = 0) then
+  begin
+    Result := false;
+    exit;
+  end;
 
   //Beide Felder sind in UBL nicht moeglich
   if (_Version in [TXRechnungVersion.XRechnungVersion_230_UBL_Deprecated,
@@ -246,6 +255,27 @@ begin
     exit;
   end;
 
+  //Nur eine Lastschrift pro Rechnung
+  lCount := 0;
+  for i := 0 to _Invoice.PaymentTypes.Count-1 do
+  if _Invoice.PaymentTypes[i].PaymentMeansCode = ipmc_SEPADirectDebit then
+    inc(lCount);
+  if lCount > 1 then
+  begin
+    Result := false;
+    exit;
+  end;
+
+  //Nur eine Kreditkarte pro Rechnung
+  lCount := 0;
+  for i := 0 to _Invoice.PaymentTypes.Count-1 do
+  if _Invoice.PaymentTypes[i].PaymentMeansCode = ipmc_CreditCard then
+    inc(lCount);
+  if lCount > 1 then
+  begin
+    Result := false;
+    exit;
+  end;
 end;
 
 class function TXRechnungInvoiceAdapter.LoadFromFile(_Invoice: TInvoice;
@@ -703,6 +733,9 @@ begin
   if SameText(_Val,'59')  then
     Result := ipmc_SEPADirectDebit
   else
+  if SameText(_Val,'ZZZ')  then
+    Result := ipmc_MutuallyDefined
+  else
   if SameText(_Val,'1')  then
     Result := ipmc_InstrumentNotDefined
   else
@@ -718,6 +751,7 @@ begin
     ipmc_CreditCard: Result := '54';
     ipmc_SEPACreditTransfer: Result := '58';
     ipmc_SEPADirectDebit: Result := '59';
+    ipmc_MutuallyDefined: Result := 'ZZZ';
     else Result := '1'; //ipmc_InstrumentNotDefined
   end;
 end;
@@ -1411,7 +1445,7 @@ begin
     InCash: lPaymentMeansCode := ipmc_InCash;
     Cheque: lPaymentMeansCode := ipmc_Cheque;
     CreditTransfer: lPaymentMeansCode := ipmc_CreditTransfer;
-    //Fehlt : _Invoice.PaymentMeansCode := ipmc_CreditCard; 54
+    //TODO Fehlt : _Invoice.PaymentMeansCode := ipmc_CreditCard; 54
     SEPACreditTransfer: lPaymentMeansCode := ipmc_SEPACreditTransfer;
     SEPADirectDebit: lPaymentMeansCode := ipmc_SEPADirectDebit;
     NotDefined: lPaymentMeansCode := ipmc_InstrumentNotDefined;

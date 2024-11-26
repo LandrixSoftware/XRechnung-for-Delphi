@@ -42,12 +42,11 @@ type
     cbPrepaidAmount: TCheckBox;
     cbAttachments: TCheckBox;
     cbDeliveriyInf: TCheckBox;
-    rbFormat: TRadioGroup;
+    rbFormatVersion: TRadioGroup;
     Button2: TButton;
     Button3: TButton;
     Button5: TButton;
     Button6: TButton;
-    rbVersion: TRadioGroup;
     PageControl1: TPageControl;
     TabSheet1: TTabSheet;
     TabSheet2: TTabSheet;
@@ -55,14 +54,16 @@ type
     Button9: TButton;
     ListBox1: TListBox;
     cbValidateWithJava: TCheckBox;
+    Button1: TButton;
+    cbVisualizeWithJava: TCheckBox;
     procedure btCreateInvoiceClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
     procedure Button6Click(Sender: TObject);
-    procedure rbVersionClick(Sender: TObject);
     procedure Button9Click(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
   private
     WebBrowserContentFilename : String;
     WebBrowserContentFilenameHtml : String;
@@ -81,6 +82,7 @@ type
     procedure ShowXMLAsHtml(_Content : String);
     procedure ShowXMLAsPdf(_Content : String);
   public
+    ValidXMLExamplesPath : String;
     DistributionBasePath : String;
     JavaRuntimeEnvironmentPath : String;
     ValidatorLibPath : String;
@@ -101,12 +103,15 @@ begin
   DistributionBasePath := ExtractFileDir(Application.ExeName);
   DistributionBasePath := ExtractFileDir(DistributionBasePath);
   DistributionBasePath := ExtractFileDir(DistributionBasePath);
+  ValidXMLExamplesPath := ExtractFileDir(DistributionBasePath)+PathDelim+'ValidXMLExamples'+PathDelim;
   DistributionBasePath := ExtractFileDir(DistributionBasePath)+PathDelim+'Distribution'+PathDelim;
   JavaRuntimeEnvironmentPath := DistributionBasePath +'java'+PathDelim;
   ValidatorLibPath := DistributionBasePath +'validator'+PathDelim;
-  ValidatorConfigurationPath := DistributionBasePath +'validator-configuration'+ifthen(rbVersion.ItemIndex = 0,'23x','30x')+PathDelim;
-  VisualizationLibPath := DistributionBasePath +'visualization'+ifthen(rbVersion.ItemIndex = 0,'23x','30x')+PathDelim;
+  ValidatorConfigurationPath := DistributionBasePath +'validator-configuration30x'+PathDelim;
+  VisualizationLibPath := DistributionBasePath +'visualization30x'+PathDelim;
   FopLibPath := DistributionBasePath + 'apache-fop'+PathDelim;
+
+  ForceDirectories(ValidXMLExamplesPath);
 
   Left := 50;
   Top := 50;
@@ -140,6 +145,125 @@ begin
   EdgeBrowser3.SetParentComponent(TabSheet3);
   EdgeBrowser3.Align := alClient;
   {$IFEND}
+end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+var
+  inv : TInvoice;
+begin
+  inv := TInvoice.Create;
+  TInvoiceTestCases.Kleinunternehmerregelung(inv);//Kleinunternehmerregelung
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Kleinunternehmerregelung-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Kleinunternehmerregelung-cii-30x.xml');
+  inv.Free;
+
+  inv := TInvoice.Create;
+  TInvoiceTestCases.Paragr13b(inv);//Paragr13b UStG
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Paragr13b-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Paragr13b-cii-30x.xml');
+  inv.Free;
+
+  inv := TInvoice.Create;
+  TInvoiceTestCases.Austauschteilesteuer(inv);//Austauschteilesteuer
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Austauschteilesteuer-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Austauschteilesteuer-cii-30x.xml');
+  inv.Free;
+
+  inv := TInvoice.Create;
+  TInvoiceTestCases.Differenzbesteuerung(inv);//Differenzbesteuerung
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Differenzbesteuerung-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Differenzbesteuerung-cii-30x.xml');
+  inv.Free;
+
+  inv := TInvoice.Create;
+  TInvoiceTestCases.TitelPositionsgruppen(inv);//Titel/Positionsgruppen
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'TitelPositionsgruppen-ubl-30x.xml');
+  //TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'TitelPositionsgruppen-cii-30x.xml');
+  inv.Free;
+
+  inv := TInvoice.Create;
+  TInvoiceTestCases.Gutschrift(inv);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gutschrift-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gutschrift-cii-30x.xml');
+  inv.Free;
+
+  inv := TInvoice.Create;
+  TInvoiceTestCases.Rechnungskorrektur(inv);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Rechnungskorrektur-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Rechnungskorrektur-cii-30x.xml');
+  inv.Free;
+
+  inv := TInvoice.Create;
+  TInvoiceTestCases.MinimalbeispielB2BOhneLeitwegID(inv);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'MinimalbeispielB2BOhneLeitwegID-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'MinimalbeispielB2BOhneLeitwegID-cii-30x.xml');
+  inv.Free;
+
+  inv := TInvoice.Create;
+  TInvoiceTestCases.PreiseinheitGroesser1(inv);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'PreiseinheitGroesser1-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'PreiseinheitGroesser1-cii-30x.xml');
+  inv.Free;
+
+  inv := TInvoice.Create;
+  TInvoiceTestCases.Lastschrift(inv);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Lastschrift-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Lastschrift-cii-30x.xml');
+  inv.Free;
+
+  inv := TInvoice.Create;
+  TInvoiceTestCases.InnergemeinschaftlicheLieferungEUohneMehrwertsteuer(inv);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'LieferungEUohneMehrwertsteuer-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'LieferungEUohneMehrwertsteuer-cii-30x.xml');
+  inv.Free;
+
+  inv := TInvoice.Create;
+  TInvoiceTestCases.PayPalOderAndereOnlinezahlungsdienstleister(inv);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'PayPal-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'PayPal-cii-30x.xml');
+  inv.Free;
+
+  inv := TInvoice.Create;
+  TInvoiceTestCases.Kreditkarte(inv);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Kreditkarte-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Kreditkarte-cii-30x.xml');
+  inv.Free;
+
+  inv := TInvoice.Create;
+  TInvoiceTestCases.Gesamtbeispiel(inv,0,false,false,false,false);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-cii-30x.xml');
+  inv.Free;
+
+  inv := TInvoice.Create;
+  TInvoiceTestCases.Gesamtbeispiel(inv,1,false,false,false,false);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-Nettoziel-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-Nettoziel-cii-30x.xml');
+  inv.Free;
+
+  inv := TInvoice.Create;
+  TInvoiceTestCases.Gesamtbeispiel(inv,2,false,false,false,false);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto1-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto1-cii-30x.xml');
+  inv.Free;
+
+  inv := TInvoice.Create;
+  TInvoiceTestCases.Gesamtbeispiel(inv,3,false,false,false,false);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto2-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto2-cii-30x.xml');
+  inv.Free;
+
+  inv := TInvoice.Create;
+  TInvoiceTestCases.Gesamtbeispiel(inv,0,true,true,true,true);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-cii-30x.xml');
+  inv.Free;
+
+  inv := TInvoice.Create;
+  TInvoiceTestCases.Gesamtbeispiel(inv,3,true,true,true,true);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-Skonto2-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-Skonto2-cii-30x.xml');
+  inv.Free;
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);
@@ -342,7 +466,9 @@ begin
       7 : TInvoiceTestCases.MinimalbeispielB2BOhneLeitwegID(inv);
       8 : TInvoiceTestCases.PreiseinheitGroesser1(inv);
       9 : TInvoiceTestCases.Lastschrift(inv);
-      10 : TInvoiceTestCases.InnergemeinschaftlicheLieferungEUohneMehrwertsteuer(inv);
+      10: TInvoiceTestCases.InnergemeinschaftlicheLieferungEUohneMehrwertsteuer(inv);
+      11: TInvoiceTestCases.PayPalOderAndereOnlinezahlungsdienstleister(inv);
+      12: TInvoiceTestCases.Kreditkarte(inv);
     end;
 
     Generate(inv);
@@ -364,123 +490,117 @@ begin
 
   try
 
-  if rbFormat.itemindex = 0 then
-    case rbVersion.ItemIndex of
-      0 : version := XRechnungVersion_230_UBL_Deprecated;
-      else version := XRechnungVersion_30x_UBL;
-    end
-  else
-    case rbVersion.ItemIndex of
-      0 : version := XRechnungVersion_230_UNCEFACT_Deprecated;
+    case rbFormatVersion.ItemIndex of
+      0 : version := XRechnungVersion_30x_UBL;
       else version := XRechnungVersion_30x_UNCEFACT;
     end;
 
-  if not TXRechnungInvoiceAdapter.ConsistencyCheck(inv,version) then
-  begin
-    MessageDlg('Die Rechnung enthaelt fuer das XRechnung-Format ungueltige Werte', mtError, [mbOK], 0);
-    exit;
-  end;
-
-  if rbFormat.itemindex = 0 then
-  begin
-    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,version,xml);
-
-    if cbValidateWithJava.Checked then
+    if not TXRechnungInvoiceAdapter.ConsistencyCheck(inv,version) then
     begin
-      GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
-          .SetValidatorLibPath(ValidatorLibPath)
-          .SetValidatorConfigurationPath(ValidatorConfigurationPath)
-          .Validate(xml,cmdoutput,xmlresult,htmlresult);
-
-      Memo3.Lines.Text := cmdoutput;
-
-      if htmlresult <> '' then
-      begin
-        ShowXMLAsHtml(xml);
-        ShowXMLAsPdf(xml);
-      end else
-        htmlresult := '<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
-      TFile.WriteAllText(WebBrowserContentFilename,htmlresult,TEncoding.UTF8);
-      ShowFileInBrowser(WebBrowserContentFilename,1);
+      MessageDlg('Die Rechnung enthaelt fuer das XRechnung-Format ungueltige Werte', mtError, [mbOK], 0);
+      exit;
     end;
 
-    Memo2.Lines.Text := xml;
-    Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UBL.xml',TEncoding.UTF8);
+    if rbFormatVersion.itemindex = 0 then
+    begin
+      TXRechnungInvoiceAdapter.SaveToXMLStr(inv,version,xml);
 
-    invtest := TInvoice.Create;
-    try
-      TXRechnungInvoiceAdapter.LoadFromXMLStr(invtest,xml,error);
-      if error <> '' then
-        MessageDlg('error loading XRechnung'+#10+error, mtError, [mbOK], 0);
-
-      TXRechnungInvoiceAdapter.SaveToXMLStr(invtest,version,xmltest);
-      if not SameStr(xml,xmltest) then
+      if cbValidateWithJava.Checked then
       begin
-        TFile.WriteAllText(ExtractFilePath(Application.ExeName)+'xrechnung_original.xml',xml,TEncoding.UTF8);
-        TFile.WriteAllText(ExtractFilePath(Application.ExeName)+'xrechnung_test.xml',xmltest,TEncoding.UTF8);
-        if MessageDlg('Testrechnung unterscheidet sich vom Original.'+#10+'Im Explorer anzeigen?', mtError, [mbYes,mbNo], 0) = mrYes then
-          ShellExecuteW(0,'open','EXPLORER.EXE',PChar('/select,'+ExtractFilePath(Application.ExeName)+'xrechnung_original.xml'),'%SystemRoot%',SW_SHOWNORMAL);
+        GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+            .SetValidatorLibPath(ValidatorLibPath)
+            .SetValidatorConfigurationPath(ValidatorConfigurationPath)
+            .Validate(xml,cmdoutput,xmlresult,htmlresult);
+
+        Memo3.Lines.Text := cmdoutput;
+
+        if htmlresult <> '' then
+        begin
+          if cbVisualizeWithJava.Checked then
+          begin
+            ShowXMLAsHtml(xml);
+            ShowXMLAsPdf(xml);
+          end;
+        end else
+          htmlresult := '<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
+        TFile.WriteAllText(WebBrowserContentFilename,htmlresult,TEncoding.UTF8);
+        ShowFileInBrowser(WebBrowserContentFilename,1);
       end;
 
-    finally
-      invtest.Free;
-    end;
+      Memo2.Lines.Text := xml;
+      Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UBL.xml',TEncoding.UTF8);
 
-  end
-  else
-  begin
-    TXRechnungInvoiceAdapter.SaveToXMLStr(inv,version,xml);
+      invtest := TInvoice.Create;
+      try
+        TXRechnungInvoiceAdapter.LoadFromXMLStr(invtest,xml,error);
+        if error <> '' then
+          MessageDlg('error loading XRechnung'+#10+error, mtError, [mbOK], 0);
 
-    if cbValidateWithJava.Checked then
-    begin
-      GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
-          .SetValidatorLibPath(ValidatorLibPath)
-          .SetValidatorConfigurationPath(ValidatorConfigurationPath)
-          .Validate(xml,cmdoutput,xmlresult,htmlresult);
+        TXRechnungInvoiceAdapter.SaveToXMLStr(invtest,version,xmltest);
+        if not SameStr(xml,xmltest) then
+        begin
+          TFile.WriteAllText(ExtractFilePath(Application.ExeName)+'xrechnung_original.xml',xml,TEncoding.UTF8);
+          TFile.WriteAllText(ExtractFilePath(Application.ExeName)+'xrechnung_test.xml',xmltest,TEncoding.UTF8);
+          if MessageDlg('Testrechnung unterscheidet sich vom Original.'+#10+'Im Explorer anzeigen?', mtError, [mbYes,mbNo], 0) = mrYes then
+            ShellExecuteW(0,'open','EXPLORER.EXE',PChar('/select,'+ExtractFilePath(Application.ExeName)+'xrechnung_original.xml'),'%SystemRoot%',SW_SHOWNORMAL);
+        end;
 
-      Memo3.Lines.Text := cmdoutput;
-
-      if htmlresult <> '' then
-      begin
-        ShowXMLAsHtml(xml);
-        ShowXMLAsPdf(xml);
-      end else
-        htmlresult := '<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
-      TFile.WriteAllText(WebBrowserContentFilename,htmlresult,TEncoding.UTF8);
-      ShowFileInBrowser(WebBrowserContentFilename,1);
-    end;
-
-    Memo2.Lines.Text := xml;
-    Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UNCEFACT.xml',TEncoding.UTF8);
-
-    invtest := TInvoice.Create;
-    try
-      TXRechnungInvoiceAdapter.LoadFromXMLStr(invtest,xml,error);
-      if error <> '' then
-        MessageDlg('error loading XRechnung'+#10+error, mtError, [mbOK], 0);
-
-      TXRechnungInvoiceAdapter.SaveToXMLStr(invtest,version,xmltest);
-      if not SameStr(xml,xmltest) then
-      begin
-        TFile.WriteAllText(ExtractFilePath(Application.ExeName)+'xrechnung_original.xml',xml,TEncoding.UTF8);
-        TFile.WriteAllText(ExtractFilePath(Application.ExeName)+'xrechnung_test.xml',xmltest,TEncoding.UTF8);
-        if MessageDlg('Testrechnung unterscheidet sich vom Original.'+#10+'Im Explorer anzeigen?', mtError, [mbYes,mbNo], 0) = mrYes then
-          ShellExecuteW(0,'open','EXPLORER.EXE',PChar('/select,'+ExtractFilePath(Application.ExeName)+'xrechnung_original.xml'),'%SystemRoot%',SW_SHOWNORMAL);
+      finally
+        invtest.Free;
       end;
 
-    finally
-      invtest.Free;
+    end
+    else
+    begin
+      TXRechnungInvoiceAdapter.SaveToXMLStr(inv,version,xml);
+
+      if cbValidateWithJava.Checked then
+      begin
+        GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+            .SetValidatorLibPath(ValidatorLibPath)
+            .SetValidatorConfigurationPath(ValidatorConfigurationPath)
+            .Validate(xml,cmdoutput,xmlresult,htmlresult);
+
+        Memo3.Lines.Text := cmdoutput;
+
+        if htmlresult <> '' then
+        begin
+          if cbVisualizeWithJava.Checked then
+          begin
+            ShowXMLAsHtml(xml);
+            ShowXMLAsPdf(xml);
+          end;
+        end else
+          htmlresult := '<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
+        TFile.WriteAllText(WebBrowserContentFilename,htmlresult,TEncoding.UTF8);
+        ShowFileInBrowser(WebBrowserContentFilename,1);
+      end;
+
+      Memo2.Lines.Text := xml;
+      Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UNCEFACT.xml',TEncoding.UTF8);
+
+      invtest := TInvoice.Create;
+      try
+        TXRechnungInvoiceAdapter.LoadFromXMLStr(invtest,xml,error);
+        if error <> '' then
+          MessageDlg('error loading XRechnung'+#10+error, mtError, [mbOK], 0);
+
+        TXRechnungInvoiceAdapter.SaveToXMLStr(invtest,version,xmltest);
+        if not SameStr(xml,xmltest) then
+        begin
+          TFile.WriteAllText(ExtractFilePath(Application.ExeName)+'xrechnung_original.xml',xml,TEncoding.UTF8);
+          TFile.WriteAllText(ExtractFilePath(Application.ExeName)+'xrechnung_test.xml',xmltest,TEncoding.UTF8);
+          if MessageDlg('Testrechnung unterscheidet sich vom Original.'+#10+'Im Explorer anzeigen?', mtError, [mbYes,mbNo], 0) = mrYes then
+            ShellExecuteW(0,'open','EXPLORER.EXE',PChar('/select,'+ExtractFilePath(Application.ExeName)+'xrechnung_original.xml'),'%SystemRoot%',SW_SHOWNORMAL);
+        end;
+
+      finally
+        invtest.Free;
+      end;
     end;
-  end;
   finally
     Screen.Cursor := crDefault;
   end;
-end;
-
-procedure TForm1.rbVersionClick(Sender: TObject);
-begin
-  ValidatorConfigurationPath := DistributionBasePath +'validator-configuration'+ifthen(rbVersion.ItemIndex = 0,'23x','30x')+PathDelim;
-  VisualizationLibPath := DistributionBasePath +'visualization'+ifthen(rbVersion.ItemIndex = 0,'23x','30x')+PathDelim;
 end;
 
 procedure TForm1.ClearBrowser;
@@ -519,7 +639,7 @@ begin
   GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
       .SetValidatorLibPath(ValidatorLibPath)
       .SetVisualizationLibPath(VisualizationLibPath)
-      .Visualize(_Content,rbFormat.itemindex=0,cmdoutput,htmlresult);
+      .Visualize(_Content,rbFormatVersion.itemindex=0,cmdoutput,htmlresult);
 
   Memo3.Lines.Append(cmdoutput);
 
@@ -543,7 +663,7 @@ begin
       .SetValidatorLibPath(ValidatorLibPath)
       .SetVisualizationLibPath(VisualizationLibPath)
       .SetFopLibPath(FopLibPath)
-      .VisualizeAsPdf(_Content,rbFormat.itemindex=0,cmdoutput,pdfresult);
+      .VisualizeAsPdf(_Content,rbFormatVersion.itemindex=0,cmdoutput,pdfresult);
 
   Memo3.Lines.Append(cmdoutput);
 

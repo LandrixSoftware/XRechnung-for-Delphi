@@ -84,8 +84,8 @@ type
   end;
 
   TXRechnungVersion = (XRechnungVersion_Unknown,
-                       XRechnungVersion_230_UBL,
-                       XRechnungVersion_230_UNCEFACT,
+                       XRechnungVersion_230_UBL_Deprecated,
+                       XRechnungVersion_230_UNCEFACT_Deprecated,
                        XRechnungVersion_30x_UBL,
                        XRechnungVersion_30x_UNCEFACT,
                        XRechnungVersion_ReadingSupport_ZUGFeRDFacturX);
@@ -212,7 +212,7 @@ begin
   Result := true;
 
   //Beide Felder sind in UBL nicht moeglich
-  if (_Version in [TXRechnungVersion.XRechnungVersion_230_UBL,
+  if (_Version in [TXRechnungVersion.XRechnungVersion_230_UBL_Deprecated,
                    TXRechnungVersion.XRechnungVersion_30x_UBL]) then
   if (_Invoice.PurchaseOrderReference <> '') and
      (_Invoice.SellerOrderReference <> '') then
@@ -222,8 +222,8 @@ begin
   end;
 
   //In XRechnung nicht unterstuetzte Rechnungsarten
-  if (_Version in [TXRechnungVersion.XRechnungVersion_230_UBL,
-                   TXRechnungVersion.XRechnungVersion_230_UNCEFACT,
+  if (_Version in [TXRechnungVersion.XRechnungVersion_230_UBL_Deprecated,
+                   TXRechnungVersion.XRechnungVersion_230_UNCEFACT_Deprecated,
                    TXRechnungVersion.XRechnungVersion_30x_UBL,
                    TXRechnungVersion.XRechnungVersion_30x_UNCEFACT]) then
   if (_Invoice.InvoiceTypeCode in [itc_DebitnoteRelatedToFinancialAdjustments,
@@ -238,7 +238,7 @@ begin
   end;
 
   //Nur maximal eine Referenzrechnung in ZUGFeRD erlaubt
-  if (_Version in [TXRechnungVersion.XRechnungVersion_230_UNCEFACT,
+  if (_Version in [TXRechnungVersion.XRechnungVersion_230_UNCEFACT_Deprecated,
                    TXRechnungVersion.XRechnungVersion_30x_UNCEFACT]) then
   if _Invoice.PrecedingInvoiceReferences.Count > 1 then
   begin
@@ -304,9 +304,9 @@ begin
     exit;
 
   case TXRechnungValidationHelper.GetXRechnungVersion(_XmlDocument) of
-    XRechnungVersion_230_UBL      : Result := TXRechnungInvoiceAdapter230.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
+    XRechnungVersion_230_UBL_Deprecated      : Result := TXRechnungInvoiceAdapter230.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
     XRechnungVersion_30x_UBL      : Result := TXRechnungInvoiceAdapter301.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
-    XRechnungVersion_230_UNCEFACT : Result := TXRechnungInvoiceAdapter230.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
+    XRechnungVersion_230_UNCEFACT_Deprecated : Result := TXRechnungInvoiceAdapter230.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     XRechnungVersion_30x_UNCEFACT : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     {$IFNDEF ZUGFeRD_Support}
     XRechnungVersion_ReadingSupport_ZUGFeRDFacturX : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
@@ -343,9 +343,9 @@ class procedure TXRechnungInvoiceAdapter.SaveDocument(_Invoice: TInvoice;
   _Version : TXRechnungVersion; _Xml: IXMLDocument);
 begin
   case _Version of
-    XRechnungVersion_230_UBL : TXRechnungInvoiceAdapter230.SaveDocumentUBL(_Invoice,_Xml);
+    XRechnungVersion_230_UBL_Deprecated : TXRechnungInvoiceAdapter230.SaveDocumentUBL(_Invoice,_Xml);
     XRechnungVersion_30x_UBL : TXRechnungInvoiceAdapter301.SaveDocumentUBL(_Invoice,_Xml);
-    XRechnungVersion_230_UNCEFACT : TXRechnungInvoiceAdapter230.SaveDocumentUNCEFACT(_Invoice,_Xml);
+    XRechnungVersion_230_UNCEFACT_Deprecated : TXRechnungInvoiceAdapter230.SaveDocumentUNCEFACT(_Invoice,_Xml);
     XRechnungVersion_30x_UNCEFACT : TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(_Invoice,_Xml);
     else raise Exception.Create('XRechnung - wrong version');
   end;
@@ -1013,7 +1013,7 @@ begin
     if not TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'cbc:CustomizationID',node) then
       exit;
     if node.Text.EndsWith('xrechnung_2.3',true) then
-      Result := XRechnungVersion_230_UBL
+      Result := XRechnungVersion_230_UBL_Deprecated
     else
     if node.Text.EndsWith('xrechnung_3.0',true) then
       Result := XRechnungVersion_30x_UBL;
@@ -1028,7 +1028,7 @@ begin
     if not TXRechnungXMLHelper.FindChild(node2,'ram:ID',node) then
       exit;
     if node.Text.EndsWith('xrechnung_2.3',true) then
-      Result := XRechnungVersion_230_UNCEFACT
+      Result := XRechnungVersion_230_UNCEFACT_Deprecated
     else
     if node.Text.EndsWith('xrechnung_3.0',true) then
       Result := XRechnungVersion_30x_UNCEFACT

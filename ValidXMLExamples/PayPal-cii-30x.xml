@@ -109,6 +109,7 @@ Zeile 3</ram:Description>
       <ram:InvoiceCurrencyCode>EUR</ram:InvoiceCurrencyCode>
       <ram:SpecifiedTradeSettlementPaymentMeans>
         <ram:TypeCode>ZZZ</ram:TypeCode>
+        <ram:Information>https://mypaymentgateway.example.com/resource</ram:Information>
         <ram:PayeePartyCreditorFinancialAccount>
           <ram:IBANID>meine@paypaladresse.de</ram:IBANID>
           <ram:AccountName>Robert Mustermann</ram:AccountName>

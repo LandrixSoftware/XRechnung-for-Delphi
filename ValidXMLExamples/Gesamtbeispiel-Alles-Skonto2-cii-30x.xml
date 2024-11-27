@@ -182,6 +182,9 @@ Zeile 3</ram:Description>
           <ram:ID schemeID="FC">222/111/4444</ram:ID>
         </ram:SpecifiedTaxRegistration>
       </ram:BuyerTradeParty>
+      <ram:SellerOrderReferencedDocument>
+        <ram:IssuerAssignedID>A0815</ram:IssuerAssignedID>
+      </ram:SellerOrderReferencedDocument>
       <ram:BuyerOrderReferencedDocument>
         <ram:IssuerAssignedID>B0815</ram:IssuerAssignedID>
       </ram:BuyerOrderReferencedDocument>

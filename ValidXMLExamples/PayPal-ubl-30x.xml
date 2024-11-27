@@ -81,7 +81,7 @@
     </cac:Party>
   </cac:AccountingCustomerParty>
   <cac:PaymentMeans>
-    <cbc:PaymentMeansCode>ZZZ</cbc:PaymentMeansCode>
+    <cbc:PaymentMeansCode name="https://mypaymentgateway.example.com/resource">ZZZ</cbc:PaymentMeansCode>
     <cbc:PaymentID>Verwendungszweck ...R2020-0815</cbc:PaymentID>
     <cac:PayeeFinancialAccount>
       <cbc:ID>meine@paypaladresse.de</cbc:ID>

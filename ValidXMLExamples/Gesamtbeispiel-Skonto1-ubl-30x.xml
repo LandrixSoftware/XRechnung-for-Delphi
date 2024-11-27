@@ -15,6 +15,7 @@
   </cac:InvoicePeriod>
   <cac:OrderReference>
     <cbc:ID>B0815</cbc:ID>
+    <cbc:SalesOrderID>A0815</cbc:SalesOrderID>
   </cac:OrderReference>
   <cac:DespatchDocumentReference>
     <cbc:ID>Lieferschein123</cbc:ID>

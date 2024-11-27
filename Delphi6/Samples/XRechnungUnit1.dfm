@@ -220,7 +220,9 @@ object Form1: TForm1
       'Minimalrechnung B2B'
       'Preiseinheit'
       'Lastschrift'
-      'Innergem.Lief.EUoMwSt')
+      'Innergem.Lief.EUoMwSt'
+      'PayPal'
+      'Kreditkarte')
     TabOrder = 16
   end
   object cbValidateWithJava: TCheckBox

@@ -86,8 +86,8 @@ type
   end;
 
   TXRechnungVersion = (XRechnungVersion_Unknown,
-                       XRechnungVersion_230_UBL,
-                       XRechnungVersion_230_UNCEFACT,
+                       XRechnungVersion_230_UBL_Deprecated,
+                       XRechnungVersion_230_UNCEFACT_Deprecated,
                        XRechnungVersion_30x_UBL,
                        XRechnungVersion_30x_UNCEFACT,
                        XRechnungVersion_ReadingSupport_ZUGFeRDFacturX);
@@ -210,22 +210,21 @@ end;
 
 class function TXRechnungInvoiceAdapter.ConsistencyCheck(_Invoice: TInvoice;
   _Version: TXRechnungVersion): Boolean;
+var
+  lCount,i : Integer;
 begin
   Result := true;
 
-  //Beide Felder sind in UBL nicht moeglich
-  if (_Version in [XRechnungVersion_230_UBL,
-                   XRechnungVersion_30x_UBL]) then
-  if (_Invoice.PurchaseOrderReference <> '') and
-     (_Invoice.SellerOrderReference <> '') then
+  //Mindestens eine Zahlungsanweisung notwendig
+  if (_Invoice.PaymentTypes.Count = 0) then
   begin
     Result := false;
     exit;
   end;
 
   //In XRechnung nicht unterstuetzte Rechnungsarten
-  if (_Version in [XRechnungVersion_230_UBL,
-                   XRechnungVersion_230_UNCEFACT,
+  if (_Version in [XRechnungVersion_230_UBL_Deprecated,
+                   XRechnungVersion_230_UNCEFACT_Deprecated,
                    XRechnungVersion_30x_UBL,
                    XRechnungVersion_30x_UNCEFACT]) then
   if (_Invoice.InvoiceTypeCode in [itc_DebitnoteRelatedToFinancialAdjustments,
@@ -240,7 +239,7 @@ begin
   end;
 
   //Nur maximal eine Referenzrechnung in ZUGFeRD erlaubt
-  if (_Version in [XRechnungVersion_230_UNCEFACT,
+  if (_Version in [XRechnungVersion_230_UNCEFACT_Deprecated,
                    XRechnungVersion_30x_UNCEFACT]) then
   if _Invoice.PrecedingInvoiceReferences.Count > 1 then
   begin
@@ -248,6 +247,27 @@ begin
     exit;
   end;
 
+  //Nur eine Lastschrift pro Rechnung
+  lCount := 0;
+  for i := 0 to _Invoice.PaymentTypes.Count-1 do
+  if _Invoice.PaymentTypes[i].PaymentMeansCode = ipmc_SEPADirectDebit then
+    inc(lCount);
+  if lCount > 1 then
+  begin
+    Result := false;
+    exit;
+  end;
+
+  //Nur eine Kreditkarte pro Rechnung
+  lCount := 0;
+  for i := 0 to _Invoice.PaymentTypes.Count-1 do
+  if _Invoice.PaymentTypes[i].PaymentMeansCode = ipmc_CreditCard then
+    inc(lCount);
+  if lCount > 1 then
+  begin
+    Result := false;
+    exit;
+  end;
 end;
 
 class function TXRechnungInvoiceAdapter.LoadFromFile(_Invoice: TInvoice;
@@ -306,9 +326,9 @@ begin
     exit;
 
   case TXRechnungValidationHelper.GetXRechnungVersion(_XmlDocument) of
-    XRechnungVersion_230_UBL      : Result := TXRechnungInvoiceAdapter230.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
+    XRechnungVersion_230_UBL_Deprecated      : Result := TXRechnungInvoiceAdapter230.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
     XRechnungVersion_30x_UBL      : Result := TXRechnungInvoiceAdapter301.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
-    XRechnungVersion_230_UNCEFACT : Result := TXRechnungInvoiceAdapter230.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
+    XRechnungVersion_230_UNCEFACT_Deprecated : Result := TXRechnungInvoiceAdapter230.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     XRechnungVersion_30x_UNCEFACT : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     {$IFNDEF ZUGFeRD_Support}
     XRechnungVersion_ReadingSupport_ZUGFeRDFacturX : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
@@ -345,9 +365,9 @@ class procedure TXRechnungInvoiceAdapter.SaveDocument(_Invoice: TInvoice;
   _Version : TXRechnungVersion; _Xml: IXMLDocument);
 begin
   case _Version of
-    XRechnungVersion_230_UBL : TXRechnungInvoiceAdapter230.SaveDocumentUBL(_Invoice,_Xml);
+    XRechnungVersion_230_UBL_Deprecated : TXRechnungInvoiceAdapter230.SaveDocumentUBL(_Invoice,_Xml);
     XRechnungVersion_30x_UBL : TXRechnungInvoiceAdapter301.SaveDocumentUBL(_Invoice,_Xml);
-    XRechnungVersion_230_UNCEFACT : TXRechnungInvoiceAdapter230.SaveDocumentUNCEFACT(_Invoice,_Xml);
+    XRechnungVersion_230_UNCEFACT_Deprecated : TXRechnungInvoiceAdapter230.SaveDocumentUNCEFACT(_Invoice,_Xml);
     XRechnungVersion_30x_UNCEFACT : TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(_Invoice,_Xml);
     else raise Exception.Create('XRechnung - wrong version');
   end;
@@ -693,6 +713,9 @@ begin
   if SameText(_Val,'59')  then
     Result := ipmc_SEPADirectDebit
   else
+  if SameText(_Val,'ZZZ')  then
+    Result := ipmc_MutuallyDefined
+  else
   if SameText(_Val,'1')  then
     Result := ipmc_InstrumentNotDefined
   else
@@ -708,6 +731,7 @@ begin
     ipmc_CreditCard: Result := '54';
     ipmc_SEPACreditTransfer: Result := '58';
     ipmc_SEPADirectDebit: Result := '59';
+    ipmc_MutuallyDefined: Result := 'ZZZ';
     else Result := '1'; //ipmc_InstrumentNotDefined
   end;
 end;
@@ -805,6 +829,8 @@ class function TXRechnungHelper.InvoiceUnitCodeFromStr(
 begin
   if SameText(_Val,'H87') then
     Result := iuc_piece else
+  if SameText(_Val,'LS') then
+    Result := iuc_flaterate else
   if SameText(_Val,'NAR') then
     Result := iuc_number_of_articles else
   if SameText(_Val,'SET') then
@@ -837,6 +863,8 @@ begin
     Result := iuc_litre else
   if SameText(_Val,'HUR') then
     Result := iuc_hour else
+  if SameText(_Val,'GRM') then
+    Result := iuc_gram else
   if SameText(_Val,'KGM') then
     Result := iuc_kilogram else
   if SameText(_Val,'KMT') then
@@ -845,6 +873,8 @@ begin
     Result := iuc_kilowatt_hour else
   if SameText(_Val,'P1') then
     Result := iuc_percent else
+  if SameText(_Val,'XPK') then
+    Result := iuc_packaging else
   Result := iuc_one; //C62
 end;
 
@@ -854,6 +884,7 @@ begin
   case _Val of
     iuc_one : Result := 'C62';
     iuc_piece : Result := 'H87';
+    iuc_flaterate : Result := 'LS';
     iuc_number_of_articles : Result := 'NAR';
     iuc_set : Result := 'SET';
     iuc_week : Result := 'WEE';
@@ -871,9 +902,11 @@ begin
     iuc_litre : Result := 'LTR';
     iuc_hour : Result := 'HUR';
     iuc_kilogram : Result := 'KGM';
+    iuc_gram : Result := 'GRM';
     iuc_kilometre : Result := 'KMT';
     iuc_kilowatt_hour : Result := 'KWH';
     iuc_percent : Result := 'P1';
+    iuc_packaging : Result := 'XPK';
   end;
 end;
 
@@ -1033,7 +1066,7 @@ begin
     if not TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'cbc:CustomizationID',node) then
       exit;
     if Pos('xrechnung_2.3',AnsiLowerCase(node.Text))>0 then
-      Result := XRechnungVersion_230_UBL
+      Result := XRechnungVersion_230_UBL_Deprecated
     else
     if Pos('xrechnung_3.0',AnsiLowerCase(node.Text))>0 then
       Result := XRechnungVersion_30x_UBL;
@@ -1048,7 +1081,7 @@ begin
     if not TXRechnungXMLHelper.FindChild(node2,'ram:ID',node) then
       exit;
     if Pos('xrechnung_2.3',AnsiLowerCase(node.Text))>0 then
-      Result := XRechnungVersion_230_UNCEFACT
+      Result := XRechnungVersion_230_UNCEFACT_Deprecated
     else
     if Pos('xrechnung_3.0',AnsiLowerCase(node.Text))>0 then
       Result := XRechnungVersion_30x_UNCEFACT
@@ -1422,7 +1455,7 @@ begin
     InCash: lPaymentMeansCode := ipmc_InCash;
     Cheque: lPaymentMeansCode := ipmc_Cheque;
     CreditTransfer: lPaymentMeansCode := ipmc_CreditTransfer;
-    //Fehlt : _Invoice.PaymentMeansCode := ipmc_CreditCard; 54
+    //TODO Fehlt : _Invoice.PaymentMeansCode := ipmc_CreditCard; 54
     SEPACreditTransfer: lPaymentMeansCode := ipmc_SEPACreditTransfer;
     SEPADirectDebit: lPaymentMeansCode := ipmc_SEPADirectDebit;
     NotDefined: lPaymentMeansCode := ipmc_InstrumentNotDefined;

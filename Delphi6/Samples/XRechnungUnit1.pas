@@ -235,7 +235,7 @@ begin
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetValidatorLibPath(ValidatorLibPath)
        .SetVisualizationLibPath(VisualizationLibPath)
-        .VisualizeFile(od.FileName, (TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) in [XRechnungVersion_230_UBL,XRechnungVersion_30x_UBL]),cmdoutput,htmlresult);
+        .VisualizeFile(od.FileName, (TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) in [XRechnungVersion_230_UBL_Deprecated,XRechnungVersion_30x_UBL]),cmdoutput,htmlresult);
 
     Memo3.Lines.Text := cmdoutput;
 
@@ -265,7 +265,7 @@ begin
         .SetValidatorLibPath(ValidatorLibPath)
         .SetVisualizationLibPath(VisualizationLibPath)
         .SetFopLibPath(FopLibPath)
-        .VisualizeFileAsPdf(od.FileName, (TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) in [XRechnungVersion_230_UBL,XRechnungVersion_30x_UBL]),cmdoutput,pdfresult);
+        .VisualizeFileAsPdf(od.FileName, (TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) in [XRechnungVersion_230_UBL_Deprecated,XRechnungVersion_30x_UBL]),cmdoutput,pdfresult);
 
     Memo3.Lines.Text := cmdoutput;
 
@@ -310,7 +310,9 @@ begin
       7 : TInvoiceTestCases.MinimalbeispielB2BOhneLeitwegID(inv);
       8 : TInvoiceTestCases.PreiseinheitGroesser1(inv);
       9 : TInvoiceTestCases.Lastschrift(inv);
-      10 : TInvoiceTestCases.InnergemeinschaftlicheLieferungEUohneMehrwertsteuer(inv);
+      10: TInvoiceTestCases.InnergemeinschaftlicheLieferungEUohneMehrwertsteuer(inv);
+      11: TInvoiceTestCases.PayPalOderAndereOnlinezahlungsdienstleister(inv);
+      12: TInvoiceTestCases.Kreditkarte(inv);
     end;
 
     Generate(inv);
@@ -334,12 +336,12 @@ begin
 
   if rbFormat.itemindex = 0 then
     case rbVersion.ItemIndex of
-      0 : version := XRechnungVersion_230_UBL;
+      0 : version := XRechnungVersion_230_UBL_Deprecated;
       else version := XRechnungVersion_30x_UBL;
     end
   else
     case rbVersion.ItemIndex of
-      0 : version := XRechnungVersion_230_UNCEFACT;
+      0 : version := XRechnungVersion_230_UNCEFACT_Deprecated;
       else version := XRechnungVersion_30x_UNCEFACT;
     end;
 

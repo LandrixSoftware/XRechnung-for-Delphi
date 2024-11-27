@@ -39,6 +39,7 @@ Samples/Win32
 Samples/Win64
 Delphi6/Samples/Win32
 Delphi6/Samples/Indy9
+Delphi6/Samples/*.ddp
 SaxonHE-Unmanaged
 Distribution/validator
 Distribution/validator-configuration23x

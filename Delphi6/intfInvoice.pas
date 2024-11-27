@@ -113,10 +113,11 @@ type
     ipmc_InstrumentNotDefined, //1  Keine Angaben
     ipmc_InCash,               //10 Barzahlung
     ipmc_Cheque,               //20 Scheck
-    ipmc_CreditTransfer,       //30 Ueberweisung - Ausland (nicht SEPA)
+    ipmc_CreditTransfer,       //30 Ueberweisung nicht SEPA (nicht SEPA,PayPal, etc.)
     ipmc_CreditCard,           //54 Kreditkarte
     ipmc_SEPACreditTransfer,   //58 Ueberweisung (SEPA)
-    ipmc_SEPADirectDebit       //59 Lastschrift (SEPA)
+    ipmc_SEPADirectDebit,      //59 Lastschrift (SEPA)
+    ipmc_MutuallyDefined       //ZZZ Gegenseitig definiert (PayPal, etc.)
   );
 
   TInvoicePaymentTermsType = (iptt_None,
@@ -127,6 +128,7 @@ type
   TInvoiceUnitCode = (iuc_None //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:rec20_1
                       ,iuc_one   //C62 A unit of count defining the number of pieces
                       ,iuc_piece //H87
+                      ,iuc_flaterate //Pauschale
                       ,iuc_number_of_articles
                       ,iuc_set
                       ,iuc_week
@@ -143,10 +145,12 @@ type
                       ,iuc_second_unit_of_time
                       ,iuc_litre
                       ,iuc_hour
+                      ,iuc_gram
                       ,iuc_kilogram
                       ,iuc_kilometre
                       ,iuc_kilowatt_hour
                       ,iuc_percent
+                      ,iuc_packaging //Verpackung
                       );
   //mehr Einheiten in Res\intf.Invoice.unusedUnits.pas
 
@@ -561,6 +565,29 @@ type
     procedure ReplaceContentWith(_Content : String);
   end;
 
+  TInvoicePaymentType = class(TObject)
+  public
+    PaymentMeansCode : TInvoicePaymentMeansCode;
+    PaymentMeansInformation : String;
+    FinancialAccount : String; //sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59) oder CreditCard
+    FinancialAccountName : String; //sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59) oder CreditCard Holder
+    FinancialInstitutionBranch : String; //BIC sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59)
+  public
+    constructor Create;
+  end;
+
+  TInvoicePaymentTypeList = class(TObjectList)
+  protected
+    function GetItem(Index: Integer): TInvoicePaymentType;
+    procedure SetItem(Index: Integer; AItem: TInvoicePaymentType);
+  public
+	  function  Extract(Item: TObject): TInvoicePaymentType;
+	  function  First: TInvoicePaymentType;
+	  function  Last: TInvoicePaymentType;
+    function  AddPaymentType : TInvoicePaymentType;
+	  property  Items[Index: Integer]: TInvoicePaymentType read GetItem write SetItem; default;
+  end;
+
   TInvoice = class(TObject)
   public
     InvoiceNumber : String;  //Rechnungsnummer
@@ -573,7 +600,7 @@ type
     TaxCurrencyCode : String;     //EUR
     BuyerReference : String; //Pflicht - Leitweg-ID - https://leitweg-id.de/home/ wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
     Notes : TInvoiceNotes; //Hinweise zur Rechnung allgemein
-    SellerOrderReference : String; //!! in UBL entweder SellerOrderReference oder PurchaseOrderReference
+    SellerOrderReference : String; //Auftragsnummer der Verkaeufers
     PurchaseOrderReference : String; //Bestellnummer oder Vertragsnummer des Kaeufers
     ProjectReference : String;
     ContractDocumentReference : String;
@@ -583,14 +610,9 @@ type
     AccountingCustomerParty : TInvoiceAccountingParty;
     DeliveryInformation : TInvoiceDeliveryInformation;
 
-    //TODO weitere Zahlungswege, als Liste
-    //TODO Auch 0 pruefen
-    PaymentMeansCode : TInvoicePaymentMeansCode;
     PaymentID : String; //Verwendungszweck der Ueberweisung/Lastschrift
-    PaymentFinancialAccount : String; //sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59)
-    PaymentFinancialAccountName : String; //sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59)
-    PaymentFinancialInstitutionBranch : String; //BIC sowohl Payee (Ueberweisung 58) als auch Payer (Lastschrift 59)
-    PaymentMandateID : String; //Lastschrift (59) Mandatsreferenz BT-89
+    PaymentTypes : TInvoicePaymentTypeList; //Zahlungswege
+    PaymentMandateID : String; //Lastschrift (59) Mandatsreferenz BT-89 !!Nur eine pro Rechnung moeglich
 
     //Infos unter
     //https://www.e-rechnung-bund.de/wp-content/uploads/2023/04/Angabe-Skonto-Upload.pdf
@@ -633,6 +655,7 @@ implementation
 
 constructor TInvoice.Create;
 begin
+  PaymentTypes := TInvoicePaymentTypeList.Create;
   InvoiceLines := TInvoiceLines.Create;
   Attachments := TInvoiceAttachmentList.Create;
   AllowanceCharges := TInvoiceAllowanceCharges.Create;
@@ -642,13 +665,13 @@ begin
   AccountingSupplierParty := TInvoiceAccountingParty.Create;
   AccountingCustomerParty := TInvoiceAccountingParty.Create;
   DeliveryInformation := TInvoiceDeliveryInformation.Create;
-  PaymentMeansCode := ipmc_NotImplemented;
   PaymentTermsType := iptt_None;
   Clear;
 end;
 
 destructor TInvoice.Destroy;
 begin
+  if Assigned(PaymentTypes) then begin PaymentTypes.Free; PaymentTypes := nil; end;
   if Assigned(InvoiceLines) then begin InvoiceLines.Free; InvoiceLines := nil; end;
   if Assigned(Attachments) then begin Attachments.Free; Attachments := nil; end;
   if Assigned(AllowanceCharges) then begin AllowanceCharges.Free; AllowanceCharges := nil; end;
@@ -828,6 +851,8 @@ end;
 class function TInvoiceUnitCodeHelper.MapUnitOfMeasure(_UnitOfMeasure: String; out _Success: Boolean;
   _DefaultOnFailure: TInvoiceUnitCode): TInvoiceUnitCode;
 begin
+  //https://apps.datev.de/help-center/documents/1020477
+
   Result := _DefaultOnFailure;
   _Success := false;
   _UnitOfMeasure := Trim(_UnitOfMeasure);
@@ -837,10 +862,19 @@ begin
      SameText(_UnitOfMeasure,'st.') or
      SameText(_UnitOfMeasure,'stk.') or
      SameText(_UnitOfMeasure,'stk') or
-     SameText(_UnitOfMeasure,'stck') or
-     SameText(_UnitOfMeasure,'psch') then
+     SameText(_UnitOfMeasure,'stck') then
   begin
     Result := iuc_piece;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'Pauschale') or
+     SameText(_UnitOfMeasure,'psch') or
+     SameText(_UnitOfMeasure,'psch.') or
+     SameText(_UnitOfMeasure,'pschl') or
+     SameText(_UnitOfMeasure,'pschl.') then
+  begin
+    Result := iuc_flaterate;
     _Success := true;
     exit;
   end;
@@ -879,6 +913,13 @@ begin
   if SameText(_UnitOfMeasure,'woche') then
   begin
     Result := iuc_week;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'g') or
+     SameText(_UnitOfMeasure,'Gramm') then
+  begin
+    Result := iuc_gram;
     _Success := true;
     exit;
   end;
@@ -946,6 +987,13 @@ begin
   if SameText(_UnitOfMeasure,'l') then
   begin
     Result := iuc_litre;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'Paket') or
+     SameText(_UnitOfMeasure,'Pack') then
+  begin
+    Result := iuc_packaging;
     _Success := true;
     exit;
   end;
@@ -1197,6 +1245,40 @@ begin if Count = 0 then Result := nil else Result := TInvoiceLineItemAttribute(i
 
 procedure TInvoiceLineItemAttributes.SetItem(Index: Integer; AItem: TInvoiceLineItemAttribute);
 begin inherited Items[Index] := AItem; end;
+
+{ TInvoicePaymentType }
+
+constructor TInvoicePaymentType.Create;
+begin
+  PaymentMeansCode := ipmc_NotImplemented;
+  PaymentMeansInformation := '';
+  FinancialAccount := '';
+  FinancialAccountName := '';
+  FinancialInstitutionBranch := '';
+end;
+
+{ TInvoicePaymentTypeList }
+
+function TInvoicePaymentTypeList.Extract(Item: TObject): TInvoicePaymentType;
+begin Result := TInvoicePaymentType(inherited Extract(Item)); end;
+
+function TInvoicePaymentTypeList.First: TInvoicePaymentType;
+begin if Count = 0 then Result := nil else Result := TInvoicePaymentType(inherited First); end;
+
+function TInvoicePaymentTypeList.GetItem(Index: Integer): TInvoicePaymentType;
+begin Result := TInvoicePaymentType(inherited Items[Index]); end;
+
+function TInvoicePaymentTypeList.Last: TInvoicePaymentType;
+begin if Count = 0 then Result := nil else Result := TInvoicePaymentType(inherited Last); end;
+
+procedure TInvoicePaymentTypeList.SetItem(Index: Integer; AItem: TInvoicePaymentType);
+begin inherited Items[Index] := AItem; end;
+
+function TInvoicePaymentTypeList.AddPaymentType : TInvoicePaymentType;
+begin
+  Result := TInvoicePaymentType.Create;
+  Add(Result);
+end;
 
 end.
 

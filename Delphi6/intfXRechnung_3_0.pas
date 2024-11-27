@@ -206,6 +206,8 @@ begin
     end;
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:OrderReference/cbc:ID',node) then
       _Invoice.PurchaseOrderReference := node.Text;
+    if TXRechnungXMLHelper.SelectNode(xml,'//cac:OrderReference/cbc:SalesOrderID',node) then
+      _Invoice.SellerOrderReference := node.Text;
     if TXRechnungXMLHelper.SelectNodes(xml,'//cac:BillingReference/cac:InvoiceDocumentReference',nodes) then
     for i := 0  to nodes.length-1 do
     with _Invoice.PrecedingInvoiceReferences.AddPrecedingInvoiceReference do
@@ -267,7 +269,10 @@ begin
     with _Invoice.PaymentTypes.AddPaymentType do
     begin
       if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//cbc:PaymentMeansCode',node) then
+      begin
         PaymentMeansCode := TXRechnungHelper.InvoicePaymentMeansCodeFromStr(node.text);
+        PaymentMeansInformation := TXRechnungXMLHelper.SelectAttributeText(node,'name');
+      end;
       if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//cbc:PaymentID',node) then
         _Invoice.PaymentID := node.text;
       if PaymentMeansCode = ipmc_SEPADirectDebit then
@@ -276,6 +281,13 @@ begin
           _Invoice.PaymentMandateID := node.text;
         if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//cac:PaymentMandate/cac:PayerFinancialAccount/cbc:ID',node) then
           FinancialAccount := node.text;
+      end else
+      if PaymentMeansCode = ipmc_CreditCard then
+      begin
+        if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//cac:CardAccount/cbc:PrimaryAccountNumberID',node) then
+          FinancialAccount := node.text;
+        if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//cac:CardAccount/cbc:HolderName',node) then
+          FinancialAccountName := node.text;
       end else
       begin
         if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//cac:PayeeFinancialAccount/cbc:ID',node) then
@@ -674,6 +686,20 @@ begin
       begin
         if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//ram:TypeCode',node) then
           PaymentMeansCode := TXRechnungHelper.InvoicePaymentMeansCodeFromStr(node.text);
+        PaymentMeansInformation := TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//ram:Information');
+        if PaymentMeansCode = ipmc_SEPADirectDebit then
+        begin
+          if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//ram:PayerPartyDebtorFinancialAccount',node3) then
+            FinancialAccount := TXRechnungXMLHelper.SelectNodeText(node3,'.//ram:IBANID');
+        end else
+        if PaymentMeansCode = ipmc_CreditCard then
+        begin
+          if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//ram:ApplicableTradeSettlementFinancialCard',node3) then
+          begin
+            FinancialAccount := TXRechnungXMLHelper.SelectNodeText(node3,'.//ram:ID');
+            FinancialAccountName := TXRechnungXMLHelper.SelectNodeText(node3,'.//ram:CardholderName');
+          end;
+        end else
         if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//ram:PayeePartyCreditorFinancialAccount',node3) then
         begin
           FinancialAccount := TXRechnungXMLHelper.SelectNodeText(node3,'.//ram:IBANID');
@@ -681,8 +707,6 @@ begin
         end;
         if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//ram:PayeeSpecifiedCreditorFinancialInstitution',node3) then
           FinancialInstitutionBranch := TXRechnungXMLHelper.SelectNodeText(node3,'.//ram:BICID');
-        if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//ram:PayerPartyDebtorFinancialAccount',node3) then
-          FinancialAccount := TXRechnungXMLHelper.SelectNodeText(node3,'.//ram:IBANID');
       end;
       if TXRechnungXMLHelper.SelectNodes(nodeApplicableHeaderTradeAgreement,'.//ram:ApplicableTradeTax',nodes) then
       for i := 0 to nodes.length-1 do
@@ -1011,11 +1035,17 @@ begin
     AddChild('cbc:StartDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoicePeriodStartDate);
     AddChild('cbc:EndDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoicePeriodEndDate);
   end;
-  if _Invoice.PurchaseOrderReference <> '' then
-    xRoot.AddChild('cac:OrderReference').AddChild('cbc:ID').Text := _Invoice.PurchaseOrderReference
-  else
-  if _Invoice.SellerOrderReference <> '' then
-    xRoot.AddChild('cac:OrderReference').AddChild('cbc:ID').Text := _Invoice.SellerOrderReference;
+  if (_Invoice.PurchaseOrderReference <> '') or
+     (_Invoice.SellerOrderReference <> '') then
+  with xRoot.AddChild('cac:OrderReference') do
+  begin
+    if _Invoice.PurchaseOrderReference = '' then
+      AddChild('cbc:ID').Text := 'NA'
+    else
+      AddChild('cbc:ID').Text := _Invoice.PurchaseOrderReference;
+    if _Invoice.SellerOrderReference <> '' then
+      AddChild('cbc:SalesOrderID').Text := _Invoice.SellerOrderReference;
+  end;
   for i := 0 to _Invoice.PrecedingInvoiceReferences.Count-1 do
   with xRoot.AddChild('cac:BillingReference').AddChild('cac:InvoiceDocumentReference') do
   begin
@@ -1217,7 +1247,12 @@ begin
   if _Invoice.PaymentTypes[i].PaymentMeansCode <> ipmc_NotImplemented then
   with xRoot.AddChild('cac:PaymentMeans') do
   begin
-    AddChild('cbc:PaymentMeansCode').Text := TXRechnungHelper.InvoicePaymentMeansCodeToStr(_Invoice.PaymentTypes[i].PaymentMeansCode);
+    with AddChild('cbc:PaymentMeansCode') do
+    begin
+      Text := TXRechnungHelper.InvoicePaymentMeansCodeToStr(_Invoice.PaymentTypes[i].PaymentMeansCode);
+      if _Invoice.PaymentTypes[i].PaymentMeansInformation <> '' then
+        Attributes['name'] := _Invoice.PaymentTypes[i].PaymentMeansInformation;
+    end;
     if _Invoice.PaymentID <> '' then
       AddChild('cbc:PaymentID').Text := _Invoice.PaymentID;
     if _Invoice.PaymentTypes[i].PaymentMeansCode = ipmc_SEPADirectDebit then
@@ -1229,6 +1264,17 @@ begin
           AddChild('cbc:ID').Text := _Invoice.PaymentTypes[i].FinancialAccount;
       end;
     end else
+    if _Invoice.PaymentTypes[i].PaymentMeansCode = ipmc_CreditCard then
+    begin
+      with AddChild('cac:CardAccount') do
+      begin
+        AddChild('cbc:PrimaryAccountNumberID').Text := _Invoice.PaymentTypes[i].FinancialAccount;
+        AddChild('cbc:NetworkID').Text := 'NA'; //The NetworkID could contain values from an enumerated list, for example Visa, Mastercard, American Express, Discover, Diners, JCB, UnionPay
+        if _Invoice.PaymentTypes[i].FinancialAccountName <> '' then
+          AddChild('cbc:HolderName').Text := _Invoice.PaymentTypes[i].FinancialAccountName;
+      end;
+    end else
+    if _Invoice.PaymentTypes[i].FinancialAccount <> '' then
     begin
       with AddChild('cac:PayeeFinancialAccount') do
       begin
@@ -1287,7 +1333,7 @@ begin
     if not (_Invoice.AllowanceCharges[i].Reason = '') then
       AddChild('cbc:AllowanceChargeReason').Text := _Invoice.AllowanceCharges[i].Reason;
     if _Invoice.AllowanceCharges[i].MultiplierFactorNumeric <> 0 then
-      AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(_Invoice.AllowanceCharges[i].MultiplierFactorNumeric);
+      AddChild('cbc:MultiplierFactorNumeric').Text := TXRechnungHelper.FloatToStr(_Invoice.AllowanceCharges[i].MultiplierFactorNumeric,4);
     with AddChild('cbc:Amount') do
     begin
       Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
@@ -1745,12 +1791,23 @@ begin
       with AddChild('ram:SpecifiedTradeSettlementPaymentMeans') do
       begin
         AddChild('ram:TypeCode').Text := TXRechnungHelper.InvoicePaymentMeansCodeToStr(_Invoice.PaymentTypes[i].PaymentMeansCode);
+        if _Invoice.PaymentTypes[i].PaymentMeansInformation <> '' then
+          AddChild('ram:Information').Text := _Invoice.PaymentTypes[i].PaymentMeansInformation;
         if (_Invoice.PaymentTypes[i].FinancialAccount <> '') then
         begin
           if _Invoice.PaymentTypes[i].PaymentMeansCode = ipmc_SEPADirectDebit then
           begin
             with AddChild('ram:PayerPartyDebtorFinancialAccount') do
               AddChild('ram:IBANID').Text := _Invoice.PaymentTypes[i].FinancialAccount;
+          end else
+          if _Invoice.PaymentTypes[i].PaymentMeansCode = ipmc_CreditCard then
+          begin
+            with AddChild('ram:ApplicableTradeSettlementFinancialCard') do
+            begin
+              AddChild('ram:ID').Text := _Invoice.PaymentTypes[i].FinancialAccount;
+              if _Invoice.PaymentTypes[i].FinancialAccountName <> '' then
+                AddChild('ram:CardholderName').Text := _Invoice.PaymentTypes[i].FinancialAccountName;
+            end;
           end else
           begin
             with AddChild('ram:PayeePartyCreditorFinancialAccount') do

@@ -723,6 +723,9 @@ begin
   if SameText(_Val,'59')  then
     Result := ipmc_SEPADirectDebit
   else
+  if SameText(_Val,'68')  then
+    Result := ipmc_OnlinePaymentService
+  else
   if SameText(_Val,'ZZZ')  then
     Result := ipmc_MutuallyDefined
   else
@@ -741,6 +744,7 @@ begin
     ipmc_CreditCard: Result := '54';
     ipmc_SEPACreditTransfer: Result := '58';
     ipmc_SEPADirectDebit: Result := '59';
+    ipmc_OnlinePaymentService: Result := '68';
     ipmc_MutuallyDefined: Result := 'ZZZ';
     else Result := '1'; //ipmc_InstrumentNotDefined
   end;
@@ -1439,6 +1443,7 @@ begin
     SEPACreditTransfer: lPaymentMeansCode := ipmc_SEPACreditTransfer;
     SEPADirectDebit: lPaymentMeansCode := ipmc_SEPADirectDebit;
     NotDefined: lPaymentMeansCode := ipmc_InstrumentNotDefined;
+    //TODO Fehlt 68
     //    AutomatedClearingHouseDebit: ;
     //    DebitTransfer: ;
     //    PaymentToBankAccount: ;

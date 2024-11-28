@@ -114,10 +114,11 @@ type
     ipmc_InstrumentNotDefined, //1  Keine Angaben
     ipmc_InCash,               //10 Barzahlung
     ipmc_Cheque,               //20 Scheck
-    ipmc_CreditTransfer,       //30 Ueberweisung nicht SEPA (nicht SEPA,PayPal, etc.)
+    ipmc_CreditTransfer,       //30 Ueberweisung nicht SEPA (nicht SEPA)
     ipmc_CreditCard,           //54 Kreditkarte
     ipmc_SEPACreditTransfer,   //58 Ueberweisung (SEPA)
     ipmc_SEPADirectDebit,      //59 Lastschrift (SEPA)
+    ipmc_OnlinePaymentService, //68 Online Payment Service PayPal, etc.
     ipmc_MutuallyDefined       //ZZZ Gegenseitig definiert (PayPal, etc.)
   );
 

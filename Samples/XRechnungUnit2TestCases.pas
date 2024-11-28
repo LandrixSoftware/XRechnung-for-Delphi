@@ -1040,8 +1040,8 @@ begin
   begin
     PaymentMeansCode := ipmc_CreditCard; //Kreditkarte
     //HINWEIS
-    //In Übereinstimmung mit den Sicherheitsstandards für Kartenzahlungen
-    //sollte eine Rechnung niemals eine vollständige Hauptkontonummer der
+    //In ï¿½bereinstimmung mit den Sicherheitsstandards fï¿½r Kartenzahlungen
+    //sollte eine Rechnung niemals eine vollstï¿½ndige Hauptkontonummer der
     //Karte (BT-87) enthalten. Im Moment hat das PCI Security Standards Council
     //festgelegt, dass die ersten 6 Ziffern und die letzten 4 Ziffern die
     //maximale Anzahl der Ziffern sind, die angezeigt werden sollen.
@@ -1394,14 +1394,15 @@ begin
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
+  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
   inv.PaymentID := 'Verwendungszweck ...R2020-0815';
   with inv.PaymentTypes.AddPaymentType do
   begin
     //PaymentMeansCode := ipmc_CreditTransfer; //auch moeglich
-    PaymentMeansCode := ipmc_MutuallyDefined;
+    //PaymentMeansCode := ipmc_MutuallyDefined; //auch moeglich
+    PaymentMeansCode := ipmc_OnlinePaymentService;
     PaymentMeansInformation := 'https://mypaymentgateway.example.com/resource';
     FinancialAccount := 'meine@paypaladresse.de';
     FinancialAccountName := 'Robert Mustermann';

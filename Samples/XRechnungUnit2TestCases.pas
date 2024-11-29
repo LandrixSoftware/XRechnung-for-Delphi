@@ -25,7 +25,8 @@ type
   public
     class procedure Gesamtbeispiel(inv : TInvoice; Zahlungsbedingung : Integer;
                        NachlaesseZuschlaegeVerwenden, AbschlagsrechnungAbziehen,
-                       AnhaengeVerwenden, LieferanschriftAusgeben : Boolean);
+                       AnhaengeVerwenden, LieferanschriftAusgeben : Boolean;
+                       XRechnungCII : Boolean = false);
     class procedure Kleinunternehmerregelung(inv : TInvoice);
     class procedure Paragr13b(inv : TInvoice);
     class procedure Austauschteilesteuer(inv : TInvoice);
@@ -87,7 +88,7 @@ begin
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
+  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
   inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
@@ -243,7 +244,7 @@ begin
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
+  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
   inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
@@ -302,7 +303,7 @@ end;
 class procedure TInvoiceTestCases.Gesamtbeispiel(inv: TInvoice;
   Zahlungsbedingung: Integer; NachlaesseZuschlaegeVerwenden,
   AbschlagsrechnungAbziehen, AnhaengeVerwenden,
-  LieferanschriftAusgeben: Boolean);
+  LieferanschriftAusgeben: Boolean; XRechnungCII : Boolean = false);
 var
   suc : Boolean;
 begin
@@ -351,7 +352,7 @@ begin
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
+  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
   inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
@@ -401,17 +402,17 @@ begin
       inv.PaymentTermsType := iptt_CashDiscount1;
       inv.PaymentTermCashDiscount1Days := 7;
       inv.PaymentTermCashDiscount1Percent := 4.25;
-      inv.PaymentTermCashDiscount1Base := 0;
+      inv.PaymentTermCashDiscount1Base := 0; //optional auf welchen Betrag bezieht sich Skonto
     end;
     3 :
     begin
       inv.PaymentTermsType := iptt_CashDiscount2;
       inv.PaymentTermCashDiscount1Days := 7;
       inv.PaymentTermCashDiscount1Percent := 4.25;
-      inv.PaymentTermCashDiscount1Base := 0;
+      inv.PaymentTermCashDiscount1Base := 0; //optional auf welchen Betrag bezieht sich Skonto
       inv.PaymentTermCashDiscount2Days := 14;
       inv.PaymentTermCashDiscount2Percent := 3;
-      inv.PaymentTermCashDiscount2Base := 0;
+      inv.PaymentTermCashDiscount2Base := 0; //optional auf welchen Betrag bezieht sich Skonto
     end;
     else
       inv.PaymentTermsType := iptt_None;
@@ -686,11 +687,12 @@ begin
       ID := 'R2020-0001';
       IssueDate := Date-100; //Rechnungsdatum
     end;
-    //with inv.PrecedingInvoiceReferences.AddPrecedingInvoiceReference do
-    //begin
-    //  ID := 'R2020-0002';
-    //  IssueDate := Date-50; //Rechnungsdatum
-    //end;
+    if not XRechnungCII then
+    with inv.PrecedingInvoiceReferences.AddPrecedingInvoiceReference do
+    begin
+      ID := 'R2020-0002';
+      IssueDate := Date-50; //Rechnungsdatum
+    end;
     inv.PrepaidAmount := 100.00; //Euro angezahlt
     inv.PayableAmount := inv.PayableAmount - inv.PrepaidAmount; //Vom Zahlbetrag abziehen
   end;
@@ -741,7 +743,7 @@ begin
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
+  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
   inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
@@ -837,7 +839,7 @@ begin
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'AT';
   inv.AccountingCustomerParty.VATCompanyID := 'AT12345678';
-//  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
+//  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
   inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.at';
@@ -939,7 +941,7 @@ begin
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
+  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
   inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
@@ -1032,7 +1034,7 @@ begin
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
+  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
   inv.PaymentID := 'Verwendungszweck ...R2020-0815';
@@ -1040,8 +1042,8 @@ begin
   begin
     PaymentMeansCode := ipmc_CreditCard; //Kreditkarte
     //HINWEIS
-    //In ï¿½bereinstimmung mit den Sicherheitsstandards fï¿½r Kartenzahlungen
-    //sollte eine Rechnung niemals eine vollstï¿½ndige Hauptkontonummer der
+    //In Übereinstimmung mit den Sicherheitsstandards für Kartenzahlungen
+    //sollte eine Rechnung niemals eine vollständige Hauptkontonummer der
     //Karte (BT-87) enthalten. Im Moment hat das PCI Security Standards Council
     //festgelegt, dass die ersten 6 Ziffern und die letzten 4 Ziffern die
     //maximale Anzahl der Ziffern sind, die angezeigt werden sollen.
@@ -1126,7 +1128,7 @@ begin
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
+  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
   inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
@@ -1216,7 +1218,7 @@ begin
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
+  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
   inv.PaymentTypes.AddPaymentType.PaymentMeansCode := ipmc_InstrumentNotDefined;
@@ -1300,7 +1302,7 @@ begin
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
+  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
   inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
@@ -1485,7 +1487,7 @@ begin
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
+  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
   inv.PaymentTypes.AddPaymentType.PaymentMeansCode := ipmc_InstrumentNotDefined; //Nicht definiert
@@ -1573,7 +1575,7 @@ begin
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
+  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
   inv.PaymentTypes.AddPaymentType.PaymentMeansCode := ipmc_InstrumentNotDefined; //Nicht definiert
@@ -1659,7 +1661,7 @@ begin
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
+  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
   inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';

@@ -21,13 +21,14 @@ If (Test-Path visualization23x){
 If (Test-Path visualization30x){
   Remove-Item visualization30x -Recurse
 }
-
 If (Test-Path java){
   Remove-Item java -Recurse
 }
-
 If (Test-Path apache-fop){
   Remove-Item apache-fop -Recurse
+}
+If (Test-Path mustangproject){
+  Remove-Item mustangproject -Recurse
 }
 
 Invoke-WebRequest -Uri "https://github.com/itplr-kosit/validator/releases/download/v1.5.0/validator-1.5.0-distribution.zip" -OutFile validator.zip
@@ -38,6 +39,12 @@ Invoke-WebRequest -Uri "https://github.com/itplr-kosit/xrechnung-visualization/r
 Invoke-WebRequest -Uri "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.6%2B10/OpenJDK17U-jre_x64_windows_hotspot_17.0.6_10.zip" -OutFile jre.zip
 #Invoke-WebRequest -Uri https://github.com/itplr-kosit/xrechnung-schematron/releases/download/release-2.2.0/xrechnung-3.0.2-schematron-2.2.0.zip -OutFile schematron.zip
 Invoke-WebRequest -Uri "https://www.apache.org/dyn/closer.cgi?filename=/xmlgraphics/fop/binaries/fop-2.8-bin.zip&action=download" -OutFile fop.zip
+
+$LatestVersionContent = (Invoke-WebRequest 'https://api.github.com/repos/ZUGFeRD/mustangproject/releases/latest').Content | ConvertFrom-Json
+New-Item -Name "mustangproject" -ItemType Directory
+Invoke-WebRequest -Uri $LatestVersionContent.assets.browser_download_url -OutFile mustangproject\Mustang-CLI.jar
+New-Item -Name "mustangproject\Mustang-CLI-version.md" -ItemType File
+Set-Content mustangproject\Mustang-CLI-version.md -Value $LatestVersionContent.assets.name
 
 Expand-Archive validator.zip
 Expand-Archive validator-configuration23x.zip

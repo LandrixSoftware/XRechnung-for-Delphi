@@ -18,14 +18,14 @@ object Form1: TForm1
   TextHeight = 13
   object Label3: TLabel
     Left = 8
-    Top = 335
+    Top = 359
     Width = 82
     Height = 13
     Caption = 'Weitere Beispiele'
   end
   object btCreateInvoice: TButton
     Left = 8
-    Top = 304
+    Top = 328
     Width = 162
     Height = 25
     Caption = 'Erzeugen'
@@ -52,7 +52,7 @@ object Form1: TForm1
   end
   object rbPaymentTerms: TRadioGroup
     Left = 8
-    Top = 107
+    Top = 131
     Width = 162
     Height = 99
     Caption = 'Zahlungsbedingungen'
@@ -66,7 +66,7 @@ object Form1: TForm1
   end
   object cbAllowanceCharges: TCheckBox
     Left = 8
-    Top = 212
+    Top = 236
     Width = 138
     Height = 17
     Caption = 'Nachlaesse/Zuschlaege'
@@ -74,7 +74,7 @@ object Form1: TForm1
   end
   object cbPrepaidAmount: TCheckBox
     Left = 8
-    Top = 235
+    Top = 259
     Width = 129
     Height = 17
     Caption = 'Abschlagsrechnungen'
@@ -82,7 +82,7 @@ object Form1: TForm1
   end
   object cbAttachments: TCheckBox
     Left = 8
-    Top = 258
+    Top = 282
     Width = 97
     Height = 17
     Caption = 'Mit Anhaengen'
@@ -90,7 +90,7 @@ object Form1: TForm1
   end
   object cbDeliveriyInf: TCheckBox
     Left = 8
-    Top = 281
+    Top = 305
     Width = 97
     Height = 17
     Caption = 'Lieferanschrift'
@@ -100,12 +100,13 @@ object Form1: TForm1
     Left = 8
     Top = 52
     Width = 162
-    Height = 53
+    Height = 73
     Caption = 'Ausgabeformat'
     ItemIndex = 0
     Items.Strings = (
       'XRechnung 3.0.2 UBL'
-      'XRechnung 3.0.2 ZUGFeRD')
+      'XRechnung 3.0.2 ZUGFeRD'
+      'Extended 2.3.2 ZUGFeRD')
     TabOrder = 8
   end
   object Button2: TButton
@@ -179,9 +180,9 @@ object Form1: TForm1
   end
   object ListBox1: TListBox
     Left = 8
-    Top = 351
+    Top = 376
     Width = 162
-    Height = 213
+    Height = 188
     ItemHeight = 13
     Items.Strings = (
       'Kleinunternehmerregelung'

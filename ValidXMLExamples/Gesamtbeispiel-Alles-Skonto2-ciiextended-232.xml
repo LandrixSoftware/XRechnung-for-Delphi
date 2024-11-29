@@ -5,7 +5,7 @@
       <ram:ID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</ram:ID>
     </ram:BusinessProcessSpecifiedDocumentContextParameter>
     <ram:GuidelineSpecifiedDocumentContextParameter>
-      <ram:ID>urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0</ram:ID>
+      <ram:ID>urn:cen.eu:en16931:2017#conformant#urn:factur-x.eu:1p0:extended</ram:ID>
     </ram:GuidelineSpecifiedDocumentContextParameter>
   </rsm:ExchangedDocumentContext>
   <rsm:ExchangedDocument>
@@ -178,9 +178,6 @@ Zeile 3</ram:Description>
         <ram:SpecifiedTaxRegistration>
           <ram:ID schemeID="VA">DE12345678</ram:ID>
         </ram:SpecifiedTaxRegistration>
-        <ram:SpecifiedTaxRegistration>
-          <ram:ID schemeID="FC">222/111/4444</ram:ID>
-        </ram:SpecifiedTaxRegistration>
       </ram:BuyerTradeParty>
       <ram:SellerOrderReferencedDocument>
         <ram:IssuerAssignedID>A0815</ram:IssuerAssignedID>
@@ -344,6 +341,18 @@ Zeile 3</ram:Description>
           <udt:DateTimeString format="102">20241229</udt:DateTimeString>
         </ram:DueDateDateTime>
       </ram:SpecifiedTradePaymentTerms>
+      <ram:SpecifiedTradePaymentTerms>
+        <ram:ApplicableTradePaymentDiscountTerms>
+          <ram:BasisPeriodMeasure unitCode="DAY">7</ram:BasisPeriodMeasure>
+          <ram:CalculationPercent>4.25</ram:CalculationPercent>
+        </ram:ApplicableTradePaymentDiscountTerms>
+      </ram:SpecifiedTradePaymentTerms>
+      <ram:SpecifiedTradePaymentTerms>
+        <ram:ApplicableTradePaymentDiscountTerms>
+          <ram:BasisPeriodMeasure unitCode="DAY">14</ram:BasisPeriodMeasure>
+          <ram:CalculationPercent>3.00</ram:CalculationPercent>
+        </ram:ApplicableTradePaymentDiscountTerms>
+      </ram:SpecifiedTradePaymentTerms>
       <ram:SpecifiedTradeSettlementHeaderMonetarySummation>
         <ram:LineTotalAmount>195.00</ram:LineTotalAmount>
         <ram:ChargeTotalAmount>1.00</ram:ChargeTotalAmount>
@@ -358,6 +367,12 @@ Zeile 3</ram:Description>
         <ram:IssuerAssignedID>R2020-0001</ram:IssuerAssignedID>
         <ram:FormattedIssueDateTime>
           <qdt:DateTimeString format="102">20240821</qdt:DateTimeString>
+        </ram:FormattedIssueDateTime>
+      </ram:InvoiceReferencedDocument>
+      <ram:InvoiceReferencedDocument>
+        <ram:IssuerAssignedID>R2020-0002</ram:IssuerAssignedID>
+        <ram:FormattedIssueDateTime>
+          <qdt:DateTimeString format="102">20241010</qdt:DateTimeString>
         </ram:FormattedIssueDateTime>
       </ram:InvoiceReferencedDocument>
     </ram:ApplicableHeaderTradeSettlement>

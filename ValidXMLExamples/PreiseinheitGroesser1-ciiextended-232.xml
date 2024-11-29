@@ -5,12 +5,12 @@
       <ram:ID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</ram:ID>
     </ram:BusinessProcessSpecifiedDocumentContextParameter>
     <ram:GuidelineSpecifiedDocumentContextParameter>
-      <ram:ID>urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0</ram:ID>
+      <ram:ID>urn:cen.eu:en16931:2017#conformant#urn:factur-x.eu:1p0:extended</ram:ID>
     </ram:GuidelineSpecifiedDocumentContextParameter>
   </rsm:ExchangedDocumentContext>
   <rsm:ExchangedDocument>
     <ram:ID>R2020-0815</ram:ID>
-    <ram:TypeCode>384</ram:TypeCode>
+    <ram:TypeCode>380</ram:TypeCode>
     <ram:IssueDateTime>
       <udt:DateTimeString format="102">20241129</udt:DateTimeString>
     </ram:IssueDateTime>
@@ -29,13 +29,15 @@ Zeile 3</ram:Description>
       <ram:SpecifiedLineTradeAgreement>
         <ram:GrossPriceProductTradePrice>
           <ram:ChargeAmount>360.0000</ram:ChargeAmount>
+          <ram:BasisQuantity unitCode="H87">10.00</ram:BasisQuantity>
         </ram:GrossPriceProductTradePrice>
         <ram:NetPriceProductTradePrice>
           <ram:ChargeAmount>360.0000</ram:ChargeAmount>
+          <ram:BasisQuantity unitCode="H87">10.00</ram:BasisQuantity>
         </ram:NetPriceProductTradePrice>
       </ram:SpecifiedLineTradeAgreement>
       <ram:SpecifiedLineTradeDelivery>
-        <ram:BilledQuantity unitCode="H87">-1.0000</ram:BilledQuantity>
+        <ram:BilledQuantity unitCode="H87">1.0000</ram:BilledQuantity>
       </ram:SpecifiedLineTradeDelivery>
       <ram:SpecifiedLineTradeSettlement>
         <ram:ApplicableTradeTax>
@@ -44,7 +46,7 @@ Zeile 3</ram:Description>
           <ram:RateApplicablePercent>19.00</ram:RateApplicablePercent>
         </ram:ApplicableTradeTax>
         <ram:SpecifiedTradeSettlementLineMonetarySummation>
-          <ram:LineTotalAmount>-360.00</ram:LineTotalAmount>
+          <ram:LineTotalAmount>36.00</ram:LineTotalAmount>
         </ram:SpecifiedTradeSettlementLineMonetarySummation>
       </ram:SpecifiedLineTradeSettlement>
     </ram:IncludedSupplyChainTradeLineItem>
@@ -98,9 +100,6 @@ Zeile 3</ram:Description>
         <ram:SpecifiedTaxRegistration>
           <ram:ID schemeID="VA">DE12345678</ram:ID>
         </ram:SpecifiedTaxRegistration>
-        <ram:SpecifiedTaxRegistration>
-          <ram:ID schemeID="FC">222/111/4444</ram:ID>
-        </ram:SpecifiedTaxRegistration>
       </ram:BuyerTradeParty>
     </ram:ApplicableHeaderTradeAgreement>
     <ram:ApplicableHeaderTradeDelivery/>
@@ -110,9 +109,9 @@ Zeile 3</ram:Description>
         <ram:TypeCode>1</ram:TypeCode>
       </ram:SpecifiedTradeSettlementPaymentMeans>
       <ram:ApplicableTradeTax>
-        <ram:CalculatedAmount>-68.40</ram:CalculatedAmount>
+        <ram:CalculatedAmount>6.84</ram:CalculatedAmount>
         <ram:TypeCode>VAT</ram:TypeCode>
-        <ram:BasisAmount>-360.00</ram:BasisAmount>
+        <ram:BasisAmount>36.00</ram:BasisAmount>
         <ram:CategoryCode>S</ram:CategoryCode>
         <ram:RateApplicablePercent>19.00</ram:RateApplicablePercent>
       </ram:ApplicableTradeTax>
@@ -130,21 +129,15 @@ Zeile 3</ram:Description>
         </ram:DueDateDateTime>
       </ram:SpecifiedTradePaymentTerms>
       <ram:SpecifiedTradeSettlementHeaderMonetarySummation>
-        <ram:LineTotalAmount>-360.00</ram:LineTotalAmount>
+        <ram:LineTotalAmount>36.00</ram:LineTotalAmount>
         <ram:ChargeTotalAmount>0.00</ram:ChargeTotalAmount>
         <ram:AllowanceTotalAmount>0.00</ram:AllowanceTotalAmount>
-        <ram:TaxBasisTotalAmount>-360.00</ram:TaxBasisTotalAmount>
-        <ram:TaxTotalAmount currencyID="EUR">-68.40</ram:TaxTotalAmount>
-        <ram:GrandTotalAmount>-428.40</ram:GrandTotalAmount>
+        <ram:TaxBasisTotalAmount>36.00</ram:TaxBasisTotalAmount>
+        <ram:TaxTotalAmount currencyID="EUR">6.84</ram:TaxTotalAmount>
+        <ram:GrandTotalAmount>42.84</ram:GrandTotalAmount>
         <ram:TotalPrepaidAmount>0.00</ram:TotalPrepaidAmount>
-        <ram:DuePayableAmount>-428.40</ram:DuePayableAmount>
+        <ram:DuePayableAmount>42.84</ram:DuePayableAmount>
       </ram:SpecifiedTradeSettlementHeaderMonetarySummation>
-      <ram:InvoiceReferencedDocument>
-        <ram:IssuerAssignedID>R2020-0814</ram:IssuerAssignedID>
-        <ram:FormattedIssueDateTime>
-          <qdt:DateTimeString format="102">20241020</qdt:DateTimeString>
-        </ram:FormattedIssueDateTime>
-      </ram:InvoiceReferencedDocument>
     </ram:ApplicableHeaderTradeSettlement>
   </rsm:SupplyChainTradeTransaction>
 </rsm:CrossIndustryInvoice>

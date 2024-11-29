@@ -5,7 +5,7 @@
       <ram:ID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</ram:ID>
     </ram:BusinessProcessSpecifiedDocumentContextParameter>
     <ram:GuidelineSpecifiedDocumentContextParameter>
-      <ram:ID>urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0</ram:ID>
+      <ram:ID>urn:cen.eu:en16931:2017#conformant#urn:factur-x.eu:1p0:extended</ram:ID>
     </ram:GuidelineSpecifiedDocumentContextParameter>
   </rsm:ExchangedDocumentContext>
   <rsm:ExchangedDocument>
@@ -97,9 +97,6 @@ Zeile 3</ram:Description>
         </ram:URIUniversalCommunication>
         <ram:SpecifiedTaxRegistration>
           <ram:ID schemeID="VA">DE12345678</ram:ID>
-        </ram:SpecifiedTaxRegistration>
-        <ram:SpecifiedTaxRegistration>
-          <ram:ID schemeID="FC">222/111/4444</ram:ID>
         </ram:SpecifiedTaxRegistration>
       </ram:BuyerTradeParty>
     </ram:ApplicableHeaderTradeAgreement>

@@ -3,14 +3,14 @@
   <cbc:CustomizationID>urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0#conformant#urn:xeinkauf.de:kosit:extension:xrechnung_3.0</cbc:CustomizationID>
   <cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</cbc:ProfileID>
   <cbc:ID>R2020-0815</cbc:ID>
-  <cbc:IssueDate>2024-11-26</cbc:IssueDate>
-  <cbc:DueDate>2024-12-26</cbc:DueDate>
+  <cbc:IssueDate>2024-11-29</cbc:IssueDate>
+  <cbc:DueDate>2024-12-29</cbc:DueDate>
   <cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
   <cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode>
   <cbc:BuyerReference>non-existent</cbc:BuyerReference>
   <cac:InvoicePeriod>
-    <cbc:StartDate>2024-10-27</cbc:StartDate>
-    <cbc:EndDate>2024-11-25</cbc:EndDate>
+    <cbc:StartDate>2024-10-30</cbc:StartDate>
+    <cbc:EndDate>2024-11-28</cbc:EndDate>
   </cac:InvoicePeriod>
   <cac:AccountingSupplierParty>
     <cac:Party>
@@ -81,7 +81,7 @@
     </cac:Party>
   </cac:AccountingCustomerParty>
   <cac:Delivery>
-    <cbc:ActualDeliveryDate>2024-11-25</cbc:ActualDeliveryDate>
+    <cbc:ActualDeliveryDate>2024-11-28</cbc:ActualDeliveryDate>
     <cac:DeliveryLocation>
       <cac:Address>
         <cbc:StreetName>Lieferstrasse 1</cbc:StreetName>
@@ -107,7 +107,7 @@
     </cac:PayeeFinancialAccount>
   </cac:PaymentMeans>
   <cac:PaymentTerms>
-    <cbc:Note>Zahlbar bis zum 26.12.2024 ohne Abzug.</cbc:Note>
+    <cbc:Note>Zahlbar bis zum 29.12.2024 ohne Abzug.</cbc:Note>
   </cac:PaymentTerms>
   <cac:TaxTotal>
     <cbc:TaxAmount currencyID="EUR">0.00</cbc:TaxAmount>

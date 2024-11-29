@@ -5,15 +5,18 @@
       <ram:ID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</ram:ID>
     </ram:BusinessProcessSpecifiedDocumentContextParameter>
     <ram:GuidelineSpecifiedDocumentContextParameter>
-      <ram:ID>urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0</ram:ID>
+      <ram:ID>urn:cen.eu:en16931:2017#conformant#urn:factur-x.eu:1p0:extended</ram:ID>
     </ram:GuidelineSpecifiedDocumentContextParameter>
   </rsm:ExchangedDocumentContext>
   <rsm:ExchangedDocument>
     <ram:ID>R2020-0815</ram:ID>
-    <ram:TypeCode>384</ram:TypeCode>
+    <ram:TypeCode>380</ram:TypeCode>
     <ram:IssueDateTime>
       <udt:DateTimeString format="102">20241129</udt:DateTimeString>
     </ram:IssueDateTime>
+    <ram:IncludedNote>
+      <ram:Content>Das Fahrzeug/der Artikel ist differenzbesteuert nach Paragraph 25a UStG Sonderregelung fuer Gebrauchtgegenstaende</ram:Content>
+    </ram:IncludedNote>
   </rsm:ExchangedDocument>
   <rsm:SupplyChainTradeTransaction>
     <ram:IncludedSupplyChainTradeLineItem>
@@ -21,35 +24,37 @@
         <ram:LineID>01</ram:LineID>
       </ram:AssociatedDocumentLineDocument>
       <ram:SpecifiedTradeProduct>
-        <ram:Name>Kurzinfo Artikel 1</ram:Name>
-        <ram:Description>Langtext Artikel
-Zeile 2
-Zeile 3</ram:Description>
+        <ram:Name>Fahrzeug mit Differenzbesteuerung</ram:Name>
+        <ram:Description>Fahrzeug mit Differenzbesteuerung
+Einkauf 4000,00 EUR
+Marge 840,34 EUR
+Verkauf Brutto 5000,00 EUR
+Enthaltene MwSt. 159,66</ram:Description>
       </ram:SpecifiedTradeProduct>
       <ram:SpecifiedLineTradeAgreement>
         <ram:GrossPriceProductTradePrice>
-          <ram:ChargeAmount>360.0000</ram:ChargeAmount>
+          <ram:ChargeAmount>5000.0000</ram:ChargeAmount>
         </ram:GrossPriceProductTradePrice>
         <ram:NetPriceProductTradePrice>
-          <ram:ChargeAmount>360.0000</ram:ChargeAmount>
+          <ram:ChargeAmount>5000.0000</ram:ChargeAmount>
         </ram:NetPriceProductTradePrice>
       </ram:SpecifiedLineTradeAgreement>
       <ram:SpecifiedLineTradeDelivery>
-        <ram:BilledQuantity unitCode="H87">-1.0000</ram:BilledQuantity>
+        <ram:BilledQuantity unitCode="H87">1.0000</ram:BilledQuantity>
       </ram:SpecifiedLineTradeDelivery>
       <ram:SpecifiedLineTradeSettlement>
         <ram:ApplicableTradeTax>
           <ram:TypeCode>VAT</ram:TypeCode>
-          <ram:CategoryCode>S</ram:CategoryCode>
-          <ram:RateApplicablePercent>19.00</ram:RateApplicablePercent>
+          <ram:CategoryCode>E</ram:CategoryCode>
+          <ram:RateApplicablePercent>0.00</ram:RateApplicablePercent>
         </ram:ApplicableTradeTax>
         <ram:SpecifiedTradeSettlementLineMonetarySummation>
-          <ram:LineTotalAmount>-360.00</ram:LineTotalAmount>
+          <ram:LineTotalAmount>5000.00</ram:LineTotalAmount>
         </ram:SpecifiedTradeSettlementLineMonetarySummation>
       </ram:SpecifiedLineTradeSettlement>
     </ram:IncludedSupplyChainTradeLineItem>
     <ram:ApplicableHeaderTradeAgreement>
-      <ram:BuyerReference>non-existent</ram:BuyerReference>
+      <ram:BuyerReference>04011000-12345-34</ram:BuyerReference>
       <ram:SellerTradeParty>
         <ram:Name>Verkaeufername</ram:Name>
         <ram:SpecifiedLegalOrganization>
@@ -86,6 +91,15 @@ Zeile 3</ram:Description>
           <ram:ID>HRB 456</ram:ID>
           <ram:TradingBusinessName>Kaeufername</ram:TradingBusinessName>
         </ram:SpecifiedLegalOrganization>
+        <ram:DefinedTradeContact>
+          <ram:PersonName>Mueller</ram:PersonName>
+          <ram:TelephoneUniversalCommunication>
+            <ram:CompleteNumber>030 1508</ram:CompleteNumber>
+          </ram:TelephoneUniversalCommunication>
+          <ram:EmailURIUniversalCommunication>
+            <ram:URIID>mueller@kunde.de</ram:URIID>
+          </ram:EmailURIUniversalCommunication>
+        </ram:DefinedTradeContact>
         <ram:PostalTradeAddress>
           <ram:PostcodeCode>05678</ram:PostcodeCode>
           <ram:LineOne>Kaeuferstrasse 1</ram:LineOne>
@@ -98,23 +112,26 @@ Zeile 3</ram:Description>
         <ram:SpecifiedTaxRegistration>
           <ram:ID schemeID="VA">DE12345678</ram:ID>
         </ram:SpecifiedTaxRegistration>
-        <ram:SpecifiedTaxRegistration>
-          <ram:ID schemeID="FC">222/111/4444</ram:ID>
-        </ram:SpecifiedTaxRegistration>
       </ram:BuyerTradeParty>
     </ram:ApplicableHeaderTradeAgreement>
     <ram:ApplicableHeaderTradeDelivery/>
     <ram:ApplicableHeaderTradeSettlement>
+      <ram:PaymentReference>Verwendungszweck der Ueberweisung...R2020-0815</ram:PaymentReference>
       <ram:InvoiceCurrencyCode>EUR</ram:InvoiceCurrencyCode>
       <ram:SpecifiedTradeSettlementPaymentMeans>
-        <ram:TypeCode>1</ram:TypeCode>
+        <ram:TypeCode>58</ram:TypeCode>
+        <ram:PayeePartyCreditorFinancialAccount>
+          <ram:IBANID>DE75512108001245126199</ram:IBANID>
+          <ram:AccountName>Fa. XY</ram:AccountName>
+        </ram:PayeePartyCreditorFinancialAccount>
       </ram:SpecifiedTradeSettlementPaymentMeans>
       <ram:ApplicableTradeTax>
-        <ram:CalculatedAmount>-68.40</ram:CalculatedAmount>
+        <ram:CalculatedAmount>0.00</ram:CalculatedAmount>
         <ram:TypeCode>VAT</ram:TypeCode>
-        <ram:BasisAmount>-360.00</ram:BasisAmount>
-        <ram:CategoryCode>S</ram:CategoryCode>
-        <ram:RateApplicablePercent>19.00</ram:RateApplicablePercent>
+        <ram:ExemptionReason>Differenzbesteuerung</ram:ExemptionReason>
+        <ram:BasisAmount>5000.00</ram:BasisAmount>
+        <ram:CategoryCode>E</ram:CategoryCode>
+        <ram:RateApplicablePercent>0.00</ram:RateApplicablePercent>
       </ram:ApplicableTradeTax>
       <ram:BillingSpecifiedPeriod>
         <ram:StartDateTime>
@@ -125,26 +142,21 @@ Zeile 3</ram:Description>
         </ram:EndDateTime>
       </ram:BillingSpecifiedPeriod>
       <ram:SpecifiedTradePaymentTerms>
+        <ram:Description>Zahlbar bis zum 29.12.2024 ohne Abzug.</ram:Description>
         <ram:DueDateDateTime>
           <udt:DateTimeString format="102">20241229</udt:DateTimeString>
         </ram:DueDateDateTime>
       </ram:SpecifiedTradePaymentTerms>
       <ram:SpecifiedTradeSettlementHeaderMonetarySummation>
-        <ram:LineTotalAmount>-360.00</ram:LineTotalAmount>
+        <ram:LineTotalAmount>5000.00</ram:LineTotalAmount>
         <ram:ChargeTotalAmount>0.00</ram:ChargeTotalAmount>
         <ram:AllowanceTotalAmount>0.00</ram:AllowanceTotalAmount>
-        <ram:TaxBasisTotalAmount>-360.00</ram:TaxBasisTotalAmount>
-        <ram:TaxTotalAmount currencyID="EUR">-68.40</ram:TaxTotalAmount>
-        <ram:GrandTotalAmount>-428.40</ram:GrandTotalAmount>
+        <ram:TaxBasisTotalAmount>5000.00</ram:TaxBasisTotalAmount>
+        <ram:TaxTotalAmount currencyID="EUR">0.00</ram:TaxTotalAmount>
+        <ram:GrandTotalAmount>5000.00</ram:GrandTotalAmount>
         <ram:TotalPrepaidAmount>0.00</ram:TotalPrepaidAmount>
-        <ram:DuePayableAmount>-428.40</ram:DuePayableAmount>
+        <ram:DuePayableAmount>5000.00</ram:DuePayableAmount>
       </ram:SpecifiedTradeSettlementHeaderMonetarySummation>
-      <ram:InvoiceReferencedDocument>
-        <ram:IssuerAssignedID>R2020-0814</ram:IssuerAssignedID>
-        <ram:FormattedIssueDateTime>
-          <qdt:DateTimeString format="102">20241020</qdt:DateTimeString>
-        </ram:FormattedIssueDateTime>
-      </ram:InvoiceReferencedDocument>
     </ram:ApplicableHeaderTradeSettlement>
   </rsm:SupplyChainTradeTransaction>
 </rsm:CrossIndustryInvoice>

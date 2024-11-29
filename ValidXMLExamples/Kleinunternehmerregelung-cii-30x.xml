@@ -12,7 +12,7 @@
     <ram:ID>R2020-0815</ram:ID>
     <ram:TypeCode>380</ram:TypeCode>
     <ram:IssueDateTime>
-      <udt:DateTimeString format="102">20241126</udt:DateTimeString>
+      <udt:DateTimeString format="102">20241129</udt:DateTimeString>
     </ram:IssueDateTime>
   </rsm:ExchangedDocument>
   <rsm:SupplyChainTradeTransaction>
@@ -132,16 +132,16 @@
       </ram:ApplicableTradeTax>
       <ram:BillingSpecifiedPeriod>
         <ram:StartDateTime>
-          <udt:DateTimeString format="102">20241027</udt:DateTimeString>
+          <udt:DateTimeString format="102">20241030</udt:DateTimeString>
         </ram:StartDateTime>
         <ram:EndDateTime>
-          <udt:DateTimeString format="102">20241125</udt:DateTimeString>
+          <udt:DateTimeString format="102">20241128</udt:DateTimeString>
         </ram:EndDateTime>
       </ram:BillingSpecifiedPeriod>
       <ram:SpecifiedTradePaymentTerms>
-        <ram:Description>Zahlbar bis zum 26.12.2024 ohne Abzug.</ram:Description>
+        <ram:Description>Zahlbar bis zum 29.12.2024 ohne Abzug.</ram:Description>
         <ram:DueDateDateTime>
-          <udt:DateTimeString format="102">20241226</udt:DateTimeString>
+          <udt:DateTimeString format="102">20241229</udt:DateTimeString>
         </ram:DueDateDateTime>
       </ram:SpecifiedTradePaymentTerms>
       <ram:SpecifiedTradeSettlementHeaderMonetarySummation>

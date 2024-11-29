@@ -90,6 +90,7 @@ type
                        XRechnungVersion_230_UNCEFACT_Deprecated,
                        XRechnungVersion_30x_UBL,
                        XRechnungVersion_30x_UNCEFACT,
+                       ZUGFeRDExtendedVersion_232,
                        XRechnungVersion_ReadingSupport_ZUGFeRDFacturX);
 
   TXRechnungValidationHelper = class(TObject)
@@ -331,6 +332,7 @@ begin
     XRechnungVersion_230_UNCEFACT_Deprecated : Result := TXRechnungInvoiceAdapter230.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     XRechnungVersion_30x_UNCEFACT : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     {$IFNDEF ZUGFeRD_Support}
+    ZUGFeRDExtendedVersion_232,
     XRechnungVersion_ReadingSupport_ZUGFeRDFacturX : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     else exit;
     {$ELSE}
@@ -368,7 +370,8 @@ begin
     XRechnungVersion_230_UBL_Deprecated : TXRechnungInvoiceAdapter230.SaveDocumentUBL(_Invoice,_Xml);
     XRechnungVersion_30x_UBL : TXRechnungInvoiceAdapter301.SaveDocumentUBL(_Invoice,_Xml);
     XRechnungVersion_230_UNCEFACT_Deprecated : TXRechnungInvoiceAdapter230.SaveDocumentUNCEFACT(_Invoice,_Xml);
-    XRechnungVersion_30x_UNCEFACT : TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(_Invoice,_Xml);
+    XRechnungVersion_30x_UNCEFACT : TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(_Invoice,_Xml,true);
+    ZUGFeRDExtendedVersion_232 : TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(_Invoice,_Xml,false);
     else raise Exception.Create('XRechnung - wrong version');
   end;
 end;
@@ -713,6 +716,9 @@ begin
   if SameText(_Val,'59')  then
     Result := ipmc_SEPADirectDebit
   else
+  if SameText(_Val,'68')  then
+    Result := ipmc_OnlinePaymentService
+  else
   if SameText(_Val,'ZZZ')  then
     Result := ipmc_MutuallyDefined
   else
@@ -731,6 +737,7 @@ begin
     ipmc_CreditCard: Result := '54';
     ipmc_SEPACreditTransfer: Result := '58';
     ipmc_SEPADirectDebit: Result := '59';
+    ipmc_OnlinePaymentService: Result := '68';
     ipmc_MutuallyDefined: Result := 'ZZZ';
     else Result := '1'; //ipmc_InstrumentNotDefined
   end;
@@ -1071,7 +1078,8 @@ begin
     if Pos('xrechnung_3.0',AnsiLowerCase(node.Text))>0 then
       Result := XRechnungVersion_30x_UBL;
   end else
-  if (SameText(_XML.DocumentElement.NodeName,'CrossIndustryInvoice') or SameText(_XML.DocumentElement.NodeName,'rsm:CrossIndustryInvoice')) then
+  if (SameText(_XML.DocumentElement.NodeName,'CrossIndustryInvoice') or
+      SameText(_XML.DocumentElement.NodeName,'rsm:CrossIndustryInvoice')) then
   begin
     if not (TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'rsm:ExchangedDocumentContext',node) or
             TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'ExchangedDocumentContext',node)) then
@@ -1086,7 +1094,10 @@ begin
     if Pos('xrechnung_3.0',AnsiLowerCase(node.Text))>0 then
       Result := XRechnungVersion_30x_UNCEFACT
     else
-    if Pos('urn:cen.eu:en16931:2017',AnsiLowerCase(node.Text))=1 then
+    if SameText(node.Text,'urn:cen.eu:en16931:2017#conformant#urn:factur-x.eu:1p0:extended') then
+      Result := ZUGFeRDExtendedVersion_232
+    else
+    if Pos('urn:cen.eu:en16931:2017',AnsiLowerCase(node.Text))>0 then
       Result := XRechnungVersion_ReadingSupport_ZUGFeRDFacturX;
   end;
 end;
@@ -1459,6 +1470,7 @@ begin
     SEPACreditTransfer: lPaymentMeansCode := ipmc_SEPACreditTransfer;
     SEPADirectDebit: lPaymentMeansCode := ipmc_SEPADirectDebit;
     NotDefined: lPaymentMeansCode := ipmc_InstrumentNotDefined;
+    //TODO Fehlt 68
     //    AutomatedClearingHouseDebit: ;
     //    DebitTransfer: ;
     //    PaymentToBankAccount: ;

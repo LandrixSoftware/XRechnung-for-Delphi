@@ -29,12 +29,17 @@ type
     function SetValidatorConfigurationPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetVisualizationLibPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetFopLibPath(const _Path : String) : IXRechnungValidationHelperJava;
+    function SetMustangprojectLibPath(const _Path : String) : IXRechnungValidationHelperJava;
     function Validate(const _InvoiceXMLData : String; out _CmdOutput,_ValidationResultAsXML,_ValidationResultAsHTML : String) : Boolean;
     function ValidateFile(const _InvoiceXMLFilename : String; out _CmdOutput,_ValidationResultAsXML,_ValidationResultAsHTML : String) : Boolean;
     function Visualize(const _InvoiceXMLData : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
     function VisualizeAsPdf(const _InvoiceXMLData : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function VisualizeFile(const _InvoiceXMLFilename : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
     function VisualizeFileAsPdf(const _InvoiceXMLFilename : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
+    function MustangValidateFile(const _InvoiceXMLFilename : String; out _CmdOutput,_ValidationResultAsXML : String) : Boolean;
+    function MustangVisualizeFile(const _InvoiceXMLFilename : String; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
+    function MustangVisualizeFileAsPdf(const _InvoiceXMLFilename : String; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
+    function MustangCombinePdfAndXML(const _InvoicePDFFilename, _InvoiceXMLFilename : String; out _CmdOutput : String; out _CombinedPdf : TMemoryStream) : Boolean;
   end;
 
   function GetXRechnungValidationHelperJava : IXRechnungValidationHelperJava;
@@ -49,6 +54,7 @@ type
     ValidatorConfigurationPath : String;
     VisualizationLibPath : String;
     FopLibPath : String;
+    MustangprojectPath : String;
     CmdOutput : TStringList;
     function ExecAndWait(_Filename, _Params: string): Boolean;
     function QuoteIfContainsSpace(const _Value : String) : String;
@@ -60,12 +66,17 @@ type
     function SetValidatorConfigurationPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetVisualizationLibPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetFopLibPath(const _Path : String) : IXRechnungValidationHelperJava;
+    function SetMustangprojectLibPath(const _Path : String) : IXRechnungValidationHelperJava;
     function Validate(const _InvoiceXMLData : String; out _CmdOutput,_ValidationResultAsXML,_ValidationResultAsHTML : String) : Boolean;
     function ValidateFile(const _InvoiceXMLFilename : String; out _CmdOutput,_ValidationResultAsXML,_ValidationResultAsHTML : String) : Boolean;
     function Visualize(const _InvoiceXMLData : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
     function VisualizeAsPdf(const _InvoiceXMLData : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function VisualizeFile(const _InvoiceXMLFilename : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
     function VisualizeFileAsPdf(const _InvoiceXMLFilename : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
+    function MustangValidateFile(const _InvoiceXMLFilename : String; out _CmdOutput,_ValidationResultAsXML : String) : Boolean;
+    function MustangVisualizeFile(const _InvoiceXMLFilename : String; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
+    function MustangVisualizeFileAsPdf(const _InvoiceXMLFilename : String; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
+    function MustangCombinePdfAndXML(const _InvoicePDFFilename, _InvoiceXMLFilename : String; out _CmdOutput : String; out _CombinedPdf : TMemoryStream) : Boolean;
   end;
 
 function GetXRechnungValidationHelperJava : IXRechnungValidationHelperJava;
@@ -156,6 +167,216 @@ begin
   end;
 end;
 
+function TXRechnungValidationHelperJava.MustangCombinePdfAndXML(
+  const _InvoicePDFFilename, _InvoiceXMLFilename: String;
+  out _CmdOutput: String; out _CombinedPdf: TMemoryStream): Boolean;
+var
+  cmd: TStringList;
+  tmpFilename : String;
+begin
+  Result := false;
+  if not FileExists(_InvoiceXMLFilename) then
+    exit;
+  if not FileExists(_InvoicePDFFilename) then
+    exit;
+  if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
+    exit;
+  if not FileExists(MustangprojectPath+'Mustang-CLI.jar') then
+    exit;
+
+  tmpFilename := TempFileName;
+
+  cmd := TStringList.Create;
+  try
+    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
+
+    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -Xmx1G '+
+            '-Dfile.encoding=UTF-8 -jar '+QuoteIfContainsSpace(MustangprojectPath+'Mustang-CLI.jar')+
+            ' --action combine' +
+            ' --source '+ QuoteIfContainsSpace(_InvoicePDFFilename)+
+            ' --source-xml '+ QuoteIfContainsSpace(_InvoiceXMLFilename)+
+            ' --out '+tmpFilename+'.pdf'+
+            ' --format zf'+
+            ' --version 2'+
+            ' --profile T'+
+            ' --no-additional-attachments');
+
+    cmd.SaveToFile(tmpFilename+'.bat');
+
+    Result := ExecAndWait(tmpFilename+'.bat','');
+
+    if Result and FileExists(tmpFilename+'.pdf') then
+    begin
+      _CombinedPdf := TMemoryStream.Create;
+      _CombinedPdf.LoadFromFile(tmpFilename+'.pdf');
+      _CombinedPdf.Position := 0;
+    end else
+      _CombinedPdf := nil;
+
+    _CmdOutput := CmdOutput.Text;
+
+    DeleteFile(tmpFilename+'.bat');
+    if FileExists(tmpFilename+'.pdf') then
+      DeleteFile(tmpFilename+'.pdf');
+  finally
+    cmd.Free;
+  end;
+end;
+
+function TXRechnungValidationHelperJava.MustangValidateFile(
+  const _InvoiceXMLFilename: String; out _CmdOutput,
+  _ValidationResultAsXML: String): Boolean;
+var
+  cmd,hstrl: TStringList;
+  tmpFilename : String;
+begin
+  Result := false;
+  if not FileExists(_InvoiceXMLFilename) then
+    exit;
+  if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
+    exit;
+  if not FileExists(MustangprojectPath+'Mustang-CLI.jar') then
+    exit;
+
+  tmpFilename := TempFileName;
+
+  cmd := TStringList.Create;
+  hstrl := TStringList.Create;
+  try
+    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
+
+    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -Xmx1G '+
+            '-Dfile.encoding=UTF-8 -jar '+QuoteIfContainsSpace(MustangprojectPath+'Mustang-CLI.jar')+
+            ' --action validate' +
+            ' --source '+ QuoteIfContainsSpace(_InvoiceXMLFilename)+
+            ' >'+tmpFilename+'.xml');
+
+    cmd.SaveToFile(tmpFilename+'.bat');
+
+    Result := ExecAndWait(tmpFilename+'.bat','');
+
+    if FileExists(tmpFilename+'.xml') then
+    begin
+      hstrl.LoadFromFile(tmpFilename+'.xml');
+      _ValidationResultAsXML := hstrl.Text;
+      Result := true;
+    end;
+
+    _CmdOutput := CmdOutput.Text;
+
+    DeleteFile(tmpFilename+'.bat');
+    if FileExists(tmpFilename+'.xml') then
+      DeleteFile(tmpFilename+'.xml');
+  finally
+    hstrl.Free;
+    cmd.Free;
+  end;
+end;
+
+function TXRechnungValidationHelperJava.MustangVisualizeFile(
+  const _InvoiceXMLFilename: String; out _CmdOutput,
+  _VisualizationAsHTML: String): Boolean;
+var
+  cmd,hstrl: TStringList;
+  tmpFilename : String;
+begin
+  Result := false;
+  if not FileExists(_InvoiceXMLFilename) then
+    exit;
+  if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
+    exit;
+  if not FileExists(MustangprojectPath+'Mustang-CLI.jar') then
+    exit;
+
+  tmpFilename := TempFileName;
+
+  cmd := TStringList.Create;
+  hstrl:= TStringList.Create;
+  try
+    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
+
+    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -Xmx1G '+
+            '-Dfile.encoding=UTF-8 -jar '+QuoteIfContainsSpace(MustangprojectPath+'Mustang-CLI.jar')+
+            ' --action visualize' +
+            ' --source '+ QuoteIfContainsSpace(_InvoiceXMLFilename)+
+            ' --out '+tmpFilename+'.html'+
+            ' --language de');
+
+    cmd.SaveToFile(tmpFilename+'.bat');
+
+    Result := ExecAndWait(tmpFilename+'.bat','');
+
+    if Result and FileExists(tmpFilename+'.html') then
+    begin
+      hstrl.LoadFromFile(tmpFilename+'.html');
+      _VisualizationAsHTML := hstrl.Text;
+    end;
+
+    _CmdOutput := CmdOutput.Text;
+
+    DeleteFile(tmpFilename+'.bat');
+    if FileExists(tmpFilename+'.html') then
+      DeleteFile(tmpFilename+'.html');
+    if FileExists(ExtractFilePath(tmpFilename)+'xrechnung-viewer.css') then
+      DeleteFile(ExtractFilePath(tmpFilename)+'xrechnung-viewer.css');
+    if FileExists(ExtractFilePath(tmpFilename)+'xrechnung-viewer.js') then
+      DeleteFile(ExtractFilePath(tmpFilename)+'xrechnung-viewer.js');
+  finally
+    hstrl.Free;
+    cmd.Free;
+  end;
+end;
+
+function TXRechnungValidationHelperJava.MustangVisualizeFileAsPdf(
+  const _InvoiceXMLFilename: String; out _CmdOutput: String;
+  out _VisualizationAsPdf: TMemoryStream): Boolean;
+var
+  cmd: TStringList;
+  tmpFilename : String;
+begin
+  Result := false;
+  if not FileExists(_InvoiceXMLFilename) then
+    exit;
+  if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
+    exit;
+  if not FileExists(MustangprojectPath+'Mustang-CLI.jar') then
+    exit;
+
+  tmpFilename := TempFileName;
+
+  cmd := TStringList.Create;
+  try
+    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
+
+    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -Xmx1G '+
+            '-Dfile.encoding=UTF-8 -jar '+QuoteIfContainsSpace(MustangprojectPath+'Mustang-CLI.jar')+
+            ' --action pdf' +
+            ' --source '+ QuoteIfContainsSpace(_InvoiceXMLFilename)+
+            ' --out '+tmpFilename+'.pdf'+
+            ' --language de');
+
+    cmd.SaveToFile(tmpFilename+'.bat');
+
+    Result := ExecAndWait(tmpFilename+'.bat','');
+
+    if Result and FileExists(tmpFilename+'.pdf') then
+    begin
+      _VisualizationAsPdf := TMemoryStream.Create;
+      _VisualizationAsPdf.LoadFromFile(tmpFilename+'.pdf');
+      _VisualizationAsPdf.Position := 0;
+    end else
+      _VisualizationAsPdf := nil;
+
+    _CmdOutput := CmdOutput.Text;
+
+    DeleteFile(tmpFilename+'.bat');
+    if FileExists(tmpFilename+'.pdf') then
+      DeleteFile(tmpFilename+'.pdf');
+  finally
+    cmd.Free;
+  end;
+end;
+
 function TXRechnungValidationHelperJava.SetFopLibPath(
   const _Path: String): IXRechnungValidationHelperJava;
 begin
@@ -167,6 +388,13 @@ function TXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(
   const _Path: String): IXRechnungValidationHelperJava;
 begin
   JavaRuntimeEnvironmentPath := IncludeTrailingPathDelimiter(_Path);
+  Result := self;
+end;
+
+function TXRechnungValidationHelperJava.SetMustangprojectLibPath(
+  const _Path: String): IXRechnungValidationHelperJava;
+begin
+  MustangprojectPath := IncludeTrailingPathDelimiter(_Path);
   Result := self;
 end;
 

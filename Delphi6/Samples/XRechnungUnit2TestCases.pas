@@ -24,7 +24,8 @@ type
   public
     class procedure Gesamtbeispiel(inv : TInvoice; Zahlungsbedingung : Integer;
                        NachlaesseZuschlaegeVerwenden, AbschlagsrechnungAbziehen,
-                       AnhaengeVerwenden, LieferanschriftAusgeben : Boolean);
+                       AnhaengeVerwenden, LieferanschriftAusgeben : Boolean;
+                       XRechnungCII : Boolean = false);
     class procedure Kleinunternehmerregelung(inv : TInvoice);
     class procedure Paragr13b(inv : TInvoice);
     class procedure Austauschteilesteuer(inv : TInvoice);
@@ -301,7 +302,7 @@ end;
 class procedure TInvoiceTestCases.Gesamtbeispiel(inv: TInvoice;
   Zahlungsbedingung: Integer; NachlaesseZuschlaegeVerwenden,
   AbschlagsrechnungAbziehen, AnhaengeVerwenden,
-  LieferanschriftAusgeben: Boolean);
+  LieferanschriftAusgeben: Boolean; XRechnungCII : Boolean = false);
 var
   suc : Boolean;
 begin
@@ -400,17 +401,17 @@ begin
       inv.PaymentTermsType := iptt_CashDiscount1;
       inv.PaymentTermCashDiscount1Days := 7;
       inv.PaymentTermCashDiscount1Percent := 4.25;
-      inv.PaymentTermCashDiscount1Base := 0;
+      inv.PaymentTermCashDiscount1Base := 0; //optional auf welchen Betrag bezieht sich Skonto
     end;
     3 :
     begin
       inv.PaymentTermsType := iptt_CashDiscount2;
       inv.PaymentTermCashDiscount1Days := 7;
       inv.PaymentTermCashDiscount1Percent := 4.25;
-      inv.PaymentTermCashDiscount1Base := 0;
+      inv.PaymentTermCashDiscount1Base := 0; //optional auf welchen Betrag bezieht sich Skonto
       inv.PaymentTermCashDiscount2Days := 14;
       inv.PaymentTermCashDiscount2Percent := 3;
-      inv.PaymentTermCashDiscount2Base := 0;
+      inv.PaymentTermCashDiscount2Base := 0; //optional auf welchen Betrag bezieht sich Skonto
     end;
     else
       inv.PaymentTermsType := iptt_None;
@@ -685,11 +686,12 @@ begin
       ID := 'R2020-0001';
       IssueDate := Date-100; //Rechnungsdatum
     end;
-    //with inv.PrecedingInvoiceReferences.AddPrecedingInvoiceReference do
-    //begin
-    //  ID := 'R2020-0002';
-    //  IssueDate := Date-50; //Rechnungsdatum
-    //end;
+    if not XRechnungCII then
+    with inv.PrecedingInvoiceReferences.AddPrecedingInvoiceReference do
+    begin
+      ID := 'R2020-0002';
+      IssueDate := Date-50; //Rechnungsdatum
+    end;
     inv.PrepaidAmount := 100.00; //Euro angezahlt
     inv.PayableAmount := inv.PayableAmount - inv.PrepaidAmount; //Vom Zahlbetrag abziehen
   end;

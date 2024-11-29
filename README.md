@@ -6,13 +6,15 @@ Erstellen von Rechnungen im
 
 - XRechnung-UBL-Format (Universal Business Language)
 - XRechnung-CII-Format (Cross Industrie Invoice)
+- ZUGFeRD-EXTENDED-Format
 
 ## Version
 
-Aktuelle XRechnung-Versionen
+Aktuell unterstützte Versionen:
 
-- 3.0.2 gültig ab 1.2.2024 - Übersicht der Pflichtfelder unter https://blog.seeburger.com/de/xrechnung-version-3-0-1-gueltig-ab-01-februar-2024/
-- 2.3.1 gültig ab 1.8.2023
+- XRechnung 3.0.2 gültig ab 1.2.2024 - Übersicht der Pflichtfelder unter https://blog.seeburger.com/de/xrechnung-version-3-0-1-gueltig-ab-01-februar-2024/
+- XRechnung 2.3.1 gültig ab 1.8.2023 (deprectated, wird in Zukunft nicht mehr unterstützt)
+- ZUGFeRD 2.3.2 EXTENDED
 
 ## Beispiele
 
@@ -20,8 +22,8 @@ Zu finden unter Samples\XRechnungUnit2TestCases.pas
 
 ## ZUGFeRD Support
 
-Um den Import von ZUGFeRD-Rechnungen zu ermöglichen, wurde die 
-Bibliothek ZUGFeRD-for-Delphi integriert. Die Quellen hier zu finden:
+Um den Import von ZUGFeRD-Rechnungen anderer Versionen als 2.3.2 zu ermöglichen, 
+wurde die Bibliothek ZUGFeRD-for-Delphi integriert. Die Quellen hier zu finden:
 
 https://github.com/LandrixSoftware/ZUGFeRD-for-Delphi
 
@@ -62,8 +64,7 @@ komplettes Objekt. Hier kann man selbst weitere ZUGFeRD-Inhalte auslesen.
 ## Delphi 6 Support
 
 Für Delphi 6 gibt es eine spezielle Version, die unter dem Verzeichnis Delphi6 zu finden ist. 
-Diese Version enthält keine ZUGFeRD-for-Delphi-Unterstützung. Derzeit ist eine komplette ZUGFeRD-Unterstützung 
-für Delphi 6 nicht geplant.
+Diese Version enthält keine ZUGFeRD-for-Delphi-Unterstützung.
 
 ## Hilfsfunktion für den XRechnung-Export
 

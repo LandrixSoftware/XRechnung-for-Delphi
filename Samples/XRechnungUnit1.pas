@@ -247,6 +247,13 @@ begin
   inv.Free;
 
   inv := TInvoice.Create;
+  TInvoiceTestCases.LeistungszeitraumJePosition(inv);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'LeistungszeitraumJePosition-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'LeistungszeitraumJePosition-ciiextended-232.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'LeistungszeitraumJePosition-cii-30x.xml');
+  inv.Free;
+
+  inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,0,false,false,false,false);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-ubl-30x.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'Gesamtbeispiel-ciiextended-232.xml');
@@ -501,6 +508,7 @@ begin
       10: TInvoiceTestCases.InnergemeinschaftlicheLieferungEUohneMehrwertsteuer(inv);
       11: TInvoiceTestCases.PayPalOderAndereOnlinezahlungsdienstleister(inv);
       12: TInvoiceTestCases.Kreditkarte(inv);
+      13: TInvoiceTestCases.LeistungszeitraumJePosition(inv);
     end;
 
     Generate(inv);

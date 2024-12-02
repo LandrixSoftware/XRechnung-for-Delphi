@@ -197,7 +197,8 @@ object Form1: TForm1
       'Lastschrift'
       'Innergem.Lief.EUoMwSt'
       'PayPal'
-      'Kreditkarte')
+      'Kreditkarte'
+      'Leistungszeitraum je Pos.')
     TabOrder = 15
   end
   object cbValidateWithJava: TCheckBox

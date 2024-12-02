@@ -437,6 +437,8 @@ type
     AllowanceCharges : TInvoiceAllowanceCharges;
     SubInvoiceLines : TInvoiceLines;
     ItemAttributes : TInvoiceLineItemAttributes;
+    InvoiceLinePeriodStartDate : TDate; //Leistungszeitraum Beginn
+    InvoiceLinePeriodEndDate : TDate; //Leistungszeitraum Ende
   public
     constructor Create;
     destructor Destroy; override;
@@ -834,9 +836,27 @@ end;
 
 constructor TInvoiceLine.Create;
 begin
+  ID := '';
+  GlobalID_EAN_GTIN := '';
+  Note := '';
+  Name := '';
+  Description := '';
+  Quantity := 0;
+  UnitCode := iuc_None;
+  SellersItemIdentification := '';
+  TaxPercent := 0;
+  TaxCategory := idtfcc_None;
+  GrossPriceAmount := 0;
+  DiscountOnTheGrossPrice := 0;
+  NetPriceAmount := 0;
+  BaseQuantity := 0;
+  BaseQuantityUnitCode := iuc_None;
+  LineAmount := 0;
   AllowanceCharges := TInvoiceAllowanceCharges.Create;
   SubInvoiceLines := TInvoiceLines.Create;
   ItemAttributes := TInvoiceLineItemAttributes.Create;
+  InvoiceLinePeriodStartDate := 0;
+  InvoiceLinePeriodEndDate := 0;
 end;
 
 destructor TInvoiceLine.Destroy;

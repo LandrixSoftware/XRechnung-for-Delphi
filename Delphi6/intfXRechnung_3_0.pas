@@ -75,6 +75,11 @@ var
     end;
     if TXRechnungXMLHelper.SelectNode(_Node,'.//cbc:LineExtensionAmount',node) then
       _Invoiceline.LineAmount := TXRechnungHelper.AmountFromStr(node.text);
+    if TXRechnungXMLHelper.SelectNode(_Node,'//cac:InvoicePeriod',node) then
+    begin
+      _Invoiceline.InvoiceLinePeriodStartDate := TXRechnungHelper.DateFromStrUBLFormat(TXRechnungXMLHelper.SelectNodeText(node,'//cbc:StartDate'));
+      _Invoiceline.InvoiceLinePeriodEndDate := TXRechnungHelper.DateFromStrUBLFormat(TXRechnungXMLHelper.SelectNodeText(node,'//cbc:EndDate'));
+    end;
     if TXRechnungXMLHelper.SelectNodes(_Node,'cac:AllowanceCharge',nodes) then
     for i := 0 to nodes.length-1 do
     with _Invoiceline.AllowanceCharges.AddAllowanceCharge do
@@ -444,6 +449,13 @@ var
       begin
         _Invoiceline.TaxCategory := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeFromStr(TXRechnungXMLHelper.SelectNodeText(node,'.//ram:CategoryCode'));
         _Invoiceline.TaxPercent := TXRechnungHelper.PercentageFromStr(TXRechnungXMLHelper.SelectNodeText(node,'.//ram:RateApplicablePercent'));
+      end;
+      if TXRechnungXMLHelper.SelectNode(node2,'.//ram:BillingSpecifiedPeriod',node) then
+      begin
+        if TXRechnungXMLHelper.SelectNode(node,'.//ram:StartDateTime',node3) then
+          _Invoiceline.InvoiceLinePeriodStartDate := TXRechnungHelper.DateFromStrUNCEFACTFormat(TXRechnungXMLHelper.SelectNodeText(node3,'.//udt:DateTimeString'));
+        if TXRechnungXMLHelper.SelectNode(node,'.//ram:EndDateTime',node3) then
+          _Invoiceline.InvoiceLinePeriodEndDate := TXRechnungHelper.DateFromStrUNCEFACTFormat(TXRechnungXMLHelper.SelectNodeText(node3,'.//udt:DateTimeString'));
       end;
       if TXRechnungXMLHelper.SelectNodes(node2,'.//ram:SpecifiedTradeAllowanceCharge',nodes) then
       for i := 0 to nodes.length-1 do
@@ -882,6 +894,13 @@ var
       Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
       Text := TXRechnungHelper.AmountToStr(_Invoiceline.LineAmount);
     end;
+    if (_Invoiceline.InvoiceLinePeriodStartDate > 100) and
+       (_Invoiceline.InvoiceLinePeriodEndDate >= _Invoiceline.InvoiceLinePeriodStartDate) then
+    with _Node.AddChild('cac:InvoicePeriod') do
+    begin
+      AddChild('cbc:StartDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoiceline.InvoiceLinePeriodStartDate);
+      AddChild('cbc:EndDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoiceline.InvoiceLinePeriodEndDate);
+    end;
     //  <cac:DocumentReference>
     //     <cbc:ID/>
     //     <cbc:DocumentType>916</cbc:DocumentType>
@@ -1012,7 +1031,7 @@ begin
   xRoot.AddChild('cbc:DocumentCurrencyCode').Text := _Invoice.InvoiceCurrencyCode;
   //xRoot.AddChild('cbc:TaxCurrencyCode').Text := _Invoice.TaxCurrencyCode; //Nicht in XRechnung 3
   xRoot.AddChild('cbc:BuyerReference').Text := _Invoice.BuyerReference;
-  if (_Invoice.InvoicePeriodStartDate > 100) and (_Invoice.InvoicePeriodEndDate > 100) then
+  if (_Invoice.InvoicePeriodStartDate > 100) and (_Invoice.InvoicePeriodEndDate >= _Invoice.InvoicePeriodStartDate) then
   with xRoot.AddChild('cac:InvoicePeriod') do
   begin
     AddChild('cbc:StartDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoicePeriodStartDate);
@@ -1507,6 +1526,20 @@ var
         AddChild('ram:CategoryCode').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(_Invoiceline.TaxCategory);
         AddChild('ram:RateApplicablePercent').Text := TXRechnungHelper.PercentageToStr(_Invoiceline.TaxPercent);
       end;
+      if (_Invoiceline.InvoiceLinePeriodStartDate > 100) and (_Invoiceline.InvoiceLinePeriodEndDate >= _Invoiceline.InvoiceLinePeriodStartDate) then
+      with AddChild('ram:BillingSpecifiedPeriod') do
+      begin
+        with AddChild('ram:StartDateTime').AddChild('udt:DateTimeString') do
+        begin
+          Attributes['format'] := '102';
+          Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoiceline.InvoiceLinePeriodStartDate);
+        end;
+        with AddChild('ram:EndDateTime').AddChild('udt:DateTimeString') do
+        begin
+          Attributes['format'] := '102';
+          Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoiceline.InvoiceLinePeriodEndDate);
+        end;
+      end;
       for i := 0 to _Invoiceline.AllowanceCharges.Count-1 do
       with AddChild('ram:SpecifiedTradeAllowanceCharge') do
       begin
@@ -1821,7 +1854,7 @@ begin
         AddChild('ram:CategoryCode').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(_Invoice.TaxAmountSubtotals[i].TaxCategory);
         AddChild('ram:RateApplicablePercent').Text := TXRechnungHelper.PercentageToStr(_Invoice.TaxAmountSubtotals[i].TaxPercent);
       end;
-      if (_Invoice.InvoicePeriodStartDate > 100) and (_Invoice.InvoicePeriodEndDate > 100) then
+      if (_Invoice.InvoicePeriodStartDate > 100) and (_Invoice.InvoicePeriodEndDate >= _Invoice.InvoicePeriodStartDate) then
       with AddChild('ram:BillingSpecifiedPeriod') do
       begin
         with AddChild('ram:StartDateTime').AddChild('udt:DateTimeString') do

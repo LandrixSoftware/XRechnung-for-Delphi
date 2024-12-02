@@ -375,10 +375,27 @@ begin
     if not od.Execute then
       exit;
 
-    GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
-        .SetValidatorLibPath(ValidatorLibPath)
-        .SetValidatorConfigurationPath(ValidatorConfigurationPath)
-        .ValidateFile(od.FileName,cmdoutput,xmlresult,htmlresult);
+    case TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) of
+      XRechnungVersion_230_UBL_Deprecated,
+      XRechnungVersion_230_UNCEFACT_Deprecated :
+        GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+            .SetValidatorLibPath(ValidatorLibPath)
+            .SetValidatorConfigurationPath(DistributionBasePath +'validator-configuration23x'+PathDelim)
+            .ValidateFile(od.FileName,cmdoutput,xmlresult,htmlresult);
+      XRechnungVersion_30x_UBL,
+      XRechnungVersion_30x_UNCEFACT :
+        GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+            .SetValidatorLibPath(ValidatorLibPath)
+            .SetValidatorConfigurationPath(ValidatorConfigurationPath)
+            .ValidateFile(od.FileName,cmdoutput,xmlresult,htmlresult);
+      else
+      begin
+        GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+            .SetMustangprojectLibPath(MustangLibPath)
+            .MustangValidateFile(od.FileName,cmdoutput,xmlresult);
+        htmlresult := '<html><xmp>'+xmlresult+'</xmp>';
+      end;
+    end;
 
     Memo3.Lines.Text := cmdoutput;
 

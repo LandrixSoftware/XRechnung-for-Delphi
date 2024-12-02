@@ -125,7 +125,7 @@ object Form1: TForm1
     Width = 162
     Height = 25
     Anchors = [akLeft, akBottom]
-    Caption = 'XRechnung validieren'
+    Caption = 'Datei validieren'
     TabOrder = 10
     OnClick = Button3Click
   end

@@ -102,7 +102,7 @@ end;
 
 class function TXRechnungXMLHelper.PrepareDocumentForXPathQuerys(_Xml: IXMLDocument): IXMLDOMDocument2;
 var
-  hList: IDOMNodeList;
+//  hList: IDOMNodeList;
   i: Integer;
   s, sNSN, sNSUri: string;
   sNsLine: string;
@@ -111,38 +111,38 @@ begin
   if not _Xml.Active then
     exit;
 
-  hList := (_Xml.DOMDocument as IDOMNodeSelect).selectNodes('//namespace::*');
-  try
-    for i := 0 to hList.length - 1 do
-    begin
-      sNSN := StringReplace(hList.item[i].nodeName, 'xmlns:', '', []);
-      if sNSN = 'xml' then
-      begin  // wenn es als xmlns:xml hinzugefuegt wird bekommt man die meldung das der Namespacename xml nicht verwendet werden darf...
-        sNSN := 'xmlns:MyXml';
-        sNSUri := hList.item[i].nodeValue;
-      end
-      else
-      if sNSN = 'xmlns' then
-      begin  // den Default Namespace mit einem Namen versehen, damit XPath drauf zugreifen kann.
-        sNSN := 'xmlns:dn';
-        sNSUri := hList.item[i].nodeValue;
-      end
-      else
-      begin  // alle anderen Namespace auch fuer XPath bekannt machen
-        sNSN := hList.item[i].nodeName;
-        sNSUri := hList.item[i].nodeValue;
-      end;
-      s := sNSN + '="'+sNSUri+'"';
-      if Pos(AnsiUpperCase(s), AnsiUpperCase(sNsLine)) > 0 then
-        continue;
-      if Pos(AnsiUpperCase(sNSN+'="'), AnsiUpperCase(sNsLine)) > 0 then
-        continue;
-      sNsLine := ' '+s + sNsLine;
+  if SameText(_XML.DocumentElement.FindNamespaceURI('udt'), '') then
+    _XML.DocumentElement.DeclareNamespace('udt', 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100');
+  if SameText(_XML.DocumentElement.FindNamespaceURI('qdt'), '') then
+    _XML.documentElement.DeclareNamespace('qdt', 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100');
+
+  for i := 0 to _XML.DocumentElement.AttributeNodes.Count - 1 do
+  begin
+    sNSN := StringReplace(_XML.DocumentElement.AttributeNodes[I].NodeName, 'xmlns:', '', []);
+    if sNSN = 'xml' then
+    begin  // wenn es als xmlns:xml hinzugefuegt wird bekommt man die meldung das der Namespacename xml nicht verwendet werden darf...
+      sNSN := 'xmlns:MyXml';
+      sNSUri := _XML.DocumentElement.AttributeNodes[I].nodeValue;
+    end
+    else
+    if sNSN = 'xmlns' then
+    begin  // den Default Namespace mit einem Namen versehen, damit XPath drauf zugreifen kann.
+      sNSN := 'xmlns:dn';
+      sNSUri := _XML.DocumentElement.AttributeNodes[I].nodeValue;
+    end
+    else
+    begin  // alle anderen Namespace auch fuer XPath bekannt machen
+      sNSN := _XML.DocumentElement.AttributeNodes[I].nodeName;
+      sNSUri := _XML.DocumentElement.AttributeNodes[I].nodeValue;
     end;
-    sNsLine := trim(sNsLine);
-  finally
-    hList := nil;
+    s := sNSN + '="'+sNSUri+'"';
+    if Pos(AnsiUpperCase(sNsLine), AnsiUpperCase(s)) > 0 then
+      continue;
+    if Pos(AnsiUpperCase(sNsLine), AnsiUpperCase(sNSN+'="')) > 0 then
+      continue;
+    sNsLine := ' '+s + sNsLine;
   end;
+  sNsLine := trim(sNsLine);
 
   Result := CoDOMDocument60.Create;
   Result.loadXML(_Xml.XML.Text);

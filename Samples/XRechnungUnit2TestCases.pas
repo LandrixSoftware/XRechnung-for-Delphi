@@ -1241,8 +1241,8 @@ begin
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
     LineAmount := 360;
     //Leistungszeitraum je Position
-    InvoiceLinePeriodStartDate := EncodeDate(2024,10,1);
-    InvoiceLinePeriodEndDate := EncodeDate(2025,9,30);
+    InvoiceLinePeriodStartDate := EncodeDate(2024,10,2);
+    InvoiceLinePeriodEndDate := EncodeDate(2025,9,29);
   end;
   with inv.InvoiceLines.AddInvoiceLine do
   begin
@@ -1259,8 +1259,8 @@ begin
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
     LineAmount := 360;
     //Leistungszeitraum je Position
-    InvoiceLinePeriodStartDate := EncodeDate(2024,10,1);
-    InvoiceLinePeriodEndDate := EncodeDate(2024,12,31);
+    InvoiceLinePeriodStartDate := EncodeDate(2024,10,2);
+    InvoiceLinePeriodEndDate := EncodeDate(2024,12,30);
   end;
 
   inv.TaxAmountTotal := 136.80; //Summe der gesamten MwSt

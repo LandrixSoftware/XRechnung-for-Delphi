@@ -75,10 +75,10 @@ var
     end;
     if TXRechnungXMLHelper.SelectNode(_Node,'.//cbc:LineExtensionAmount',node) then
       _Invoiceline.LineAmount := TXRechnungHelper.AmountFromStr(node.text);
-    if TXRechnungXMLHelper.SelectNode(_Node,'//cac:InvoicePeriod',node) then
+    if TXRechnungXMLHelper.SelectNode(_Node,'.//cac:InvoicePeriod',node) then
     begin
-      _Invoiceline.InvoiceLinePeriodStartDate := TXRechnungHelper.DateFromStrUBLFormat(TXRechnungXMLHelper.SelectNodeText(node,'//cbc:StartDate'));
-      _Invoiceline.InvoiceLinePeriodEndDate := TXRechnungHelper.DateFromStrUBLFormat(TXRechnungXMLHelper.SelectNodeText(node,'//cbc:EndDate'));
+      _Invoiceline.InvoiceLinePeriodStartDate := TXRechnungHelper.DateFromStrUBLFormat(TXRechnungXMLHelper.SelectNodeText(node,'.//cbc:StartDate'));
+      _Invoiceline.InvoiceLinePeriodEndDate := TXRechnungHelper.DateFromStrUBLFormat(TXRechnungXMLHelper.SelectNodeText(node,'.//cbc:EndDate'));
     end;
     if TXRechnungXMLHelper.SelectNodes(_Node,'cac:AllowanceCharge',nodes) then
     for i := 0 to nodes.length-1 do

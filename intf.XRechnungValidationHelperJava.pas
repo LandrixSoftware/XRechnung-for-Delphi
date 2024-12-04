@@ -51,7 +51,7 @@ type
   private
     JavaRuntimeEnvironmentPath : String;
     ValidatorLibPath : String;
-    ValidatorConfigurationPath : String;
+    ValidatorConfigurationPath : TStringList;
     VisualizationLibPath : String;
     FopLibPath : String;
     MustangprojectPath : String;
@@ -89,11 +89,13 @@ end;
 constructor TXRechnungValidationHelperJava.Create;
 begin
   CmdOutput := TStringList.Create;
+  ValidatorConfigurationPath := TStringList.Create;
 end;
 
 destructor TXRechnungValidationHelperJava.Destroy;
 begin
   if Assigned(CmdOutput) then begin CmdOutput.Free; CmdOutput := nil; end;
+  if Assigned(ValidatorConfigurationPath) then begin ValidatorConfigurationPath.Free; ValidatorConfigurationPath := nil; end;
   inherited;
 end;
 
@@ -385,7 +387,7 @@ end;
 function TXRechnungValidationHelperJava.SetValidatorConfigurationPath(
   const _Path: String): IXRechnungValidationHelperJava;
 begin
-  ValidatorConfigurationPath := IncludeTrailingPathDelimiter(_Path);
+  ValidatorConfigurationPath.Add(IncludeTrailingPathDelimiter(_Path));
   Result := self;
 end;
 
@@ -405,7 +407,8 @@ function TXRechnungValidationHelperJava.Validate(const _InvoiceXMLData: String; 
   _ValidationResultAsXML, _ValidationResultAsHTML: String): Boolean;
 var
   hstrl,cmd: TStringList;
-  tmpFilename : String;
+  tmpFilename,cmdLine : String;
+  i : Integer;
 begin
   Result := false;
   if _InvoiceXMLData = '' then
@@ -414,7 +417,10 @@ begin
     exit;
   if not FileExists(ValidatorLibPath+'validationtool-1.5.0-java8-standalone.jar') then
     exit;
-  if not FileExists(ValidatorConfigurationPath+'scenarios.xml') then
+  if ValidatorConfigurationPath.Count=0 then
+    exit;
+  for i := 0 to ValidatorConfigurationPath.Count-1 do
+  if not FileExists(ValidatorConfigurationPath[i]+'scenarios.xml') then
     exit;
 
   tmpFilename := TPath.GetTempFileName;
@@ -426,12 +432,18 @@ begin
     hstrl.SaveToFile(tmpFilename,TEncoding.UTF8);
 
     cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
-    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -classpath '+
+    cmdLine := QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -classpath '+
              QuoteIfContainsSpace(ValidatorLibPath+'libs')+' -jar '+
-             QuoteIfContainsSpace(ValidatorLibPath+'validationtool-1.5.0-standalone.jar')+' -s '+
-             QuoteIfContainsSpace(ValidatorConfigurationPath+'scenarios.xml')+' -r '+
-             QuoteIfContainsSpace(ExcludeTrailingPathDelimiter(ValidatorConfigurationPath))+' -h '+
-             QuoteIfContainsSpace(tmpFilename));
+             QuoteIfContainsSpace(ValidatorLibPath+'validationtool-1.5.0-standalone.jar');
+    for i := 0 to ValidatorConfigurationPath.Count-1 do
+    begin
+      cmdLine := cmdLine +
+         ' -s '+QuoteIfContainsSpace(ValidatorConfigurationPath[i]+'scenarios.xml')+
+         ' -r '+QuoteIfContainsSpace(ExcludeTrailingPathDelimiter(ValidatorConfigurationPath[i]))
+    end;
+    cmdLine := cmdLine + ' -h '+QuoteIfContainsSpace(tmpFilename);
+    cmd.Add(cmdLine);
+
     cmd.SaveToFile(tmpFilename+'.bat',TEncoding.ANSI);
 
     Result := ExecAndWait(tmpFilename+'.bat','');
@@ -466,7 +478,8 @@ function TXRechnungValidationHelperJava.ValidateFile(
   _ValidationResultAsXML, _ValidationResultAsHTML: String): Boolean;
 var
   hstrl,cmd: TStringList;
-  lInvoiceXMLFilename: String;
+  lInvoiceXMLFilename,cmdLine: String;
+  i : Integer;
 begin
   Result := false;
   if _InvoiceXMLFilename = '' then
@@ -477,19 +490,28 @@ begin
     exit;
   if not FileExists(ValidatorLibPath+'validationtool-1.5.0-java8-standalone.jar') then
     exit;
-  if not FileExists(ValidatorConfigurationPath+'scenarios.xml') then
+  if ValidatorConfigurationPath.Count=0 then
+    exit;
+  for i := 0 to ValidatorConfigurationPath.Count-1 do
+  if not FileExists(ValidatorConfigurationPath[i]+'scenarios.xml') then
     exit;
 
   hstrl := TStringList.Create;
   cmd := TStringList.Create;
   try
     cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(_InvoiceXMLFilename)));
-    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -classpath '+
+
+    cmdLine := QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -classpath '+
              QuoteIfContainsSpace(ValidatorLibPath+'libs')+' -jar '+
-             QuoteIfContainsSpace(ValidatorLibPath+'validationtool-1.5.0-standalone.jar')+' -s '+
-             QuoteIfContainsSpace(ValidatorConfigurationPath+'scenarios.xml')+' -r '+
-             QuoteIfContainsSpace(ExcludeTrailingPathDelimiter(ValidatorConfigurationPath))+' -h '+
-             QuoteIfContainsSpace(_InvoiceXMLFilename));
+             QuoteIfContainsSpace(ValidatorLibPath+'validationtool-1.5.0-standalone.jar');
+    for i := 0 to ValidatorConfigurationPath.Count-1 do
+    begin
+      cmdLine := cmdLine +
+         ' -s '+QuoteIfContainsSpace(ValidatorConfigurationPath[i]+'scenarios.xml')+
+         ' -r '+QuoteIfContainsSpace(ExcludeTrailingPathDelimiter(ValidatorConfigurationPath[i]))
+    end;
+    cmdLine := cmdLine + ' -h '+QuoteIfContainsSpace(_InvoiceXMLFilename);
+    cmd.Add(cmdLine);
     cmd.SaveToFile(_InvoiceXMLFilename+'.bat',TEncoding.ANSI);
 
     Result := ExecAndWait(_InvoiceXMLFilename+'.bat','');

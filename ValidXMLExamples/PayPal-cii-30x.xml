@@ -12,7 +12,7 @@
     <ram:ID>R2020-0815</ram:ID>
     <ram:TypeCode>380</ram:TypeCode>
     <ram:IssueDateTime>
-      <udt:DateTimeString format="102">20241129</udt:DateTimeString>
+      <udt:DateTimeString format="102">20241205</udt:DateTimeString>
     </ram:IssueDateTime>
   </rsm:ExchangedDocument>
   <rsm:SupplyChainTradeTransaction>
@@ -124,15 +124,15 @@ Zeile 3</ram:Description>
       </ram:ApplicableTradeTax>
       <ram:BillingSpecifiedPeriod>
         <ram:StartDateTime>
-          <udt:DateTimeString format="102">20241030</udt:DateTimeString>
+          <udt:DateTimeString format="102">20241105</udt:DateTimeString>
         </ram:StartDateTime>
         <ram:EndDateTime>
-          <udt:DateTimeString format="102">20241128</udt:DateTimeString>
+          <udt:DateTimeString format="102">20241204</udt:DateTimeString>
         </ram:EndDateTime>
       </ram:BillingSpecifiedPeriod>
       <ram:SpecifiedTradePaymentTerms>
         <ram:DueDateDateTime>
-          <udt:DateTimeString format="102">20241229</udt:DateTimeString>
+          <udt:DateTimeString format="102">20250104</udt:DateTimeString>
         </ram:DueDateDateTime>
       </ram:SpecifiedTradePaymentTerms>
       <ram:SpecifiedTradeSettlementHeaderMonetarySummation>

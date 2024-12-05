@@ -12,7 +12,7 @@
     <ram:ID>R2020-0815</ram:ID>
     <ram:TypeCode>380</ram:TypeCode>
     <ram:IssueDateTime>
-      <udt:DateTimeString format="102">20241129</udt:DateTimeString>
+      <udt:DateTimeString format="102">20241205</udt:DateTimeString>
     </ram:IssueDateTime>
     <ram:IncludedNote>
       <ram:Content>keine</ram:Content>
@@ -235,7 +235,7 @@ Zeile 3</ram:Description>
       </ram:ShipToTradeParty>
       <ram:ActualDeliverySupplyChainEvent>
         <ram:OccurrenceDateTime>
-          <udt:DateTimeString format="102">20241128</udt:DateTimeString>
+          <udt:DateTimeString format="102">20241204</udt:DateTimeString>
         </ram:OccurrenceDateTime>
       </ram:ActualDeliverySupplyChainEvent>
       <ram:DespatchAdviceReferencedDocument>
@@ -275,10 +275,10 @@ Zeile 3</ram:Description>
       </ram:ApplicableTradeTax>
       <ram:BillingSpecifiedPeriod>
         <ram:StartDateTime>
-          <udt:DateTimeString format="102">20241030</udt:DateTimeString>
+          <udt:DateTimeString format="102">20241105</udt:DateTimeString>
         </ram:StartDateTime>
         <ram:EndDateTime>
-          <udt:DateTimeString format="102">20241128</udt:DateTimeString>
+          <udt:DateTimeString format="102">20241204</udt:DateTimeString>
         </ram:EndDateTime>
       </ram:BillingSpecifiedPeriod>
       <ram:SpecifiedTradeAllowanceCharge>
@@ -341,7 +341,7 @@ Zeile 3</ram:Description>
       </ram:SpecifiedTradeAllowanceCharge>
       <ram:SpecifiedTradePaymentTerms>
         <ram:DueDateDateTime>
-          <udt:DateTimeString format="102">20241229</udt:DateTimeString>
+          <udt:DateTimeString format="102">20250104</udt:DateTimeString>
         </ram:DueDateDateTime>
       </ram:SpecifiedTradePaymentTerms>
       <ram:SpecifiedTradeSettlementHeaderMonetarySummation>
@@ -357,7 +357,7 @@ Zeile 3</ram:Description>
       <ram:InvoiceReferencedDocument>
         <ram:IssuerAssignedID>R2020-0001</ram:IssuerAssignedID>
         <ram:FormattedIssueDateTime>
-          <qdt:DateTimeString format="102">20240821</qdt:DateTimeString>
+          <qdt:DateTimeString format="102">20240827</qdt:DateTimeString>
         </ram:FormattedIssueDateTime>
       </ram:InvoiceReferencedDocument>
     </ram:ApplicableHeaderTradeSettlement>

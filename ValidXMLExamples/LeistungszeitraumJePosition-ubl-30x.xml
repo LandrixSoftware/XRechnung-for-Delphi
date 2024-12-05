@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ubl:CreditNote xmlns:ubl="urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
-  <cbc:CustomizationID>urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0</cbc:CustomizationID>
+<ubl:Invoice xmlns:ubl="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+  <cbc:CustomizationID>urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0#conformant#urn:xeinkauf.de:kosit:extension:xrechnung_3.0</cbc:CustomizationID>
   <cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</cbc:ProfileID>
   <cbc:ID>R2020-0815</cbc:ID>
-  <cbc:IssueDate>2024-12-05</cbc:IssueDate>
-  <cbc:CreditNoteTypeCode>381</cbc:CreditNoteTypeCode>
-  <cbc:Note>Notiz zur Gutschrift</cbc:Note>
+  <cbc:IssueDate>2024-10-01</cbc:IssueDate>
+  <cbc:DueDate>2024-11-01</cbc:DueDate>
+  <cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
   <cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode>
-  <cbc:BuyerReference>04011000-12345-34</cbc:BuyerReference>
+  <cbc:BuyerReference>non-existent</cbc:BuyerReference>
   <cac:InvoicePeriod>
-    <cbc:StartDate>2024-11-05</cbc:StartDate>
-    <cbc:EndDate>2024-12-04</cbc:EndDate>
+    <cbc:StartDate>2024-10-01</cbc:StartDate>
+    <cbc:EndDate>2025-09-30</cbc:EndDate>
   </cac:InvoicePeriod>
   <cac:AccountingSupplierParty>
     <cac:Party>
@@ -40,7 +40,7 @@
       </cac:PartyTaxScheme>
       <cac:PartyLegalEntity>
         <cbc:RegistrationName>Verkaeufername</cbc:RegistrationName>
-        <cbc:CompanyLegalForm>Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemaess Paragraph 19 UStG</cbc:CompanyLegalForm>
+        <cbc:CompanyID>HRB 789</cbc:CompanyID>
       </cac:PartyLegalEntity>
       <cac:Contact>
         <cbc:Name>Meier</cbc:Name>
@@ -79,33 +79,19 @@
         <cbc:RegistrationName>Kaeufername</cbc:RegistrationName>
         <cbc:CompanyID>HRB 456</cbc:CompanyID>
       </cac:PartyLegalEntity>
-      <cac:Contact>
-        <cbc:Name>Mueller</cbc:Name>
-        <cbc:Telephone>030 1508</cbc:Telephone>
-        <cbc:ElectronicMail>mueller@kunde.de</cbc:ElectronicMail>
-      </cac:Contact>
     </cac:Party>
   </cac:AccountingCustomerParty>
   <cac:PaymentMeans>
-    <cbc:PaymentMeansCode>58</cbc:PaymentMeansCode>
-    <cbc:PaymentID>Verwendungszweck der Ueberweisung...R2020-0815</cbc:PaymentID>
-    <cac:PayeeFinancialAccount>
-      <cbc:ID>DE75512108001245126199</cbc:ID>
-      <cbc:Name>Fa. XY</cbc:Name>
-    </cac:PayeeFinancialAccount>
+    <cbc:PaymentMeansCode>1</cbc:PaymentMeansCode>
   </cac:PaymentMeans>
-  <cac:PaymentTerms>
-    <cbc:Note>Zahlbar bis zum 30.12.1899 ohne Abzug.</cbc:Note>
-  </cac:PaymentTerms>
   <cac:TaxTotal>
-    <cbc:TaxAmount currencyID="EUR">0.00</cbc:TaxAmount>
+    <cbc:TaxAmount currencyID="EUR">136.80</cbc:TaxAmount>
     <cac:TaxSubtotal>
-      <cbc:TaxableAmount currencyID="EUR">500.00</cbc:TaxableAmount>
-      <cbc:TaxAmount currencyID="EUR">0.00</cbc:TaxAmount>
+      <cbc:TaxableAmount currencyID="EUR">720.00</cbc:TaxableAmount>
+      <cbc:TaxAmount currencyID="EUR">136.80</cbc:TaxAmount>
       <cac:TaxCategory>
-        <cbc:ID>E</cbc:ID>
-        <cbc:Percent>0.00</cbc:Percent>
-        <cbc:TaxExemptionReason>Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemaess Paragraph 19 UStG</cbc:TaxExemptionReason>
+        <cbc:ID>S</cbc:ID>
+        <cbc:Percent>19.00</cbc:Percent>
         <cac:TaxScheme>
           <cbc:ID>VAT</cbc:ID>
         </cac:TaxScheme>
@@ -113,36 +99,66 @@
     </cac:TaxSubtotal>
   </cac:TaxTotal>
   <cac:LegalMonetaryTotal>
-    <cbc:LineExtensionAmount currencyID="EUR">500.00</cbc:LineExtensionAmount>
-    <cbc:TaxExclusiveAmount currencyID="EUR">500.00</cbc:TaxExclusiveAmount>
-    <cbc:TaxInclusiveAmount currencyID="EUR">500.00</cbc:TaxInclusiveAmount>
+    <cbc:LineExtensionAmount currencyID="EUR">720.00</cbc:LineExtensionAmount>
+    <cbc:TaxExclusiveAmount currencyID="EUR">720.00</cbc:TaxExclusiveAmount>
+    <cbc:TaxInclusiveAmount currencyID="EUR">856.80</cbc:TaxInclusiveAmount>
     <cbc:AllowanceTotalAmount currencyID="EUR">0.00</cbc:AllowanceTotalAmount>
     <cbc:ChargeTotalAmount currencyID="EUR">0.00</cbc:ChargeTotalAmount>
     <cbc:PrepaidAmount currencyID="EUR">0.00</cbc:PrepaidAmount>
-    <cbc:PayableAmount currencyID="EUR">500.00</cbc:PayableAmount>
+    <cbc:PayableAmount currencyID="EUR">856.80</cbc:PayableAmount>
   </cac:LegalMonetaryTotal>
-  <cac:CreditNoteLine>
+  <cac:InvoiceLine>
     <cbc:ID>01</cbc:ID>
-    <cbc:CreditedQuantity unitCode="H87">1.0000</cbc:CreditedQuantity>
-    <cbc:LineExtensionAmount currencyID="EUR">500.00</cbc:LineExtensionAmount>
+    <cbc:InvoicedQuantity unitCode="H87">1.0000</cbc:InvoicedQuantity>
+    <cbc:LineExtensionAmount currencyID="EUR">360.00</cbc:LineExtensionAmount>
+    <cac:InvoicePeriod>
+      <cbc:StartDate>2024-10-02</cbc:StartDate>
+      <cbc:EndDate>2025-09-29</cbc:EndDate>
+    </cac:InvoicePeriod>
     <cac:Item>
-      <cbc:Description>Provision</cbc:Description>
-      <cbc:Name>Provision</cbc:Name>
+      <cbc:Name>Kurzinfo Artikel 1</cbc:Name>
       <cac:ClassifiedTaxCategory>
-        <cbc:ID>E</cbc:ID>
-        <cbc:Percent>0.00</cbc:Percent>
+        <cbc:ID>S</cbc:ID>
+        <cbc:Percent>19.00</cbc:Percent>
         <cac:TaxScheme>
           <cbc:ID>VAT</cbc:ID>
         </cac:TaxScheme>
       </cac:ClassifiedTaxCategory>
     </cac:Item>
     <cac:Price>
-      <cbc:PriceAmount currencyID="EUR">500.0000</cbc:PriceAmount>
+      <cbc:PriceAmount currencyID="EUR">360.0000</cbc:PriceAmount>
       <cac:AllowanceCharge>
         <cbc:ChargeIndicator>false</cbc:ChargeIndicator>
         <cbc:Amount currencyID="EUR">0.0000</cbc:Amount>
-        <cbc:BaseAmount currencyID="EUR">500.0000</cbc:BaseAmount>
+        <cbc:BaseAmount currencyID="EUR">360.0000</cbc:BaseAmount>
       </cac:AllowanceCharge>
     </cac:Price>
-  </cac:CreditNoteLine>
-</ubl:CreditNote>
+  </cac:InvoiceLine>
+  <cac:InvoiceLine>
+    <cbc:ID>02</cbc:ID>
+    <cbc:InvoicedQuantity unitCode="H87">1.0000</cbc:InvoicedQuantity>
+    <cbc:LineExtensionAmount currencyID="EUR">360.00</cbc:LineExtensionAmount>
+    <cac:InvoicePeriod>
+      <cbc:StartDate>2024-10-02</cbc:StartDate>
+      <cbc:EndDate>2024-12-30</cbc:EndDate>
+    </cac:InvoicePeriod>
+    <cac:Item>
+      <cbc:Name>Kurzinfo Artikel 2</cbc:Name>
+      <cac:ClassifiedTaxCategory>
+        <cbc:ID>S</cbc:ID>
+        <cbc:Percent>19.00</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:ClassifiedTaxCategory>
+    </cac:Item>
+    <cac:Price>
+      <cbc:PriceAmount currencyID="EUR">360.0000</cbc:PriceAmount>
+      <cac:AllowanceCharge>
+        <cbc:ChargeIndicator>false</cbc:ChargeIndicator>
+        <cbc:Amount currencyID="EUR">0.0000</cbc:Amount>
+        <cbc:BaseAmount currencyID="EUR">360.0000</cbc:BaseAmount>
+      </cac:AllowanceCharge>
+    </cac:Price>
+  </cac:InvoiceLine>
+</ubl:Invoice>

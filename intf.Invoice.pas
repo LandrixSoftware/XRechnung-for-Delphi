@@ -971,7 +971,7 @@ begin
     exit;
   end;
   if SameText(_UnitOfMeasure,'qm') or
-     SameText(_UnitOfMeasure,'m2')
+     SameText(_UnitOfMeasure,'m2') or
      SameText(_UnitOfMeasure,'m'+#178)
       then
   begin

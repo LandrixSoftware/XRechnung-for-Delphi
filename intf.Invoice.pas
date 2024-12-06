@@ -884,6 +884,7 @@ begin
      SameText(_UnitOfMeasure,'st.') or
      SameText(_UnitOfMeasure,'stk.') or
      SameText(_UnitOfMeasure,'stk') or
+     SameText(_UnitOfMeasure,'C62') or
      SameText(_UnitOfMeasure,'stck') then
   begin
     Result := iuc_piece;
@@ -970,19 +971,28 @@ begin
     exit;
   end;
   if SameText(_UnitOfMeasure,'qm') or
-     SameText(_UnitOfMeasure,'m2') then
+     SameText(_UnitOfMeasure,'m2')
+     SameText(_UnitOfMeasure,'m'+#178)
+      then
   begin
     Result := iuc_square_metre;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'qqm') then
+  if SameText(_UnitOfMeasure,'qqm')or
+     SameText(_UnitOfMeasure,'cbm') or
+     SameText(_UnitOfMeasure,'m3') or
+     SameText(_UnitOfMeasure,'m'+#179)
+   then
   begin
     Result := iuc_cubic_metre;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'m') then
+  if SameText(_UnitOfMeasure,'m') or
+     SameText(_UnitOfMeasure,'lfm') or
+     SameText(_UnitOfMeasure,'me') or
+     SameText(_UnitOfMeasure,'mtr') then
   begin
     Result := iuc_metre;
     _Success := true;
@@ -1013,6 +1023,7 @@ begin
     exit;
   end;
   if SameText(_UnitOfMeasure,'Paket') or
+     SameText(_UnitOfMeasure,'PCK') or
      SameText(_UnitOfMeasure,'Pack') then
   begin
     Result := iuc_packaging;

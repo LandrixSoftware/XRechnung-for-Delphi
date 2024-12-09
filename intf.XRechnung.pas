@@ -1047,8 +1047,10 @@ begin
     exit;
   if (SameText(_XML.DocumentElement.NodeName,'Invoice') or
       SameText(_XML.DocumentElement.NodeName,'ubl:Invoice') or
+      SameText(_XML.DocumentElement.NodeName,'ns0:Invoice') or
       SameText(_XML.DocumentElement.NodeName,'CreditNote') or
-      SameText(_XML.DocumentElement.NodeName,'ubl:CreditNote')) then
+      SameText(_XML.DocumentElement.NodeName,'ubl:CreditNote') or
+      SameText(_XML.DocumentElement.NodeName,'ns0:CreditNote')) then
   begin
     if not TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'cbc:CustomizationID',node) then
       exit;

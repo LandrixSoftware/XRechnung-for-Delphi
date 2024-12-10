@@ -22,6 +22,11 @@ uses
 
 type
   TInvoiceTestCases = class(TObject)
+  private class var
+    InvoiceIssueDate : TDate;
+    InvoiceDueDate : TDate;
+    InvoicePeriodStartDate : TDate;
+    InvoicePeriodEndDate : TDate;
   public
     class procedure Gesamtbeispiel(inv : TInvoice; Zahlungsbedingung : Integer;
                        NachlaesseZuschlaegeVerwenden, AbschlagsrechnungAbziehen,
@@ -53,15 +58,24 @@ var
 begin
   //https://www.comarch.de/produkte/datenaustausch-und-dokumentenmanagement/altteilsteuer-in-der-xrechnung/
   inv.InvoiceNumber := 'R2020-0815';
-  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
-  inv.InvoicePeriodStartDate := Date-30;
-  inv.InvoicePeriodEndDate := Date-1;
+  inv.InvoiceIssueDate := TInvoiceTestCases.InvoiceIssueDate;          //Rechnungsdatum
+  inv.InvoiceDueDate := TInvoiceTestCases.InvoiceDueDate;         //Faelligkeitsdatum
+  inv.InvoicePeriodStartDate := TInvoiceTestCases.InvoicePeriodStartDate;
+  inv.InvoicePeriodEndDate := TInvoiceTestCases.InvoicePeriodEndDate;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
   inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
-  inv.Notes.AddNote.Content := 'Rechnung enthaelt 100 EUR (Umsatz)Steuer auf Altteile gem. Abschn. 10.5 Abs. 3 UStAE';
+  with inv.Notes.AddNote do //Sollte ausgefuellt werden
+  begin
+    Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
+    SubjectCode := insc_REG;
+  end;
+  with inv.Notes.AddNote do
+  begin
+    Content := 'Rechnung enthaelt 100 EUR (Umsatz)Steuer auf Altteile gem. Abschn. 10.5 Abs. 3 UStAE';
+    SubjectCode := insc_TXD;
+  end;
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
@@ -88,8 +102,10 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
+  //bei AccountingCustomerParty nur eine VAT von beiden
+  //Die EN16931 laesst ausschliesslich die UStID zu
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
+  //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
@@ -209,15 +225,24 @@ begin
   //Das Beispiel fuer eine Differenzbesteuerung ist ein Vorschlag und wurde offiziell nicht validiert.
   //https://www.comarch.de/produkte/datenaustausch-und-dokumentenmanagement/altteilsteuer-in-der-xrechnung/
   inv.InvoiceNumber := 'R2020-0815';
-  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
-  inv.InvoicePeriodStartDate := Date-30;
-  inv.InvoicePeriodEndDate := Date-1;
+  inv.InvoiceIssueDate := TInvoiceTestCases.InvoiceIssueDate;          //Rechnungsdatum
+  inv.InvoiceDueDate := TInvoiceTestCases.InvoiceDueDate;         //Faelligkeitsdatum
+  inv.InvoicePeriodStartDate := TInvoiceTestCases.InvoicePeriodStartDate;
+  inv.InvoicePeriodEndDate := TInvoiceTestCases.InvoicePeriodEndDate;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
   inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
-  inv.Notes.AddNote.Content := 'Das Fahrzeug/der Artikel ist differenzbesteuert nach Paragraph 25a UStG Sonderregelung fuer Gebrauchtgegenstaende';
+  with inv.Notes.AddNote do //Sollte ausgefuellt werden
+  begin
+    Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
+    SubjectCode := insc_REG;
+  end;
+  with inv.Notes.AddNote do
+  begin
+    Content := 'Das Fahrzeug/der Artikel ist differenzbesteuert nach Paragraph 25a UStG Sonderregelung fuer Gebrauchtgegenstaende';
+    SubjectCode := insc_TXD;
+  end;
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
@@ -244,8 +269,10 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
+  //bei AccountingCustomerParty nur eine VAT von beiden
+  //Die EN16931 laesst ausschliesslich die UStID zu
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
+  //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
@@ -309,15 +336,19 @@ var
   suc : Boolean;
 begin
   inv.InvoiceNumber := 'R2020-0815';
-  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
-  inv.InvoicePeriodStartDate := Date-30; //Leistungs-/Lieferzeitpunkt Beginn
-  inv.InvoicePeriodEndDate := Date-1;    //Leistungs-/Lieferzeitpunkt Ende
+  inv.InvoiceIssueDate := TInvoiceTestCases.InvoiceIssueDate;          //Rechnungsdatum
+  inv.InvoiceDueDate := TInvoiceTestCases.InvoiceDueDate;         //Faelligkeitsdatum
+  inv.InvoicePeriodStartDate := TInvoiceTestCases.InvoicePeriodStartDate; //Leistungs-/Lieferzeitpunkt Beginn
+  inv.InvoicePeriodEndDate := TInvoiceTestCases.InvoicePeriodEndDate;    //Leistungs-/Lieferzeitpunkt Ende
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
   inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
-  inv.Notes.AddNote.Content := 'keine';
+  with inv.Notes.AddNote do //Sollte ausgefuellt werden
+  begin
+    Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
+    SubjectCode := insc_REG;
+  end;
   inv.PurchaseOrderReference := 'B0815'; //Bestell-Nr. optional
   inv.SellerOrderReference := 'A0815';
   inv.ProjectReference := 'PR456789';
@@ -352,8 +383,10 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
+  //bei AccountingCustomerParty nur eine VAT von beiden
+  //Die EN16931 laesst ausschliesslich die UStID zu
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
+  //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
@@ -374,7 +407,7 @@ begin
   end;
 
   //Lieferdatum
-  inv.DeliveryInformation.ActualDeliveryDate := Date-1;
+  inv.DeliveryInformation.ActualDeliveryDate := TInvoiceTestCases.InvoicePeriodEndDate;
 
   //Zwei Zahlungswege
   inv.PaymentID := 'Verwendungszweck R2020-0815';
@@ -453,37 +486,7 @@ begin
       Filename := 'attachment.csv';
       EmbedDataFromFile(ExtractFilePath(ExtractFileDir(ExtractFileDir(Application.ExeName))) +'attachment.csv');
     end;
-    //ohne Daten nur bis XRechnung 2.3.1 erlaubt
-    //with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_application_vnd_openxmlformats_officedocument_spreadsheetml_sheet) do
-    //begin
-    //  ID := 'attachment.xlsx';
-    //  Filename := 'attachment.xlsx';
-    //end;
-    //ohne Daten nur bis XRechnung 2.3.1 erlaubt
-    //with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_application_vnd_oasis_opendocument_spreadsheet) do
-    //begin
-    //  ID := 'attachment.ods';
-    //  Filename := 'attachment.ods';
-    //end;
-
-    //wird bei Ausgabe Version 1.2.2 nicht beachtet, da nicht unterstuetzt
-    //gibt nach aktuellem Validierungstool noch einen Fehler
-    //with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_application_xml) do
-    //begin
-    //  ID := 'attachment.xml';
-    //  Filename := 'attachment.xml';
-    //  EmbedDataFromFile(ExtractFilePath(ExtractFileDir(ExtractFileDir(Application.ExeName))) +'attachment.xml');
-    //end;
-    //Externer Anhang
-    with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_application_pdf) do
-    begin
-      ID := 'attachment-external.pdf';
-      Filename := 'attachment-external.pdf';
-      ExternalReference := 'http://meinserver.de/attachment-external.pdf';
-      EmbedDataFromFile(ExtractFilePath(ExtractFileDir(ExtractFileDir(Application.ExeName))) +'attachment.pdf');
-    end;
   end;
-
 
   with inv.InvoiceLines.AddInvoiceLine do
   begin
@@ -686,13 +689,13 @@ begin
     with inv.PrecedingInvoiceReferences.AddPrecedingInvoiceReference do
     begin
       ID := 'R2020-0001';
-      IssueDate := Date-100; //Rechnungsdatum
+      IssueDate := EncodeDate(2024,8,27); //Rechnungsdatum
     end;
     if not XRechnungCII then
     with inv.PrecedingInvoiceReferences.AddPrecedingInvoiceReference do
     begin
       ID := 'R2020-0002';
-      IssueDate := Date-50; //Rechnungsdatum
+      IssueDate := EncodeDate(2024,10,16); //Rechnungsdatum
     end;
     inv.PrepaidAmount := 100.00; //Euro angezahlt
     inv.PayableAmount := inv.PayableAmount - inv.PrepaidAmount; //Vom Zahlbetrag abziehen
@@ -706,15 +709,20 @@ var
   suc : Boolean;
 begin
   inv.InvoiceNumber := 'R2020-0815';
-  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
+  inv.InvoiceIssueDate := TInvoiceTestCases.InvoiceIssueDate;          //Rechnungsdatum
   inv.InvoiceDueDate := 0;         //Faelligkeitsdatum
-  inv.InvoicePeriodStartDate := Date-30;
-  inv.InvoicePeriodEndDate := Date-1;
+  inv.InvoicePeriodStartDate := TInvoiceTestCases.InvoicePeriodStartDate;
+  inv.InvoicePeriodEndDate := TInvoiceTestCases.InvoicePeriodEndDate;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CreditNote; //Gutschrift
   inv.InvoiceCurrencyCode := 'EUR';
   inv.Notes.AddNote.Content := 'Notiz zur Gutschrift';
   inv.TaxCurrencyCode := 'EUR';
   inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
+  with inv.Notes.AddNote do //Sollte ausgefuellt werden
+  begin
+    Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
+    SubjectCode := insc_REG;
+  end;
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
@@ -743,8 +751,10 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
+  //bei AccountingCustomerParty nur eine VAT von beiden
+  //Die EN16931 laesst ausschliesslich die UStID zu
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
+  //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
@@ -803,14 +813,19 @@ var
   suc : Boolean;
 begin
   inv.InvoiceNumber := 'R2020-0815';
-  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
-  inv.InvoicePeriodStartDate := Date-30;
-  inv.InvoicePeriodEndDate := Date-1;
+  inv.InvoiceIssueDate := TInvoiceTestCases.InvoiceIssueDate;          //Rechnungsdatum
+  inv.InvoiceDueDate := TInvoiceTestCases.InvoiceDueDate;         //Faelligkeitsdatum
+  inv.InvoicePeriodStartDate := TInvoiceTestCases.InvoicePeriodStartDate;
+  inv.InvoicePeriodEndDate := TInvoiceTestCases.InvoicePeriodEndDate;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
   inv.BuyerReference := TInvoiceEmptyLeitwegID.NON_EXISTENT; //B2B ohne Leitweg-ID
+  with inv.Notes.AddNote do //Sollte ausgefuellt werden
+  begin
+    Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
+    SubjectCode := insc_REG;
+  end;
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
@@ -840,7 +855,6 @@ begin
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'AT';
   inv.AccountingCustomerParty.VATCompanyID := 'AT12345678';
-//  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
   inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.at';
@@ -851,7 +865,7 @@ begin
   inv.DeliveryInformation.Address.City := 'Lieferstadt';
   inv.DeliveryInformation.Address.PostalZone := '05678';
   inv.DeliveryInformation.Address.CountryCode := 'AT';
-  inv.DeliveryInformation.ActualDeliveryDate := Date-1;
+  inv.DeliveryInformation.ActualDeliveryDate := TInvoiceTestCases.InvoicePeriodEndDate;
 
   inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
   with inv.PaymentTypes.AddPaymentType do
@@ -905,14 +919,19 @@ var
   suc : Boolean;
 begin
   inv.InvoiceNumber := 'R2020-0815';
-  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
-  inv.InvoicePeriodStartDate := Date-30;
-  inv.InvoicePeriodEndDate := Date-1;
+  inv.InvoiceIssueDate := TInvoiceTestCases.InvoiceIssueDate;          //Rechnungsdatum
+  inv.InvoiceDueDate := TInvoiceTestCases.InvoiceDueDate;         //Faelligkeitsdatum
+  inv.InvoicePeriodStartDate := TInvoiceTestCases.InvoicePeriodStartDate;
+  inv.InvoicePeriodEndDate := TInvoiceTestCases.InvoicePeriodEndDate;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
   inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
+  with inv.Notes.AddNote do //Sollte ausgefuellt werden
+  begin
+    Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
+    SubjectCode := insc_REG;
+  end;
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
@@ -941,8 +960,10 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
+  //bei AccountingCustomerParty nur eine VAT von beiden
+  //Die EN16931 laesst ausschliesslich die UStID zu
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
+  //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
@@ -1000,14 +1021,19 @@ var
   suc : Boolean;
 begin
   inv.InvoiceNumber := 'R2020-0815';
-  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
-  inv.InvoicePeriodStartDate := Date-30;
-  inv.InvoicePeriodEndDate := Date-1;
+  inv.InvoiceIssueDate := TInvoiceTestCases.InvoiceIssueDate;          //Rechnungsdatum
+  inv.InvoiceDueDate := TInvoiceTestCases.InvoiceDueDate;         //Faelligkeitsdatum
+  inv.InvoicePeriodStartDate := TInvoiceTestCases.InvoicePeriodStartDate;
+  inv.InvoicePeriodEndDate := TInvoiceTestCases.InvoicePeriodEndDate;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
   inv.BuyerReference := TInvoiceEmptyLeitwegID.NON_EXISTENT; //B2B ohne Leitweg-ID
+  with inv.Notes.AddNote do //Sollte ausgefuellt werden
+  begin
+    Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
+    SubjectCode := insc_REG;
+  end;
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
@@ -1034,8 +1060,10 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
+  //bei AccountingCustomerParty nur eine VAT von beiden
+  //Die EN16931 laesst ausschliesslich die UStID zu
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
+  //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
   inv.PaymentID := 'Verwendungszweck ...R2020-0815';
@@ -1094,14 +1122,19 @@ var
   suc : Boolean;
 begin
   inv.InvoiceNumber := 'R2020-0815';
-  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
-  inv.InvoicePeriodStartDate := Date-30;
-  inv.InvoicePeriodEndDate := Date-1;
+  inv.InvoiceIssueDate := TInvoiceTestCases.InvoiceIssueDate;          //Rechnungsdatum
+  inv.InvoiceDueDate := TInvoiceTestCases.InvoiceDueDate;         //Faelligkeitsdatum
+  inv.InvoicePeriodStartDate := TInvoiceTestCases.InvoicePeriodStartDate;
+  inv.InvoicePeriodEndDate := TInvoiceTestCases.InvoicePeriodEndDate;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
   inv.BuyerReference := TInvoiceEmptyLeitwegID.NON_EXISTENT; //B2B ohne Leitweg-ID
+  with inv.Notes.AddNote do //Sollte ausgefuellt werden
+  begin
+    Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
+    SubjectCode := insc_REG;
+  end;
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
@@ -1128,8 +1161,10 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
+  //bei AccountingCustomerParty nur eine VAT von beiden
+  //Die EN16931 laesst ausschliesslich die UStID zu
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
+  //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
   inv.PaymentID := 'Verwendungszweck der Ueberweisung...R2020-0815';
@@ -1192,6 +1227,11 @@ begin
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
   inv.BuyerReference := TInvoiceEmptyLeitwegID.NON_EXISTENT; //B2B ohne Leitweg-ID
+  with inv.Notes.AddNote do //Sollte ausgefuellt werden
+  begin
+    Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
+    SubjectCode := insc_REG;
+  end;
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
@@ -1218,8 +1258,10 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
+  //bei AccountingCustomerParty nur eine VAT von beiden
+  //Die EN16931 laesst ausschliesslich die UStID zu
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
+  //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
   inv.PaymentTypes.AddPaymentType.PaymentMeansCode := ipmc_InstrumentNotDefined;
@@ -1287,14 +1329,19 @@ var
   suc : Boolean;
 begin
   inv.InvoiceNumber := 'R2020-0815';
-  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
-  inv.InvoicePeriodStartDate := Date-30;
-  inv.InvoicePeriodEndDate := Date-1;
+  inv.InvoiceIssueDate := TInvoiceTestCases.InvoiceIssueDate;          //Rechnungsdatum
+  inv.InvoiceDueDate := TInvoiceTestCases.InvoiceDueDate;         //Faelligkeitsdatum
+  inv.InvoicePeriodStartDate := TInvoiceTestCases.InvoicePeriodStartDate;
+  inv.InvoicePeriodEndDate := TInvoiceTestCases.InvoicePeriodEndDate;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
   inv.BuyerReference := TInvoiceEmptyLeitwegID.NON_EXISTENT; //B2B ohne Leitweg-ID
+  with inv.Notes.AddNote do //Sollte ausgefuellt werden
+  begin
+    Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
+    SubjectCode := insc_REG;
+  end;
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
@@ -1321,8 +1368,10 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
+  //bei AccountingCustomerParty nur eine VAT von beiden
+  //Die EN16931 laesst ausschliesslich die UStID zu
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
+  //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
   inv.PaymentTypes.AddPaymentType.PaymentMeansCode := ipmc_InstrumentNotDefined;
@@ -1369,15 +1418,19 @@ var
   suc : Boolean;
 begin
   inv.InvoiceNumber := 'R2020-0815';
-  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
-  inv.InvoicePeriodStartDate := Date-30;
-  inv.InvoicePeriodEndDate := Date-1;
+  inv.InvoiceIssueDate := TInvoiceTestCases.InvoiceIssueDate;          //Rechnungsdatum
+  inv.InvoiceDueDate := TInvoiceTestCases.InvoiceDueDate;         //Faelligkeitsdatum
+  inv.InvoicePeriodStartDate := TInvoiceTestCases.InvoicePeriodStartDate;
+  inv.InvoicePeriodEndDate := TInvoiceTestCases.InvoicePeriodEndDate;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
   inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
-  inv.Notes.AddNote.Content := 'keine';
+  with inv.Notes.AddNote do //Sollte ausgefuellt werden
+  begin
+    Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
+    SubjectCode := insc_REG;
+  end;
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
@@ -1405,8 +1458,10 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
+  //bei AccountingCustomerParty nur eine VAT von beiden
+  //Die EN16931 laesst ausschliesslich die UStID zu
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
+  //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
@@ -1465,14 +1520,19 @@ var
   suc : Boolean;
 begin
   inv.InvoiceNumber := 'R2020-0815';
-  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
-  inv.InvoicePeriodStartDate := Date-30;
-  inv.InvoicePeriodEndDate := Date-1;
+  inv.InvoiceIssueDate := TInvoiceTestCases.InvoiceIssueDate;          //Rechnungsdatum
+  inv.InvoiceDueDate := TInvoiceTestCases.InvoiceDueDate;         //Faelligkeitsdatum
+  inv.InvoicePeriodStartDate := TInvoiceTestCases.InvoicePeriodStartDate;
+  inv.InvoicePeriodEndDate := TInvoiceTestCases.InvoicePeriodEndDate;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
   inv.BuyerReference := TInvoiceEmptyLeitwegID.NON_EXISTENT; //B2B ohne Leitweg-ID
+  with inv.Notes.AddNote do //Sollte ausgefuellt werden
+  begin
+    Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
+    SubjectCode := insc_REG;
+  end;
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
@@ -1499,8 +1559,10 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
+  //bei AccountingCustomerParty nur eine VAT von beiden
+  //Die EN16931 laesst ausschliesslich die UStID zu
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
+  //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
   inv.PaymentID := 'Verwendungszweck ...R2020-0815';
@@ -1556,14 +1618,19 @@ var
   suc : Boolean;
 begin
   inv.InvoiceNumber := 'R2020-0815';
-  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
-  inv.InvoicePeriodStartDate := Date-30;
-  inv.InvoicePeriodEndDate := Date-1;
+  inv.InvoiceIssueDate := TInvoiceTestCases.InvoiceIssueDate;          //Rechnungsdatum
+  inv.InvoiceDueDate := TInvoiceTestCases.InvoiceDueDate;         //Faelligkeitsdatum
+  inv.InvoicePeriodStartDate := TInvoiceTestCases.InvoicePeriodStartDate;
+  inv.InvoicePeriodEndDate := TInvoiceTestCases.InvoicePeriodEndDate;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
   inv.BuyerReference := TInvoiceEmptyLeitwegID.NON_EXISTENT; //B2B ohne Leitweg-ID
+  with inv.Notes.AddNote do //Sollte ausgefuellt werden
+  begin
+    Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
+    SubjectCode := insc_REG;
+  end;
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
@@ -1590,8 +1657,10 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
+  //bei AccountingCustomerParty nur eine VAT von beiden
+  //Die EN16931 laesst ausschliesslich die UStID zu
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
+  //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
   inv.PaymentTypes.AddPaymentType.PaymentMeansCode := ipmc_InstrumentNotDefined; //Nicht definiert
@@ -1642,16 +1711,21 @@ begin
   with inv.PrecedingInvoiceReferences.AddPrecedingInvoiceReference do
   begin
     ID := 'R2020-0814';
-    IssueDate := Date-40;
+    IssueDate := TInvoiceTestCases.InvoiceIssueDate-40;
   end;
-  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
-  inv.InvoicePeriodStartDate := Date-30;
-  inv.InvoicePeriodEndDate := Date-1;
+  inv.InvoiceIssueDate := TInvoiceTestCases.InvoiceIssueDate;          //Rechnungsdatum
+  inv.InvoiceDueDate := TInvoiceTestCases.InvoiceDueDate;         //Faelligkeitsdatum
+  inv.InvoicePeriodStartDate := TInvoiceTestCases.InvoicePeriodStartDate;
+  inv.InvoicePeriodEndDate := TInvoiceTestCases.InvoicePeriodEndDate;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CorrectedInvoice; //Storno/Rechnungskorrektur
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
   inv.BuyerReference := TInvoiceEmptyLeitwegID.NON_EXISTENT; //B2B ohne Leitweg-ID
+  with inv.Notes.AddNote do //Sollte ausgefuellt werden
+  begin
+    Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
+    SubjectCode := insc_REG;
+  end;
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
@@ -1678,8 +1752,10 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
+  //bei AccountingCustomerParty nur eine VAT von beiden
+  //Die EN16931 laesst ausschliesslich die UStID zu
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
+  //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
 
   inv.PaymentTypes.AddPaymentType.PaymentMeansCode := ipmc_InstrumentNotDefined; //Nicht definiert
@@ -1729,15 +1805,19 @@ begin
   //[UBL-CR-646]-A UBL invoice should not include the InvoiceLine SubInvoiceLine
 
   inv.InvoiceNumber := 'R2020-0815';
-  inv.InvoiceIssueDate := Date;          //Rechnungsdatum
-  inv.InvoiceDueDate := Date+30;         //Faelligkeitsdatum
-  inv.InvoicePeriodStartDate := Date-30;
-  inv.InvoicePeriodEndDate := Date-1;
+  inv.InvoiceIssueDate := TInvoiceTestCases.InvoiceIssueDate;          //Rechnungsdatum
+  inv.InvoiceDueDate := TInvoiceTestCases.InvoiceDueDate;         //Faelligkeitsdatum
+  inv.InvoicePeriodStartDate := TInvoiceTestCases.InvoicePeriodStartDate;
+  inv.InvoicePeriodEndDate := TInvoiceTestCases.InvoicePeriodEndDate;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
   inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
-  inv.Notes.AddNote.Content := 'keine';
+  with inv.Notes.AddNote do //Sollte ausgefuellt werden
+  begin
+    Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
+    SubjectCode := insc_REG;
+  end;
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
@@ -1764,8 +1844,10 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
+  //bei AccountingCustomerParty nur eine VAT von beiden
+  //Die EN16931 laesst ausschliesslich die UStID zu
   inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nicht bei ZUGFeRD 2.3.2
+  //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
@@ -1862,4 +1944,10 @@ begin
   inv.PayableAmount := 428.40;      //Summe Zahlbar MwSt
 end;
 
+initialization
+
+  TInvoiceTestCases.InvoiceIssueDate := EncodeDate(2024,12,5);
+  TInvoiceTestCases.InvoiceDueDate := EncodeDate(2024,12,5)+30;
+  TInvoiceTestCases.InvoicePeriodStartDate := TInvoiceTestCases.InvoiceIssueDate-30;
+  TInvoiceTestCases.InvoicePeriodEndDate := TInvoiceTestCases.InvoiceIssueDate-1;
 end.

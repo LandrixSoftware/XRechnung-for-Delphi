@@ -181,7 +181,7 @@ type
     Filename : String;
     AttachmentType : TInvoiceAttachmentType;
     Data : TMemoryStream;         //https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/cac-AdditionalDocumentReference/cac-Attachment/cbc-EmbeddedDocumentBinaryObject/
-    ExternalReference : String;   //https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/cac-AdditionalDocumentReference/cac-Attachment/cac-ExternalReference/
+    ExternalReference : String;   // Gemaesss BMF-Schreiben vom 15.10.2024 sollen Links auf rechnungsbegruendende Unterlagen nicht verwendet werden. Sie sollen stattdessen in die XML-Datei eingebettet werden. Dies gilt ab dem 01.01.2025.
   public
     constructor Create(_AttachmentType : TInvoiceAttachmentType);
     destructor Destroy; override;
@@ -549,9 +549,25 @@ type
     function IndexOfPrecedingInvoiceReference(const _ID : String) : Integer;
   end;
 
+  //Auswahl aus https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:untdid.4451_4#version
+  TInvoiceNoteSubjectCode = (
+    insc_None, //Freitext
+    insc_AAI,  //Allgemeine Informationen
+    insc_AAK,  //Preiskonditionen Informationen zu den erwarteten bzw. gegebenen Preiskonditionen.
+    insc_SUR,  //Anmerkungen des Verkaeufers
+    insc_REG,  //Regulatorische Informationen
+    insc_ABL,  //Rechtliche Informationen
+    insc_TXD,  //Informationen zur Steuer
+    insc_CUS,  //Zollinformationen
+    insc_PMT   //Payment Information Bürgschaften oder Sicherheitseinbehalte
+    );
+
   TInvoiceNote = class(Tobject)
   public
     Content : String;
+    SubjectCode : TInvoiceNoteSubjectCode;
+  public
+    constructor Create;
   end;
 
   TInvoiceNotes = class(TObjectList)
@@ -788,6 +804,14 @@ begin
     Result := i;
     break;
   end;
+end;
+
+{ TInvoiceNote }
+
+constructor TInvoiceNote.Create;
+begin
+  Content := '';
+  SubjectCode := insc_None;
 end;
 
 { TInvoiceNotes }

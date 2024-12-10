@@ -199,7 +199,16 @@ begin
       _Invoice.InvoiceTypeCode := TXRechnungHelper.InvoiceTypeCodeFromStr(node.Text);
     if TXRechnungXMLHelper.SelectNodes(xml,'//*[local-name()="'+IfThen(_Invoice.InvoiceTypeCode = itc_CreditNote,'CreditNote','Invoice')+'"]/cbc:Note',nodes) then
     for i := 0  to nodes.length-1 do
+    begin
       _Invoice.Notes.AddNote.Content := nodes.item[i].Text;
+      if Length(_Invoice.Notes.Last.Content)>=5 then
+      if (_Invoice.Notes.Last.Content[1]='#') and
+         (_Invoice.Notes.Last.Content[5]='#') then
+      begin
+        _Invoice.Notes.Last.SubjectCode := TXRechnungHelper.InvoiceNoteSubjectCodeFromStr(Copy(_Invoice.Notes.Last.Content,2,3));
+        Delete(_Invoice.Notes.Last.Content,1,5);
+      end;
+    end;
     if TXRechnungXMLHelper.SelectNode(xml,'//cbc:DocumentCurrencyCode',node) then
       _Invoice.InvoiceCurrencyCode := node.Text;
     if TXRechnungXMLHelper.SelectNode(xml,'//cbc:BuyerReference',node) then
@@ -495,7 +504,10 @@ begin
       _Invoice.InvoiceTypeCode := TXRechnungHelper.InvoiceTypeCodeFromStr(node.Text);
     if TXRechnungXMLHelper.SelectNodes(xml,'//*[local-name()="ExchangedDocument"]/ram:IncludedNote',nodes) then
     for i := 0 to nodes.length-1 do
+    begin
       _Invoice.Notes.AddNote.Content := TXRechnungXMLHelper.SelectNodeText(nodes[i], './/ram:Content');
+      _Invoice.Notes.Last.SubjectCode := TXRechnungHelper.InvoiceNoteSubjectCodeFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i], './/ram:SubjectCode'));
+    end;
 
     if not TXRechnungXMLHelper.SelectNode(xml,'//*[local-name()="SupplyChainTradeTransaction"]',nodeSupplyChainTradeTransaction) then
       exit;
@@ -1027,7 +1039,9 @@ begin
     xRoot.AddChild('cbc:InvoiceTypeCode').Text := TXRechnungHelper.InvoiceTypeCodeToStr(_Invoice.InvoiceTypeCode);
 
   for i := 0 to _Invoice.Notes.Count-1 do
-    xRoot.AddChild('cbc:Note').Text := _Invoice.Notes[i].Content;
+    xRoot.AddChild('cbc:Note').Text := IfThen(_Invoice.Notes[i].SubjectCode<>insc_None,
+         '#'+TXRechnungHelper.InvoiceNoteSubjectCodeToStr(_Invoice.Notes[i].SubjectCode)+'#','')+
+         _Invoice.Notes[i].Content;
   xRoot.AddChild('cbc:DocumentCurrencyCode').Text := _Invoice.InvoiceCurrencyCode;
   //xRoot.AddChild('cbc:TaxCurrencyCode').Text := _Invoice.TaxCurrencyCode; //Nicht in XRechnung 3
   xRoot.AddChild('cbc:BuyerReference').Text := _Invoice.BuyerReference;
@@ -1497,9 +1511,9 @@ var
         with AddChild('ram:AppliedTradeAllowanceCharge') do
         begin
           AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := 'false';
-          //<ram:CalculationPercent>45</ram:CalculationPercent> nicht möglich bei UBL
+          //<ram:CalculationPercent>45</ram:CalculationPercent> nicht mï¿½glich bei UBL
           AddChild('ram:ActualAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoiceline.DiscountOnTheGrossPrice);
-          //<ram:Reason>Rabatt1</ram:Reason> nicht möglich bei UBL
+          //<ram:Reason>Rabatt1</ram:Reason> nicht mï¿½glich bei UBL
         end;
       end;
       with AddChild('ram:NetPriceProductTradePrice') do
@@ -1608,7 +1622,8 @@ begin
     with AddChild('ram:IncludedNote') do
     begin
       AddChild('ram:Content').Text := _Invoice.Notes[i].Content;
-      //TODO <ram:SubjectCode>ADU</ram:SubjectCode>, bei UBL auch
+      if _Invoice.Notes[i].SubjectCode <> insc_None then
+        AddChild('ram:SubjectCode').Text := TXRechnungHelper.InvoiceNoteSubjectCodeToStr(_Invoice.Notes[i].SubjectCode);
     end;
   end;
 

@@ -721,6 +721,9 @@ begin
   if SameText(_Val,'AAI') then
     Result := insc_AAI
   else
+  if SameText(_Val,'AAJ') then
+    Result := insc_AAJ
+  else
   if SameText(_Val,'AAK') then
     Result := insc_AAK
   else
@@ -750,6 +753,7 @@ class function TXRechnungHelper.InvoiceNoteSubjectCodeToStr(
 begin
   case _Val of
     insc_AAI: Result := 'AAI';
+    insc_AAJ: Result := 'AAJ';
     insc_AAK: Result := 'AAK';
     insc_SUR: Result := 'SUR';
     insc_REG: Result := 'REG';

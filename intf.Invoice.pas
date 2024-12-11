@@ -553,7 +553,8 @@ type
   TInvoiceNoteSubjectCode = (
     insc_None, //Freitext
     insc_AAI,  //Allgemeine Informationen
-    insc_AAK,  //Preiskonditionen Informationen zu den erwarteten bzw. gegebenen Preiskonditionen.
+    insc_AAJ,  //Zusaetzliche Konditionen zum Kauf - Der Verkaeufer bleibt Eigentuemer der Waren bis zur vollstaendigen Erfuellung der Kaufpreisforderung.
+    insc_AAK,  //Preiskonditionen Informationen zu den erwarteten bzw. gegebenen Preiskonditionen. Es bestehen Rabatt- oder Bonusvereinbarungen.
     insc_SUR,  //Anmerkungen des Verkaeufers
     insc_REG,  //Regulatorische Informationen
     insc_ABL,  //Rechtliche Informationen

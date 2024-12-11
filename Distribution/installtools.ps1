@@ -11,7 +11,9 @@ if (Test-Path validator-configuration23x){
 if (Test-Path validator-configuration30x){
   Remove-Item validator-configuration30x -Recurse
 }
-
+if (Test-Path validator-configuration-zugferd232){
+  Remove-Item validator-configuration-zugferd232 -Recurse
+}
 If (Test-Path visualization){
   Remove-Item visualization -Recurse
 }
@@ -34,6 +36,7 @@ If (Test-Path mustangproject){
 Invoke-WebRequest -Uri "https://github.com/itplr-kosit/validator/releases/download/v1.5.0/validator-1.5.0-distribution.zip" -OutFile validator.zip
 Invoke-WebRequest -Uri "https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/release-2023-05-12/validator-configuration-xrechnung_2.3.1_2023-05-12.zip" -OutFile validator-configuration23x.zip
 Invoke-WebRequest -Uri "https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/release-2024-10-31/validator-configuration-xrechnung_3.0.2_2024-10-31.zip" -OutFile validator-configuration30x.zip
+Invoke-WebRequest -Uri "https://github.com/LandrixSoftware/validator-configuration-zugferd/archive/refs/tags/validation-configuration-zugferd-2.3.2-20241209.zip" -OutFile validator-configuration-zugferd232.zip
 Invoke-WebRequest -Uri "https://github.com/itplr-kosit/xrechnung-visualization/releases/download/v2023-05-12/xrechnung-2.3.1-xrechnung-visualization-2023-05-12.zip" -OutFile visualization23x.zip
 Invoke-WebRequest -Uri "https://github.com/itplr-kosit/xrechnung-visualization/releases/download/v2024-06-20/xrechnung-3.0.2-xrechnung-visualization-2024-06-20.zip" -OutFile visualization30x.zip
 Invoke-WebRequest -Uri "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.6%2B10/OpenJDK17U-jre_x64_windows_hotspot_17.0.6_10.zip" -OutFile jre.zip
@@ -49,6 +52,7 @@ Set-Content mustangproject\Mustang-CLI-version.md -Value $LatestVersionContent.a
 Expand-Archive validator.zip
 Expand-Archive validator-configuration23x.zip
 Expand-Archive validator-configuration30x.zip
+Expand-Archive validator-configuration-zugferd232.zip
 Expand-Archive visualization23x.zip
 Expand-Archive visualization30x.zip
 Expand-Archive jre.zip
@@ -66,6 +70,9 @@ If (Test-Path validator-configuration23x.zip){
 }
 If (Test-Path validator-configuration30x.zip){
   Remove-Item validator-configuration30x.zip
+}
+If (Test-Path validator-configuration-zugferd232.zip){
+  Remove-Item validator-configuration-zugferd232.zip
 }
 If (Test-Path visualization23x.zip){
   Remove-Item visualization23x.zip

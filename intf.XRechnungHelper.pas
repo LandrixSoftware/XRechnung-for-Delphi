@@ -114,7 +114,7 @@ begin
   if SameText(_XML.DocumentElement.FindNamespaceURI('udt'), '') then
     _XML.DocumentElement.DeclareNamespace('udt', 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100');
   if SameText(_XML.DocumentElement.FindNamespaceURI('qdt'), '') then
-    _XML.documentElement.DeclareNamespace('qdt', 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100');
+    _XML.documentElement.DeclareNamespace('qdt', 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100');
 
   for i := 0 to _XML.DocumentElement.AttributeNodes.Count - 1 do
   begin
@@ -140,6 +140,8 @@ begin
       continue;
     if Pos(AnsiUpperCase(sNsLine), AnsiUpperCase(sNSN+'="')) > 0 then
       continue;
+    if SameText(sNSN,'xsi:schemaLocation') then
+     continue;
     sNsLine := ' '+s + sNsLine;
   end;
   sNsLine := trim(sNsLine);

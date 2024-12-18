@@ -363,7 +363,7 @@ type
           //idtfcc_H_HigherRate, //	Code specifying a higher rate of duty or tax or fee.
           //idtfcc_I_ValueAddedTaxVATMarginSchemeWorksOfArt, // Margin scheme - Works of art	Indication that the VAT margin scheme for works of art is applied.
           //idtfcc_J_ValueAddedTaxVATMarginSchemeCollectorsItemsAndAntiques, //	Indication that the VAT margin scheme for collector s items and antiques is applied.
-          idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices, //	A tax category code indicating the item is VAT exempt due to an intra-community supply in the European Economic Area.
+          idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices, //	A tax category code indicating the item is VAT exempt due to an intra-community supply in the European Economic Area. Der Code „K“ steht in der Hashtag#XRechnung für „VAT exempt for EEA intra-community supply of goods and services“ – also für die Umsatzsteuerbefreiung bei grenzüberschreitenden Lieferungen und Dienstleistungen innerhalb des Europäischen Wirtschaftsraums (Hashtag#EWR).
           idtfcc_L_CanaryIslandsGeneralIndirectTax, //	Impuesto General Indirecto Canario (IGIC) is an indirect tax levied on goods and services supplied in the Canary Islands (Spain) by traders and professionals, as well as on import of goods.
           idtfcc_M_TaxForProductionServicesAndImportationInCeutaAndMelilla, //	Impuesto sobre la Produccion, los Servicios y la Importacion (IPSI) is an indirect municipal tax, levied on the production, processing and import of all kinds of movable tangible property, the supply of services and the transfer of immovable property located in the cities of Ceuta and Melilla.
           idtfcc_O_ServicesOutsideScopeOfTax, //	Code specifying that taxes are not applicable to the services.
@@ -498,15 +498,15 @@ type
   public
     Name : String;
     RegistrationName : String;
-    CompanyID : String;
+    CompanyID : String; //BT-30
 
     Address : TInvoiceAddress;
 
     IdentifierSellerBuyer : String; //Kreditor-Nr AccountingSupplierParty / Debitor-Nr AccountingCustomerParty
     BankAssignedCreditorIdentifier : String; //Glaeubiger-ID (BT-90)
 
-    VATCompanyID : String;   //BT-31
-    VATCompanyNumber: String;//BT-32
+    VATCompanyID : String;   //BT-31 UStID
+    VATCompanyNumber: String;//BT-32 Steuernummer
 
     ContactName : String;
     ContactTelephone : String;

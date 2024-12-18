@@ -1124,7 +1124,8 @@ begin
     end;
     with AddChild('cac:PostalAddress') do
     begin
-      AddChild('cbc:StreetName').Text := _Invoice.AccountingSupplierParty.Address.StreetName;
+      if _Invoice.AccountingSupplierParty.Address.StreetName <> '' then
+        AddChild('cbc:StreetName').Text := _Invoice.AccountingSupplierParty.Address.StreetName;
       if _Invoice.AccountingSupplierParty.Address.AdditionalStreetName <> '' then
         AddChild('cbc:AdditionalStreetName').Text := _Invoice.AccountingSupplierParty.Address.AdditionalStreetName;
       AddChild('cbc:CityName').Text := _Invoice.AccountingSupplierParty.Address.City;
@@ -1183,7 +1184,8 @@ begin
     end;
     with AddChild('cac:PostalAddress') do
     begin
-      AddChild('cbc:StreetName').Text := _Invoice.AccountingCustomerParty.Address.StreetName;
+      if _Invoice.AccountingCustomerParty.Address.StreetName <> '' then
+        AddChild('cbc:StreetName').Text := _Invoice.AccountingCustomerParty.Address.StreetName;
       if _Invoice.AccountingCustomerParty.Address.AdditionalStreetName <> '' then
         AddChild('cbc:AdditionalStreetName').Text := _Invoice.AccountingCustomerParty.Address.AdditionalStreetName;
       AddChild('cbc:CityName').Text := _Invoice.AccountingCustomerParty.Address.City;
@@ -1194,12 +1196,15 @@ begin
         AddChild('cac:AddressLine').AddChild('cbc:Line').Text := _Invoice.AccountingCustomerParty.Address.AddressLine;
       AddChild('cac:Country').AddChild('cbc:IdentificationCode').Text := _Invoice.AccountingCustomerParty.Address.CountryCode;
     end;
+    //bei AccountingCustomerParty nur eine VAT von beiden
+    //Internationale UStId wird bevorzugt
     if _Invoice.AccountingCustomerParty.VATCompanyID <> '' then
     with AddChild('cac:PartyTaxScheme') do
     begin
       AddChild('cbc:CompanyID').Text := _Invoice.AccountingCustomerParty.VATCompanyID;
       AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
-    end;
+    end
+    else
     if _Invoice.AccountingCustomerParty.VATCompanyNumber <> '' then
     with AddChild('cac:PartyTaxScheme') do
     begin
@@ -1658,7 +1663,8 @@ begin
         with AddChild('ram:PostalTradeAddress') do
         begin
           AddChild('ram:PostcodeCode').Text := _Invoice.AccountingSupplierParty.Address.PostalZone;
-          AddChild('ram:LineOne').Text := _Invoice.AccountingSupplierParty.Address.StreetName;
+          if _Invoice.AccountingSupplierParty.Address.StreetName <> '' then
+            AddChild('ram:LineOne').Text := _Invoice.AccountingSupplierParty.Address.StreetName;
           if _Invoice.AccountingSupplierParty.Address.AdditionalStreetName <> '' then
             AddChild('ram:LineTwo').Text := _Invoice.AccountingSupplierParty.Address.AdditionalStreetName;
           if _Invoice.AccountingSupplierParty.Address.AddressLine <> '' then
@@ -1714,7 +1720,8 @@ begin
         with AddChild('ram:PostalTradeAddress') do
         begin
           AddChild('ram:PostcodeCode').Text := _Invoice.AccountingCustomerParty.Address.PostalZone;
-          AddChild('ram:LineOne').Text := _Invoice.AccountingCustomerParty.Address.StreetName;
+          if _Invoice.AccountingCustomerParty.Address.StreetName <> '' then
+            AddChild('ram:LineOne').Text := _Invoice.AccountingCustomerParty.Address.StreetName;
           if _Invoice.AccountingCustomerParty.Address.AdditionalStreetName <> '' then
             AddChild('ram:LineTwo').Text := _Invoice.AccountingCustomerParty.Address.AdditionalStreetName;
           if _Invoice.AccountingCustomerParty.Address.AddressLine <> '' then
@@ -1730,13 +1737,15 @@ begin
           Attributes['schemeID'] := 'EM';
           Text := _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer;
         end;
+        //bei AccountingCustomerParty nur eine VAT von beiden
+        //Internationale UStId wird bevorzugt
         if _Invoice.AccountingCustomerParty.VATCompanyID <> '' then
         with AddChild('ram:SpecifiedTaxRegistration').AddChild('ram:ID') do
         begin
           Attributes['schemeID'] := 'VA';
           Text := _Invoice.AccountingCustomerParty.VATCompanyID;
-        end;
-        if _ProfileXRechnung then
+        end
+        else
         if _Invoice.AccountingCustomerParty.VATCompanyNumber <> '' then
         with AddChild('ram:SpecifiedTaxRegistration').AddChild('ram:ID') do
         begin
@@ -1787,7 +1796,8 @@ begin
           with AddChild('ram:PostalTradeAddress') do
           begin
             AddChild('ram:PostcodeCode').Text := _Invoice.DeliveryInformation.Address.PostalZone;
-            AddChild('ram:LineOne').Text := _Invoice.DeliveryInformation.Address.StreetName;
+            if _Invoice.DeliveryInformation.Address.StreetName <> '' then
+              AddChild('ram:LineOne').Text := _Invoice.DeliveryInformation.Address.StreetName;
             if _Invoice.DeliveryInformation.Address.AdditionalStreetName <> '' then
               AddChild('ram:LineTwo').Text := _Invoice.DeliveryInformation.Address.AdditionalStreetName;
             if _Invoice.DeliveryInformation.Address.AddressLine <> '' then

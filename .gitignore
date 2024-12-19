@@ -37,7 +37,7 @@ Documentation/*.md
 Documentation/More
 Samples/Win32
 Samples/Win64
-Samples/validool.inc
+Samples/valitool.inc
 Delphi6/Samples/Win32
 Delphi6/Samples/Indy9
 Delphi6/Samples/*.ddp

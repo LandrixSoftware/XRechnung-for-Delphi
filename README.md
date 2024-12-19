@@ -20,6 +20,8 @@ Aktuell unterstützte Versionen:
 
 Zu finden unter Samples\XRechnungUnit2TestCases.pas
 
+Alle Beispiele als erzeugte ERechnung sind im Ordner ValidXMLExamples zu finden. Sie sind komplett valide gegenüber dem Validierer [validool.org](https://validool.org/).
+
 ## ZUGFeRD Support
 
 Um den Import von ZUGFeRD-Rechnungen anderer Versionen als 2.3.2 zu ermöglichen, 

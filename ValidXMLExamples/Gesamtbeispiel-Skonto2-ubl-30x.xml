@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml version="1.0" standalone="yes"?>
 <ubl:Invoice xmlns:ubl="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
   <cbc:CustomizationID>urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0#conformant#urn:xeinkauf.de:kosit:extension:xrechnung_3.0</cbc:CustomizationID>
   <cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</cbc:ProfileID>
@@ -6,7 +6,7 @@
   <cbc:IssueDate>2024-12-05</cbc:IssueDate>
   <cbc:DueDate>2025-01-04</cbc:DueDate>
   <cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
-  <cbc:Note>keine</cbc:Note>
+  <cbc:Note>#REG#Geschaeftsfuehrer Herr Meier - HRB 789</cbc:Note>
   <cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode>
   <cbc:BuyerReference>04011000-12345-34</cbc:BuyerReference>
   <cac:InvoicePeriod>
@@ -85,12 +85,6 @@
         <cbc:CompanyID>DE12345678</cbc:CompanyID>
         <cac:TaxScheme>
           <cbc:ID>VAT</cbc:ID>
-        </cac:TaxScheme>
-      </cac:PartyTaxScheme>
-      <cac:PartyTaxScheme>
-        <cbc:CompanyID>222/111/4444</cbc:CompanyID>
-        <cac:TaxScheme>
-          <cbc:ID>FC</cbc:ID>
         </cac:TaxScheme>
       </cac:PartyTaxScheme>
       <cac:PartyLegalEntity>
@@ -194,11 +188,11 @@ Zeile 3</cbc:Description>
       </cac:AdditionalItemProperty>
     </cac:Item>
     <cac:Price>
-      <cbc:PriceAmount currencyID="EUR">50.0000</cbc:PriceAmount>
+      <cbc:PriceAmount currencyID="EUR">50.00</cbc:PriceAmount>
       <cac:AllowanceCharge>
         <cbc:ChargeIndicator>false</cbc:ChargeIndicator>
-        <cbc:Amount currencyID="EUR">0.0000</cbc:Amount>
-        <cbc:BaseAmount currencyID="EUR">50.0000</cbc:BaseAmount>
+        <cbc:Amount currencyID="EUR">0.00</cbc:Amount>
+        <cbc:BaseAmount currencyID="EUR">50.00</cbc:BaseAmount>
       </cac:AllowanceCharge>
     </cac:Price>
   </cac:InvoiceLine>
@@ -223,11 +217,11 @@ Zeile 3</cbc:Description>
       </cac:ClassifiedTaxCategory>
     </cac:Item>
     <cac:Price>
-      <cbc:PriceAmount currencyID="EUR">100.0000</cbc:PriceAmount>
+      <cbc:PriceAmount currencyID="EUR">100.00</cbc:PriceAmount>
       <cac:AllowanceCharge>
         <cbc:ChargeIndicator>false</cbc:ChargeIndicator>
-        <cbc:Amount currencyID="EUR">0.0000</cbc:Amount>
-        <cbc:BaseAmount currencyID="EUR">100.0000</cbc:BaseAmount>
+        <cbc:Amount currencyID="EUR">0.00</cbc:Amount>
+        <cbc:BaseAmount currencyID="EUR">100.00</cbc:BaseAmount>
       </cac:AllowanceCharge>
     </cac:Price>
   </cac:InvoiceLine>

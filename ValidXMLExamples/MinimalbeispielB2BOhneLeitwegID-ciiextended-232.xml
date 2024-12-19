@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml version="1.0" standalone="yes"?>
 <rsm:CrossIndustryInvoice xmlns:rsm="urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100" xmlns:ram="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100" xmlns:udt="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100" xmlns:qdt="urn:un:unece:uncefact:data:standard:QualifiedDataType:100">
   <rsm:ExchangedDocumentContext>
     <ram:BusinessProcessSpecifiedDocumentContextParameter>
@@ -14,6 +14,10 @@
     <ram:IssueDateTime>
       <udt:DateTimeString format="102">20241205</udt:DateTimeString>
     </ram:IssueDateTime>
+    <ram:IncludedNote>
+      <ram:Content>Geschaeftsfuehrer Herr Meier - HRB 789</ram:Content>
+      <ram:SubjectCode>REG</ram:SubjectCode>
+    </ram:IncludedNote>
   </rsm:ExchangedDocument>
   <rsm:SupplyChainTradeTransaction>
     <ram:IncludedSupplyChainTradeLineItem>
@@ -28,10 +32,10 @@ Zeile 3</ram:Description>
       </ram:SpecifiedTradeProduct>
       <ram:SpecifiedLineTradeAgreement>
         <ram:GrossPriceProductTradePrice>
-          <ram:ChargeAmount>360.0000</ram:ChargeAmount>
+          <ram:ChargeAmount>360.00</ram:ChargeAmount>
         </ram:GrossPriceProductTradePrice>
         <ram:NetPriceProductTradePrice>
-          <ram:ChargeAmount>360.0000</ram:ChargeAmount>
+          <ram:ChargeAmount>360.00</ram:ChargeAmount>
         </ram:NetPriceProductTradePrice>
       </ram:SpecifiedLineTradeAgreement>
       <ram:SpecifiedLineTradeDelivery>
@@ -53,6 +57,7 @@ Zeile 3</ram:Description>
       <ram:SellerTradeParty>
         <ram:Name>Verkaeufername</ram:Name>
         <ram:SpecifiedLegalOrganization>
+          <ram:ID>non-existent</ram:ID>
           <ram:TradingBusinessName>Verkaeufername</ram:TradingBusinessName>
         </ram:SpecifiedLegalOrganization>
         <ram:DefinedTradeContact>
@@ -66,16 +71,12 @@ Zeile 3</ram:Description>
         </ram:DefinedTradeContact>
         <ram:PostalTradeAddress>
           <ram:PostcodeCode>01234</ram:PostcodeCode>
-          <ram:LineOne>Verkaeuferstrasse 1</ram:LineOne>
           <ram:CityName>Verkaeuferstadt</ram:CityName>
           <ram:CountryID>DE</ram:CountryID>
         </ram:PostalTradeAddress>
         <ram:URIUniversalCommunication>
           <ram:URIID schemeID="EM">antwortaufrechnung@company.com</ram:URIID>
         </ram:URIUniversalCommunication>
-        <ram:SpecifiedTaxRegistration>
-          <ram:ID schemeID="VA">DE12345678</ram:ID>
-        </ram:SpecifiedTaxRegistration>
         <ram:SpecifiedTaxRegistration>
           <ram:ID schemeID="FC">222/111/4444</ram:ID>
         </ram:SpecifiedTaxRegistration>
@@ -88,7 +89,6 @@ Zeile 3</ram:Description>
         </ram:SpecifiedLegalOrganization>
         <ram:PostalTradeAddress>
           <ram:PostcodeCode>05678</ram:PostcodeCode>
-          <ram:LineOne>Kaeuferstrasse 1</ram:LineOne>
           <ram:CityName>Kaeuferstadt</ram:CityName>
           <ram:CountryID>DE</ram:CountryID>
         </ram:PostalTradeAddress>
@@ -100,7 +100,13 @@ Zeile 3</ram:Description>
         </ram:SpecifiedTaxRegistration>
       </ram:BuyerTradeParty>
     </ram:ApplicableHeaderTradeAgreement>
-    <ram:ApplicableHeaderTradeDelivery/>
+    <ram:ApplicableHeaderTradeDelivery>
+      <ram:ActualDeliverySupplyChainEvent>
+        <ram:OccurrenceDateTime>
+          <udt:DateTimeString format="102">20241204</udt:DateTimeString>
+        </ram:OccurrenceDateTime>
+      </ram:ActualDeliverySupplyChainEvent>
+    </ram:ApplicableHeaderTradeDelivery>
     <ram:ApplicableHeaderTradeSettlement>
       <ram:InvoiceCurrencyCode>EUR</ram:InvoiceCurrencyCode>
       <ram:SpecifiedTradeSettlementPaymentMeans>

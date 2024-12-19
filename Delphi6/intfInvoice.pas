@@ -170,17 +170,28 @@ type
     class function GetTypeFromFilename(const _Filename : String): TInvoiceAttachmentType;
   end;
 
+  //Der Code  916 "Referenzpapier" wird benutzt, um die Kennung der rechnungsbegründenden Unterlage zu referenzieren. (BT-122)
+  //Der Code 50 "Price/sales catalogue response" wird benutzt, um die Ausschreibung oder das Los zu referenzieren. (BT-17)
+  //Der Code 130 "Rechnungsdatenblatt" wird benutzt, um eine vom Verkäufer angegebene Kennung für ein Objekt zu referenzieren. (BT-18)
+  //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:untdid.1001_4#version
+  TInvoiceAttachmentTypeCode = (iatc_None,
+                      iatc_50,
+                      iatc_130,
+                      iatc_916);//Default
+
   //Entweder externe Referenz oder eingebettetes Objekt
   //Ob man die Daten als Base64 integriert oder separat mitliefert,
   //haengt wahrscheinlich vom Empfaenger ab
+  //https://portal3.gefeg.com/projectdata/invoice/deliverables/installed/publishingproject/zugferd%202.1%20-%20facturx%201.0.05/en%2016931%20%E2%80%93%20facturx%201.0.05%20%E2%80%93%20zugferd%202.1%20-%20extended.scm/html/de/021.htm?https://portal3.gefeg.com/projectdata/invoice/deliverables/installed/publishingproject/zugferd%202.1%20-%20facturx%201.0.05/en%2016931%20%E2%80%93%20facturx%201.0.05%20%E2%80%93%20zugferd%202.1%20-%20extended.scm/html/de/02412.htm
   TInvoiceAttachment = class(TObject)
   public
     ID : String;
     DocumentDescription : String;
     Filename : String;
+    TypeCode : TInvoiceAttachmentTypeCode;
     AttachmentType : TInvoiceAttachmentType;
     Data : TMemoryStream;         //https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/cac-AdditionalDocumentReference/cac-Attachment/cbc-EmbeddedDocumentBinaryObject/
-    ExternalReference : String;   //https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/cac-AdditionalDocumentReference/cac-Attachment/cac-ExternalReference/
+    ExternalReference : String;   // Gemaesss BMF-Schreiben vom 15.10.2024 sollen Links auf rechnungsbegruendende Unterlagen nicht verwendet werden. Sie sollen stattdessen in die XML-Datei eingebettet werden. Dies gilt ab dem 01.01.2025.
   public
     constructor Create(_AttachmentType : TInvoiceAttachmentType);
     destructor Destroy; override;
@@ -362,7 +373,7 @@ type
           //idtfcc_H_HigherRate, //	Code specifying a higher rate of duty or tax or fee.
           //idtfcc_I_ValueAddedTaxVATMarginSchemeWorksOfArt, // Margin scheme - Works of art	Indication that the VAT margin scheme for works of art is applied.
           //idtfcc_J_ValueAddedTaxVATMarginSchemeCollectorsItemsAndAntiques, //	Indication that the VAT margin scheme for collector s items and antiques is applied.
-          idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices, //	A tax category code indicating the item is VAT exempt due to an intra-community supply in the European Economic Area.
+          idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices, //	A tax category code indicating the item is VAT exempt due to an intra-community supply in the European Economic Area. Der Code „K“ steht in der Hashtag#XRechnung für „VAT exempt for EEA intra-community supply of goods and services“ – also für die Umsatzsteuerbefreiung bei grenzüberschreitenden Lieferungen und Dienstleistungen innerhalb des Europäischen Wirtschaftsraums (Hashtag#EWR).
           idtfcc_L_CanaryIslandsGeneralIndirectTax, //	Impuesto General Indirecto Canario (IGIC) is an indirect tax levied on goods and services supplied in the Canary Islands (Spain) by traders and professionals, as well as on import of goods.
           idtfcc_M_TaxForProductionServicesAndImportationInCeutaAndMelilla, //	Impuesto sobre la Produccion, los Servicios y la Importacion (IPSI) is an indirect municipal tax, levied on the production, processing and import of all kinds of movable tangible property, the supply of services and the transfer of immovable property located in the cities of Ceuta and Melilla.
           idtfcc_O_ServicesOutsideScopeOfTax, //	Code specifying that taxes are not applicable to the services.
@@ -497,15 +508,15 @@ type
   public
     Name : String;
     RegistrationName : String;
-    CompanyID : String;
+    CompanyID : String; //BT-30
 
     Address : TInvoiceAddress;
 
-    IdentifierSellerBuyer : String; //Kreditor-Nr AccountingSupplierParty / Debitor-Nr AccountingCustomerParty
+    IdentifierSellerBuyer : String; //BT-29 Kreditor-Nr AccountingSupplierParty / Debitor-Nr AccountingCustomerParty
     BankAssignedCreditorIdentifier : String; //Glaeubiger-ID (BT-90)
 
-    VATCompanyID : String;   //BT-31
-    VATCompanyNumber: String;//BT-32
+    VATCompanyID : String;   //BT-31 UStID
+    VATCompanyNumber: String;//BT-32 Steuernummer
 
     ContactName : String;
     ContactTelephone : String;
@@ -548,9 +559,26 @@ type
     function IndexOfPrecedingInvoiceReference(const _ID : String) : Integer;
   end;
 
+  //Auswahl aus https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:untdid.4451_4#version
+  TInvoiceNoteSubjectCode = (
+    insc_None, //Freitext
+    insc_AAI,  //Allgemeine Informationen
+    insc_AAJ,  //Zusaetzliche Konditionen zum Kauf - Der Verkaeufer bleibt Eigentuemer der Waren bis zur vollstaendigen Erfuellung der Kaufpreisforderung.
+    insc_AAK,  //Preiskonditionen Informationen zu den erwarteten bzw. gegebenen Preiskonditionen. Es bestehen Rabatt- oder Bonusvereinbarungen.
+    insc_SUR,  //Anmerkungen des Verkaeufers
+    insc_REG,  //Regulatorische Informationen
+    insc_ABL,  //Rechtliche Informationen
+    insc_TXD,  //Informationen zur Steuer
+    insc_CUS,  //Zollinformationen
+    insc_PMT   //Payment Information Bürgschaften oder Sicherheitseinbehalte
+    );
+
   TInvoiceNote = class(Tobject)
   public
     Content : String;
+    SubjectCode : TInvoiceNoteSubjectCode;
+  public
+    constructor Create;
   end;
 
   TInvoiceNotes = class(TObjectList)
@@ -630,7 +658,7 @@ type
 
     InvoiceLines : TInvoiceLines;
 
-    Attachments : TInvoiceAttachmentList;
+    Attachments : TInvoiceAttachmentList; //BG-24
 
     AllowanceCharges : TInvoiceAllowanceCharges; //Nachlaesse, Zuschlaege
     PrecedingInvoiceReferences : TInvoicePrecedingInvoiceReferences;
@@ -789,6 +817,14 @@ begin
   end;
 end;
 
+{ TInvoiceNote }
+
+constructor TInvoiceNote.Create;
+begin
+  Content := '';
+  SubjectCode := insc_None;
+end;
+
 { TInvoiceNotes }
 
 function TInvoiceNotes.Extract(Item: TObject): TInvoiceNote;
@@ -883,6 +919,7 @@ begin
      SameText(_UnitOfMeasure,'st.') or
      SameText(_UnitOfMeasure,'stk.') or
      SameText(_UnitOfMeasure,'stk') or
+     SameText(_UnitOfMeasure,'C62') or
      SameText(_UnitOfMeasure,'stck') then
   begin
     Result := iuc_piece;
@@ -969,19 +1006,28 @@ begin
     exit;
   end;
   if SameText(_UnitOfMeasure,'qm') or
-     SameText(_UnitOfMeasure,'m2') then
+     SameText(_UnitOfMeasure,'m2') or
+     SameText(_UnitOfMeasure,'m'+#178)
+      then
   begin
     Result := iuc_square_metre;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'qqm') then
+  if SameText(_UnitOfMeasure,'qqm')or
+     SameText(_UnitOfMeasure,'cbm') or
+     SameText(_UnitOfMeasure,'m3') or
+     SameText(_UnitOfMeasure,'m'+#179)
+   then
   begin
     Result := iuc_cubic_metre;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'m') then
+  if SameText(_UnitOfMeasure,'m') or
+     SameText(_UnitOfMeasure,'lfm') or
+     SameText(_UnitOfMeasure,'me') or
+     SameText(_UnitOfMeasure,'mtr') then
   begin
     Result := iuc_metre;
     _Success := true;
@@ -1012,6 +1058,7 @@ begin
     exit;
   end;
   if SameText(_UnitOfMeasure,'Paket') or
+     SameText(_UnitOfMeasure,'PCK') or
      SameText(_UnitOfMeasure,'Pack') then
   begin
     Result := iuc_packaging;
@@ -1029,6 +1076,7 @@ end;
 
 constructor TInvoiceAttachment.Create(_AttachmentType: TInvoiceAttachmentType);
 begin
+  TypeCode := iatc_916;
   AttachmentType := _AttachmentType;
   Data := TMemoryStream.Create;
   ExternalReference := '';

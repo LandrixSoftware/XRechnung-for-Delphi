@@ -16,6 +16,9 @@ interface
 
 {$DEFINE USE_EDGE_BROWSER}
 
+//https://Validool.org/
+{$DEFINE USE_Valitool}
+
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes,System.IOUtils,System.Win.COMObj,System.UITypes,System.StrUtils,
@@ -30,6 +33,12 @@ uses
   ,intf.XRechnung, intf.Invoice
   ,intf.XRechnungValidationHelperJava
   ;
+
+{$IFDEF USE_Valitool}
+  //Datei Valitool.inc mit
+  //const Valitool_LICENSE = '...........';
+  {$include Valitool.inc}
+{$ENDIF}
 
 type
   TForm1 = class(TForm)
@@ -56,6 +65,7 @@ type
     cbValidateWithJava: TCheckBox;
     Button1: TButton;
     cbVisualizeWithJava: TCheckBox;
+    TabSheet4: TTabSheet;
     procedure btCreateInvoiceClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button2Click(Sender: TObject);
@@ -68,6 +78,7 @@ type
     WebBrowserContentFilename : String;
     WebBrowserContentFilenameHtml : String;
     WebBrowserContentFilenamePdf : String;
+    WebBrowserContentFilenameValitoolPdf : String;
     procedure Generate(inv : TInvoice);
   private
     {$IFNDEF USE_EDGE_BROWSER}
@@ -76,6 +87,7 @@ type
     EdgeBrowser1: TEdgeBrowser;
     EdgeBrowser2: TEdgeBrowser;
     EdgeBrowser3: TEdgeBrowser;
+    EdgeBrowser4: TEdgeBrowser;
     {$IFEND}
     procedure ClearBrowser;
     procedure ShowFileInBrowser(const _Filename : String; _BrowserIdx : Integer);
@@ -125,6 +137,7 @@ begin
   WebBrowserContentFilename := ExtractFilePath(Application.ExeName)+'content.html';
   WebBrowserContentFilenameHtml := ExtractFilePath(Application.ExeName)+'content2.html';
   WebBrowserContentFilenamePdf := ExtractFilePath(Application.ExeName)+'content.pdf';
+  WebBrowserContentFilenameValitoolPdf := ExtractFilePath(Application.ExeName)+'content2.pdf';
 
   {$IFNDEF USE_EDGE_BROWSER}
   WebBrowser2 := TWebBrowser.Create(Self);
@@ -148,6 +161,10 @@ begin
   EdgeBrowser3.Name := 'EdgeBrowser3';
   EdgeBrowser3.SetParentComponent(TabSheet3);
   EdgeBrowser3.Align := alClient;
+  EdgeBrowser4 := TEdgeBrowser.Create(Self);
+  EdgeBrowser4.Name := 'EdgeBrowser4';
+  EdgeBrowser4.SetParentComponent(TabSheet4);
+  EdgeBrowser4.Align := alClient;
   {$IFEND}
 end;
 
@@ -298,8 +315,15 @@ begin
   inv.Free;
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,3,true,true,true,true,true);
-  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-Skonto2-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-Skonto2-cii-30x.xml');
   inv.Free;
+
+  {$IFDEF USE_Valitool}
+  GetXRechnungValidationHelperJava
+      .SetValitoolPath(DistributionBasePath+'Valitool-3.24.17A-SNAPSHOT\CLI\')
+      .SetValitoolLicense(Valitool_LICENSE)
+      .ValitoolValidateDirectory(ValidXMLExamplesPath);
+  {$ENDIF}
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);
@@ -377,23 +401,20 @@ begin
 
     case TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) of
       XRechnungVersion_230_UBL_Deprecated,
-      XRechnungVersion_230_UNCEFACT_Deprecated :
+      XRechnungVersion_230_UNCEFACT_Deprecated,
+      XRechnungVersion_30x_UBL,
+      XRechnungVersion_30x_UNCEFACT,
+      ZUGFeRDExtendedVersion_232 :
         GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
             .SetValidatorLibPath(ValidatorLibPath)
             .SetValidatorConfigurationPath(DistributionBasePath +'validator-configuration23x'+PathDelim)
-            .ValidateFile(od.FileName,cmdoutput,xmlresult,htmlresult);
-      XRechnungVersion_30x_UBL,
-      XRechnungVersion_30x_UNCEFACT :
-        GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
-            .SetValidatorLibPath(ValidatorLibPath)
             .SetValidatorConfigurationPath(ValidatorConfigurationPath)
+            .SetValidatorConfigurationPath('D:\projekte\src-validator-configuration-zugferd\')
             .ValidateFile(od.FileName,cmdoutput,xmlresult,htmlresult);
       else
       begin
-        GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
-            .SetMustangprojectLibPath(MustangLibPath)
-            .MustangValidateFile(od.FileName,cmdoutput,xmlresult);
-        htmlresult := '<html><xmp>'+xmlresult+'</xmp>';
+        MessageDlg('Keine passenden Version gefunden.', mtError, [mbOK], 0);
+        exit;
       end;
     end;
 
@@ -447,7 +468,7 @@ begin
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetValidatorLibPath(ValidatorLibPath)
         .SetVisualizationLibPath(VisualizationLibPath)
-        .VisualizeFile(od.FileName, (TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) in [XRechnungVersion_230_UBL_Deprecated,XRechnungVersion_30x_UBL]),cmdoutput,htmlresult);
+        .VisualizeFile(od.FileName,cmdoutput,htmlresult);
 
     Memo3.Lines.Text := cmdoutput;
 
@@ -477,7 +498,7 @@ begin
         .SetValidatorLibPath(ValidatorLibPath)
         .SetVisualizationLibPath(VisualizationLibPath)
         .SetFopLibPath(FopLibPath)
-        .VisualizeFileAsPdf(od.FileName, (TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) in [XRechnungVersion_230_UBL_Deprecated,XRechnungVersion_30x_UBL]),cmdoutput,pdfresult);
+        .VisualizeFileAsPdf(od.FileName,cmdoutput,pdfresult);
 
     Memo3.Lines.Text := cmdoutput;
 
@@ -540,6 +561,9 @@ var
   xml,xmltest,cmdoutput,xmlresult,htmlresult,error : String;
   invtest : TInvoice;
   version : TXRechnungVersion;
+  {$IFDEF USE_Valitool}
+  pdfresult : TMemoryStream;
+  {$ENDIF}
 begin
   Screen.Cursor := crHourglass;
   ClearBrowser;
@@ -587,6 +611,7 @@ begin
       end;
 
       Memo2.Lines.Text := xml;
+      Memo2.Lines.WriteBOM := false;
       Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UBL.xml',TEncoding.UTF8);
 
       invtest := TInvoice.Create;
@@ -636,6 +661,7 @@ begin
       end;
 
       Memo2.Lines.Text := xml;
+      Memo2.Lines.WriteBOM := false;
       Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'XRechnung-UNCEFACT.xml',TEncoding.UTF8);
 
       invtest := TInvoice.Create;
@@ -662,27 +688,32 @@ begin
       TXRechnungInvoiceAdapter.SaveToXMLStr(inv,version,xml);
 
       Memo2.Lines.Text := xml;
+      Memo2.Lines.WriteBOM := false;
       Memo2.Lines.SaveToFile(ExtractFilePath(Application.ExeName)+'ZUGFeRD-Extended.xml',TEncoding.UTF8);
 
       if cbValidateWithJava.Checked then
       begin
         GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
-            .SetMustangprojectLibPath(MustangLibPath)
-            .MustangValidateFile(ExtractFilePath(Application.ExeName)+'ZUGFeRD-Extended.xml',cmdoutput,xmlresult);
+            .SetValidatorLibPath(ValidatorLibPath)
+            .SetValidatorConfigurationPath('D:\projekte\src-validator-configuration-zugferd\')
+            .ValidateFile(ExtractFilePath(Application.ExeName)+'ZUGFeRD-Extended.xml',cmdoutput,xmlresult,htmlresult);
+
+//        GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+//            .SetMustangprojectLibPath(MustangLibPath)
+//            .MustangValidateFile(ExtractFilePath(Application.ExeName)+'ZUGFeRD-Extended.xml',cmdoutput,xmlresult);
 
         Memo3.Lines.Text := cmdoutput;
 
-        if xmlresult <> '' then
+        if htmlresult <> '' then
         begin
           if cbVisualizeWithJava.Checked then
           begin
             ShowXMLAsHtmlMustang(ExtractFilePath(Application.ExeName)+'ZUGFeRD-Extended.xml');
             ShowXMLAsPdfMustang(ExtractFilePath(Application.ExeName)+'ZUGFeRD-Extended.xml');
           end;
-          xmlresult := '<html><xmp>'+xmlresult+'</xmp>';
         end else
-          xmlresult := '<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
-        TFile.WriteAllText(WebBrowserContentFilename,xmlresult,TEncoding.UTF8);
+          htmlresult := '<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
+        TFile.WriteAllText(WebBrowserContentFilename,htmlresult,TEncoding.UTF8);
         ShowFileInBrowser(WebBrowserContentFilename,1);
       end;
 
@@ -705,6 +736,25 @@ begin
       end;
     end;
     end;
+
+    {$IFDEF USE_Valitool}
+    if cbValidateWithJava.Checked then
+    begin
+      GetXRechnungValidationHelperJava
+          .SetValitoolPath(DistributionBasePath+'Valitool-3.24.17A-SNAPSHOT\CLI\')
+          .SetValitoolLicense(Valitool_LICENSE)
+          .ValitoolValidate(xml,cmdoutput,xmlresult,pdfresult);
+
+      Memo3.Lines.Text := cmdoutput;
+
+      if pdfresult <> nil then
+      begin
+        pdfresult.SaveToFile(WebBrowserContentFilenameValitoolPdf);
+        pdfresult.Free;
+        ShowFileInBrowser(WebBrowserContentFilenameValitoolPdf,4);
+      end;
+    end;
+    {$ENDIF}
   finally
     Screen.Cursor := crDefault;
   end;
@@ -718,6 +768,7 @@ begin
   EdgeBrowser1.Navigate('about:blank');
   EdgeBrowser2.Navigate('about:blank');
   EdgeBrowser3.Navigate('about:blank');
+  EdgeBrowser4.Navigate('about:blank');
   {$IFEND}
 end;
 
@@ -728,12 +779,14 @@ begin
   case _BrowserIdx of
     2 : ShellExecute(0,'open',PChar(_Filename),'','',0);
     3 : ShellExecute(0,'open',PChar(_Filename),'','',0);
+    4 : ShellExecute(0,'open',PChar(_Filename),'','',0);
     else WebBrowser2.Navigate2('file:///'+_Filename);
   end;
   {$ELSE}
   case _BrowserIdx of
     2 : EdgeBrowser2.Navigate('file:///'+_Filename);
     3 : EdgeBrowser3.Navigate('file:///'+_Filename);
+    4 : EdgeBrowser4.Navigate('file:///'+_Filename);
     else EdgeBrowser1.Navigate('file:///'+_Filename);
   end;
   {$IFEND}
@@ -746,7 +799,7 @@ begin
   GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
       .SetValidatorLibPath(ValidatorLibPath)
       .SetVisualizationLibPath(VisualizationLibPath)
-      .Visualize(_Content,rbFormatVersion.itemindex=0,cmdoutput,htmlresult);
+      .Visualize(_Content,cmdoutput,htmlresult);
 
   Memo3.Lines.Append(cmdoutput);
 
@@ -792,7 +845,7 @@ begin
       .SetValidatorLibPath(ValidatorLibPath)
       .SetVisualizationLibPath(VisualizationLibPath)
       .SetFopLibPath(FopLibPath)
-      .VisualizeAsPdf(_Content,rbFormatVersion.itemindex=0,cmdoutput,pdfresult);
+      .VisualizeAsPdf(_Content,cmdoutput,pdfresult);
 
   Memo3.Lines.Append(cmdoutput);
 

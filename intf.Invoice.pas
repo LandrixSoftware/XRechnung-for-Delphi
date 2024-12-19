@@ -171,14 +171,25 @@ type
     class function GetTypeFromFilename(const _Filename : String): TInvoiceAttachmentType;
   end;
 
+  //Der Code  916 "Referenzpapier" wird benutzt, um die Kennung der rechnungsbegründenden Unterlage zu referenzieren. (BT-122)
+  //Der Code 50 "Price/sales catalogue response" wird benutzt, um die Ausschreibung oder das Los zu referenzieren. (BT-17)
+  //Der Code 130 "Rechnungsdatenblatt" wird benutzt, um eine vom Verkäufer angegebene Kennung für ein Objekt zu referenzieren. (BT-18)
+  //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:untdid.1001_4#version
+  TInvoiceAttachmentTypeCode = (iatc_None,
+                      iatc_50,
+                      iatc_130,
+                      iatc_916);//Default
+
   //Entweder externe Referenz oder eingebettetes Objekt
   //Ob man die Daten als Base64 integriert oder separat mitliefert,
   //haengt wahrscheinlich vom Empfaenger ab
+  //https://portal3.gefeg.com/projectdata/invoice/deliverables/installed/publishingproject/zugferd%202.1%20-%20facturx%201.0.05/en%2016931%20%E2%80%93%20facturx%201.0.05%20%E2%80%93%20zugferd%202.1%20-%20extended.scm/html/de/021.htm?https://portal3.gefeg.com/projectdata/invoice/deliverables/installed/publishingproject/zugferd%202.1%20-%20facturx%201.0.05/en%2016931%20%E2%80%93%20facturx%201.0.05%20%E2%80%93%20zugferd%202.1%20-%20extended.scm/html/de/02412.htm
   TInvoiceAttachment = class(TObject)
   public
     ID : String;
     DocumentDescription : String;
     Filename : String;
+    TypeCode : TInvoiceAttachmentTypeCode;
     AttachmentType : TInvoiceAttachmentType;
     Data : TMemoryStream;         //https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/cac-AdditionalDocumentReference/cac-Attachment/cbc-EmbeddedDocumentBinaryObject/
     ExternalReference : String;   // Gemaesss BMF-Schreiben vom 15.10.2024 sollen Links auf rechnungsbegruendende Unterlagen nicht verwendet werden. Sie sollen stattdessen in die XML-Datei eingebettet werden. Dies gilt ab dem 01.01.2025.
@@ -502,7 +513,7 @@ type
 
     Address : TInvoiceAddress;
 
-    IdentifierSellerBuyer : String; //Kreditor-Nr AccountingSupplierParty / Debitor-Nr AccountingCustomerParty
+    IdentifierSellerBuyer : String; //BT-29 Kreditor-Nr AccountingSupplierParty / Debitor-Nr AccountingCustomerParty
     BankAssignedCreditorIdentifier : String; //Glaeubiger-ID (BT-90)
 
     VATCompanyID : String;   //BT-31 UStID
@@ -648,7 +659,7 @@ type
 
     InvoiceLines : TInvoiceLines;
 
-    Attachments : TInvoiceAttachmentList;
+    Attachments : TInvoiceAttachmentList; //BG-24
 
     AllowanceCharges : TInvoiceAllowanceCharges; //Nachlaesse, Zuschlaege
     PrecedingInvoiceReferences : TInvoicePrecedingInvoiceReferences;
@@ -1066,6 +1077,7 @@ end;
 
 constructor TInvoiceAttachment.Create(_AttachmentType: TInvoiceAttachmentType);
 begin
+  TypeCode := iatc_916;
   AttachmentType := _AttachmentType;
   Data := TMemoryStream.Create;
   ExternalReference := '';

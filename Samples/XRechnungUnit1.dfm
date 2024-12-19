@@ -168,6 +168,10 @@ object Form1: TForm1
       Caption = 'PDF'
       ImageIndex = 2
     end
+    object TabSheet4: TTabSheet
+      Caption = 'https://validool.org/'
+      ImageIndex = 3
+    end
   end
   object Button9: TButton
     Left = 8

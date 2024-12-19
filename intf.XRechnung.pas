@@ -80,6 +80,8 @@ type
     class function InvoiceDutyTaxFeeCategoryCodeFromStr(_Val : String) : TInvoiceDutyTaxFeeCategoryCode;
     class function InvoiceAttachmentTypeToStr(_Val : TInvoiceAttachmentType) : String;
     class function InvoiceAttachmentTypeFromStr(_Val : String) : TInvoiceAttachmentType;
+    class function InvoiceAttachmentTypeCodeToStr(_Val : TInvoiceAttachmentTypeCode) : String;
+    class function InvoiceAttachmentTypeCodeFromStr(_Val : String) : TInvoiceAttachmentTypeCode;
     class function InvoiceNoteSubjectCodeToStr(_Val : TInvoiceNoteSubjectCode) : String;
     class function InvoiceNoteSubjectCodeFromStr(_Val : String) : TInvoiceNoteSubjectCode;
     class procedure ReadPaymentTerms(_Invoice: TInvoice; _PaymentTermsText: String);
@@ -192,6 +194,8 @@ class procedure TXRechnungInvoiceAdapter.SaveToFile(_Invoice: TInvoice;
   _Version : TXRechnungVersion;const _Filename: String);
 var
   xml : IXMLDocument;
+  hstrl : TStringList;
+  xmlstring : String;
 begin
   if _Invoice = nil then
     exit;
@@ -201,10 +205,15 @@ begin
     exit;
 
   xml := NewXMLDocument;
+  hstrl := TStringList.Create;
   try
     TXRechnungInvoiceAdapter.SaveDocument(_Invoice,_Version,xml);
-    xml.SaveToFile(_Filename);
+    xml.SaveToXML(xmlstring);
+    hstrl.Text := xmlstring;
+    hstrl.WriteBOM := false;
+    hstrl.SaveToFile(_Filename,TEncoding.UTF8);
   finally
+    hstrl.Free;
     xml := nil;
   end;
 end;
@@ -270,13 +279,30 @@ begin
     exit;
   end;
 
-  //Beide Steuernummern beim Kaeufer nicht vorgesehen
-  if (_Invoice.AccountingCustomerParty.VATCompanyID <> '') and
-     (_Invoice.AccountingCustomerParty.VATCompanyNumber <> '') then
+  //Wenn der Verkaeufer keine UStId BT-31 und keine CompanyID BT-30 hat,
+  //sollte CompanyID auf non-existent gesetzt werden
+  if (_Invoice.AccountingSupplierParty.VATCompanyID = '') and
+     (_Invoice.AccountingSupplierParty.CompanyID = '') then
   begin
     Result := false;
     exit;
   end;
+
+  //Eins von beiden BT-31 BT-32 muss angegeben werden
+  if (_Invoice.AccountingSupplierParty.VATCompanyID = '') and
+     (_Invoice.AccountingSupplierParty.VATCompanyNumber = '') then
+  begin
+    Result := false;
+    exit;
+  end;
+
+  //Beide Steuernummern beim Kaeufer nicht vorgesehen
+//  if (_Invoice.AccountingCustomerParty.VATCompanyID <> '') and
+//     (_Invoice.AccountingCustomerParty.VATCompanyNumber <> '') then
+//  begin
+//    Result := false;
+//    exit;
+//  end;
 end;
 
 class function TXRechnungInvoiceAdapter.LoadFromFile(_Invoice: TInvoice;
@@ -632,6 +658,30 @@ begin
     iat_application_vnd_openxmlformats_officedocument_spreadsheetml_sheet: Result := 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
     iat_application_vnd_oasis_opendocument_spreadsheet: Result := 'application/vnd.oasis.opendocument.spreadsheet';
     iat_application_xml: Result := 'application/xml';
+    else Result := '';
+  end;
+end;
+
+class function TXRechnungHelper.InvoiceAttachmentTypeCodeFromStr(
+  _Val: String): TInvoiceAttachmentTypeCode;
+begin
+  if SameText(_Val,'50') then
+    Result := iatc_50 else
+  if SameText(_Val,'130') then
+    Result := iatc_130 else
+  if SameText(_Val,'916') then
+    Result := iatc_916
+  else
+    Result := iatc_None;
+end;
+
+class function TXRechnungHelper.InvoiceAttachmentTypeCodeToStr(
+  _Val: TInvoiceAttachmentTypeCode): String;
+begin
+  case _Val of
+    iatc_50: Result := '50';
+    iatc_130: Result := '130';
+    iatc_916: Result := '916';
     else Result := '';
   end;
 end;

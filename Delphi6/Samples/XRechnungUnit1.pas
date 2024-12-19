@@ -234,8 +234,8 @@ begin
 
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetValidatorLibPath(ValidatorLibPath)
-       .SetVisualizationLibPath(VisualizationLibPath)
-        .VisualizeFile(od.FileName, (TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) in [XRechnungVersion_230_UBL_Deprecated,XRechnungVersion_30x_UBL]),cmdoutput,htmlresult);
+        .SetVisualizationLibPath(VisualizationLibPath)
+        .VisualizeFile(od.FileName, cmdoutput,htmlresult);
 
     Memo3.Lines.Text := cmdoutput;
 
@@ -265,7 +265,7 @@ begin
         .SetValidatorLibPath(ValidatorLibPath)
         .SetVisualizationLibPath(VisualizationLibPath)
         .SetFopLibPath(FopLibPath)
-        .VisualizeFileAsPdf(od.FileName, (TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) in [XRechnungVersion_230_UBL_Deprecated,XRechnungVersion_30x_UBL]),cmdoutput,pdfresult);
+        .VisualizeFileAsPdf(od.FileName, cmdoutput,pdfresult);
 
     Memo3.Lines.Text := cmdoutput;
 
@@ -475,7 +475,7 @@ begin
   GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
       .SetValidatorLibPath(ValidatorLibPath)
       .SetVisualizationLibPath(VisualizationLibPath)
-      .Visualize(_Content,rbFormat.itemindex=0,cmdoutput,htmlresult);
+      .Visualize(_Content,cmdoutput,htmlresult);
 
   Memo3.Lines.Append(cmdoutput);
 
@@ -494,7 +494,7 @@ begin
       .SetValidatorLibPath(ValidatorLibPath)
       .SetVisualizationLibPath(VisualizationLibPath)
       .SetFopLibPath(FopLibPath)
-      .VisualizeAsPdf(_Content,rbFormat.itemindex=0,cmdoutput,pdfresult);
+      .VisualizeAsPdf(_Content,cmdoutput,pdfresult);
 
   Memo3.Lines.Append(cmdoutput);
 

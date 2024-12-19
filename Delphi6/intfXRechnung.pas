@@ -82,6 +82,10 @@ type
     class function InvoiceDutyTaxFeeCategoryCodeFromStr(_Val : String) : TInvoiceDutyTaxFeeCategoryCode;
     class function InvoiceAttachmentTypeToStr(_Val : TInvoiceAttachmentType) : String;
     class function InvoiceAttachmentTypeFromStr(_Val : String) : TInvoiceAttachmentType;
+    class function InvoiceAttachmentTypeCodeToStr(_Val : TInvoiceAttachmentTypeCode) : String;
+    class function InvoiceAttachmentTypeCodeFromStr(_Val : String) : TInvoiceAttachmentTypeCode;
+    class function InvoiceNoteSubjectCodeToStr(_Val : TInvoiceNoteSubjectCode) : String;
+    class function InvoiceNoteSubjectCodeFromStr(_Val : String) : TInvoiceNoteSubjectCode;
     class procedure ReadPaymentTerms(_Invoice: TInvoice; _PaymentTermsText: String);
   end;
 
@@ -269,6 +273,31 @@ begin
     Result := false;
     exit;
   end;
+
+  //Wenn der Verkaeufer keine UStId BT-31 und keine CompanyID BT-30 hat,
+  //sollte CompanyID auf non-existent gesetzt werden
+  if (_Invoice.AccountingSupplierParty.VATCompanyID = '') and
+     (_Invoice.AccountingSupplierParty.CompanyID = '') then
+  begin
+    Result := false;
+    exit;
+  end;
+
+  //Eins von beiden BT-31 BT-32 muss angegeben werden
+  if (_Invoice.AccountingSupplierParty.VATCompanyID = '') and
+     (_Invoice.AccountingSupplierParty.VATCompanyNumber = '') then
+  begin
+    Result := false;
+    exit;
+  end;
+
+  //Beide Steuernummern beim Kaeufer nicht vorgesehen
+//  if (_Invoice.AccountingCustomerParty.VATCompanyID <> '') and
+//     (_Invoice.AccountingCustomerParty.VATCompanyNumber <> '') then
+//  begin
+//    Result := false;
+//    exit;
+//  end;
 end;
 
 class function TXRechnungInvoiceAdapter.LoadFromFile(_Invoice: TInvoice;
@@ -616,6 +645,30 @@ begin
   end;
 end;
 
+class function TXRechnungHelper.InvoiceAttachmentTypeCodeFromStr(
+  _Val: String): TInvoiceAttachmentTypeCode;
+begin
+  if SameText(_Val,'50') then
+    Result := iatc_50 else
+  if SameText(_Val,'130') then
+    Result := iatc_130 else
+  if SameText(_Val,'916') then
+    Result := iatc_916
+  else
+    Result := iatc_None;
+end;
+
+class function TXRechnungHelper.InvoiceAttachmentTypeCodeToStr(
+  _Val: TInvoiceAttachmentTypeCode): String;
+begin
+  case _Val of
+    iatc_50: Result := '50';
+    iatc_130: Result := '130';
+    iatc_916: Result := '916';
+    else Result := '';
+  end;
+end;
+
 class function TXRechnungHelper.InvoiceAttachmentTypeFromStr(_Val: String): TInvoiceAttachmentType;
 begin
   if SameText(_Val,'application/pdf') then
@@ -691,6 +744,56 @@ begin
     idtfcc_O_ServicesOutsideScopeOfTax: Result := 'O';
     idtfcc_S_StandardRate: Result := 'S';
     idtfcc_Z_ZeroRatedGoods: Result := 'Z';
+    else Result := '';
+  end;
+end;
+
+class function TXRechnungHelper.InvoiceNoteSubjectCodeFromStr(
+  _Val: String): TInvoiceNoteSubjectCode;
+begin
+  if SameText(_Val,'AAI') then
+    Result := insc_AAI
+  else
+  if SameText(_Val,'AAJ') then
+    Result := insc_AAJ
+  else
+  if SameText(_Val,'AAK') then
+    Result := insc_AAK
+  else
+  if SameText(_Val,'SUR') then
+    Result := insc_SUR
+  else
+  if SameText(_Val,'REG') then
+    Result := insc_REG
+  else
+  if SameText(_Val,'ABL') then
+    Result := insc_ABL
+  else
+  if SameText(_Val,'TXD') then
+    Result := insc_TXD
+  else
+  if SameText(_Val,'CUS') then
+    Result := insc_CUS
+  else
+  if SameText(_Val,'PMT') then
+    Result := insc_PMT
+  else
+    Result := insc_None;
+end;
+
+class function TXRechnungHelper.InvoiceNoteSubjectCodeToStr(
+  _Val: TInvoiceNoteSubjectCode): String;
+begin
+  case _Val of
+    insc_AAI: Result := 'AAI';
+    insc_AAJ: Result := 'AAJ';
+    insc_AAK: Result := 'AAK';
+    insc_SUR: Result := 'SUR';
+    insc_REG: Result := 'REG';
+    insc_ABL: Result := 'ABL';
+    insc_TXD: Result := 'TXD';
+    insc_CUS: Result := 'CUS';
+    insc_PMT: Result := 'PMT';
     else Result := '';
   end;
 end;
@@ -945,8 +1048,7 @@ var
 begin
   if _PaymentTermsText = '' then
     exit;
-
-  if Pos('#SKONTO#', _PaymentTermsText) = 0 then
+  if Pos('#SKONTO#',_PaymentTermsText) = 0 then
   begin
     _Invoice.PaymentTermsType := iptt_Net;
     _Invoice.PaymentTermNetNote := _PaymentTermsText;
@@ -1067,8 +1169,10 @@ begin
     exit;
   if (SameText(_XML.DocumentElement.NodeName,'Invoice') or
       SameText(_XML.DocumentElement.NodeName,'ubl:Invoice') or
+      SameText(_XML.DocumentElement.NodeName,'ns0:Invoice') or
       SameText(_XML.DocumentElement.NodeName,'CreditNote') or
-      SameText(_XML.DocumentElement.NodeName,'ubl:CreditNote')) then
+      SameText(_XML.DocumentElement.NodeName,'ubl:CreditNote') or
+      SameText(_XML.DocumentElement.NodeName,'ns0:CreditNote')) then
   begin
     if not TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'cbc:CustomizationID',node) then
       exit;

@@ -16,30 +16,35 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages
-  ,System.SysUtils, System.Variants, System.Classes
-  ,System.IOUtils,System.Win.COMObj,System.UITypes
+  ,System.IOUtils, System.SysUtils, System.Variants, System.Classes
+  ,System.Win.COMObj,System.UITypes
   ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema
   ;
 
 type
   IXRechnungValidationHelperJava = interface
     ['{6DCEC6AF-1B1B-4C65-B004-B335397CF10D}']
+    function SetTempPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetJavaRuntimeEnvironmentPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetValidatorLibPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetValidatorConfigurationPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetVisualizationLibPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetFopLibPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetMustangprojectLibPath(const _Path : String) : IXRechnungValidationHelperJava;
+    function SetValitoolLicense(const _License : String) : IXRechnungValidationHelperJava;
+    function SetValitoolPath(const _Path : String) : IXRechnungValidationHelperJava;
     function Validate(const _InvoiceXMLData : String; out _CmdOutput,_ValidationResultAsXML,_ValidationResultAsHTML : String) : Boolean;
     function ValidateFile(const _InvoiceXMLFilename : String; out _CmdOutput,_ValidationResultAsXML,_ValidationResultAsHTML : String) : Boolean;
-    function Visualize(const _InvoiceXMLData : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
-    function VisualizeAsPdf(const _InvoiceXMLData : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
-    function VisualizeFile(const _InvoiceXMLFilename : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
-    function VisualizeFileAsPdf(const _InvoiceXMLFilename : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
+    function Visualize(const _InvoiceXMLData : String; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
+    function VisualizeAsPdf(const _InvoiceXMLData : String; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
+    function VisualizeFile(const _InvoiceXMLFilename : String; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
+    function VisualizeFileAsPdf(const _InvoiceXMLFilename : String; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function MustangValidateFile(const _InvoiceXMLFilename : String; out _CmdOutput,_ValidationResultAsXML : String) : Boolean;
     function MustangVisualizeFile(const _InvoiceXMLFilename : String; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
     function MustangVisualizeFileAsPdf(const _InvoiceXMLFilename : String; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function MustangCombinePdfAndXML(const _InvoicePDFFilename, _InvoiceXMLFilename : String; out _CmdOutput : String; out _CombinedPdf : TMemoryStream) : Boolean;
+    function ValitoolValidate(const _InvoiceXMLData : String; out _CmdOutput,_ValidationResultAsXML : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
+    function ValitoolValidateDirectory(const _Directory : String) : Boolean;
   end;
 
   function GetXRechnungValidationHelperJava : IXRechnungValidationHelperJava;
@@ -49,34 +54,47 @@ implementation
 type
   TXRechnungValidationHelperJava = class(TInterfacedObject,IXRechnungValidationHelperJava)
   private
+    TempPath : String;
     JavaRuntimeEnvironmentPath : String;
     ValidatorLibPath : String;
     ValidatorConfigurationPath : TStringList;
     VisualizationLibPath : String;
     FopLibPath : String;
     MustangprojectPath : String;
+    ValitoolPath : String;
+    ValitoolLicense : String;
     CmdOutput : TStringList;
     function ExecAndWait(_Filename, _Params: string): Boolean;
     function QuoteIfContainsSpace(const _Value : String) : String;
+    function GetVersionFromStr(const _Xml : String) : Integer;
+    function GetVersionFromFile(const _Filename : String) : Integer;
+    function GetNewTempFileName(const _TempPath : String): string;
+    function GetNewTempPath: string;
   public
     constructor Create;
     destructor Destroy; override;
+  public
+    function SetTempPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetJavaRuntimeEnvironmentPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetValidatorLibPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetValidatorConfigurationPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetVisualizationLibPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetFopLibPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetMustangprojectLibPath(const _Path : String) : IXRechnungValidationHelperJava;
+    function SetValitoolLicense(const _License : String) : IXRechnungValidationHelperJava;
+    function SetValitoolPath(const _Path : String) : IXRechnungValidationHelperJava;
     function Validate(const _InvoiceXMLData : String; out _CmdOutput,_ValidationResultAsXML,_ValidationResultAsHTML : String) : Boolean;
     function ValidateFile(const _InvoiceXMLFilename : String; out _CmdOutput,_ValidationResultAsXML,_ValidationResultAsHTML : String) : Boolean;
-    function Visualize(const _InvoiceXMLData : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
-    function VisualizeAsPdf(const _InvoiceXMLData : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
-    function VisualizeFile(const _InvoiceXMLFilename : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
-    function VisualizeFileAsPdf(const _InvoiceXMLFilename : String; _TrueIfUBL_FalseIfCII : Boolean; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
+    function Visualize(const _InvoiceXMLData : String; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
+    function VisualizeAsPdf(const _InvoiceXMLData : String; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
+    function VisualizeFile(const _InvoiceXMLFilename : String; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
+    function VisualizeFileAsPdf(const _InvoiceXMLFilename : String; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function MustangValidateFile(const _InvoiceXMLFilename : String; out _CmdOutput,_ValidationResultAsXML : String) : Boolean;
     function MustangVisualizeFile(const _InvoiceXMLFilename : String; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
     function MustangVisualizeFileAsPdf(const _InvoiceXMLFilename : String; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function MustangCombinePdfAndXML(const _InvoicePDFFilename, _InvoiceXMLFilename : String; out _CmdOutput : String; out _CombinedPdf : TMemoryStream) : Boolean;
+    function ValitoolValidate(const _InvoiceXMLData : String; out _CmdOutput,_ValidationResultAsXML : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
+    function ValitoolValidateDirectory(const _Directory : String) : Boolean;
   end;
 
 function GetXRechnungValidationHelperJava : IXRechnungValidationHelperJava;
@@ -90,6 +108,7 @@ constructor TXRechnungValidationHelperJava.Create;
 begin
   CmdOutput := TStringList.Create;
   ValidatorConfigurationPath := TStringList.Create;
+  TempPath := GetNewTempPath;
 end;
 
 destructor TXRechnungValidationHelperJava.Destroy;
@@ -159,6 +178,62 @@ begin
   end;
 end;
 
+function TXRechnungValidationHelperJava.GetNewTempFileName(
+  const _TempPath: String): string;
+var
+  lTempPath: array[0..255] of Char;
+  lTempFileName: array[0..255] of Char;
+begin
+  FillChar(lTempPath,256,0);
+  StrPLCopy(lTempPath, _TempPath, Length(lTempPath) - 1);
+  GetTempFileName(lTempPath, 'TMP', 0, lTempFileName);
+  Result := lTempFileName;
+end;
+
+function TXRechnungValidationHelperJava.GetNewTempPath: string;
+var
+  lTempPath: array[0..255] of Char;
+begin
+  GetTempPath(255, lTempPath);
+  Result := lTempPath;
+end;
+
+function TXRechnungValidationHelperJava.GetVersionFromFile(
+  const _Filename: String): Integer;
+var
+  hstrl : TStringList;
+begin
+  Result := 0;
+  if not FileExists(_Filename) then
+    exit;
+  hstrl := TStringList.Create;
+  try
+    hstrl.LoadFromFile(_Filename,TEncoding.UTF8);
+    Result := GetVersionFromStr(hstrl.Text);
+  finally
+    hstrl.Free;
+  end;
+end;
+
+function TXRechnungValidationHelperJava.GetVersionFromStr(
+  const _Xml: String): Integer;
+begin
+  Result := 0;
+  if (Pos('<Invoice',_Xml) > 0) or
+     (Pos('<ubl:Invoice',_Xml) > 0) or
+     (Pos('<ns0:Invoice',_Xml) > 0) then
+    Result := 1
+  else
+  if (Pos('<CreditNote',_Xml) > 0) or
+     (Pos('<ubl:CreditNote',_Xml) > 0) or
+     (Pos('<ns0:CreditNote',_Xml) > 0) then
+    Result := 2
+  else
+  if (Pos('<CrossIndustryInvoice',_Xml) > 0) or
+     (Pos('<rsm:CrossIndustryInvoice',_Xml) > 0) then
+    Result := 3;
+end;
+
 function TXRechnungValidationHelperJava.MustangCombinePdfAndXML(
   const _InvoicePDFFilename, _InvoiceXMLFilename: String;
   out _CmdOutput: String; out _CombinedPdf: TMemoryStream): Boolean;
@@ -175,8 +250,10 @@ begin
     exit;
   if not FileExists(MustangprojectPath+'Mustang-CLI.jar') then
     exit;
+  if not DirectoryExists(TempPath) then
+    exit;
 
-  tmpFilename := TPath.GetTempFileName;
+  tmpFilename := GetNewTempFileName(TempPath);
 
   cmd := TStringList.Create;
   try
@@ -229,8 +306,10 @@ begin
     exit;
   if not FileExists(MustangprojectPath+'Mustang-CLI.jar') then
     exit;
+  if not DirectoryExists(TempPath) then
+    exit;
 
-  tmpFilename := TPath.GetTempFileName;
+  tmpFilename := GetNewTempFileName(TempPath);
 
   cmd := TStringList.Create;
   try
@@ -276,8 +355,10 @@ begin
     exit;
   if not FileExists(MustangprojectPath+'Mustang-CLI.jar') then
     exit;
+  if not DirectoryExists(TempPath) then
+    exit;
 
-  tmpFilename := TPath.GetTempFileName;
+  tmpFilename := GetNewTempFileName(TempPath);
 
   cmd := TStringList.Create;
   try
@@ -327,8 +408,10 @@ begin
     exit;
   if not FileExists(MustangprojectPath+'Mustang-CLI.jar') then
     exit;
+  if not DirectoryExists(TempPath) then
+    exit;
 
-  tmpFilename := TPath.GetTempFileName;
+  tmpFilename := GetNewTempFileName(TempPath);
 
   cmd := TStringList.Create;
   try
@@ -384,6 +467,13 @@ begin
   Result := self;
 end;
 
+function TXRechnungValidationHelperJava.SetTempPath(
+  const _Path: String): IXRechnungValidationHelperJava;
+begin
+  TempPath := IncludeTrailingPathDelimiter(_Path);
+  Result := self;
+end;
+
 function TXRechnungValidationHelperJava.SetValidatorConfigurationPath(
   const _Path: String): IXRechnungValidationHelperJava;
 begin
@@ -394,6 +484,20 @@ end;
 function TXRechnungValidationHelperJava.SetValidatorLibPath(const _Path: String): IXRechnungValidationHelperJava;
 begin
   ValidatorLibPath := IncludeTrailingPathDelimiter(_Path);
+  Result := self;
+end;
+
+function TXRechnungValidationHelperJava.SetValitoolLicense(
+  const _License: String): IXRechnungValidationHelperJava;
+begin
+  ValitoolLicense := _License;
+  Result := self;
+end;
+
+function TXRechnungValidationHelperJava.SetValitoolPath(
+  const _Path: String): IXRechnungValidationHelperJava;
+begin
+  ValitoolPath := _Path;
   Result := self;
 end;
 
@@ -422,8 +526,10 @@ begin
   for i := 0 to ValidatorConfigurationPath.Count-1 do
   if not FileExists(ValidatorConfigurationPath[i]+'scenarios.xml') then
     exit;
+  if not DirectoryExists(TempPath) then
+    exit;
 
-  tmpFilename := TPath.GetTempFileName;
+  tmpFilename := GetNewTempFileName(TempPath);
 
   hstrl := TStringList.Create;
   cmd := TStringList.Create;
@@ -543,12 +649,97 @@ begin
   end;
 end;
 
+function TXRechnungValidationHelperJava.ValitoolValidate(
+  const _InvoiceXMLData : String;
+  out _CmdOutput, _ValidationResultAsXML: String;
+  out _VisualizationAsPdf : TMemoryStream): Boolean;
+var
+  hstrl: TStringList;
+  tmpFilename,cmdLine : String;
+begin
+  Result := false;
+  if _InvoiceXMLData = '' then
+    exit;
+  if ValitoolLicense = '' then
+    exit;
+  if not FileExists(ValitoolPath+'valitool.cli.exe') then
+    exit;
+  if not DirectoryExists(TempPath) then
+    exit;
+
+  tmpFilename := GetNewTempFileName(TempPath);
+
+  hstrl := TStringList.Create;
+  try
+    hstrl.Text := _InvoiceXMLData;
+    hstrl.WriteBOM := false;
+    hstrl.SaveToFile(tmpFilename,TEncoding.UTF8);
+
+    cmdLine :=
+             ' --license '+ValitoolLicense+
+             ' --lang de'+
+             ' --file '+QuoteIfContainsSpace(tmpFilename)+
+             ' --mode validate'+
+             ' --pdfReport';
+
+    Result := ExecAndWait(QuoteIfContainsSpace(ValitoolPath+'valitool.cli.exe'),cmdline);
+
+    _CmdOutput := CmdOutput.Text;
+
+    DeleteFile(tmpFilename);
+
+    if FileExists(tmpFilename+'.report.de.xml') then
+    begin
+      hstrl.LoadFromFile(tmpFilename+'.report.de.xml',TEncoding.UTF8);
+      _ValidationResultAsXML := hstrl.Text;
+      DeleteFile(tmpFilename+'.report.de.xml');
+    end;
+
+    if FileExists(tmpFilename+'.report.de.pdf') then
+    begin
+      _VisualizationAsPdf := TMemoryStream.Create;
+      _VisualizationAsPdf.LoadFromFile(tmpFilename+'.report.de.pdf');
+      _VisualizationAsPdf.Position := 0;
+      DeleteFile(tmpFilename+'.report.de.pdf');
+    end else
+      _VisualizationAsPdf := nil;
+  finally
+    hstrl.Free;
+  end;
+end;
+
+function TXRechnungValidationHelperJava.ValitoolValidateDirectory(
+  const _Directory: String): Boolean;
+var
+  cmdLine : String;
+begin
+  Result := false;
+  if _Directory = '' then
+    exit;
+  if ValitoolLicense = '' then
+    exit;
+  if not DirectoryExists(_Directory) then
+    exit;
+  if not FileExists(ValitoolPath+'valitool.cli.exe') then
+    exit;
+
+  cmdLine :=
+           ' --license '+ValitoolLicense+
+           ' --lang de'+
+           ' --dir '+QuoteIfContainsSpace(_Directory)+
+           ' --mode validate'+
+           ' --pdfReport'+
+           ' --noXMLReport';
+
+  Result := ExecAndWait(QuoteIfContainsSpace(ValitoolPath+'valitool.cli.exe'),cmdline);
+end;
+
 function TXRechnungValidationHelperJava.Visualize(const _InvoiceXMLData: String;
-  _TrueIfUBL_FalseIfCII : Boolean;
   out _CmdOutput, _VisualizationAsHTML: String): Boolean;
 var
   hstrl,cmd: TStringList;
   tmpFilename : String;
+  version : Integer;
 begin
   Result := false;
   if _InvoiceXMLData = '' then
@@ -557,17 +748,21 @@ begin
     exit;
   if not FileExists(ValidatorLibPath+'libs\Saxon-HE-11.4.jar') then
     exit;
-  if _TrueIfUBL_FalseIfCII then
   if not FileExists(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl') then
     exit;
-  if not _TrueIfUBL_FalseIfCII then
+  if not FileExists(VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl') then
+    exit;
   if not FileExists(VisualizationLibPath+'xsl\cii-xr.xsl') then
     exit;
-
   if not FileExists(VisualizationLibPath+'xsl\xrechnung-html.xsl') then
     exit;
+  version := GetVersionFromStr(_InvoiceXMLData);
+  if version = 0 then
+    exit;
+  if not DirectoryExists(TempPath) then
+    exit;
 
-  tmpFilename := TPath.GetTempFileName;
+  tmpFilename := GetNewTempFileName(TempPath);
 
   hstrl := TStringList.Create;
   cmd := TStringList.Create;
@@ -576,13 +771,21 @@ begin
     hstrl.SaveToFile(tmpFilename,TEncoding.UTF8);
 
     cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
-    if _TrueIfUBL_FalseIfCII then
+    if version = 1 then
       cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
              QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
              ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(tmpFilename)+
              ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl')+
              ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')))
     else
+    if version = 2 then
+      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
+             QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
+             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(tmpFilename)+
+             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl')+
+             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')))
+    else
+    if version = 3 then
       cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
              QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
              ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(tmpFilename)+
@@ -618,11 +821,12 @@ begin
 end;
 
 function TXRechnungValidationHelperJava.VisualizeAsPdf(
-  const _InvoiceXMLData: String; _TrueIfUBL_FalseIfCII: Boolean;
+  const _InvoiceXMLData: String;
   out _CmdOutput: String; out _VisualizationAsPdf: TMemoryStream): Boolean;
 var
   tmpFilename : String;
   hstrl,cmd: TStringList;
+  version : Integer;
 begin
   //Experimental - it does not work
   Result := false;
@@ -632,18 +836,23 @@ begin
     exit;
   if not FileExists(ValidatorLibPath+'libs\Saxon-HE-11.4.jar') then
     exit;
-  if _TrueIfUBL_FalseIfCII then
   if not FileExists(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl') then
     exit;
-  if not _TrueIfUBL_FalseIfCII then
+  if not FileExists(VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl') then
+    exit;
   if not FileExists(VisualizationLibPath+'xsl\cii-xr.xsl') then
     exit;
   if not FileExists(VisualizationLibPath+'xsl\xrechnung-html.xsl') then
     exit;
   if not FileExists(FopLibPath+'fop\build\fop.jar') then
     exit;
+  version := GetVersionFromStr(_InvoiceXMLData);
+  if version = 0 then
+    exit;
+  if not DirectoryExists(TempPath) then
+    exit;
 
-  tmpFilename := TPath.GetTempFileName;
+  tmpFilename := GetNewTempFileName(TempPath);
 
   hstrl := TStringList.Create;
   cmd := TStringList.Create;
@@ -652,13 +861,21 @@ begin
     hstrl.SaveToFile(tmpFilename,TEncoding.UTF8);
 
     cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
-    if _TrueIfUBL_FalseIfCII then
+    if version = 1 then
       cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
              QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
              ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(tmpFilename)+
              ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl')+
              ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')))
     else
+    if version = 2 then
+      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
+             QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
+             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(tmpFilename)+
+             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl')+
+             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')))
+    else
+    if version = 3 then
       cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
              QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
              ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(tmpFilename)+
@@ -727,10 +944,11 @@ begin
 end;
 
 function TXRechnungValidationHelperJava.VisualizeFile(
-  const _InvoiceXMLFilename: String; _TrueIfUBL_FalseIfCII: Boolean;
+  const _InvoiceXMLFilename: String;
   out _CmdOutput, _VisualizationAsHTML: String): Boolean;
 var
   hstrl,cmd: TStringList;
+  version : Integer;
 begin
   Result := false;
   if _InvoiceXMLFilename = '' then
@@ -741,27 +959,37 @@ begin
     exit;
   if not FileExists(ValidatorLibPath+'libs\Saxon-HE-11.4.jar') then
     exit;
-  if _TrueIfUBL_FalseIfCII then
   if not FileExists(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl') then
     exit;
-  if not _TrueIfUBL_FalseIfCII then
+  if not FileExists(VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl') then
+    exit;
   if not FileExists(VisualizationLibPath+'xsl\cii-xr.xsl') then
     exit;
-
   if not FileExists(VisualizationLibPath+'xsl\xrechnung-html.xsl') then
+    exit;
+  version := GetVersionFromFile(_InvoiceXMLFilename);
+  if version = 0 then
     exit;
 
   hstrl := TStringList.Create;
   cmd := TStringList.Create;
   try
     cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(_InvoiceXMLFilename)));
-    if _TrueIfUBL_FalseIfCII then
+    if version = 1 then
       cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
              QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
              ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(_InvoiceXMLFilename)+
              ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl')+
              ' -o:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-xr.xml')))
     else
+    if version = 2 then
+      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
+             QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
+             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(_InvoiceXMLFilename)+
+             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl')+
+             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-xr.xml')))
+    else
+    if version = 3 then
       cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
              QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
              ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(_InvoiceXMLFilename)+
@@ -797,10 +1025,11 @@ begin
 end;
 
 function TXRechnungValidationHelperJava.VisualizeFileAsPdf(
-  const _InvoiceXMLFilename: String; _TrueIfUBL_FalseIfCII: Boolean;
+  const _InvoiceXMLFilename: String;
   out _CmdOutput: String; out _VisualizationAsPdf: TMemoryStream): Boolean;
 var
   cmd: TStringList;
+  version : Integer;
 begin
   //Experimental - it does not work
   Result := false;
@@ -812,27 +1041,38 @@ begin
     exit;
   if not FileExists(ValidatorLibPath+'libs\Saxon-HE-11.4.jar') then
     exit;
-  if _TrueIfUBL_FalseIfCII then
   if not FileExists(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl') then
     exit;
-  if not _TrueIfUBL_FalseIfCII then
+  if not FileExists(VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl') then
+    exit;
   if not FileExists(VisualizationLibPath+'xsl\cii-xr.xsl') then
     exit;
   if not FileExists(VisualizationLibPath+'xsl\xrechnung-html.xsl') then
     exit;
   if not FileExists(FopLibPath+'fop\build\fop.jar') then
     exit;
+  version := GetVersionFromFile(_InvoiceXMLFilename);
+  if version = 0 then
+    exit;
 
   cmd := TStringList.Create;
   try
     cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(_InvoiceXMLFilename)));
-    if _TrueIfUBL_FalseIfCII then
+    if version = 1 then
       cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
              QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
              ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(_InvoiceXMLFilename)+
              ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl')+
              ' -o:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-xr.xml')))
     else
+    if version = 2 then
+      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
+             QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
+             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(_InvoiceXMLFilename)+
+             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl')+
+             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-xr.xml')))
+    else
+    if version = 3 then
       cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
              QuoteIfContainsSpace(ValidatorLibPath+'libs\Saxon-HE-11.4.jar;'+ValidatorLibPath+'libs\xmlresolver-4.4.3.jar')+
              ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(_InvoiceXMLFilename)+

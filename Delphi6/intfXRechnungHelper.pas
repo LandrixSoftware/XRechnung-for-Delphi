@@ -55,7 +55,7 @@ begin
   _Result := _XnRoot.selectNodes(_NodePath);
   Result := _Result <> nil;
   if Result then
-    Result := _Result.length > 0; 
+    Result := _Result.length > 0;
 end;
 
 class function TXRechnungXMLHelper.SelectNodeText(_XnRoot: IXMLDOMNode; const _NodePath: String): String;
@@ -111,6 +111,11 @@ begin
   if not _Xml.Active then
     exit;
 
+  if SameText(_XML.DocumentElement.FindNamespaceURI('udt'), '') then
+    _XML.DocumentElement.DeclareNamespace('udt', 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100');
+  if SameText(_XML.DocumentElement.FindNamespaceURI('qdt'), '') then
+    _XML.documentElement.DeclareNamespace('qdt', 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100');
+
   for i := 0 to _XML.DocumentElement.AttributeNodes.Count - 1 do
   begin
     sNSN := StringReplace(_XML.DocumentElement.AttributeNodes[I].NodeName, 'xmlns:', '', []);
@@ -135,6 +140,8 @@ begin
       continue;
     if Pos(AnsiUpperCase(sNsLine), AnsiUpperCase(sNSN+'="')) > 0 then
       continue;
+    if SameText(sNSN,'xsi:schemaLocation') then
+     continue;
     sNsLine := ' '+s + sNsLine;
   end;
   sNsLine := trim(sNsLine);

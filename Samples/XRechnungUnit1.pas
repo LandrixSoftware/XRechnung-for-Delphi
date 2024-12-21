@@ -409,7 +409,7 @@ begin
             .SetValidatorLibPath(ValidatorLibPath)
             .SetValidatorConfigurationPath(DistributionBasePath +'validator-configuration23x'+PathDelim)
             .SetValidatorConfigurationPath(ValidatorConfigurationPath)
-            .SetValidatorConfigurationPath('D:\projekte\src-validator-configuration-zugferd\')
+            .SetValidatorConfigurationPath(DistributionBasePath+'validator-configuration-zugferd232'+PathDelim)
             .ValidateFile(od.FileName,cmdoutput,xmlresult,htmlresult);
       else
       begin
@@ -695,7 +695,7 @@ begin
       begin
         GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
             .SetValidatorLibPath(ValidatorLibPath)
-            .SetValidatorConfigurationPath('D:\projekte\src-validator-configuration-zugferd\')
+            .SetValidatorConfigurationPath(DistributionBasePath+'validator-configuration-zugferd232'+PathDelim)
             .ValidateFile(ExtractFilePath(Application.ExeName)+'ZUGFeRD-Extended.xml',cmdoutput,xmlresult,htmlresult);
 
 //        GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)

@@ -103,48 +103,55 @@ end;
 class function TXRechnungXMLHelper.PrepareDocumentForXPathQuerys(_Xml: IXMLDocument): IXMLDOMDocument2;
 var
 //  hList: IDOMNodeList;
-  i: Integer;
-  s, sNSN, sNSUri: string;
+//  i: Integer;
+//  s, sNSN, sNSUri: string;
   sNsLine: string;
 begin
   Result := nil;
   if not _Xml.Active then
     exit;
 
-  if SameText(_XML.DocumentElement.FindNamespaceURI('udt'), '') then
-    _XML.DocumentElement.DeclareNamespace('udt', 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100');
-  if SameText(_XML.DocumentElement.FindNamespaceURI('qdt'), '') then
-    _XML.documentElement.DeclareNamespace('qdt', 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100');
+  sNsLine := 'xmlns:qdt="urn:un:unece:uncefact:data:standard:QualifiedDataType:100" ' +
+             'xmlns:ram="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100" ' +
+             'xmlns:rsm="urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100" ' +
+             'xmlns:udt="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100" ' +
+             'xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" ' +
+             'xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"';
 
-  for i := 0 to _XML.DocumentElement.AttributeNodes.Count - 1 do
-  begin
-    sNSN := StringReplace(_XML.DocumentElement.AttributeNodes[I].NodeName, 'xmlns:', '', []);
-    if sNSN = 'xml' then
-    begin  // wenn es als xmlns:xml hinzugefuegt wird bekommt man die meldung das der Namespacename xml nicht verwendet werden darf...
-      sNSN := 'xmlns:MyXml';
-      sNSUri := _XML.DocumentElement.AttributeNodes[I].nodeValue;
-    end
-    else
-    if sNSN = 'xmlns' then
-    begin  // den Default Namespace mit einem Namen versehen, damit XPath drauf zugreifen kann.
-      sNSN := 'xmlns:dn';
-      sNSUri := _XML.DocumentElement.AttributeNodes[I].nodeValue;
-    end
-    else
-    begin  // alle anderen Namespace auch fuer XPath bekannt machen
-      sNSN := _XML.DocumentElement.AttributeNodes[I].nodeName;
-      sNSUri := _XML.DocumentElement.AttributeNodes[I].nodeValue;
-    end;
-    s := sNSN + '="'+sNSUri+'"';
-    if Pos(AnsiUpperCase(sNsLine), AnsiUpperCase(s)) > 0 then
-      continue;
-    if Pos(AnsiUpperCase(sNsLine), AnsiUpperCase(sNSN+'="')) > 0 then
-      continue;
-    if SameText(sNSN,'xsi:schemaLocation') then
-     continue;
-    sNsLine := ' '+s + sNsLine;
-  end;
-  sNsLine := trim(sNsLine);
+//  if SameText(_XML.DocumentElement.FindNamespaceURI('udt'), '') then
+//    _XML.DocumentElement.DeclareNamespace('udt', 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100');
+//  if SameText(_XML.DocumentElement.FindNamespaceURI('qdt'), '') then
+//    _XML.documentElement.DeclareNamespace('qdt', 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100');
+//
+//  for i := 0 to _XML.DocumentElement.AttributeNodes.Count - 1 do
+//  begin
+//    sNSN := StringReplace(_XML.DocumentElement.AttributeNodes[I].NodeName, 'xmlns:', '', []);
+//    if sNSN = 'xml' then
+//    begin  // wenn es als xmlns:xml hinzugefuegt wird bekommt man die meldung das der Namespacename xml nicht verwendet werden darf...
+//      sNSN := 'xmlns:MyXml';
+//      sNSUri := _XML.DocumentElement.AttributeNodes[I].nodeValue;
+//    end
+//    else
+//    if sNSN = 'xmlns' then
+//    begin  // den Default Namespace mit einem Namen versehen, damit XPath drauf zugreifen kann.
+//      sNSN := 'xmlns:dn';
+//      sNSUri := _XML.DocumentElement.AttributeNodes[I].nodeValue;
+//    end
+//    else
+//    begin  // alle anderen Namespace auch fuer XPath bekannt machen
+//      sNSN := _XML.DocumentElement.AttributeNodes[I].nodeName;
+//      sNSUri := _XML.DocumentElement.AttributeNodes[I].nodeValue;
+//    end;
+//    s := sNSN + '="'+sNSUri+'"';
+//    if Pos(AnsiUpperCase(sNsLine), AnsiUpperCase(s)) > 0 then
+//      continue;
+//    if Pos(AnsiUpperCase(sNsLine), AnsiUpperCase(sNSN+'="')) > 0 then
+//      continue;
+//    if SameText(sNSN,'xsi:schemaLocation') then
+//     continue;
+//    sNsLine := ' '+s + sNsLine;
+//  end;
+//  sNsLine := trim(sNsLine);
 
   Result := CoDOMDocument60.Create;
   Result.loadXML(_Xml.XML.Text);

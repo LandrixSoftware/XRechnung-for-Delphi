@@ -430,7 +430,7 @@ end;
 class function TXRechnungHelper.UnitPriceAmountToStr(
   _Val: Currency): String;
 begin
-  Result := StringReplace(Format('%.4f',[_Val]),',','.',[rfIgnoreCase,rfReplaceAll]);
+  Result := StringReplace(Format('%.2f',[_Val]),',','.',[rfIgnoreCase,rfReplaceAll]);
 end;
 
 class function TXRechnungHelper.DateFromStrUBLFormat(const _Val : String) : TDateTime;

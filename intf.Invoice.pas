@@ -34,6 +34,11 @@ type
     NON_EXISTENT = 'non-existent';
   end;
 
+  {$IF CompilerVersion >= 36.0}
+  TInvoiceListItemType = NativeInt;
+  {$ELSE}
+  TInvoiceListItemType = Integer;
+  {$IFEND}
   TInvoiceTypeCode = (
     itc_None,
 
@@ -205,13 +210,13 @@ type
 
   TInvoiceAttachmentList = class(TObjectList)
   protected
-    function GetItem(Index: Integer): TInvoiceAttachment;
-    procedure SetItem(Index: Integer; AItem: TInvoiceAttachment);
+    function GetItem(Index: TInvoiceListItemType): TInvoiceAttachment;
+    procedure SetItem(Index: TInvoiceListItemType; AItem: TInvoiceAttachment);
   public
 	  function  Extract(Item: TObject): TInvoiceAttachment;
 	  function  First: TInvoiceAttachment;
 	  function  Last: TInvoiceAttachment;
-	  property  Items[Index: Integer]: TInvoiceAttachment read GetItem write SetItem; default;
+	  property  Items[Index: TInvoiceListItemType]: TInvoiceAttachment read GetItem write SetItem; default;
   public
     function AddAttachment(_AttachmentType : TInvoiceAttachmentType) : TInvoiceAttachment;
     function TryAddAttachmentByExtension(const _Filename : String; out _Attachment : TInvoiceAttachment) : Boolean;
@@ -396,13 +401,13 @@ type
 
   TInvoiceAllowanceCharges = class(TObjectList)
   protected
-    function GetItem(Index: Integer): TInvoiceAllowanceCharge;
-    procedure SetItem(Index: Integer; AItem: TInvoiceAllowanceCharge);
+    function GetItem(Index: TInvoiceListItemType): TInvoiceAllowanceCharge;
+    procedure SetItem(Index: TInvoiceListItemType; AItem: TInvoiceAllowanceCharge);
   public
 	  function  Extract(Item: TObject): TInvoiceAllowanceCharge;
 	  function  First: TInvoiceAllowanceCharge;
 	  function  Last: TInvoiceAllowanceCharge;
-	  property  Items[Index: Integer]: TInvoiceAllowanceCharge read GetItem write SetItem; default;
+	  property  Items[Index: TInvoiceListItemType]: TInvoiceAllowanceCharge read GetItem write SetItem; default;
   public
     function AddAllowanceCharge : TInvoiceAllowanceCharge;
   end;
@@ -417,13 +422,13 @@ type
 
   TInvoiceLineItemAttributes = class(TObjectList)
   protected
-    function GetItem(Index: Integer): TInvoiceLineItemAttribute;
-    procedure SetItem(Index: Integer; AItem: TInvoiceLineItemAttribute);
+    function GetItem(Index: TInvoiceListItemType): TInvoiceLineItemAttribute;
+    procedure SetItem(Index: TInvoiceListItemType; AItem: TInvoiceLineItemAttribute);
   public
 	  function  Extract(Item: TObject): TInvoiceLineItemAttribute;
 	  function  First: TInvoiceLineItemAttribute;
 	  function  Last: TInvoiceLineItemAttribute;
-	  property  Items[Index: Integer]: TInvoiceLineItemAttribute read GetItem write SetItem; default;
+	  property  Items[Index: TInvoiceListItemType]: TInvoiceLineItemAttribute read GetItem write SetItem; default;
   public
     function  AddItemAttribute : TInvoiceLineItemAttribute;
   end;
@@ -458,13 +463,13 @@ type
 
   TInvoiceLines = class(TObjectList)
   protected
-    function GetItem(Index: Integer): TInvoiceLine;
-    procedure SetItem(Index: Integer; AItem: TInvoiceLine);
+    function GetItem(Index: TInvoiceListItemType): TInvoiceLine;
+    procedure SetItem(Index: TInvoiceListItemType; AItem: TInvoiceLine);
   public
 	  function  Extract(Item: TObject): TInvoiceLine;
 	  function  First: TInvoiceLine;
 	  function  Last: TInvoiceLine;
-	  property  Items[Index: Integer]: TInvoiceLine read GetItem write SetItem; default;
+	  property  Items[Index: TInvoiceListItemType]: TInvoiceLine read GetItem write SetItem; default;
   public
     function AddInvoiceLine : TInvoiceLine;
   end;
@@ -482,13 +487,13 @@ type
 
   TInvoiceTaxAmounts = class(TObjectList)
   protected
-    function GetItem(Index: Integer): TInvoiceTaxAmount;
-    procedure SetItem(Index: Integer; AItem: TInvoiceTaxAmount);
+    function GetItem(Index: TInvoiceListItemType): TInvoiceTaxAmount;
+    procedure SetItem(Index: TInvoiceListItemType; AItem: TInvoiceTaxAmount);
   public
 	  function  Extract(Item: TObject): TInvoiceTaxAmount;
 	  function  First: TInvoiceTaxAmount;
 	  function  Last: TInvoiceTaxAmount;
-	  property  Items[Index: Integer]: TInvoiceTaxAmount read GetItem write SetItem; default;
+	  property  Items[Index: TInvoiceListItemType]: TInvoiceTaxAmount read GetItem write SetItem; default;
   public
     function AddTaxAmountIfTaxExists(_TaxPercent : double; _TaxableAmount,_TaxAmount : Currency) : Boolean;
     function AddTaxAmount : TInvoiceTaxAmount;
@@ -548,13 +553,13 @@ type
 
   TInvoicePrecedingInvoiceReferences = class(TObjectList)
   protected
-    function GetItem(Index: Integer): TInvoicePrecedingInvoiceReference;
-    procedure SetItem(Index: Integer; AItem: TInvoicePrecedingInvoiceReference);
+    function GetItem(Index: TInvoiceListItemType): TInvoicePrecedingInvoiceReference;
+    procedure SetItem(Index: TInvoiceListItemType; AItem: TInvoicePrecedingInvoiceReference);
   public
 	  function  Extract(Item: TObject): TInvoicePrecedingInvoiceReference;
 	  function  First: TInvoicePrecedingInvoiceReference;
 	  function  Last: TInvoicePrecedingInvoiceReference;
-	  property  Items[Index: Integer]: TInvoicePrecedingInvoiceReference read GetItem write SetItem; default;
+	  property  Items[Index: TInvoiceListItemType]: TInvoicePrecedingInvoiceReference read GetItem write SetItem; default;
   public
     function AddPrecedingInvoiceReference : TInvoicePrecedingInvoiceReference;
     function IndexOfPrecedingInvoiceReference(const _ID : String) : Integer;
@@ -584,13 +589,13 @@ type
 
   TInvoiceNotes = class(TObjectList)
   protected
-    function GetItem(Index: Integer): TInvoiceNote;
-    procedure SetItem(Index: Integer; AItem: TInvoiceNote);
+    function GetItem(Index: TInvoiceListItemType): TInvoiceNote;
+    procedure SetItem(Index: TInvoiceListItemType; AItem: TInvoiceNote);
   public
 	  function  Extract(Item: TObject): TInvoiceNote;
 	  function  First: TInvoiceNote;
 	  function  Last: TInvoiceNote;
-	  property  Items[Index: Integer]: TInvoiceNote read GetItem write SetItem; default;
+	  property  Items[Index: TInvoiceListItemType]: TInvoiceNote read GetItem write SetItem; default;
   public
     function AddNote: TInvoiceNote;
     function NodeContentsAsText : String;
@@ -610,14 +615,14 @@ type
 
   TInvoicePaymentTypeList = class(TObjectList)
   protected
-    function GetItem(Index: Integer): TInvoicePaymentType;
-    procedure SetItem(Index: Integer; AItem: TInvoicePaymentType);
+    function GetItem(Index: TInvoiceListItemType): TInvoicePaymentType;
+    procedure SetItem(Index: TInvoiceListItemType; AItem: TInvoicePaymentType);
   public
 	  function  Extract(Item: TObject): TInvoicePaymentType;
 	  function  First: TInvoicePaymentType;
 	  function  Last: TInvoicePaymentType;
     function  AddPaymentType : TInvoicePaymentType;
-	  property  Items[Index: Integer]: TInvoicePaymentType read GetItem write SetItem; default;
+	  property  Items[Index: TInvoiceListItemType]: TInvoicePaymentType read GetItem write SetItem; default;
   end;
 
   TInvoice = class(TObject)
@@ -743,13 +748,13 @@ begin Result := TInvoiceLine(inherited Extract(Item)); end;
 function TInvoiceLines.First: TInvoiceLine;
 begin if Count = 0 then Result := nil else Result := TInvoiceLine(inherited First); end;
 
-function TInvoiceLines.GetItem(Index: Integer): TInvoiceLine;
+function TInvoiceLines.GetItem(Index: TInvoiceListItemType): TInvoiceLine;
 begin Result := TInvoiceLine(inherited Items[Index]); end;
 
 function TInvoiceLines.Last: TInvoiceLine;
 begin if Count = 0 then Result := nil else Result := TInvoiceLine(inherited Last); end;
 
-procedure TInvoiceLines.SetItem(Index: Integer; AItem: TInvoiceLine);
+procedure TInvoiceLines.SetItem(Index: TInvoiceListItemType; AItem: TInvoiceLine);
 begin inherited Items[Index] := AItem; end;
 
 function TInvoiceLines.AddInvoiceLine: TInvoiceLine;
@@ -766,13 +771,13 @@ begin Result := TInvoiceAllowanceCharge(inherited Extract(Item)); end;
 function TInvoiceAllowanceCharges.First: TInvoiceAllowanceCharge;
 begin if Count = 0 then Result := nil else Result := TInvoiceAllowanceCharge(inherited First); end;
 
-function TInvoiceAllowanceCharges.GetItem(Index: Integer): TInvoiceAllowanceCharge;
+function TInvoiceAllowanceCharges.GetItem(Index: TInvoiceListItemType): TInvoiceAllowanceCharge;
 begin Result := TInvoiceAllowanceCharge(inherited Items[Index]); end;
 
 function TInvoiceAllowanceCharges.Last: TInvoiceAllowanceCharge;
 begin if Count = 0 then Result := nil else Result := TInvoiceAllowanceCharge(inherited Last); end;
 
-procedure TInvoiceAllowanceCharges.SetItem(Index: Integer; AItem: TInvoiceAllowanceCharge);
+procedure TInvoiceAllowanceCharges.SetItem(Index: TInvoiceListItemType; AItem: TInvoiceAllowanceCharge);
 begin inherited Items[Index] := AItem; end;
 
 function TInvoiceAllowanceCharges.AddAllowanceCharge: TInvoiceAllowanceCharge;
@@ -789,13 +794,13 @@ begin Result := TInvoicePrecedingInvoiceReference(inherited Extract(Item)); end;
 function TInvoicePrecedingInvoiceReferences.First: TInvoicePrecedingInvoiceReference;
 begin if Count = 0 then Result := nil else Result := TInvoicePrecedingInvoiceReference(inherited First); end;
 
-function TInvoicePrecedingInvoiceReferences.GetItem(Index: Integer): TInvoicePrecedingInvoiceReference;
+function TInvoicePrecedingInvoiceReferences.GetItem(Index: TInvoiceListItemType): TInvoicePrecedingInvoiceReference;
 begin Result := TInvoicePrecedingInvoiceReference(inherited Items[Index]); end;
 
 function TInvoicePrecedingInvoiceReferences.Last: TInvoicePrecedingInvoiceReference;
 begin if Count = 0 then Result := nil else Result := TInvoicePrecedingInvoiceReference(inherited Last); end;
 
-procedure TInvoicePrecedingInvoiceReferences.SetItem(Index: Integer; AItem: TInvoicePrecedingInvoiceReference);
+procedure TInvoicePrecedingInvoiceReferences.SetItem(Index: TInvoiceListItemType; AItem: TInvoicePrecedingInvoiceReference);
 begin inherited Items[Index] := AItem; end;
 
 function TInvoicePrecedingInvoiceReferences.AddPrecedingInvoiceReference: TInvoicePrecedingInvoiceReference;
@@ -834,13 +839,13 @@ begin Result := TInvoiceNote(inherited Extract(Item)); end;
 function TInvoiceNotes.First: TInvoiceNote;
 begin if Count = 0 then Result := nil else Result := TInvoiceNote(inherited First); end;
 
-function TInvoiceNotes.GetItem(Index: Integer): TInvoiceNote;
+function TInvoiceNotes.GetItem(Index: TInvoiceListItemType): TInvoiceNote;
 begin Result := TInvoiceNote(inherited Items[Index]); end;
 
 function TInvoiceNotes.Last: TInvoiceNote;
 begin if Count = 0 then Result := nil else Result := TInvoiceNote(inherited Last); end;
 
-procedure TInvoiceNotes.SetItem(Index: Integer; AItem: TInvoiceNote);
+procedure TInvoiceNotes.SetItem(Index: TInvoiceListItemType; AItem: TInvoiceNote);
 begin inherited Items[Index] := AItem; end;
 
 function TInvoiceNotes.AddNote: TInvoiceNote;
@@ -1165,13 +1170,13 @@ begin Result := TInvoiceAttachment(inherited Extract(Item)); end;
 function TInvoiceAttachmentList.First: TInvoiceAttachment;
 begin if Count = 0 then Result := nil else Result := TInvoiceAttachment(inherited First); end;
 
-function TInvoiceAttachmentList.GetItem(Index: Integer): TInvoiceAttachment;
+function TInvoiceAttachmentList.GetItem(Index: TInvoiceListItemType): TInvoiceAttachment;
 begin Result := TInvoiceAttachment(inherited Items[Index]); end;
 
 function TInvoiceAttachmentList.Last: TInvoiceAttachment;
 begin if Count = 0 then Result := nil else Result := TInvoiceAttachment(inherited Last); end;
 
-procedure TInvoiceAttachmentList.SetItem(Index: Integer; AItem: TInvoiceAttachment);
+procedure TInvoiceAttachmentList.SetItem(Index: TInvoiceListItemType; AItem: TInvoiceAttachment);
 begin inherited Items[Index] := AItem; end;
 
 function TInvoiceAttachmentList.AddAttachment(_AttachmentType: TInvoiceAttachmentType): TInvoiceAttachment;
@@ -1250,13 +1255,13 @@ begin Result := TInvoiceTaxAmount(inherited Extract(Item)); end;
 function TInvoiceTaxAmounts.First: TInvoiceTaxAmount;
 begin if Count = 0 then Result := nil else Result := TInvoiceTaxAmount(inherited First); end;
 
-function TInvoiceTaxAmounts.GetItem(Index: Integer): TInvoiceTaxAmount;
+function TInvoiceTaxAmounts.GetItem(Index: TInvoiceListItemType): TInvoiceTaxAmount;
 begin Result := TInvoiceTaxAmount(inherited Items[Index]); end;
 
 function TInvoiceTaxAmounts.Last: TInvoiceTaxAmount;
 begin if Count = 0 then Result := nil else Result := TInvoiceTaxAmount(inherited Last); end;
 
-procedure TInvoiceTaxAmounts.SetItem(Index: Integer; AItem: TInvoiceTaxAmount);
+procedure TInvoiceTaxAmounts.SetItem(Index: TInvoiceListItemType; AItem: TInvoiceTaxAmount);
 begin inherited Items[Index] := AItem; end;
 
 function TInvoiceTaxAmounts.AddTaxAmount: TInvoiceTaxAmount;
@@ -1321,13 +1326,13 @@ begin Result := TInvoiceLineItemAttribute(inherited Extract(Item)); end;
 function TInvoiceLineItemAttributes.First: TInvoiceLineItemAttribute;
 begin if Count = 0 then Result := nil else Result := TInvoiceLineItemAttribute(inherited First); end;
 
-function TInvoiceLineItemAttributes.GetItem(Index: Integer): TInvoiceLineItemAttribute;
+function TInvoiceLineItemAttributes.GetItem(Index: TInvoiceListItemType): TInvoiceLineItemAttribute;
 begin Result := TInvoiceLineItemAttribute(inherited Items[Index]); end;
 
 function TInvoiceLineItemAttributes.Last: TInvoiceLineItemAttribute;
 begin if Count = 0 then Result := nil else Result := TInvoiceLineItemAttribute(inherited Last); end;
 
-procedure TInvoiceLineItemAttributes.SetItem(Index: Integer; AItem: TInvoiceLineItemAttribute);
+procedure TInvoiceLineItemAttributes.SetItem(Index: TInvoiceListItemType; AItem: TInvoiceLineItemAttribute);
 begin inherited Items[Index] := AItem; end;
 
 { TInvoicePaymentType }
@@ -1349,13 +1354,13 @@ begin Result := TInvoicePaymentType(inherited Extract(Item)); end;
 function TInvoicePaymentTypeList.First: TInvoicePaymentType;
 begin if Count = 0 then Result := nil else Result := TInvoicePaymentType(inherited First); end;
 
-function TInvoicePaymentTypeList.GetItem(Index: Integer): TInvoicePaymentType;
+function TInvoicePaymentTypeList.GetItem(Index: TInvoiceListItemType): TInvoicePaymentType;
 begin Result := TInvoicePaymentType(inherited Items[Index]); end;
 
 function TInvoicePaymentTypeList.Last: TInvoicePaymentType;
 begin if Count = 0 then Result := nil else Result := TInvoicePaymentType(inherited Last); end;
 
-procedure TInvoicePaymentTypeList.SetItem(Index: Integer; AItem: TInvoicePaymentType);
+procedure TInvoicePaymentTypeList.SetItem(Index: TInvoiceListItemType; AItem: TInvoicePaymentType);
 begin inherited Items[Index] := AItem; end;
 
 function TInvoicePaymentTypeList.AddPaymentType : TInvoicePaymentType;

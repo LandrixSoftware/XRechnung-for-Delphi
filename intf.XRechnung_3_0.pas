@@ -1076,7 +1076,8 @@ begin
   with xRoot.AddChild('cac:BillingReference').AddChild('cac:InvoiceDocumentReference') do
   begin
     AddChild('cbc:ID').Text := _Invoice.PrecedingInvoiceReferences[i].ID;
-    AddChild('cbc:IssueDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.PrecedingInvoiceReferences[i].IssueDate);
+    if _Invoice.PrecedingInvoiceReferences[i].IssueDate > 0 then
+      AddChild('cbc:IssueDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.PrecedingInvoiceReferences[i].IssueDate);
   end;
   if _Invoice.DeliveryReceiptNumber <> '' then
     xRoot.AddChild('cac:DespatchDocumentReference').AddChild('cbc:ID').Text := _Invoice.DeliveryReceiptNumber;
@@ -2060,6 +2061,7 @@ begin
       with AddChild('ram:InvoiceReferencedDocument') do
       begin
         AddChild('ram:IssuerAssignedID').Text := _Invoice.PrecedingInvoiceReferences[i].ID;
+        if _Invoice.PrecedingInvoiceReferences[i].IssueDate > 0 then
         with AddChild('ram:FormattedIssueDateTime').AddChild('qdt:DateTimeString') do
         begin
           Attributes['format'] := '102';

@@ -75,11 +75,13 @@ var
     end;
     if TXRechnungXMLHelper.SelectNode(_Node,'.//cbc:LineExtensionAmount',node) then
       _Invoiceline.LineAmount := TXRechnungHelper.AmountFromStr(node.text);
+    _InvoiceLine.BuyerAccountingReference := TXRechnungXMLHelper.SelectNodeText(_Node, './/cbc:AccountingCost');
     if TXRechnungXMLHelper.SelectNode(_Node,'.//cac:InvoicePeriod',node) then
     begin
       _Invoiceline.InvoiceLinePeriodStartDate := TXRechnungHelper.DateFromStrUBLFormat(TXRechnungXMLHelper.SelectNodeText(node,'.//cbc:StartDate'));
       _Invoiceline.InvoiceLinePeriodEndDate := TXRechnungHelper.DateFromStrUBLFormat(TXRechnungXMLHelper.SelectNodeText(node,'.//cbc:EndDate'));
     end;
+    _InvoiceLine.OrderLineReference := TXRechnungXMLHelper.SelectNodeText(_Node, './/cac:OrderLineReference/cbc:LineID');
     if TXRechnungXMLHelper.SelectNodes(_Node,'cac:AllowanceCharge',nodes) then
     for i := 0 to nodes.length-1 do
     with _Invoiceline.AllowanceCharges.AddAllowanceCharge do
@@ -106,6 +108,7 @@ var
     begin
       _Invoiceline.Description := TXRechnungXMLHelper.SelectNodeText(node,'.//cbc:Description');
       _Invoiceline.Name := TXRechnungXMLHelper.SelectNodeText(node,'.//cbc:Name');
+      _Invoiceline.BuyersItemIdentification := TXRechnungXMLHelper.SelectNodeText(node,'.//cac:BuyersItemIdentification/cbc:ID');
       _Invoiceline.SellersItemIdentification := TXRechnungXMLHelper.SelectNodeText(node,'.//cac:SellersItemIdentification/cbc:ID');
       if (TXRechnungXMLHelper.SelectNode(node,'.//cac:StandardItemIdentification/cbc:ID',node2)) then
       if (TXRechnungXMLHelper.SelectAttributeText(node2,'schemeID') = '0160') then
@@ -415,6 +418,7 @@ var
       if (TXRechnungXMLHelper.SelectAttributeText(node3,'schemeID') = '0160') then
         _Invoiceline.GlobalID_EAN_GTIN := node3.text;
       _Invoiceline.SellersItemIdentification := TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:SellerAssignedID');
+      _Invoiceline.BuyersItemIdentification := TXRechnungXMLHelper.SelectNodeText(node2,'./ram:BuyerAssignedID');
       _Invoiceline.Name := TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:Name');
       _Invoiceline.Description := TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:Description');
       if TXRechnungXMLHelper.SelectNodes(node2,'.//ram:ApplicableProductCharacteristic',nodes) then
@@ -430,9 +434,7 @@ var
 //        <ram:BuyerOrderReferencedDocument>
 //            <ram:LineID>6171175.1</ram:LineID>
 //        </ram:BuyerOrderReferencedDocument>
-//        <cac:OrderLineReference>
-//            <cbc:LineID>6171175.1</cbc:LineID>
-//        </cac:OrderLineReference>
+      _InvoiceLine.OrderLineReference :=  TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:BuyerOrderReferencedDocument/ram:LineID');
       if TXRechnungXMLHelper.SelectNode(node2,'.//ram:GrossPriceProductTradePrice',node3) then
       begin
         _Invoiceline.GrossPriceAmount := TXRechnungHelper.UnitPriceAmountFromStr(TXRechnungXMLHelper.SelectNodeText(node3,'.//ram:ChargeAmount'));
@@ -487,6 +489,7 @@ var
       begin
         _Invoiceline.LineAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(node,'.//ram:LineTotalAmount'));
       end;
+      _InvoiceLine.BuyerAccountingReference := TXRechnungXMLHelper.SelectNodeText(node2, './/ram:ReceivableSpecifiedTradeAccountingAccount/ram:ID');
     end;
     if TXRechnungXMLHelper.SelectNodes(_Node,'.//ram:IncludedSupplyChainTradeLineItem',nodes) then
     for i := 0 to nodes.length-1 do
@@ -913,6 +916,8 @@ var
       Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
       Text := TXRechnungHelper.AmountToStr(_Invoiceline.LineAmount);
     end;
+    if (_InvoiceLine.BuyerAccountingReference <> '') then
+      _Node.AddChild('cbc:AccountingCost').Text := _InvoiceLine.BuyerAccountingReference;
     if (_Invoiceline.InvoiceLinePeriodStartDate > 100) and
        (_Invoiceline.InvoiceLinePeriodEndDate >= _Invoiceline.InvoiceLinePeriodStartDate) then
     with _Node.AddChild('cac:InvoicePeriod') do
@@ -920,6 +925,8 @@ var
       AddChild('cbc:StartDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoiceline.InvoiceLinePeriodStartDate);
       AddChild('cbc:EndDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoiceline.InvoiceLinePeriodEndDate);
     end;
+    if (_InvoiceLine.OrderLineReference <> '') then
+      _Node.AddChild('cac:OrderLineReference').AddChild('cbc:LineID').Text := _InvoiceLine.OrderLineReference;
     //  <cac:DocumentReference>
     //     <cbc:ID/>
     //     <cbc:DocumentType>916</cbc:DocumentType>
@@ -953,10 +960,9 @@ var
       if not (_Invoiceline.Description = '') then
         AddChild('cbc:Description').Text := _Invoiceline.Description;
       AddChild('cbc:Name').Text := _Invoiceline.Name;
-      //   <cac:BuyersItemIdentification>
-      //      <cbc:ID/>
-      //   </cac:BuyersItemIdentification>
-      if not (_Invoiceline.SellersItemIdentification = '') then
+      if (_Invoiceline.BuyersItemIdentification <> '') then
+        AddChild('cac:BuyersItemIdentification').AddChild('cbc:ID').Text := _Invoiceline.BuyersItemIdentification;
+      if (_Invoiceline.SellersItemIdentification <> '') then
         AddChild('cac:SellersItemIdentification').AddChild('cbc:ID').Text := _Invoiceline.SellersItemIdentification;
       if _Invoiceline.GlobalID_EAN_GTIN <> '' then
       with AddChild('cac:StandardItemIdentification').AddChild('cbc:ID') do
@@ -1493,8 +1499,10 @@ var
           Text := _Invoiceline.GlobalID_EAN_GTIN;
         end;
       end;
-      if not (_Invoiceline.SellersItemIdentification = '') then
+      if (_Invoiceline.SellersItemIdentification  <> '') then
         AddChild('ram:SellerAssignedID').Text := _Invoiceline.SellersItemIdentification;
+      if (_Invoiceline.BuyersItemIdentification  <> '') then
+        AddChild('ram:BuyerAssignedID').Text := _Invoiceline.BuyersItemIdentification;
       AddChild('ram:Name').Text := _Invoiceline.Name;
       if not (_Invoiceline.Description = '') then
         AddChild('ram:Description').Text := _Invoiceline.Description;
@@ -1512,9 +1520,11 @@ var
 //        <ram:BuyerOrderReferencedDocument>
 //            <ram:LineID>6171175.1</ram:LineID>
 //        </ram:BuyerOrderReferencedDocument>
-//        <cac:OrderLineReference>
-//            <cbc:LineID>6171175.1</cbc:LineID>
-//        </cac:OrderLineReference>
+      if _InvoiceLine.OrderLineReference <> '' then
+      with AddChild('ram:BuyerOrderReferencedDocument') do
+      begin
+        AddChild('ram:LineID').Text := _InvoiceLine.OrderLineReference;
+      end;
       if _Invoiceline.GrossPriceAmount <> 0 then
       with AddChild('ram:GrossPriceProductTradePrice') do
       begin
@@ -1593,6 +1603,8 @@ var
       begin
         AddChild('ram:LineTotalAmount').Text := TXRechnungHelper.AmountToStr(_Invoiceline.LineAmount);
       end;
+      if (_InvoiceLine.BuyerAccountingReference <> '') then
+        AddChild('ram:ReceivableSpecifiedTradeAccountingAccount').AddChild('ram:ID').Text := _InvoiceLine.BuyerAccountingReference;
     end;
     if _Invoiceline.SubInvoiceLines.Count > 0 then
       raise Exception.Create('SubInvoiceLines in UNCEFACT not implemented');
@@ -2073,7 +2085,6 @@ begin
     end;
   end;
 end;
-
 
 end.
 

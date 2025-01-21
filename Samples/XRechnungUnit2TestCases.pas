@@ -365,7 +365,7 @@ begin
   inv.DeliveryReceiptNumber := 'Lieferschein123';
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername';
-  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
+  inv.AccountingSupplierParty.RegistrationName := 'VerkaeuferRegistrationName'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
   inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
   inv.AccountingSupplierParty.Address.AdditionalStreetName := 'Hinterhaus'; //optional
@@ -506,8 +506,10 @@ begin
     Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
     Quantity := 2; //Menge
     UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
-    //TODO Artikelnummer Kaeufer
-    SellersItemIdentification := 'A0815'; //Artikelnummer
+    SellersItemIdentification := 'A0815'; //Artikelnummer Verkaeufer
+    BuyersItemIdentification := 'B0815'; //Artikelnummer Kaeufer
+    BuyerAccountingReference := '6171175.1';
+    OrderLineReference := '6171175.1';
     TaxPercent := 7.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
     GrossPriceAmount := 50; //Brutto-Einzelpreis

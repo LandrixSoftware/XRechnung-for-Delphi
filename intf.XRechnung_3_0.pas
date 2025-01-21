@@ -1661,12 +1661,14 @@ begin
         AddChild('ram:Name').Text := _Invoice.AccountingSupplierParty.RegistrationName;
         if _Invoice.AccountingSupplierParty.AdditionalLegalInformationSeller <> '' then
           AddChild('ram:Description').Text := _Invoice.AccountingSupplierParty.AdditionalLegalInformationSeller;
-        with AddChild('ram:SpecifiedLegalOrganization') do
-        begin
-          if _Invoice.AccountingSupplierParty.CompanyID <> '' then
-            AddChild('ram:ID').Text := _Invoice.AccountingSupplierParty.CompanyID;
-          AddChild('ram:TradingBusinessName').Text := _Invoice.AccountingSupplierParty.Name;
-        end;
+        if (_Invoice.AccountingSupplierParty.Name<>'') or (_Invoice.AccountingSupplierParty.CompanyID<>'') then
+          with AddChild('ram:SpecifiedLegalOrganization') do
+          begin
+            if _Invoice.AccountingSupplierParty.CompanyID <> '' then
+              AddChild('ram:ID').Text := _Invoice.AccountingSupplierParty.CompanyID;
+            if _Invoice.AccountingSupplierParty.Name <> '' then
+              AddChild('ram:TradingBusinessName').Text := _Invoice.AccountingSupplierParty.Name;
+          end;
         with AddChild('ram:DefinedTradeContact') do
         begin
           AddChild('ram:PersonName').Text := _Invoice.AccountingSupplierParty.ContactName;
@@ -1712,12 +1714,14 @@ begin
           AddChild('ram:ID').Text := _Invoice.AccountingCustomerParty.IdentifierSellerBuyer;
         AddChild('ram:Name').Text := _Invoice.AccountingCustomerParty.RegistrationName;
 
-        with AddChild('ram:SpecifiedLegalOrganization') do
-        begin
-          if _Invoice.AccountingCustomerParty.CompanyID <> '' then
-            AddChild('ram:ID').Text := _Invoice.AccountingCustomerParty.CompanyID;
-          AddChild('ram:TradingBusinessName').Text := _Invoice.AccountingCustomerParty.Name;
-        end;
+        if (_Invoice.AccountingCustomerParty.Name <> '') or (_Invoice.AccountingCustomerParty.CompanyID <> '') then
+          with AddChild('ram:SpecifiedLegalOrganization') do
+          begin
+            if _Invoice.AccountingCustomerParty.CompanyID <> '' then
+              AddChild('ram:ID').Text := _Invoice.AccountingCustomerParty.CompanyID;
+            if _Invoice.AccountingCustomerParty.Name <> '' then
+              AddChild('ram:TradingBusinessName').Text := _Invoice.AccountingCustomerParty.Name;
+          end;
         if (_Invoice.AccountingCustomerParty.ContactName <> '') or
            (_Invoice.AccountingCustomerParty.ContactTelephone <> '') or
            (_Invoice.AccountingCustomerParty.ContactElectronicMail <> '') then

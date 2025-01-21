@@ -427,29 +427,38 @@ type
     function  AddItemAttribute : TInvoiceLineItemAttribute;
   end;
 
-  TInvoiceLine = class(TObject)
+  TInvoiceLine = class(TObject) // insgesamt BG-25
   public
-    ID : String; //Positionsnummer
-    GlobalID_EAN_GTIN: String; //BT-157 GTIN/EAN
-    Note : String; //Hinweis
-    Name : String; //Kurztext
-    Description : String; //Laengere Beschreibung
-    Quantity : double; //Menge
-    UnitCode : TInvoiceUnitCode; //Mengeneinheit
-    SellersItemIdentification : String; //Artikelnummer
-    TaxPercent : double; //MwSt
-    TaxCategory : TInvoiceDutyTaxFeeCategoryCode; //MwSt-Einordnung
-    GrossPriceAmount : Currency; //Brutto-Einzelpreis
-    DiscountOnTheGrossPrice : Currency; //Rabatt auf den Bruttopreis ergibt Nettopreis, nur ein Rabatt moeglich wegen UBL, obwohl CII mehrere erlaubt
-    NetPriceAmount : Currency; //Netto-Einzelpreis
-    BaseQuantity : double; //Preiseinheit
-    BaseQuantityUnitCode : TInvoiceUnitCode; //Preiseinheit Mengeneinheit
-    LineAmount : Currency;
-    AllowanceCharges : TInvoiceAllowanceCharges;
+    ID : String; //BT-126 Positionsnummer
+    GlobalID_EAN_GTIN: String; //BG-31, BT-157 GTIN/EAN
+    Note : String; //BT-127 Hinweis
+    //BT-128 fehlt, "Objektkennung auf Ebene der Rechnungsposition", vom Verkaeufer vergeben
+    Name : String; //BG-31, BT-153 Kurztext
+    Description : String; //BG-31, BT-154 Laengere Beschreibung
+    Quantity : double; //BT-129 Menge
+    UnitCode : TInvoiceUnitCode; //BT-130 Mengeneinheit
+    SellersItemIdentification : String; //BG-31, BT-155 Artikelnummer, vom Verkaeufer vergeben
+    BuyersItemIdentification : String; //BG-31, BT-156 Artikelkennung, vom Kaeufer vergeben
+    OrderLineReference : String; //BT-132 Referenz zur Bestellposition, vom Kaeufer vergeben
+    BuyerAccountingReference : String; //BT-133 Buchungsreferenz des Kaeufers für die Rechnungsposition, vom Kaeufer vergeben
+    TaxPercent : double; //BG-30, BT-152 MwSt
+    TaxCategory : TInvoiceDutyTaxFeeCategoryCode; //BG-30, BT-151 MwSt-Einordnung
+    // BG-29 Detailinformationen zum (Artikel-)-Preis
+    GrossPriceAmount : Currency; //BG-29, BT-148 Brutto-Einzelpreis
+    DiscountOnTheGrossPrice : Currency; //BG-29, BT-147 Rabatt auf den Bruttopreis ergibt Nettopreis, nur ein Rabatt moeglich wegen UBL, obwohl CII mehrere erlaubt
+    NetPriceAmount : Currency; //BG-29, BT-146 Netto-Einzelpreis
+    BaseQuantity : double; //BG-29, BT-149 Preiseinheit
+    BaseQuantityUnitCode : TInvoiceUnitCode; //BG-29, BT-150 Preiseinheit Mengeneinheit
+    LineAmount : Currency; //BT-131 Gesamtbetrag des Postens ohne MwSt
+    AllowanceCharges : TInvoiceAllowanceCharges; // BG-27 (BT-136..BT-140) und BG-28 (BT-141..BT-145)
+    InvoiceLinePeriodStartDate : TDate; //BG-26, BT-134 Leistungszeitraum Beginn
+    InvoiceLinePeriodEndDate : TDate; //BG-26, BT-135 Leistungszeitraum Ende
+    //BG-31, BT-158 fehlt , "Kennung der Artikelklassifizierung", (0..n)
+    //BG-31, BT-159 fehlt, "Artikelherkunftsland"
+    ItemAttributes : TInvoiceLineItemAttributes; //BG-31:BG-32 (BT-160..BT-161)
+
+    // Extension XRechnung
     SubInvoiceLines : TInvoiceLines;
-    ItemAttributes : TInvoiceLineItemAttributes;
-    InvoiceLinePeriodStartDate : TDate; //Leistungszeitraum Beginn
-    InvoiceLinePeriodEndDate : TDate; //Leistungszeitraum Ende
   public
     constructor Create;
     destructor Destroy; override;
@@ -671,7 +680,7 @@ type
     TaxInclusiveAmount : Currency;
     AllowanceTotalAmount : Currency;
     ChargeTotalAmount : Currency;
-    PrepaidAmount : Currency;
+    PrepaidAmount : Currency;         //BT-113
     PayableRoundingAmount : Currency; //BT-114
     PayableAmount : Currency;
   public
@@ -880,6 +889,9 @@ begin
   Quantity := 0;
   UnitCode := iuc_None;
   SellersItemIdentification := '';
+  BuyersItemIdentification := '';
+  OrderLineReference:= '';
+  BuyerAccountingReference := '';
   TaxPercent := 0;
   TaxCategory := idtfcc_None;
   GrossPriceAmount := 0;

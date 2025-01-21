@@ -176,9 +176,9 @@ type
     class function GetTypeFromFilename(const _Filename : String): TInvoiceAttachmentType;
   end;
 
-  //Der Code  916 "Referenzpapier" wird benutzt, um die Kennung der rechnungsbegründenden Unterlage zu referenzieren. (BT-122)
+  //Der Code  916 "Referenzpapier" wird benutzt, um die Kennung der rechnungsbegrï¿½ndenden Unterlage zu referenzieren. (BT-122)
   //Der Code 50 "Price/sales catalogue response" wird benutzt, um die Ausschreibung oder das Los zu referenzieren. (BT-17)
-  //Der Code 130 "Rechnungsdatenblatt" wird benutzt, um eine vom Verkäufer angegebene Kennung für ein Objekt zu referenzieren. (BT-18)
+  //Der Code 130 "Rechnungsdatenblatt" wird benutzt, um eine vom Verkï¿½ufer angegebene Kennung fï¿½r ein Objekt zu referenzieren. (BT-18)
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:untdid.1001_4#version
   TInvoiceAttachmentTypeCode = (iatc_None,
                       iatc_50,
@@ -379,7 +379,7 @@ type
           //idtfcc_H_HigherRate, //	Code specifying a higher rate of duty or tax or fee.
           //idtfcc_I_ValueAddedTaxVATMarginSchemeWorksOfArt, // Margin scheme - Works of art	Indication that the VAT margin scheme for works of art is applied.
           //idtfcc_J_ValueAddedTaxVATMarginSchemeCollectorsItemsAndAntiques, //	Indication that the VAT margin scheme for collector s items and antiques is applied.
-          idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices, //	A tax category code indicating the item is VAT exempt due to an intra-community supply in the European Economic Area. Der Code „K“ steht in der Hashtag#XRechnung für „VAT exempt for EEA intra-community supply of goods and services“ – also für die Umsatzsteuerbefreiung bei grenzüberschreitenden Lieferungen und Dienstleistungen innerhalb des Europäischen Wirtschaftsraums (Hashtag#EWR).
+          idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices, //	A tax category code indicating the item is VAT exempt due to an intra-community supply in the European Economic Area. Der Code ï¿½Kï¿½ steht in der Hashtag#XRechnung fï¿½r ï¿½VAT exempt for EEA intra-community supply of goods and servicesï¿½ ï¿½ also fï¿½r die Umsatzsteuerbefreiung bei grenzï¿½berschreitenden Lieferungen und Dienstleistungen innerhalb des Europï¿½ischen Wirtschaftsraums (Hashtag#EWR).
           idtfcc_L_CanaryIslandsGeneralIndirectTax, //	Impuesto General Indirecto Canario (IGIC) is an indirect tax levied on goods and services supplied in the Canary Islands (Spain) by traders and professionals, as well as on import of goods.
           idtfcc_M_TaxForProductionServicesAndImportationInCeutaAndMelilla, //	Impuesto sobre la Produccion, los Servicios y la Importacion (IPSI) is an indirect municipal tax, levied on the production, processing and import of all kinds of movable tangible property, the supply of services and the transfer of immovable property located in the cities of Ceuta and Melilla.
           idtfcc_O_ServicesOutsideScopeOfTax, //	Code specifying that taxes are not applicable to the services.
@@ -433,29 +433,38 @@ type
     function  AddItemAttribute : TInvoiceLineItemAttribute;
   end;
 
-  TInvoiceLine = class(TObject)
+  TInvoiceLine = class(TObject) // insgesamt BG-25
   public
-    ID : String; //Positionsnummer
-    GlobalID_EAN_GTIN: String; //BT-157 GTIN/EAN
-    Note : String; //Hinweis
-    Name : String; //Kurztext
-    Description : String; //Laengere Beschreibung
-    Quantity : double; //Menge
-    UnitCode : TInvoiceUnitCode; //Mengeneinheit
-    SellersItemIdentification : String; //Artikelnummer
-    TaxPercent : double; //MwSt
-    TaxCategory : TInvoiceDutyTaxFeeCategoryCode; //MwSt-Einordnung
-    GrossPriceAmount : Currency; //Brutto-Einzelpreis
-    DiscountOnTheGrossPrice : Currency; //Rabatt auf den Bruttopreis ergibt Nettopreis, nur ein Rabatt moeglich wegen UBL, obwohl CII mehrere erlaubt
-    NetPriceAmount : Currency; //Netto-Einzelpreis
-    BaseQuantity : double; //Preiseinheit
-    BaseQuantityUnitCode : TInvoiceUnitCode; //Preiseinheit Mengeneinheit
-    LineAmount : Currency;
-    AllowanceCharges : TInvoiceAllowanceCharges;
+    ID : String; //BT-126 Positionsnummer
+    GlobalID_EAN_GTIN: String; //BG-31, BT-157 GTIN/EAN
+    Note : String; //BT-127 Hinweis
+    //BT-128 fehlt, "Objektkennung auf Ebene der Rechnungsposition", vom Verkaeufer vergeben
+    Name : String; //BG-31, BT-153 Kurztext
+    Description : String; //BG-31, BT-154 Laengere Beschreibung
+    Quantity : double; //BT-129 Menge
+    UnitCode : TInvoiceUnitCode; //BT-130 Mengeneinheit
+    SellersItemIdentification : String; //BG-31, BT-155 Artikelnummer, vom Verkaeufer vergeben
+    BuyersItemIdentification : String; //BG-31, BT-156 Artikelkennung, vom Kaeufer vergeben
+    OrderLineReference : String; //BT-132 Referenz zur Bestellposition, vom Kaeufer vergeben
+    BuyerAccountingReference : String; //BT-133 Buchungsreferenz des Kaeufers fï¿½r die Rechnungsposition, vom Kaeufer vergeben
+    TaxPercent : double; //BG-30, BT-152 MwSt
+    TaxCategory : TInvoiceDutyTaxFeeCategoryCode; //BG-30, BT-151 MwSt-Einordnung
+    // BG-29 Detailinformationen zum (Artikel-)-Preis
+    GrossPriceAmount : Currency; //BG-29, BT-148 Brutto-Einzelpreis
+    DiscountOnTheGrossPrice : Currency; //BG-29, BT-147 Rabatt auf den Bruttopreis ergibt Nettopreis, nur ein Rabatt moeglich wegen UBL, obwohl CII mehrere erlaubt
+    NetPriceAmount : Currency; //BG-29, BT-146 Netto-Einzelpreis
+    BaseQuantity : double; //BG-29, BT-149 Preiseinheit
+    BaseQuantityUnitCode : TInvoiceUnitCode; //BG-29, BT-150 Preiseinheit Mengeneinheit
+    LineAmount : Currency; //BT-131 Gesamtbetrag des Postens ohne MwSt
+    AllowanceCharges : TInvoiceAllowanceCharges; // BG-27 (BT-136..BT-140) und BG-28 (BT-141..BT-145)
+    InvoiceLinePeriodStartDate : TDate; //BG-26, BT-134 Leistungszeitraum Beginn
+    InvoiceLinePeriodEndDate : TDate; //BG-26, BT-135 Leistungszeitraum Ende
+    //BG-31, BT-158 fehlt , "Kennung der Artikelklassifizierung", (0..n)
+    //BG-31, BT-159 fehlt, "Artikelherkunftsland"
+    ItemAttributes : TInvoiceLineItemAttributes; //BG-31:BG-32 (BT-160..BT-161)
+
+    // Extension XRechnung
     SubInvoiceLines : TInvoiceLines;
-    ItemAttributes : TInvoiceLineItemAttributes;
-    InvoiceLinePeriodStartDate : TDate; //Leistungszeitraum Beginn
-    InvoiceLinePeriodEndDate : TDate; //Leistungszeitraum Ende
   public
     constructor Create;
     destructor Destroy; override;
@@ -576,7 +585,7 @@ type
     insc_ABL,  //Rechtliche Informationen
     insc_TXD,  //Informationen zur Steuer
     insc_CUS,  //Zollinformationen
-    insc_PMT   //Payment Information Bürgschaften oder Sicherheitseinbehalte
+    insc_PMT   //Payment Information Bï¿½rgschaften oder Sicherheitseinbehalte
     );
 
   TInvoiceNote = class(Tobject)

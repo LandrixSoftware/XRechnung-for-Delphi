@@ -818,17 +818,173 @@ end;
 class function TXRechnungHelper.InvoicePaymentMeansCodeFromStr(
   _Val: String): TInvoicePaymentMeansCode;
 begin
+  if SameText(_Val,'2') then
+    Result := ipmc_AutomatedClearingHouseCredit
+  else
+  if SameText(_Val,'3') then
+    Result := ipmc_AutomatedClearingHouseDebit
+  else
+  if SameText(_Val,'4') then
+    Result := ipmc_ACH_DemandDebitReversal
+  else
+  if SameText(_Val,'5') then
+    Result := ipmc_ACH_DemandCreditReversal
+  else
+  if SameText(_Val,'6') then
+    Result := ipmc_ACH_Demand_Credit
+  else
+  if SameText(_Val,'7') then
+    Result := ipmc_ACH_Demand_Debit
+  else
+  if SameText(_Val,'8') then
+    Result := ipmc_Hold
+  else
+  if SameText(_Val,'9') then
+    Result := ipmc_NationalOrRegionalClearing
+  else
   if SameText(_Val,'10') then
     Result := ipmc_InCash
+  else
+  if SameText(_Val,'11') then
+    Result := ipmc_ACH_SavingsCreditReversal
+  else
+  if SameText(_Val,'12') then
+    Result := ipmc_ACH_SavingsDebitReversal
+  else
+  if SameText(_Val,'13') then
+    Result := ipmc_ACH_SavingsCredit
+  else
+  if SameText(_Val,'14') then
+    Result := ipmc_ACH_SavingsDebit
+  else
+  if SameText(_Val,'15') then
+    Result := ipmc_BookEntryCredit
+  else
+  if SameText(_Val,'16') then
+    Result := ipmc_BookEntryDebit
+  else
+  if SameText(_Val,'17') then
+    Result := ipmc_ACH_DemandCashConcentrationDisbursementCredit
+  else
+  if SameText(_Val,'18') then
+    Result := ipmc_ACH_DemandCashConcentrationDisbursementDebit
+  else
+  if SameText(_Val,'19') then
+    Result := ipmc_ACH_DemandCorporateTradePaymentCredit
   else
   if SameText(_Val,'20') then
     Result := ipmc_Cheque
   else
+  if SameText(_Val,'21') then
+    Result := ipmc_BankersDraft
+  else
+  if SameText(_Val,'22') then
+    Result := ipmc_CertifiedBankerDraft
+  else
+  if SameText(_Val,'23') then
+    Result := ipmc_BankChequeIssuedByEstablishment
+  else
+  if SameText(_Val,'24') then
+    Result := ipmc_BillOfExchangeAwaitingAcceptance
+  else
+  if SameText(_Val,'25') then
+    Result := ipmc_CertifiedCheque
+  else
+  if SameText(_Val,'26') then
+    Result := ipmc_LocalCheque
+  else
+  if SameText(_Val,'27') then
+    Result := ipmc_ACH_DemandCorporateTradePaymentDebit
+  else
+  if SameText(_Val,'28') then
+    Result := ipmc_ACH_DemandCorporateTradeExchangeCredit
+  else
+  if SameText(_Val,'29') then
+    Result := ipmc_ACH_DemandCorporateTradeExchangeDebit
+  else
   if SameText(_Val,'30') then
     Result := ipmc_CreditTransfer
   else
+  if SameText(_Val,'31') then
+    Result := ipmc_DebitTransfer
+  else
+  if SameText(_Val,'32') then
+    Result := ipmc_ACH_DemandCashConcentrationDisbursementPlusCredit
+  else
+  if SameText(_Val,'33') then
+    Result := ipmc_ACH_DemandCashConcentrationDisbursementPlusDebit
+  else
+  if SameText(_Val,'34') then
+    Result := ipmc_ACH_PrearrangedPaymentAndDeposit
+  else
+  if SameText(_Val,'35') then
+    Result := ipmc_ACH_SavingsCashConcentrationDisbursementCredit
+  else
+  if SameText(_Val,'36') then
+    Result := ipmc_ACH_SavingsCashConcentrationDisbursementDebit
+  else
+  if SameText(_Val,'37') then
+    Result := ipmc_ACH_SavingsCorporateTradePaymentCredit
+  else
+  if SameText(_Val,'38') then
+    Result := ipmc_ACH_SavingsCorporateTradePaymentDebit
+  else
+  if SameText(_Val,'39') then
+    Result := ipmc_ACH_SavingsCorporateTradeExchangeCredit
+  else
+  if SameText(_Val,'40') then
+    Result := ipmc_ACH_SavingsCorporateTradeExchangeDebit
+  else
+  if SameText(_Val,'41') then
+    Result := ipmc_ACH_SavingsCashConcentrationDisbursementPlusCredit
+  else
+  if SameText(_Val,'42') then
+    Result := ipmc_PaymentToBankAccount
+  else
+  if SameText(_Val,'43') then
+    Result := ipmc_ACH_SavingsCashConcentrationDisbursementPlusDebit
+  else
+  if SameText(_Val,'44') then
+    Result := ipmc_AcceptedBillOfExchange
+  else
+  if SameText(_Val,'45') then
+    Result := ipmc_ReferencedHomeBankingCreditTransfer
+  else
+  if SameText(_Val,'46') then
+    Result := ipmc_InterbankDebitTransfer
+  else
+  if SameText(_Val,'47') then
+    Result := ipmc_HomeBankingDebitTransfer
+  else
+  if SameText(_Val,'48') then
+    Result := ipmc_BankCard
+  else
+  if SameText(_Val,'49') then
+    Result := ipmc_DirectDebit
+  else
+  if SameText(_Val,'50') then
+    Result := ipmc_PaymentByPostgiro
+  else
+  if SameText(_Val,'51') then
+    Result := ipmc_FR_Norme_6_97
+  else
+  if SameText(_Val,'52') then
+    Result := ipmc_UrgentCommercialPayment
+  else
+  if SameText(_Val,'53') then
+    Result := ipmc_UrgentTreasuryPayment
+  else
   if SameText(_Val,'54') then
     Result := ipmc_CreditCard
+  else
+  if SameText(_Val,'55') then
+    Result := ipmc_DebitCard
+  else
+  if SameText(_Val,'56') then
+    Result := ipmc_Bankgiro
+  else
+  if SameText(_Val,'57') then
+    Result := ipmc_StandingAgreement
   else
   if SameText(_Val,'58')  then
     Result := ipmc_SEPACreditTransfer
@@ -836,8 +992,74 @@ begin
   if SameText(_Val,'59')  then
     Result := ipmc_SEPADirectDebit
   else
+  if SameText(_Val,'60')  then
+    Result := ipmc_PromissoryNote
+  else
+  if SameText(_Val,'61')  then
+    Result := ipmc_PromissoryNoteSignedByDebtor
+  else
+  if SameText(_Val,'62')  then
+    Result := ipmc_PromissoryNoteSignedByDebtorEndorsedByBank
+  else
+  if SameText(_Val,'63')  then
+    Result := ipmc_PromissoryNoteSignedByDebtorEndorsedByThirdParty
+  else
+  if SameText(_Val,'64')  then
+    Result := ipmc_PromissoryNoteSignedByBank
+  else
+  if SameText(_Val,'65')  then
+    Result := ipmc_PromissoryNoteSignedByBankEndorsedByAnotherBank
+  else
+  if SameText(_Val,'66')  then
+    Result := ipmc_PromissoryNoteSignedByThirdParty
+  else
+  if SameText(_Val,'67')  then
+    Result := ipmc_PromissoryNoteSignedByThirdPartyEndorsedByBank
+  else
   if SameText(_Val,'68')  then
     Result := ipmc_OnlinePaymentService
+  else
+  if SameText(_Val,'69')  then
+    Result := ipmc_TransferAdvice
+  else
+  if SameText(_Val,'70')  then
+    Result := ipmc_BillDrawnByCrdtOnDebtor
+  else
+  if SameText(_Val,'74')  then
+    Result := ipmc_BillDrawnByCrdtOnBank
+  else
+  if SameText(_Val,'75')  then
+    Result := ipmc_BillDrawnByCrdtEndorsedByAnotherBank
+  else
+  if SameText(_Val,'76')  then
+    Result := ipmc_BillDrawnByCrdtOnBankEndorsedByThirdParty
+  else
+  if SameText(_Val,'77')  then
+    Result := ipmc_BillDrawnByCrdtOnThirdParty
+  else
+  if SameText(_Val,'78')  then
+    Result := ipmc_BillDrawnByCrdtOnThirdPartyAcceptedAndEndorsedByBank
+  else
+  if SameText(_Val,'91')  then
+    Result := ipmc_NotTransferableBankersDraft
+  else
+  if SameText(_Val,'92')  then
+    Result := ipmc_NotTransferableLocalCheque
+  else
+  if SameText(_Val,'93')  then
+    Result := ipmc_ReferenceGiro
+  else
+  if SameText(_Val,'94')  then
+    Result := ipmc_UrgentGiro
+  else
+  if SameText(_Val,'95')  then
+    Result := ipmc_FreeFormatGiro
+  else
+  if SameText(_Val,'96')  then
+    Result := ipmc_RequestedMethodForPaymentWasNotUsed
+  else
+  if SameText(_Val,'97')  then
+    Result := ipmc_ClearingBetweenPartners
   else
   if SameText(_Val,'ZZZ')  then
     Result := ipmc_MutuallyDefined
@@ -851,13 +1073,88 @@ end;
 class function TXRechnungHelper.InvoicePaymentMeansCodeToStr(_Val: TInvoicePaymentMeansCode): String;
 begin
   case _Val of
+    ipmc_InstrumentNotDefined :                                 Result := '1';
+    ipmc_AutomatedClearingHouseCredit :                         Result := '2';
+    ipmc_AutomatedClearingHouseDebit :                          Result := '3';
+    ipmc_ACH_DemandDebitReversal :                              Result := '4';
+    ipmc_ACH_DemandCreditReversal :                             Result := '5';
+    ipmc_ACH_Demand_Credit :                                    Result := '6';
+    ipmc_ACH_Demand_Debit :                                     Result := '7';
+    ipmc_Hold :                                                 Result := '8';
+    ipmc_NationalOrRegionalClearing :                           Result := '9';
     ipmc_InCash: Result := '10';
+    ipmc_ACH_SavingsCreditReversal :                            Result := '11';
+    ipmc_ACH_SavingsDebitReversal :                             Result := '12';
+    ipmc_ACH_SavingsCredit :                                    Result := '13';
+    ipmc_ACH_SavingsDebit :                                     Result := '14';
+    ipmc_BookEntryCredit :                                      Result := '15';
+    ipmc_BookEntryDebit :                                       Result := '16';
+    ipmc_ACH_DemandCashConcentrationDisbursementCredit :        Result := '17';
+    ipmc_ACH_DemandCashConcentrationDisbursementDebit :         Result := '18';
+    ipmc_ACH_DemandCorporateTradePaymentCredit :                Result := '19';
     ipmc_Cheque: Result := '20';
+    ipmc_BankersDraft :                                         Result := '21';
+    ipmc_CertifiedBankerDraft :                                 Result := '22';
+    ipmc_BankChequeIssuedByEstablishment :                      Result := '23';
+    ipmc_BillOfExchangeAwaitingAcceptance :                     Result := '24';
+    ipmc_CertifiedCheque :                                      Result := '25';
+    ipmc_LocalCheque :                                          Result := '26';
+    ipmc_ACH_DemandCorporateTradePaymentDebit :                 Result := '27';
+    ipmc_ACH_DemandCorporateTradeExchangeCredit :               Result := '28';
+    ipmc_ACH_DemandCorporateTradeExchangeDebit :                Result := '29';
     ipmc_CreditTransfer: Result := '30';
+    ipmc_DebitTransfer :                                        Result := '31';
+    ipmc_ACH_DemandCashConcentrationDisbursementPlusCredit :    Result := '32';
+    ipmc_ACH_DemandCashConcentrationDisbursementPlusDebit :     Result := '33';
+    ipmc_ACH_PrearrangedPaymentAndDeposit :                     Result := '34';
+    ipmc_ACH_SavingsCashConcentrationDisbursementCredit :       Result := '35';
+    ipmc_ACH_SavingsCashConcentrationDisbursementDebit :        Result := '36';
+    ipmc_ACH_SavingsCorporateTradePaymentCredit :               Result := '37';
+    ipmc_ACH_SavingsCorporateTradePaymentDebit :                Result := '38';
+    ipmc_ACH_SavingsCorporateTradeExchangeCredit :              Result := '39';
+    ipmc_ACH_SavingsCorporateTradeExchangeDebit :               Result := '40';
+    ipmc_ACH_SavingsCashConcentrationDisbursementPlusCredit :   Result := '41';
+    ipmc_PaymentToBankAccount :                                 Result := '42';
+    ipmc_ACH_SavingsCashConcentrationDisbursementPlusDebit :    Result := '43';
+    ipmc_AcceptedBillOfExchange :                               Result := '44';
+    ipmc_ReferencedHomeBankingCreditTransfer :                  Result := '45';
+    ipmc_InterbankDebitTransfer :                               Result := '46';
+    ipmc_HomeBankingDebitTransfer :                             Result := '47';
+    ipmc_BankCard :                                             Result := '48';
+    ipmc_DirectDebit :                                          Result := '49';
+    ipmc_PaymentByPostgiro :                                    Result := '50';
+    ipmc_FR_Norme_6_97 :                                        Result := '51';
+    ipmc_UrgentCommercialPayment :                              Result := '52';
+    ipmc_UrgentTreasuryPayment :                                Result := '53';
     ipmc_CreditCard: Result := '54';
+    ipmc_DebitCard :                                            Result := '55';
+    ipmc_Bankgiro :                                             Result := '56';
+    ipmc_StandingAgreement :                                    Result := '57';
     ipmc_SEPACreditTransfer: Result := '58';
     ipmc_SEPADirectDebit: Result := '59';
+    ipmc_PromissoryNote :                                       Result := '60';
+    ipmc_PromissoryNoteSignedByDebtor :                         Result := '61';
+    ipmc_PromissoryNoteSignedByDebtorEndorsedByBank :           Result := '62';
+    ipmc_PromissoryNoteSignedByDebtorEndorsedByThirdParty :     Result := '63';
+    ipmc_PromissoryNoteSignedByBank :                           Result := '64';
+    ipmc_PromissoryNoteSignedByBankEndorsedByAnotherBank :      Result := '65';
+    ipmc_PromissoryNoteSignedByThirdParty :                     Result := '66';
+    ipmc_PromissoryNoteSignedByThirdPartyEndorsedByBank :       Result := '67';
     ipmc_OnlinePaymentService: Result := '68';
+    ipmc_TransferAdvice :                                       Result := '69';
+    ipmc_BillDrawnByCrdtOnDebtor :                              Result := '70';
+    ipmc_BillDrawnByCrdtOnBank :                                Result := '74';
+    ipmc_BillDrawnByCrdtEndorsedByAnotherBank :                 Result := '75';
+    ipmc_BillDrawnByCrdtOnBankEndorsedByThirdParty :            Result := '76';
+    ipmc_BillDrawnByCrdtOnThirdParty :                          Result := '77';
+    ipmc_BillDrawnByCrdtOnThirdPartyAcceptedAndEndorsedByBank : Result := '78';
+    ipmc_NotTransferableBankersDraft :                          Result := '91';
+    ipmc_NotTransferableLocalCheque :                           Result := '92';
+    ipmc_ReferenceGiro :                                        Result := '93';
+    ipmc_UrgentGiro :                                           Result := '94';
+    ipmc_FreeFormatGiro :                                       Result := '95';
+    ipmc_RequestedMethodForPaymentWasNotUsed :                  Result := '96';
+    ipmc_ClearingBetweenPartners :                              Result := '97';
     ipmc_MutuallyDefined: Result := 'ZZZ';
     else Result := '1'; //ipmc_InstrumentNotDefined
   end;

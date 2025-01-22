@@ -134,7 +134,8 @@ begin
   Result := false;
   CmdOutput.Clear;
 
-  _Filename := QuoteIfContainsSpace(_Filename);
+  if (Length(_FileName)>1) and (_FileName[1]<>'"') then // quote only if not already quoted
+   _Filename := QuoteIfContainsSpace(_Filename);
 
   SA.nLength := SizeOf(SA);
   SA.bInheritHandle := True;
@@ -583,8 +584,8 @@ function TXRechnungValidationHelperJava.ValidateFile(
   const _InvoiceXMLFilename: String; out _CmdOutput,
   _ValidationResultAsXML, _ValidationResultAsHTML: String): Boolean;
 var
-  hstrl,cmd: TStringList;
-  lInvoiceXMLFilename,cmdLine: String;
+  hstrl: TStringList;
+  lInvoiceXMLFilename, cmd, params: String;
   i : Integer;
 begin
   Result := false;
@@ -603,28 +604,25 @@ begin
     exit;
 
   hstrl := TStringList.Create;
-  cmd := TStringList.Create;
   try
-    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(_InvoiceXMLFilename)));
-
-    cmdLine := QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -classpath '+
+    cmd := QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe');
+    params:= ' -classpath '+
              QuoteIfContainsSpace(ValidatorLibPath+'libs')+' -jar '+
              QuoteIfContainsSpace(ValidatorLibPath+'validationtool-1.5.0-standalone.jar');
     for i := 0 to ValidatorConfigurationPath.Count-1 do
     begin
-      cmdLine := cmdLine +
+      params := params +
          ' -s '+QuoteIfContainsSpace(ValidatorConfigurationPath[i]+'scenarios.xml')+
          ' -r '+QuoteIfContainsSpace(ExcludeTrailingPathDelimiter(ValidatorConfigurationPath[i]))
     end;
-    cmdLine := cmdLine + ' -h '+QuoteIfContainsSpace(_InvoiceXMLFilename);
-    cmd.Add(cmdLine);
-    cmd.SaveToFile(_InvoiceXMLFilename+'.bat',TEncoding.ANSI);
+    params := params
+             + ' -o ' + QuoteIfContainsSpace(ExcludeTrailingPathDelimiter(ExtractFilePath(_InvoiceXMLFilename))) // \" am Ende wird von KOSIT fehlinterpretiert !!!
+             + ' -h '
+             + QuoteIfContainsSpace(_InvoiceXMLFilename);
 
-    Result := ExecAndWait(_InvoiceXMLFilename+'.bat','');
+    Result := ExecAndWait(cmd, params);
 
     _CmdOutput := CmdOutput.Text;
-
-    DeleteFile(_InvoiceXMLFilename+'.bat');
 
     lInvoiceXMLFilename := ExtractFileName(_InvoiceXMLFilename);
     lInvoiceXMLFilename := StringReplace(lInvoiceXMLFilename,' ','%20',[rfReplaceAll]);
@@ -645,7 +643,6 @@ begin
     end;
   finally
     hstrl.Free;
-    cmd.Free;
   end;
 end;
 

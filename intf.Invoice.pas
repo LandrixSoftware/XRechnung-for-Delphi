@@ -117,13 +117,87 @@ type
   TInvoicePaymentMeansCode = (
     ipmc_NotImplemented,
     ipmc_InstrumentNotDefined, //1  Keine Angaben
+    ipmc_AutomatedClearingHouseCredit,                         //2  A credit transaction made through the automated clearing house system.
+    ipmc_AutomatedClearingHouseDebit,                          //3  A debit transaction made through the automated clearing house system.
+    ipmc_ACH_DemandDebitReversal,                              //4  A request to reverse an ACH debit transaction to a demand deposit account.
+    ipmc_ACH_DemandCreditReversal,                             //5  A request to reverse a credit transaction to a demand deposit account.
+    ipmc_ACH_Demand_Credit,                                    //6  A credit transaction made through the ACH system to a demand deposit account.
+    ipmc_ACH_Demand_Debit,                                     //7  A debit transaction made through the ACH system to a demand deposit account.
+    ipmc_Hold,                                                 //8  Indicates that the bank should hold the payment for collection by the beneficiary or other instructions.
+    ipmc_NationalOrRegionalClearing,                           //9  Indicates that the payment should be made using the national or regional clearing.
     ipmc_InCash,               //10 Barzahlung
+    ipmc_ACH_SavingsCreditReversal,                            //11 A request to reverse an ACH credit transaction to a savings account.
+    ipmc_ACH_SavingsDebitReversal,                             //12 A request to reverse an ACH debit transaction to a savings account.
+    ipmc_ACH_SavingsCredit,                                    //13 A credit transaction made through the ACH system to a savings account.
+    ipmc_ACH_SavingsDebit,                                     //14 A debit transaction made through the ACH system to a savings account.
+    ipmc_BookEntryCredit,                                      //15 A credit entry between two accounts at the same bank branch. Synonym: house credit.
+    ipmc_BookEntryDebit,                                       //16 A debit entry between two accounts at the same bank branch. Synonym: house debit.
+    ipmc_ACH_DemandCashConcentrationDisbursementCredit,        //17 A credit transaction made through the ACH system to a demand deposit account using the CCD payment format.
+    ipmc_ACH_DemandCashConcentrationDisbursementDebit,         //18 A debit transaction made through the ACH system to a demand deposit account using the CCD payment format.
+    ipmc_ACH_DemandCorporateTradePaymentCredit,                //19 A credit transaction made through the ACH system to a demand deposit account using the CTP payment format.
     ipmc_Cheque,               //20 Scheck
+    ipmc_BankersDraft,                                         //21 Issue of a banker's draft in payment of the funds.
+    ipmc_CertifiedBankerDraft,                                 //22 Cheque drawn by a bank on itself or its agent. A person who owes money to another buys the draft from a bank for cash and hands it to the Crdt who need have no fear that it might be dishonoured.
+    ipmc_BankChequeIssuedByEstablishment,                      //23 Payment by a pre-printed form, which has been completed by a financial institution, on which instructions are given to an account holder (a bank or building society) to pay a stated sum to a named recipient.
+    ipmc_BillOfExchangeAwaitingAcceptance,                     //24 Bill drawn by the Crdt on the debtor but not yet accepted by the debtor.
+    ipmc_CertifiedCheque,                                      //25 Payment by a pre-printed form stamped with the paying bank's certification on which instructions are given to an account holder (a bank or building society) to pay a stated sum to a named recipient .
+    ipmc_LocalCheque,                                          //26 Indicates that the cheque is given local to the recipient.
+    ipmc_ACH_DemandCorporateTradePaymentDebit,                 //27 A debit transaction made through the ACH system to a demand deposit account using the CTP payment format.
+    ipmc_ACH_DemandCorporateTradeExchangeCredit,               //28 A credit transaction made through the ACH system to a demand deposit account using the CTX payment format.
+    ipmc_ACH_DemandCorporateTradeExchangeDebit,                //29 A debit transaction made through the ACH system to a demand account using the CTX payment format.
     ipmc_CreditTransfer,       //30 Ueberweisung nicht SEPA (nicht SEPA)
+    ipmc_DebitTransfer,                                        //31 Payment by debit movement of funds from one account to another.
+    ipmc_ACH_DemandCashConcentrationDisbursementPlusCredit,    //32 A credit transaction made through the ACH system to a demand deposit account using the CCD+ payment format.
+    ipmc_ACH_DemandCashConcentrationDisbursementPlusDebit,     //33 A debit transaction made through the ACH system to a demand deposit account using the CCD+ payment format.
+    ipmc_ACH_PrearrangedPaymentAndDeposit,                     //34 A consumer credit transaction made through the ACH system to a demand deposit or savings account.
+    ipmc_ACH_SavingsCashConcentrationDisbursementCredit,       //35 A credit transaction made through the ACH system to a demand deposit or savings account.
+    ipmc_ACH_SavingsCashConcentrationDisbursementDebit,        //36 A debit transaction made through the ACH system to a savings account using the CCD payment format.
+    ipmc_ACH_SavingsCorporateTradePaymentCredit,               //37 A credit transaction made through the ACH system to a savings account using the CTP payment format.
+    ipmc_ACH_SavingsCorporateTradePaymentDebit,                //38 A debit transaction made through the ACH system to a savings account using the CTP payment format.
+    ipmc_ACH_SavingsCorporateTradeExchangeCredit,              //39 A credit transaction made through the ACH system to a savings account using the CTX payment format.
+    ipmc_ACH_SavingsCorporateTradeExchangeDebit,               //40 A debit transaction made through the ACH system to a savings account using the CTX payment format.
+    ipmc_ACH_SavingsCashConcentrationDisbursementPlusCredit,   //41 A credit transaction made through the ACH system to a savings account using the CCD+ payment format.
+    ipmc_PaymentToBankAccount,                                 //42 Payment by an arrangement for settling debts that is operated by the Post Office.
+    ipmc_ACH_SavingsCashConcentrationDisbursementPlusDebit,    //43 A debit transaction made through the ACH system to a savings account using the CCD+ payment format.
+    ipmc_AcceptedBillOfExchange,                               //44 Bill drawn by the Crdt on the debtor and accepted by the debtor.
+    ipmc_ReferencedHomeBankingCreditTransfer,                  //45 A referenced credit transfer initiated through home-banking.
+    ipmc_InterbankDebitTransfer,                               //46 A debit transfer via interbank means.
+    ipmc_HomeBankingDebitTransfer,                             //47 A debit transfer initiated through home-banking.
+    ipmc_BankCard,                                             //48 Payment by means of a card issued by a bank or other financial institution.
+    ipmc_DirectDebit,                                          //49 The amount is to be, or has been, directly debited to the customer's bank account.
+    ipmc_PaymentByPostgiro,                                    //50 A method for the transmission of funds through the postal system rather than through the banking system.
+    ipmc_FR_Norme_6_97,                                        //51 A French standard procedure that allows a debtor to pay an amount due to a Crdt. The Crdt will forward it to its bank, which will collect the money on the bank account of the debtor.
+    ipmc_UrgentCommercialPayment,                              //52 Payment order which requires guaranteed processing by the most appropriate means to ensure it occurs on the requested execution date, provided that it is issued to the ordered bank before the agreed cut-off time.
+    ipmc_UrgentTreasuryPayment,                                //53 Payment order or transfer which must be executed, by the most appropriate means, as urgently as possible and before urgent commercial payments.
     ipmc_CreditCard,           //54 Kreditkarte
+    ipmc_DebitCard,                                            //55 Payment made by means of debit card.
+    ipmc_Bankgiro,                                             //56 Payment will be, or has been, made by bankgiro.
+    ipmc_StandingAgreement,                                    //57 The payment means have been previously agreed between seller and buyer and thus are not stated again.
     ipmc_SEPACreditTransfer,   //58 Ueberweisung (SEPA)
     ipmc_SEPADirectDebit,      //59 Lastschrift (SEPA)
+    ipmc_PromissoryNote,                                       //60 Payment by an unconditional promise in writing made by one person to another, signed by the maker, engaging to pay on demand or at a fixed or determinable future time a sum certain in money, to order or to bearer.
+    ipmc_PromissoryNoteSignedByDebtor,                         //61 Payment by an unconditional promise in writing made by the debtor to another person, signed by the debtor, engaging to pay on demand or at a fixed or determinable future time a sum certain in money, to order or to bearer.
+    ipmc_PromissoryNoteSignedByDebtorEndorsedByBank,           //62 Payment by an unconditional promise in writing made by the debtor to another person, signed by the debtor and endorsed by a bank, engaging to pay on demand or at a fixed or determinable future time a sum certain in money, to order or to bearer.
+    ipmc_PromissoryNoteSignedByDebtorEndorsedByThirdParty,     //63 Payment by an unconditional promise in writing made by the debtor to another person, signed by the debtor and endorsed by a third party, engaging to pay on demand or at a fixed or determinable future time a sum certain in money, to order or to bearer.
+    ipmc_PromissoryNoteSignedByBank,                           //64 Payment by an unconditional promise in writing made by the bank to another person, signed by the bank, engaging to pay on demand or at a fixed or determinable future time a sum certain in money, to order or to bearer.
+    ipmc_PromissoryNoteSignedByBankEndorsedByAnotherBank,      //65 Payment by an unconditional promise in writing made by the bank to another person, signed by the bank and endorsed by another bank, engaging to pay on demand or at a fixed or determinable future time a sum certain in money, to order or to bearer.
+    ipmc_PromissoryNoteSignedByThirdParty,                     //66 Payment by an unconditional promise in writing made by a third party to another person, signed by the third party, engaging to pay on demand or at a fixed or determinable future time a sum certain in money, to order or to bearer.
+    ipmc_PromissoryNoteSignedByThirdPartyEndorsedByBank,       //67 Payment by an unconditional promise in writing made by a third party to another person, signed by the third party and endorsed by a bank, engaging to pay on demand or at a fixed or determinable future time a sum certain in money, to order or to bearer.
     ipmc_OnlinePaymentService, //68 Online Payment Service PayPal, etc.
+    ipmc_TransferAdvice,                                       //69 Transfer of an amount of money in the books of the account servicer. An advice should be sent back to the account owner.
+    ipmc_BillDrawnByCrdtOnDebtor,                              //70 Bill drawn by the Crdt on the debtor.
+    ipmc_BillDrawnByCrdtOnBank,                                //74 Bill drawn by the Crdt on a bank.
+    ipmc_BillDrawnByCrdtEndorsedByAnotherBank,                 //75 Bill drawn by the Crdt, endorsed by another bank.
+    ipmc_BillDrawnByCrdtOnBankEndorsedByThirdParty,            //76 Bill drawn by the Crdt on a bank and endorsed by a third party.
+    ipmc_BillDrawnByCrdtOnThirdParty,                          //77 Bill drawn by the Crdt on a third party.
+    ipmc_BillDrawnByCrdtOnThirdPartyAcceptedAndEndorsedByBank, //78 Bill drawn by Crdt on third party, accepted and endorsed by bank.
+    ipmc_NotTransferableBankersDraft,                          //91 Issue a bankers draft not endorsable.
+    ipmc_NotTransferableLocalCheque,                           //92 Issue a cheque not endorsable in payment of the funds.
+    ipmc_ReferenceGiro,                                        //93 Ordering customer tells the bank to use the payment system 'Reference giro'. Used in the Finnish national banking system.
+    ipmc_UrgentGiro,                                           //94 Ordering customer tells the bank to use the bank service 'Urgent Giro' when transferring the payment. Used in Finnish national banking system.
+    ipmc_FreeFormatGiro,                                       //95 Ordering customer tells the ordering bank to use the bank service 'Free Format Giro' when transferring the payment. Used in Finnish national banking system.
+    ipmc_RequestedMethodForPaymentWasNotUsed,                  //96 If the requested method for payment was or could not be used, this code indicates that.
+    ipmc_ClearingBetweenPartners,                              //97 Amounts which two partners owe to each other to be compensated in order to avoid useless payments.
     ipmc_MutuallyDefined       //ZZZ Gegenseitig definiert (PayPal, etc.)
   );
 

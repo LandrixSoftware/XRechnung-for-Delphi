@@ -21,7 +21,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes,System.IOUtils,System.Win.COMObj,System.UITypes,
   System.StrUtils,Vcl.Forms,
-  intf.Invoice;
+  intf.Invoice, System.Math;
 
 type
   TInvoiceTestCases = class(TObject)
@@ -445,7 +445,8 @@ begin
       inv.PaymentTermsType := iptt_CashDiscount1;
       inv.PaymentTermCashDiscount1Days := 7;
       inv.PaymentTermCashDiscount1Percent := 4.25;
-      inv.PaymentTermCashDiscount1Base := 0; //optional auf welchen Betrag bezieht sich Skonto
+      inv.PaymentTermCashDiscount1Base := 226; //optional auf welchen Betrag bezieht sich Skonto - Pflichtfeld bei ZUGFeRD/Factur-X
+      inv.PaymentTermCashDiscount1ActualAmount := SimpleRoundTo(inv.PaymentTermCashDiscount1Base * (inv.PaymentTermCashDiscount1Percent / 100)); //Nur ZUGFeRD/Factur-X: Muss immer Basis * Prozent ergeben
     end;
     3 :
     begin

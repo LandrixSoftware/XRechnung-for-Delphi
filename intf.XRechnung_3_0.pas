@@ -830,6 +830,8 @@ begin
                 _Invoice.PaymentTermCashDiscount1Percent := TXRechnungHelper.FloatFromStr(node3.text);
               if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:BasisAmount',node3) then
                 _Invoice.PaymentTermCashDiscount1Base := TXRechnungHelper.FloatFromStr(node3.text);
+              if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:ActualDiscountAmount',node3) then
+                _Invoice.PaymentTermCashDiscount1ActualAmount:= TXRechnungHelper.FloatFromStr(node3.text);
             end;
 
             if (_Invoice.PaymentTermsType = iptt_CashDiscount2) then
@@ -843,6 +845,8 @@ begin
                 _Invoice.PaymentTermCashDiscount2Percent := TXRechnungHelper.FloatFromStr(node3.text);
               if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:BasisAmount',node3) then
                 _Invoice.PaymentTermCashDiscount2Base := TXRechnungHelper.FloatFromStr(node3.text);
+              if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:ActualDiscountAmount',node3) then
+                _Invoice.PaymentTermCashDiscount2ActualAmount:= TXRechnungHelper.FloatFromStr(node3.text);
             end;
 
           end;
@@ -2024,6 +2028,8 @@ begin
             if _Invoice.PaymentTermCashDiscount1Base <> 0 then
               AddChild('ram:BasisAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoice.PaymentTermCashDiscount1Base);
             AddChild('ram:CalculationPercent').Text := TXRechnungHelper.PercentageToStr(_Invoice.PaymentTermCashDiscount1Percent);
+            if _Invoice.PaymentTermCashDiscount1ActualAmount <> 0 then
+              AddChild('ram:ActualDiscountAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoice.PaymentTermCashDiscount1ActualAmount);
           end;
         end;
         if (_Invoice.PaymentTermsType in [iptt_CashDiscount2]) then
@@ -2049,6 +2055,8 @@ begin
             if _Invoice.PaymentTermCashDiscount2Base <> 0 then
               AddChild('ram:BasisAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoice.PaymentTermCashDiscount2Base);
             AddChild('ram:CalculationPercent').Text := TXRechnungHelper.PercentageToStr(_Invoice.PaymentTermCashDiscount2Percent);
+            if _Invoice.PaymentTermCashDiscount2ActualAmount <> 0 then
+              AddChild('ram:ActualDiscountAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoice.PaymentTermCashDiscount2ActualAmount);
           end;
         end;
       end; //end if _ProfileZUGFeRDExtended then

@@ -741,11 +741,11 @@ type
     PaymentTermCashDiscount1Days : Integer;
     PaymentTermCashDiscount1Percent : double;
     PaymentTermCashDiscount1Base : Currency; //Anderer Betrag als der Rechnungsbetrag
-    PaymentTermCashDiscount1ActualAmount : Currency;
+    PaymentTermCashDiscount1ActualAmount : Currency; //Nur ZUGFeRD/Factur-X: Muss immer Basis * Prozent ergeben
     PaymentTermCashDiscount2Days : Integer;
     PaymentTermCashDiscount2Percent : double;
     PaymentTermCashDiscount2Base : Currency; //Anderer Betrag als der Rechnungsbetrag
-    PaymentTermCashDiscount2ActualAmount : Currency;
+    PaymentTermCashDiscount2ActualAmount : Currency; //Nur ZUGFeRD/Factur-X: Muss immer Basis * Prozent ergeben
 
     InvoiceLines : TInvoiceLines;
 

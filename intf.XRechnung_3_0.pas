@@ -830,6 +830,8 @@ begin
                 _Invoice.PaymentTermCashDiscount1Percent := TXRechnungHelper.FloatFromStr(node3.text);
               if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:BasisAmount',node3) then
                 _Invoice.PaymentTermCashDiscount1Base := TXRechnungHelper.FloatFromStr(node3.text);
+              if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:ActualDiscountAmount',node3) then
+                _Invoice.PaymentTermCashDiscount1ActualAmount:= TXRechnungHelper.FloatFromStr(node3.text);
             end;
 
             if (_Invoice.PaymentTermsType = iptt_CashDiscount2) then
@@ -843,6 +845,8 @@ begin
                 _Invoice.PaymentTermCashDiscount2Percent := TXRechnungHelper.FloatFromStr(node3.text);
               if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:BasisAmount',node3) then
                 _Invoice.PaymentTermCashDiscount2Base := TXRechnungHelper.FloatFromStr(node3.text);
+              if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:ActualDiscountAmount',node3) then
+                _Invoice.PaymentTermCashDiscount2ActualAmount:= TXRechnungHelper.FloatFromStr(node3.text);
             end;
 
           end;

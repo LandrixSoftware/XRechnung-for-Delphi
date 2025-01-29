@@ -2025,7 +2025,7 @@ begin
               AddChild('ram:BasisAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoice.PaymentTermCashDiscount1Base);
             AddChild('ram:CalculationPercent').Text := TXRechnungHelper.PercentageToStr(_Invoice.PaymentTermCashDiscount1Percent);
             if _Invoice.PaymentTermCashDiscount1ActualAmount <> 0 then
-              AddChild('ram:ActualAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoice.PaymentTermCashDiscount1ActualAmount);
+              AddChild('ram:ActualDiscountAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoice.PaymentTermCashDiscount1ActualAmount);
           end;
         end;
         if (_Invoice.PaymentTermsType in [iptt_CashDiscount2]) then
@@ -2052,7 +2052,7 @@ begin
               AddChild('ram:BasisAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoice.PaymentTermCashDiscount2Base);
             AddChild('ram:CalculationPercent').Text := TXRechnungHelper.PercentageToStr(_Invoice.PaymentTermCashDiscount2Percent);
             if _Invoice.PaymentTermCashDiscount2ActualAmount <> 0 then
-              AddChild('ram:ActualAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoice.PaymentTermCashDiscount2ActualAmount);
+              AddChild('ram:ActualDiscountAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoice.PaymentTermCashDiscount2ActualAmount);
           end;
         end;
       end; //end if _ProfileZUGFeRDExtended then

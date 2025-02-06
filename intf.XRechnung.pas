@@ -225,8 +225,8 @@ var
 begin
   Result := true;
 
-  //Mindestens eine Zahlungsanweisung notwendig
-  if (_Invoice.PaymentTypes.Count = 0) then
+  //Mindestens eine Zahlungsanweisung notwendig (bei ZUGFeRD nur im Profil EXTENDED)
+  if (_Invoice.PaymentTypes.Count = 0) and (_Version <> TXRechnungVersion.XRechnungVersion_ReadingSupport_ZUGFeRDFacturX) then
   begin
     Result := false;
     exit;

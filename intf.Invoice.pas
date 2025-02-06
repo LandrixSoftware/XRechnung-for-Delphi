@@ -1,4 +1,4 @@
-﻿{
+{
 License XRechnung-for-Delphi
 
 Copyright (C) 2024 Landrix Software GmbH & Co. KG
@@ -762,7 +762,7 @@ type
     TaxInclusiveAmount : Currency;
     AllowanceTotalAmount : Currency;
     ChargeTotalAmount : Currency;
-    PrepaidAmount : Currency;
+    PrepaidAmount : Currency;         //BT-113
     PayableRoundingAmount : Currency; //BT-114
     PayableAmount : Currency;
   public
@@ -971,6 +971,9 @@ begin
   Quantity := 0;
   UnitCode := iuc_None;
   SellersItemIdentification := '';
+  BuyersItemIdentification := '';
+  OrderLineReference:= '';
+  BuyerAccountingReference := '';
   TaxPercent := 0;
   TaxCategory := idtfcc_None;
   GrossPriceAmount := 0;
@@ -1041,7 +1044,8 @@ begin
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'tag') or SameText(_UnitOfMeasure,'tage') then
+  if SameText(_UnitOfMeasure,'tag') or
+     SameText(_UnitOfMeasure,'tage') then
   begin
     Result := iuc_day;
     _Success := true;
@@ -1090,7 +1094,8 @@ begin
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'t') or SameText(_UnitOfMeasure,'tonne') then
+  if SameText(_UnitOfMeasure,'t') or
+     SameText(_UnitOfMeasure,'tonne') then
   begin
     Result := iuc_tonne_metric_ton;
     _Success := true;
@@ -1150,7 +1155,8 @@ begin
   end;
   if SameText(_UnitOfMeasure,'Paket') or
      SameText(_UnitOfMeasure,'PCK') or
-     SameText(_UnitOfMeasure,'Pack') then
+     SameText(_UnitOfMeasure,'Pack') or
+     SameText(_UnitOfMeasure,'Kart.') then
   begin
     Result := iuc_packaging;
     _Success := true;

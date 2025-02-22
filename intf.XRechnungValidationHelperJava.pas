@@ -16,7 +16,7 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages
-  ,System.IOUtils, System.SysUtils, System.Variants, System.Classes
+  ,System.IOUtils, System.SysUtils, System.Variants, System.Classes, System.Types
   ,System.Win.COMObj,System.UITypes
   ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema
   ;
@@ -653,6 +653,8 @@ function TXRechnungValidationHelperJava.ValitoolValidate(
 var
   hstrl: TStringList;
   tmpFilename,cmdLine : String;
+  lResults : TStringDynArray;
+  i : Integer;
 begin
   Result := false;
   if _InvoiceXMLData = '' then
@@ -685,21 +687,25 @@ begin
 
     DeleteFile(tmpFilename);
 
-    if FileExists(tmpFilename+'.report.de.xml') then
-    begin
-      hstrl.LoadFromFile(tmpFilename+'.report.de.xml',TEncoding.UTF8);
-      _ValidationResultAsXML := hstrl.Text;
-      DeleteFile(tmpFilename+'.report.de.xml');
-    end;
+    _VisualizationAsPdf := nil;
 
-    if FileExists(tmpFilename+'.report.de.pdf') then
+    lResults := TDirectory.GetFiles(ExtractFilePath(tmpFilename),ExtractFileName(tmpFilename)+'.*');
+    for i := 0 to Length(lResults)-1 do
+    if lResults[i].EndsWith('report.de.xml',true) then
+    begin
+      hstrl.LoadFromFile(lResults[i],TEncoding.UTF8);
+      _ValidationResultAsXML := hstrl.Text;
+      DeleteFile(lResults[i]);
+    end else
+    if lResults[i].EndsWith('report.de.pdf',true) then
+    if _VisualizationAsPdf = nil then
     begin
       _VisualizationAsPdf := TMemoryStream.Create;
-      _VisualizationAsPdf.LoadFromFile(tmpFilename+'.report.de.pdf');
+      _VisualizationAsPdf.LoadFromFile(lResults[i]);
       _VisualizationAsPdf.Position := 0;
-      DeleteFile(tmpFilename+'.report.de.pdf');
-    end else
-      _VisualizationAsPdf := nil;
+      DeleteFile(lResults[i]);
+    end;
+
   finally
     hstrl.Free;
   end;

@@ -61,7 +61,8 @@ object Form1: TForm1
       'Keine'
       'Netto'
       '1 Skonto'
-      '2 Skonto')
+      '2 Skonto'
+      '3 Skonto')
     TabOrder = 3
   end
   object cbAllowanceCharges: TCheckBox

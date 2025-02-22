@@ -1,4 +1,4 @@
-{
+﻿{
 Copyright (C) 2025 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
 Version 3.0.2
@@ -457,6 +457,19 @@ begin
       inv.PaymentTermCashDiscount2Days := 14;
       inv.PaymentTermCashDiscount2Percent := 3;
       inv.PaymentTermCashDiscount2Base := 0; //optional auf welchen Betrag bezieht sich Skonto
+    end;
+    4 :
+    begin
+      inv.PaymentTermsType := iptt_CashDiscount3;
+      inv.PaymentTermCashDiscount1Days := 7;
+      inv.PaymentTermCashDiscount1Percent := 4.25;
+      inv.PaymentTermCashDiscount1Base := 0; //optional auf welchen Betrag bezieht sich Skonto
+      inv.PaymentTermCashDiscount2Days := 14;
+      inv.PaymentTermCashDiscount2Percent := 3;
+      inv.PaymentTermCashDiscount2Base := 0; //optional auf welchen Betrag bezieht sich Skonto
+      inv.PaymentTermCashDiscount3Days := 15;
+      inv.PaymentTermCashDiscount3Percent := 2;
+      inv.PaymentTermCashDiscount3Base := 0; //optional auf welchen Betrag bezieht sich Skonto
     end;
     else
       inv.PaymentTermsType := iptt_None;

@@ -1365,80 +1365,84 @@ end;
 class procedure TXRechnungHelper.ReadPaymentTerms(_Invoice: TInvoice;
   _PaymentTermsText: String);
 var
-  paymentTerms,paymentTerm : TArray<String>;
+  lPoshashtag, lPosBasis: Integer;
+  lPaymentTermsList : TStringList;
+  lPaymentTerm : String;
+  i, lDays : Integer;
+  lSkonto : double;
+  lBasisbetrag : Currency;
 begin
   if _PaymentTermsText = '' then
     exit;
+
+  _Invoice.PaymentTermsType := iptt_Net;
+  _Invoice.PaymentTermNetNote := _PaymentTermsText;
+
   if Pos('#SKONTO#',_PaymentTermsText) = 0 then
-  begin
-    _Invoice.PaymentTermsType := iptt_Net;
-    _Invoice.PaymentTermNetNote := _PaymentTermsText;
-  end else
-  if (Pos('#SKONTO#',_PaymentTermsText) = 1) and (Pos(#10,Trim(_PaymentTermsText)) > 1) then //zweimal Skonto
-  begin
-    _Invoice.PaymentTermsType := iptt_CashDiscount2;
-    paymentTerms := _PaymentTermsText.Split([#10]);
-    if (Length(paymentTerms) >= 2) then if (Pos('#SKONTO#',paymentTerms[1]) = 1) then
+    exit;
+
+  lPaymentTermsList := TStringList.Create;
+  try
+    lPaymentTermsList.Text := Trim(_PaymentTermsText);
+    if lPaymentTermsList.Count = 0 then
+      exit;
+    for i := 0 to lPaymentTermsList.Count-1 do
+    if (Pos('#SKONTO#', lPaymentTermsList[i]) = 1) then
     begin
-      paymentTerm := paymentTerms[1].Split(['#']); //0 Leer, 1 Skonto, 2 Tage, 3 Prozent, 4 Leer o. Basiswert
-      if (Length(paymentTerm) >= 5) then
+      if _Invoice.PaymentTermsType = iptt_CashDiscount3 then
+        break; //Mehr geht nicht
+      _Invoice.PaymentTermsType := TInvoicePaymentTermsType(Integer(_Invoice.PaymentTermsType)+1);
+
+      lPaymentTerm := Trim(lPaymentTermsList[i]);
+
+      lPoshashtag := Pos('#', lPaymentTerm);
+      Delete(lPaymentTerm, 1, lPoshashtag); // Entfernen des ersten '#'
+
+      // Zerlegen der Werte
+      lPoshashtag := Pos('#', lPaymentTerm);
+      Delete(lPaymentTerm, 1, lPoshashtag); // Skonto entfernen
+      lDays := StrToIntDef(Copy(lPaymentTerm, Pos('=', lPaymentTerm)+1, Pos('#', lPaymentTerm) - 1 - Pos('=', lPaymentTerm)), 0);
+
+      lPoshashtag := Pos('#', lPaymentTerm);
+      Delete(lPaymentTerm, 1, lPoshashtag); // Tage entfernen
+      lSkonto := TXRechnungHelper.FloatFromStr(Copy(lPaymentTerm, Pos('=', lPaymentTerm) + 1, Pos('#', lPaymentTerm) - 1 - Pos('=', lPaymentTerm)));
+
+      lPoshashtag := Pos('#', lPaymentTerm);
+      Delete(lPaymentTerm, 1, lPoshashtag); // Prozent entfernen
+      lPosBasis := Pos('BASISBETRAG=', lPaymentTerm);
+      if lPosBasis = 1 then
       begin
-        Delete(paymentTerm[2],1,5);
-        _Invoice.PaymentTermCashDiscount2Days := StrToIntDef(paymentTerm[2],0);
-        Delete(paymentTerm[3],1,8);
-        _Invoice.PaymentTermCashDiscount2Percent := TXRechnungHelper.FloatFromStr(paymentTerm[3]);
-        if Pos('BASISBETRAG=',paymentTerm[4])=1 then
-        begin
-          Delete(paymentTerm[4],1,12);
-          _Invoice.PaymentTermCashDiscount2Base := TXRechnungHelper.AmountFromStr(paymentTerm[4]);
-        end
-        else
-          _Invoice.PaymentTermCashDiscount2Base := 0;
-      end;
-    end else
-      _Invoice.PaymentTermsType := iptt_CashDiscount1;
-    if (Length(paymentTerms) >= 1) then if (Pos('#SKONTO#',paymentTerms[0]) = 1) then
-    begin
-      paymentTerm := paymentTerms[0].Split(['#']); //0 Leer, 1 Skonto, 2 Tage, 3 Prozent, 4 Leer o. Basiswert
-      if (Length(paymentTerm) >= 5) then
-      begin
-        Delete(paymentTerm[2],1,5);
-        _Invoice.PaymentTermCashDiscount1Days := StrToIntDef(paymentTerm[2],0);
-        Delete(paymentTerm[3],1,8);
-        _Invoice.PaymentTermCashDiscount1Percent := TXRechnungHelper.FloatFromStr(paymentTerm[3]);
-        if Pos('BASISBETRAG=',paymentTerm[4])=1 then
-        begin
-          Delete(paymentTerm[4],1,12);
-          _Invoice.PaymentTermCashDiscount1Base := TXRechnungHelper.AmountFromStr(paymentTerm[4]);
-        end
-        else
-          _Invoice.PaymentTermCashDiscount1Base := 0;
-      end;
-    end else
-      _Invoice.PaymentTermsType := iptt_Net;
-  end else
-  if Pos('#SKONTO#',_PaymentTermsText) = 1 then //einmal Skonto
-  begin
-    _Invoice.PaymentTermsType := iptt_CashDiscount1;
-    paymentTerm := _PaymentTermsText.Split(['#']); //0 Leer, 1 Skonto, 2 Tage, 3 Prozent, 4 Leer o. Basiswert
-    if (Length(paymentTerm) >= 5) then
-    begin
-      Delete(paymentTerm[2],1,5);
-      _Invoice.PaymentTermCashDiscount1Days := StrToIntDef(paymentTerm[2],0);
-      Delete(paymentTerm[3],1,8);
-      _Invoice.PaymentTermCashDiscount1Percent := TXRechnungHelper.FloatFromStr(paymentTerm[3]);
-      if Pos('BASISBETRAG=',paymentTerm[4])=1 then
-      begin
-        Delete(paymentTerm[4],1,12);
-        _Invoice.PaymentTermCashDiscount1Base := TXRechnungHelper.AmountFromStr(paymentTerm[4]);
+        Delete(lPaymentTerm, 1, 12); // "BASISBETRAG=" entfernen
+        if Length(lPaymentTerm)>0 then //# entfernen
+        if lPaymentTerm[Length(lPaymentTerm)]='#' then
+          Delete(lPaymentTerm,Length(lPaymentTerm),1);
+        lBasisbetrag := TXRechnungHelper.AmountFromStr(lPaymentTerm);
       end
       else
-        _Invoice.PaymentTermCashDiscount1Base := 0;
+        lBasisbetrag := 0;
+      case _Invoice.PaymentTermsType of
+        iptt_CashDiscount1 :
+        begin
+          _Invoice.PaymentTermCashDiscount1Days := lDays;
+          _Invoice.PaymentTermCashDiscount1Percent := lSkonto;
+          _Invoice.PaymentTermCashDiscount1Base := lBasisbetrag;
+        end;
+        iptt_CashDiscount2 :
+        begin
+          _Invoice.PaymentTermCashDiscount2Days := lDays;
+          _Invoice.PaymentTermCashDiscount2Percent := lSkonto;
+          _Invoice.PaymentTermCashDiscount2Base := lBasisbetrag;
+        end;
+        iptt_CashDiscount3 :
+        begin
+          _Invoice.PaymentTermCashDiscount3Days := lDays;
+          _Invoice.PaymentTermCashDiscount3Percent := lSkonto;
+          _Invoice.PaymentTermCashDiscount3Base := lBasisbetrag;
+        end;
+      end;
     end;
-  end else
-  begin
-    _Invoice.PaymentTermsType := iptt_None;
-    _Invoice.PaymentTermNetNote := _PaymentTermsText;
+  finally
+    lPaymentTermsList.Free;
   end;
 end;
 

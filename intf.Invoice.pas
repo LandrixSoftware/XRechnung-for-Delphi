@@ -204,7 +204,8 @@ type
   TInvoicePaymentTermsType = (iptt_None,
                       iptt_Net,
                       iptt_CashDiscount1,
-                      iptt_CashDiscount2);
+                      iptt_CashDiscount2,
+                      iptt_CashDiscount3);
 
   TInvoiceUnitCode = (iuc_None //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:rec20_1
                       ,iuc_one   //C62 A unit of count defining the number of pieces
@@ -746,6 +747,10 @@ type
     PaymentTermCashDiscount2Percent : double;
     PaymentTermCashDiscount2Base : Currency; //Anderer Betrag als der Rechnungsbetrag
     PaymentTermCashDiscount2ActualAmount : Currency; //Nur ZUGFeRD/Factur-X: Muss immer Basis * Prozent ergeben
+    PaymentTermCashDiscount3Days : Integer;
+    PaymentTermCashDiscount3Percent : double;
+    PaymentTermCashDiscount3Base : Currency; //Anderer Betrag als der Rechnungsbetrag
+    PaymentTermCashDiscount3ActualAmount : Currency; //Nur ZUGFeRD/Factur-X: Muss immer Basis * Prozent ergeben
 
     InvoiceLines : TInvoiceLines;
 

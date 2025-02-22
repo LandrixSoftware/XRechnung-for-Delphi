@@ -817,7 +817,10 @@ begin
             if _Invoice.PaymentTermsType in [iptt_None,iptt_Net] then
               _Invoice.PaymentTermsType := iptt_CashDiscount1
             else
-              _Invoice.PaymentTermsType := iptt_CashDiscount2;
+            if _Invoice.PaymentTermsType in [iptt_CashDiscount1] then
+              _Invoice.PaymentTermsType := iptt_CashDiscount2
+            else
+              _Invoice.PaymentTermsType := iptt_CashDiscount3;
 
             if (_Invoice.PaymentTermsType = iptt_CashDiscount1) then
             begin
@@ -847,6 +850,21 @@ begin
                 _Invoice.PaymentTermCashDiscount2Base := TXRechnungHelper.FloatFromStr(node3.text);
               if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:ActualDiscountAmount',node3) then
                 _Invoice.PaymentTermCashDiscount2ActualAmount:= TXRechnungHelper.FloatFromStr(node3.text);
+            end;
+
+            if (_Invoice.PaymentTermsType = iptt_CashDiscount3) then
+            begin
+              _Invoice.PaymentTermCashDiscount3Days := 0;
+              _Invoice.PaymentTermCashDiscount3Percent := 0;
+              _Invoice.PaymentTermCashDiscount3Base := 0;
+              if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:BasisPeriodMeasure',node3) then
+                _Invoice.PaymentTermCashDiscount3Days := StrToIntDef(node3.text,0);
+              if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:CalculationPercent',node3) then
+                _Invoice.PaymentTermCashDiscount3Percent := TXRechnungHelper.FloatFromStr(node3.text);
+              if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:BasisAmount',node3) then
+                _Invoice.PaymentTermCashDiscount3Base := TXRechnungHelper.FloatFromStr(node3.text);
+              if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:ActualDiscountAmount',node3) then
+                _Invoice.PaymentTermCashDiscount3ActualAmount:= TXRechnungHelper.FloatFromStr(node3.text);
             end;
 
           end;
@@ -1364,6 +1382,30 @@ begin
             TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount2Base)+'#','')+#13#10;
       end;
     end;
+    iptt_CashDiscount3:
+    begin
+      with xRoot.AddChild('cac:PaymentTerms') do
+      begin
+        AddChild('cbc:Note').Text := Format('#SKONTO#TAGE=%d#PROZENT=%s#',
+          [_Invoice.PaymentTermCashDiscount1Days,
+           TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount1Percent)])+
+          IfThen(_Invoice.PaymentTermCashDiscount1Base <> 0,'BASISBETRAG='+
+            TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount1Base)+'#','')+
+          #13#10+
+          Format('#SKONTO#TAGE=%d#PROZENT=%s#',
+          [_Invoice.PaymentTermCashDiscount2Days,
+           TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount2Percent)])+
+          IfThen(_Invoice.PaymentTermCashDiscount2Base <> 0,'BASISBETRAG='+
+            TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount2Base)+'#','')
+          +#13#10+
+          Format('#SKONTO#TAGE=%d#PROZENT=%s#',
+          [_Invoice.PaymentTermCashDiscount3Days,
+           TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount3Percent)])+
+          IfThen(_Invoice.PaymentTermCashDiscount3Base <> 0,'BASISBETRAG='+
+            TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount3Base)+'#','')
+          +#13#10;
+      end;
+    end;
   end;
 
   for i := 0 to _Invoice.AllowanceCharges.Count-1 do
@@ -1482,6 +1524,10 @@ class procedure TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(
 var
   xRoot : IXMLNode;
   i : Integer;
+  iPaymentTermsType : TInvoicePaymentTermsType;
+  lDays : Integer;
+  lSkonto : double;
+  lBasisAmount,lActualDiscountAmount : Currency;
 
   procedure InternalAddInvoiceLine(_Invoiceline : TInvoiceLine; _Node : IXMLNode);
   var
@@ -1543,9 +1589,9 @@ var
         with AddChild('ram:AppliedTradeAllowanceCharge') do
         begin
           AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := 'false';
-          //<ram:CalculationPercent>45</ram:CalculationPercent> nicht mï¿½glich bei UBL
+          //<ram:CalculationPercent>45</ram:CalculationPercent> nicht möglich bei UBL
           AddChild('ram:ActualAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoiceline.DiscountOnTheGrossPrice);
-          //<ram:Reason>Rabatt1</ram:Reason> nicht mï¿½glich bei UBL
+          //<ram:Reason>Rabatt1</ram:Reason> nicht möglich bei UBL
         end;
       end;
       with AddChild('ram:NetPriceProductTradePrice') do
@@ -1977,6 +2023,27 @@ begin
                   TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount2Base)+'#','')+
                 #13#10;
           end;
+          iptt_CashDiscount3:
+          begin
+            AddChild('ram:Description').Text := Format('#SKONTO#TAGE=%d#PROZENT=%s#',
+                [_Invoice.PaymentTermCashDiscount1Days,
+                 TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount1Percent)])+
+                IfThen(_Invoice.PaymentTermCashDiscount1Base <> 0,'BASISBETRAG='+
+                  TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount1Base)+'#','')+
+                #13#10+
+                Format('#SKONTO#TAGE=%d#PROZENT=%s#',
+                [_Invoice.PaymentTermCashDiscount2Days,
+                 TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount2Percent)])+
+                IfThen(_Invoice.PaymentTermCashDiscount2Base <> 0,'BASISBETRAG='+
+                  TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount2Base)+'#','')+
+                #13#10+
+                Format('#SKONTO#TAGE=%d#PROZENT=%s#',
+                [_Invoice.PaymentTermCashDiscount3Days,
+                 TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount3Percent)])+
+                IfThen(_Invoice.PaymentTermCashDiscount3Base <> 0,'BASISBETRAG='+
+                  TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount3Base)+'#','')+
+                #13#10;
+          end;
         end;
         if _Invoice.InvoiceTypeCode <> itc_CreditNote then
         if _Invoice.InvoiceDueDate > 100 then
@@ -2005,13 +2072,37 @@ begin
           if (_Invoice.PaymentMandateID <> '') then
             AddChild('ram:DirectDebitMandateID').Text := _Invoice.PaymentMandateID;
         end;
-        if (_Invoice.PaymentTermsType in [iptt_CashDiscount1,iptt_CashDiscount2]) then
+        if (_Invoice.PaymentTermsType in [iptt_CashDiscount1,iptt_CashDiscount2,iptt_CashDiscount3]) then
+        for iPaymentTermsType := iptt_CashDiscount1 to _Invoice.PaymentTermsType do
         with AddChild('ram:SpecifiedTradePaymentTerms') do
         begin
+          case iPaymentTermsType of
+            iptt_CashDiscount2:
+            begin
+              lDays := _Invoice.PaymentTermCashDiscount2Days;
+              lSkonto := _Invoice.PaymentTermCashDiscount2Percent;
+              lBasisAmount := _Invoice.PaymentTermCashDiscount2Base;
+              lActualDiscountAmount := _Invoice.PaymentTermCashDiscount2ActualAmount;
+            end;
+            iptt_CashDiscount3:
+            begin
+              lDays := _Invoice.PaymentTermCashDiscount3Days;
+              lSkonto := _Invoice.PaymentTermCashDiscount3Percent;
+              lBasisAmount := _Invoice.PaymentTermCashDiscount3Base;
+              lActualDiscountAmount := _Invoice.PaymentTermCashDiscount3ActualAmount;
+            end;
+            else //iptt_CashDiscount1
+            begin
+              lDays := _Invoice.PaymentTermCashDiscount1Days;
+              lSkonto := _Invoice.PaymentTermCashDiscount1Percent;
+              lBasisAmount := _Invoice.PaymentTermCashDiscount1Base;
+              lActualDiscountAmount := _Invoice.PaymentTermCashDiscount1ActualAmount;
+            end;
+          end;
           with AddChild('ram:DueDateDateTime').AddChild('udt:DateTimeString') do
           begin
             Attributes['format'] := '102';
-            Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.InvoiceIssueDate + _Invoice.PaymentTermCashDiscount1Days);
+            Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.InvoiceIssueDate + lDays);
           end;
           with AddChild('ram:ApplicableTradePaymentDiscountTerms') do
           begin
@@ -2022,41 +2113,14 @@ begin
             end;
             with AddChild('ram:BasisPeriodMeasure') do
             begin
-              Text := IntToStr(_Invoice.PaymentTermCashDiscount1Days);
+              Text := IntToStr(lDays);
               Attributes['unitCode'] := 'DAY';
             end;
-            if _Invoice.PaymentTermCashDiscount1Base <> 0 then
-              AddChild('ram:BasisAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoice.PaymentTermCashDiscount1Base);
-            AddChild('ram:CalculationPercent').Text := TXRechnungHelper.PercentageToStr(_Invoice.PaymentTermCashDiscount1Percent);
-            if _Invoice.PaymentTermCashDiscount1ActualAmount <> 0 then
-              AddChild('ram:ActualDiscountAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoice.PaymentTermCashDiscount1ActualAmount);
-          end;
-        end;
-        if (_Invoice.PaymentTermsType in [iptt_CashDiscount2]) then
-        with AddChild('ram:SpecifiedTradePaymentTerms') do
-        begin
-          with AddChild('ram:DueDateDateTime').AddChild('udt:DateTimeString') do
-          begin
-            Attributes['format'] := '102';
-            Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.InvoiceIssueDate + _Invoice.PaymentTermCashDiscount2Days);
-          end;
-          with AddChild('ram:ApplicableTradePaymentDiscountTerms') do
-          begin
-            with AddChild('ram:BasisDateTime').AddChild('udt:DateTimeString') do
-            begin
-              Attributes['format'] := '102';
-              Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.InvoiceIssueDate);
-            end;
-            with AddChild('ram:BasisPeriodMeasure') do
-            begin
-              Text := IntToStr(_Invoice.PaymentTermCashDiscount2Days);
-              Attributes['unitCode'] := 'DAY';
-            end;
-            if _Invoice.PaymentTermCashDiscount2Base <> 0 then
-              AddChild('ram:BasisAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoice.PaymentTermCashDiscount2Base);
-            AddChild('ram:CalculationPercent').Text := TXRechnungHelper.PercentageToStr(_Invoice.PaymentTermCashDiscount2Percent);
-            if _Invoice.PaymentTermCashDiscount2ActualAmount <> 0 then
-              AddChild('ram:ActualDiscountAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoice.PaymentTermCashDiscount2ActualAmount);
+            if lBasisAmount <> 0 then
+              AddChild('ram:BasisAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(lBasisAmount);
+            AddChild('ram:CalculationPercent').Text := TXRechnungHelper.PercentageToStr(lSkonto);
+            if lActualDiscountAmount <> 0 then
+              AddChild('ram:ActualDiscountAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(lActualDiscountAmount);
           end;
         end;
       end; //end if _ProfileZUGFeRDExtended then

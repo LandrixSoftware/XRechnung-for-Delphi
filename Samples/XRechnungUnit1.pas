@@ -17,7 +17,7 @@ interface
 {$DEFINE USE_EDGE_BROWSER}
 
 //https://Validool.org/
-{$DEFINE USE_Valitool}
+{.$DEFINE USE_Valitool}
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,

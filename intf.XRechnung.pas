@@ -43,6 +43,7 @@ uses
   ,intf.ZUGFeRDAllowanceOrChargeIdentificationCodes
   ,intf.ZUGFeRDQuantityCodes
   ,intf.ZUGFeRDGlobalIDSchemeIdentifiers
+  ,intf.ZUGFeRDSubjectCodes
   {$ENDIF}
   ,intf.XRechnung_2_3
   ,intf.XRechnung_3_0
@@ -93,7 +94,8 @@ type
                        XRechnungVersion_30x_UBL,
                        XRechnungVersion_30x_UNCEFACT,
                        ZUGFeRDExtendedVersion_232,
-                       XRechnungVersion_ReadingSupport_ZUGFeRDFacturX);
+                       XRechnungVersion_ReadingSupport_ZUGFeRDFacturX,
+                       ZUGFeRDExtendedVersion_1_NotSupported);
 
   TXRechnungValidationHelper = class(TObject)
   public
@@ -226,7 +228,8 @@ begin
   Result := true;
 
   //Mindestens eine Zahlungsanweisung notwendig (bei ZUGFeRD nur im Profil EXTENDED)
-  if (_Invoice.PaymentTypes.Count = 0) and (_Version <> TXRechnungVersion.XRechnungVersion_ReadingSupport_ZUGFeRDFacturX) then
+  if (_Invoice.PaymentTypes.Count = 0) and
+     (_Version <> TXRechnungVersion.XRechnungVersion_ReadingSupport_ZUGFeRDFacturX) then
   begin
     Result := false;
     exit;
@@ -365,14 +368,14 @@ begin
     XRechnungVersion_30x_UBL      : Result := TXRechnungInvoiceAdapter301.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
     XRechnungVersion_230_UNCEFACT_Deprecated : Result := TXRechnungInvoiceAdapter230.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     XRechnungVersion_30x_UNCEFACT : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
+    //ZUGFeRDExtendedVersion_232 : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     {$IFNDEF ZUGFeRD_Support}
-    ZUGFeRDExtendedVersion_232,
     XRechnungVersion_ReadingSupport_ZUGFeRDFacturX : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
-    else exit;
     {$ELSE}
-    else
-      Result := TZUGFeRDInvoiceAdapter.LoadFromXMLDocument(_Invoice,_XmlDocument,_Error,_AdditionalContent);
+    XRechnungVersion_ReadingSupport_ZUGFeRDFacturX,
+    ZUGFeRDExtendedVersion_1_NotSupported : Result := TZUGFeRDInvoiceAdapter.LoadFromXMLDocument(_Invoice,_XmlDocument,_Error,_AdditionalContent);
     {$ENDIF}
+    else exit;
   end;
 end;
 
@@ -1492,6 +1495,11 @@ begin
     else
     if node.Text.StartsWith('urn:cen.eu:en16931:2017',true) then
       Result := XRechnungVersion_ReadingSupport_ZUGFeRDFacturX;
+  end else
+  if (SameText(_XML.DocumentElement.NodeName,'CrossIndustryDocument') or
+      SameText(_XML.DocumentElement.NodeName,'rsm:CrossIndustryDocument')) then
+  begin
+    Result := ZUGFeRDExtendedVersion_1_NotSupported;
   end;
 end;
 
@@ -1715,9 +1723,9 @@ begin
   _Invoice.InvoiceIssueDate := _InvoiceDescriptor.InvoiceDate;
   _Invoice.InvoiceDueDate := 0;
   for i := 0 to _InvoiceDescriptor.PaymentTermsList.Count-1 do
-  if (_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.CalculationPercent = 0.0) then
+  if (_InvoiceDescriptor.PaymentTermsList[i].Percentage.Value = 0.0) then
   begin
-    _Invoice.InvoiceDueDate := _InvoiceDescriptor.PaymentTermsList[i].DueDate;
+    _Invoice.InvoiceDueDate := _InvoiceDescriptor.PaymentTermsList[i].DueDate.Value;
     break;
   end;
   _Invoice.InvoicePeriodStartDate := _InvoiceDescriptor.BillingPeriodStart;
@@ -1744,11 +1752,27 @@ begin
   _Invoice.TaxCurrencyCode := _Invoice.InvoiceCurrencyCode; //TODO fehlt in ZUGFeRD-Lib
   _Invoice.BuyerReference := _InvoiceDescriptor.ReferenceOrderNo;
   for i := 0 to _InvoiceDescriptor.Notes.Count-1 do
+  begin
     _Invoice.Notes.AddNote.Content := _InvoiceDescriptor.Notes[i].Content;
+    case _InvoiceDescriptor.Notes[i].SubjectCode of
+      //TZUGFeRDSubjectCodes.AAC :_Invoice.Notes.Last.SubjectCode :=
+      TZUGFeRDSubjectCodes.AAI :_Invoice.Notes.Last.SubjectCode := insc_AAI;
+      TZUGFeRDSubjectCodes.AAJ :_Invoice.Notes.Last.SubjectCode := insc_AAJ;
+      //TZUGFeRDSubjectCodes.ABN :_Invoice.Notes.Last.SubjectCode :=
+      TZUGFeRDSubjectCodes.AAK :_Invoice.Notes.Last.SubjectCode := insc_AAK;
+      //TZUGFeRDSubjectCodes.ACB :_Invoice.Notes.Last.SubjectCode :=
+      //TZUGFeRDSubjectCodes.ADU :_Invoice.Notes.Last.SubjectCode :=
+      TZUGFeRDSubjectCodes.PMT :_Invoice.Notes.Last.SubjectCode := insc_PMT;
+      //TZUGFeRDSubjectCodes.PRF :_Invoice.Notes.Last.SubjectCode :=
+      TZUGFeRDSubjectCodes.REG :_Invoice.Notes.Last.SubjectCode := insc_REG;
+      TZUGFeRDSubjectCodes.SUR :_Invoice.Notes.Last.SubjectCode := insc_SUR;
+      TZUGFeRDSubjectCodes.TXD :_Invoice.Notes.Last.SubjectCode := insc_TXD;
+    end; //TODO insc_ABL, insc_CUS
+  end;
   if _InvoiceDescriptor.SellerOrderReferencedDocument <> nil then
     _Invoice.SellerOrderReference := _InvoiceDescriptor.SellerOrderReferencedDocument.ID;
   _Invoice.PurchaseOrderReference := _InvoiceDescriptor.OrderNo;
-  if _InvoiceDescriptor.SpecifiedProcuringProject <> nil then 
+  if _InvoiceDescriptor.SpecifiedProcuringProject <> nil then
     _Invoice.ProjectReference := _InvoiceDescriptor.SpecifiedProcuringProject.ID;
   if _InvoiceDescriptor.ContractReferencedDocument <> nil then
     _Invoice.ContractDocumentReference := _InvoiceDescriptor.ContractReferencedDocument.ID;
@@ -1791,7 +1815,7 @@ begin
     _Invoice.AccountingSupplierParty.ContactTelephone := _InvoiceDescriptor.SellerContact.PhoneNo;
     _Invoice.AccountingSupplierParty.ContactElectronicMail := _InvoiceDescriptor.SellerContact.EmailAddress;
   end;
-  _Invoice.AccountingSupplierParty.AdditionalLegalInformationSeller := ''; //TODO fehlt in ZUGFeRD-Lib
+  _Invoice.AccountingSupplierParty.AdditionalLegalInformationSeller := _InvoiceDescriptor.Seller.Description;
   _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer := _InvoiceDescriptor.SellerElectronicAddress.Address;
   //Buyer
   if _InvoiceDescriptor.Buyer <> nil then
@@ -1885,6 +1909,9 @@ begin
       FinancialInstitutionBranch := _InvoiceDescriptor.DebitorBankAccounts[i].BIC;
     end;
   end else
+  if lPaymentMeansCode = ipmc_InstrumentNotDefined then
+    _Invoice.PaymentTypes.AddPaymentType.PaymentMeansCode := ipmc_InstrumentNotDefined
+  else
   if lPaymentMeansCode <> ipmc_NotImplemented then
   begin
     for i := 0 to _InvoiceDescriptor.CreditorBankAccounts.Count-1 do
@@ -1897,44 +1924,58 @@ begin
     end;
   end;
 
+  _Invoice.PaymentMandateID := _InvoiceDescriptor.PaymentMeans.SEPAMandateReference;
+
   _Invoice.PaymentTermsType := iptt_None;
   for i := 0 to _InvoiceDescriptor.PaymentTermsList.Count-1 do
   begin
-    if _InvoiceDescriptor.PaymentTermsList[i].DirectDebitMandateID <> '' then //Koennte Probleme bei mehrere Eintraegen der Art geben
-      _Invoice.PaymentMandateID := _InvoiceDescriptor.PaymentTermsList[i].DirectDebitMandateID;
-    if (_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.CalculationPercent = 0) and
-       (_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisAmount = 0) then
+    if (not _InvoiceDescriptor.PaymentTermsList[i].Percentage.HasValue) and
+       (not _InvoiceDescriptor.PaymentTermsList[i].BaseAmount.HasValue) then
     begin
       if _Invoice.PaymentTermsType = iptt_None then
         _Invoice.PaymentTermsType := iptt_Net;
       if _InvoiceDescriptor.PaymentTermsList[i].DueDate.GetValueOrDefault > 0 then
         _Invoice.InvoiceDueDate := _InvoiceDescriptor.PaymentTermsList[i].DueDate
       else
-      if _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisPeriodMeasure.Value > 0 then
-        _Invoice.InvoiceDueDate := Trunc(_Invoice.InvoiceIssueDate)+ Trunc(_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisPeriodMeasure.Value);
+      if _InvoiceDescriptor.PaymentTermsList[i].DueDays.HasValue then
+        _Invoice.InvoiceDueDate := Trunc(_Invoice.InvoiceIssueDate)+ Trunc(_InvoiceDescriptor.PaymentTermsList[i].DueDays.Value);
       _Invoice.PaymentTermNetNote := _InvoiceDescriptor.PaymentTermsList[i].Description;
     end else
     if (_Invoice.PaymentTermsType in [iptt_None,iptt_Net]) then
     begin
       _Invoice.PaymentTermsType := iptt_CashDiscount1;
-      if _InvoiceDescriptor.PaymentTermsList[i].DueDate.GetValueOrDefault > 0 then
+      if _InvoiceDescriptor.PaymentTermsList[i].DueDate.HasValue then
         _Invoice.PaymentTermCashDiscount1Days := DaysBetween(_Invoice.InvoiceIssueDate,_InvoiceDescriptor.PaymentTermsList[i].DueDate)
       else
-      if _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisPeriodMeasure.Value > 0 then
-        _Invoice.PaymentTermCashDiscount1Days := Trunc(_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisPeriodMeasure.Value);
-      _Invoice.PaymentTermCashDiscount1Percent := _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.CalculationPercent;
-      _Invoice.PaymentTermCashDiscount1Base := _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisAmount;
+      if _InvoiceDescriptor.PaymentTermsList[i].DueDays.HasValue then
+        _Invoice.PaymentTermCashDiscount1Days := Trunc(_InvoiceDescriptor.PaymentTermsList[i].DueDate.Value);
+      _Invoice.PaymentTermCashDiscount1Percent := _InvoiceDescriptor.PaymentTermsList[i].Percentage;
+      _Invoice.PaymentTermCashDiscount1Base := _InvoiceDescriptor.PaymentTermsList[i].BaseAmount;
+      _Invoice.PaymentTermCashDiscount1ActualAmount := _InvoiceDescriptor.PaymentTermsList[i].ActualAmount;
     end else
     if _Invoice.PaymentTermsType = iptt_CashDiscount1 then
     begin
       _Invoice.PaymentTermsType := iptt_CashDiscount2;
-      if _InvoiceDescriptor.PaymentTermsList[i].DueDate.GetValueOrDefault > 0 then
+      if _InvoiceDescriptor.PaymentTermsList[i].DueDate.HasValue then
         _Invoice.PaymentTermCashDiscount2Days := DaysBetween(_Invoice.InvoiceIssueDate,_InvoiceDescriptor.PaymentTermsList[i].DueDate)
       else
-      if _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisPeriodMeasure.Value > 0 then
-        _Invoice.PaymentTermCashDiscount2Days := Trunc(_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisPeriodMeasure.Value);
-      _Invoice.PaymentTermCashDiscount2Percent := _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.CalculationPercent;
-      _Invoice.PaymentTermCashDiscount2Base := _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisAmount;
+      if _InvoiceDescriptor.PaymentTermsList[i].DueDays.HasValue then
+        _Invoice.PaymentTermCashDiscount2Days := Trunc(_InvoiceDescriptor.PaymentTermsList[i].DueDays.Value);
+      _Invoice.PaymentTermCashDiscount2Percent := _InvoiceDescriptor.PaymentTermsList[i].Percentage;
+      _Invoice.PaymentTermCashDiscount2Base := _InvoiceDescriptor.PaymentTermsList[i].BaseAmount;
+      _Invoice.PaymentTermCashDiscount2ActualAmount := _InvoiceDescriptor.PaymentTermsList[i].ActualAmount;
+    end else
+    if _Invoice.PaymentTermsType = iptt_CashDiscount2 then
+    begin
+      _Invoice.PaymentTermsType := iptt_CashDiscount3;
+      if _InvoiceDescriptor.PaymentTermsList[i].DueDate.HasValue then
+        _Invoice.PaymentTermCashDiscount3Days := DaysBetween(_Invoice.InvoiceIssueDate,_InvoiceDescriptor.PaymentTermsList[i].DueDate)
+      else
+      if _InvoiceDescriptor.PaymentTermsList[i].DueDays.HasValue then
+        _Invoice.PaymentTermCashDiscount3Days := Trunc(_InvoiceDescriptor.PaymentTermsList[i].DueDays.Value);
+      _Invoice.PaymentTermCashDiscount3Percent := _InvoiceDescriptor.PaymentTermsList[i].Percentage;
+      _Invoice.PaymentTermCashDiscount3Base := _InvoiceDescriptor.PaymentTermsList[i].BaseAmount;
+      _Invoice.PaymentTermCashDiscount3ActualAmount := _InvoiceDescriptor.PaymentTermsList[i].ActualAmount;
     end;
   end;
 
@@ -1960,6 +2001,11 @@ begin
     //lInvoiceLine.UnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(TZUGFeRDQuantityCodesExtensions.EnumToString(_InvoiceDescriptor.TradeLineItems[i].BilledQuantityUnitCode));
     lInvoiceLine.UnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(TZUGFeRDQuantityCodesExtensions.EnumToString(_InvoiceDescriptor.TradeLineItems[i].UnitCode));
     lInvoiceLine.SellersItemIdentification := _InvoiceDescriptor.TradeLineItems[i].SellerAssignedID;
+    lInvoiceLine.BuyersItemIdentification := _InvoiceDescriptor.TradeLineItems[i].BuyerAssignedID;
+    if _InvoiceDescriptor.TradeLineItems[i].BuyerOrderReferencedDocument <> nil then
+      lInvoiceLine.OrderLineReference := _InvoiceDescriptor.TradeLineItems[i].BuyerOrderReferencedDocument.LineID;
+    if _InvoiceDescriptor.TradeLineItems[i].ReceivableSpecifiedTradeAccountingAccounts.Count > 0 then
+      lInvoiceLine.BuyerAccountingReference := _InvoiceDescriptor.TradeLineItems[i].ReceivableSpecifiedTradeAccountingAccounts.First.TradeAccountID;
     lInvoiceLine.TaxPercent := _InvoiceDescriptor.TradeLineItems[i].TaxPercent;
     case _InvoiceDescriptor.TradeLineItems[i].TaxCategoryCode of
       TZUGFeRDTaxCategoryCodes.AE : lInvoiceLine.TaxCategory := idtfcc_AE_VATReverseCharge;
@@ -2037,6 +2083,10 @@ begin
         end;
       end;
     end;
+    if _InvoiceDescriptor.TradeLineItems[i].BillingPeriodStart.HasValue then
+      lInvoiceLine.InvoiceLinePeriodStartDate := _InvoiceDescriptor.TradeLineItems[i].BillingPeriodStart;
+    if _InvoiceDescriptor.TradeLineItems[i].BillingPeriodEnd.HasValue then
+      lInvoiceLine.InvoiceLinePeriodEndDate := _InvoiceDescriptor.TradeLineItems[i].BillingPeriodEnd;
     lInvoiceLine.NetPriceAmount := _InvoiceDescriptor.TradeLineItems[i].NetUnitPrice.GetValueOrDefault(0);
     lInvoiceLine.BaseQuantity := _InvoiceDescriptor.TradeLineItems[i].UnitQuantity.GetValueOrDefault(0);
     lInvoiceLine.BaseQuantityUnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(TZUGFeRDQuantityCodesExtensions.EnumToString(_InvoiceDescriptor.TradeLineItems[i].UnitCode));

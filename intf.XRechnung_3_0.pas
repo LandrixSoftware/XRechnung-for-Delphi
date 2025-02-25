@@ -1567,9 +1567,6 @@ var
     end;
     with _Node.AddChild('ram:SpecifiedLineTradeAgreement') do
     begin
-//        <ram:BuyerOrderReferencedDocument>
-//            <ram:LineID>6171175.1</ram:LineID>
-//        </ram:BuyerOrderReferencedDocument>
       if _InvoiceLine.OrderLineReference <> '' then
       with AddChild('ram:BuyerOrderReferencedDocument') do
       begin

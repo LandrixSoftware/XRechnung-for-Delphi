@@ -539,7 +539,7 @@ begin
     hstrl.SaveToFile(tmpFilename,TEncoding.UTF8);
 
     cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
-    cmdLine := QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -classpath '+
+    cmdLine := QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -Xmx1024m -classpath '+
              QuoteIfContainsSpace(ValidatorLibPath+'libs')+' -jar '+
              QuoteIfContainsSpace(ValidatorLibPath+'validationtool-1.5.0-standalone.jar');
     for i := 0 to ValidatorConfigurationPath.Count-1 do
@@ -606,7 +606,7 @@ begin
   hstrl := TStringList.Create;
   try
     cmd := QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe');
-    params:= ' -classpath '+
+    params:= ' -Xmx1024m -classpath '+
              QuoteIfContainsSpace(ValidatorLibPath+'libs')+' -jar '+
              QuoteIfContainsSpace(ValidatorLibPath+'validationtool-1.5.0-standalone.jar');
     for i := 0 to ValidatorConfigurationPath.Count-1 do

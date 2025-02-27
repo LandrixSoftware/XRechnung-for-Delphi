@@ -1582,8 +1582,7 @@ var
           Attributes['unitCode'] := TXRechnungHelper.InvoiceUnitCodeToStr(_Invoiceline.BaseQuantityUnitCode);
           Text := TXRechnungHelper.FloatToStr(_Invoiceline.BaseQuantity);
         end;
-        if _Invoiceline.DiscountOnTheGrossPrice <> 0 then
-        with AddChild('ram:AppliedTradeAllowanceCharge') do
+        with AddChild('ram:AppliedTradeAllowanceCharge') do //auch wenn DiscountOnTheGrossPrice 0 ist ausgeben
         begin
           AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := 'false';
           //<ram:CalculationPercent>45</ram:CalculationPercent> nicht möglich bei UBL

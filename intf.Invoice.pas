@@ -1,4 +1,4 @@
-{
+﻿{
 License XRechnung-for-Delphi
 
 Copyright (C) 2025 Landrix Software GmbH & Co. KG
@@ -727,7 +727,7 @@ type
     ProjectReference : String; //BT-11
     ContractDocumentReference : String; //BT-12
     DeliveryReceiptNumber : String; //BT-15 Lieferscheinnummer (Lieferscheindatum fehlt und wuerde nur in ZUGFeRD unterstuetzt)
-    BuyerAccountingReference : String; //BT-19 Buchungsreferenz des Kaeufers f�r die Rechnung
+    BuyerAccountingReference : String; //BT-19 Buchungsreferenz des Kaeufers für die Rechnung UBL ein Wert, CII Liste
 
     AccountingSupplierParty : TInvoiceAccountingParty;
     AccountingCustomerParty : TInvoiceAccountingParty;

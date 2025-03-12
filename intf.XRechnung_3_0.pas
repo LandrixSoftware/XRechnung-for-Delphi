@@ -214,6 +214,7 @@ begin
     end;
     if TXRechnungXMLHelper.SelectNode(xml,'//cbc:DocumentCurrencyCode',node) then
       _Invoice.InvoiceCurrencyCode := node.Text;
+    _Invoice.BuyerAccountingReference := TXRechnungXMLHelper.SelectNodeText(xml,'//cbc:AccountingCost');
     if TXRechnungXMLHelper.SelectNode(xml,'//cbc:BuyerReference',node) then
       _Invoice.BuyerReference := node.Text;
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:InvoicePeriod',node) then
@@ -917,7 +918,7 @@ begin
         if TXRechnungXMLHelper.SelectNode(node2,'.//qdt:DateTimeString',node) then
           IssueDate := TXRechnungHelper.DateFromStrUNCEFACTFormat(node.text);
       end;
-
+      _Invoice.BuyerAccountingReference := TXRechnungXMLHelper.SelectNodeText(nodeApplicableHeaderTradeAgreement,'.//ram:ReceivableSpecifiedTradeAccountingAccount/ram:ID');
     end;
     Result := true;
   except
@@ -1104,6 +1105,8 @@ begin
          _Invoice.Notes[i].Content;
   xRoot.AddChild('cbc:DocumentCurrencyCode').Text := _Invoice.InvoiceCurrencyCode;
   //xRoot.AddChild('cbc:TaxCurrencyCode').Text := _Invoice.TaxCurrencyCode; //Nicht in XRechnung 3
+  if _Invoice.BuyerAccountingReference <> '' then
+    xRoot.AddChild('cbc:AccountingCost').Text := _Invoice.BuyerAccountingReference;
   xRoot.AddChild('cbc:BuyerReference').Text := _Invoice.BuyerReference;
   if (_Invoice.InvoicePeriodStartDate > 100) and (_Invoice.InvoicePeriodEndDate >= _Invoice.InvoicePeriodStartDate) then
   with xRoot.AddChild('cac:InvoicePeriod') do
@@ -2171,6 +2174,11 @@ begin
         end;
         if _ProfileXRechnung then
           break; //only one item allowed in xrechnung cii
+      end;
+      if _Invoice.BuyerAccountingReference <> '' then
+      with AddChild('ram:ReceivableSpecifiedTradeAccountingAccount') do
+      begin
+        AddChild('ram:ID').Text := _Invoice.BuyerAccountingReference;
       end;
     end;
   end;

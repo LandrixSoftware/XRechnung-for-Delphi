@@ -251,9 +251,9 @@ type
     class function GetTypeFromFilename(const _Filename : String): TInvoiceAttachmentType;
   end;
 
-  //Der Code  916 "Referenzpapier" wird benutzt, um die Kennung der rechnungsbegr�ndenden Unterlage zu referenzieren. (BT-122)
+  //Der Code  916 "Referenzpapier" wird benutzt, um die Kennung der rechnungsbegründenden Unterlage zu referenzieren. (BT-122)
   //Der Code 50 "Price/sales catalogue response" wird benutzt, um die Ausschreibung oder das Los zu referenzieren. (BT-17)
-  //Der Code 130 "Rechnungsdatenblatt" wird benutzt, um eine vom Verk�ufer angegebene Kennung f�r ein Objekt zu referenzieren. (BT-18)
+  //Der Code 130 "Rechnungsdatenblatt" wird benutzt, um eine vom Verkäufer angegebene Kennung für ein Objekt zu referenzieren. (BT-18)
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:untdid.1001_4#version
   TInvoiceAttachmentTypeCode = (iatc_None,
                       iatc_50,
@@ -454,7 +454,7 @@ type
           //idtfcc_H_HigherRate, //	Code specifying a higher rate of duty or tax or fee.
           //idtfcc_I_ValueAddedTaxVATMarginSchemeWorksOfArt, // Margin scheme - Works of art	Indication that the VAT margin scheme for works of art is applied.
           //idtfcc_J_ValueAddedTaxVATMarginSchemeCollectorsItemsAndAntiques, //	Indication that the VAT margin scheme for collector s items and antiques is applied.
-          idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices, //	A tax category code indicating the item is VAT exempt due to an intra-community supply in the European Economic Area. Der Code �K� steht in der Hashtag#XRechnung f�r �VAT exempt for EEA intra-community supply of goods and services� � also f�r die Umsatzsteuerbefreiung bei grenz�berschreitenden Lieferungen und Dienstleistungen innerhalb des Europ�ischen Wirtschaftsraums (Hashtag#EWR).
+          idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices, //	A tax category code indicating the item is VAT exempt due to an intra-community supply in the European Economic Area. Der Code „K“ steht in der Hashtag#XRechnung für „VAT exempt for EEA intra-community supply of goods and services“ – also für die Umsatzsteuerbefreiung bei grenzüberschreitenden Lieferungen und Dienstleistungen innerhalb des Europäischen Wirtschaftsraums (Hashtag#EWR).
           idtfcc_L_CanaryIslandsGeneralIndirectTax, //	Impuesto General Indirecto Canario (IGIC) is an indirect tax levied on goods and services supplied in the Canary Islands (Spain) by traders and professionals, as well as on import of goods.
           idtfcc_M_TaxForProductionServicesAndImportationInCeutaAndMelilla, //	Impuesto sobre la Produccion, los Servicios y la Importacion (IPSI) is an indirect municipal tax, levied on the production, processing and import of all kinds of movable tangible property, the supply of services and the transfer of immovable property located in the cities of Ceuta and Melilla.
           idtfcc_O_ServicesOutsideScopeOfTax, //	Code specifying that taxes are not applicable to the services.
@@ -521,7 +521,7 @@ type
     SellersItemIdentification : String; //BG-31, BT-155 Artikelnummer, vom Verkaeufer vergeben
     BuyersItemIdentification : String; //BG-31, BT-156 Artikelkennung, vom Kaeufer vergeben
     OrderLineReference : String; //BT-132 Referenz zur Bestellposition, vom Kaeufer vergeben
-    BuyerAccountingReference : String; //BT-133 Buchungsreferenz des Kaeufers f�r die Rechnungsposition, vom Kaeufer vergeben
+    BuyerAccountingReference : String; //BT-133 Buchungsreferenz des Kaeufers für die Rechnungsposition, vom Kaeufer vergeben
     TaxPercent : double; //BG-30, BT-152 MwSt
     TaxCategory : TInvoiceDutyTaxFeeCategoryCode; //BG-30, BT-151 MwSt-Einordnung
     // BG-29 Detailinformationen zum (Artikel-)-Preis
@@ -660,7 +660,7 @@ type
     insc_ABL,  //Rechtliche Informationen
     insc_TXD,  //Informationen zur Steuer
     insc_CUS,  //Zollinformationen
-    insc_PMT   //Payment Information B�rgschaften oder Sicherheitseinbehalte
+    insc_PMT   //Payment Information Bürgschaften oder Sicherheitseinbehalte
     );
 
   TInvoiceNote = class(Tobject)
@@ -711,21 +711,23 @@ type
 
   TInvoice = class(TObject)
   public
-    InvoiceNumber : String;  //Rechnungsnummer
-    InvoiceIssueDate : TDate; //Rechnungsdatum
-    InvoiceDueDate : TDate; //Faelligkeitsdatum
-    InvoicePeriodStartDate : TDate; //Leistungszeitraum Beginn
-    InvoicePeriodEndDate : TDate; //Leistungszeitraum Ende
-    InvoiceTypeCode : TInvoiceTypeCode;
-    InvoiceCurrencyCode : String; //EUR
-    TaxCurrencyCode : String;     //EUR
-    BuyerReference : String; //Pflicht - Leitweg-ID - https://leitweg-id.de/home/ wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
-    Notes : TInvoiceNotes; //Hinweise zur Rechnung allgemein
-    SellerOrderReference : String; //Auftragsnummer der Verkaeufers
-    PurchaseOrderReference : String; //Bestellnummer oder Vertragsnummer des Kaeufers
-    ProjectReference : String;
-    ContractDocumentReference : String;
-    DeliveryReceiptNumber : String; //Lieferscheinnummer (Lieferscheindatum fehlt und wuerde nur in ZUGFeRD unterstuetzt)
+    InvoiceNumber : String;  //BT-1 Rechnungsnummer
+    InvoiceIssueDate : TDate; //BT-2 Rechnungsdatum
+    InvoiceDueDate : TDate; //BT-9 Faelligkeitsdatum
+    InvoicePeriodStartDate : TDate; //BG-14, BT-73 Leistungszeitraum Beginn
+    InvoicePeriodEndDate : TDate; //BG-14, BT-74 Leistungszeitraum Ende
+    InvoiceTypeCode : TInvoiceTypeCode; // BT-3
+    // BT-4 gibt es nicht!
+    InvoiceCurrencyCode : String; //BT-5 EUR
+    TaxCurrencyCode : String;     //BT-6 EUR
+    BuyerReference : String; //BT-10 Pflicht - Leitweg-ID - https://leitweg-id.de/home/ wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
+    Notes : TInvoiceNotes; //BG-1, BT-21..BT-22 Hinweise zur Rechnung allgemein
+    SellerOrderReference : String; //BT-14 Auftragsnummer der Verkaeufers
+    PurchaseOrderReference : String; //BT-13 Bestellnummer oder Vertragsnummer des Kaeufers
+    ProjectReference : String; //BT-11
+    ContractDocumentReference : String; //BT-12
+    DeliveryReceiptNumber : String; //BT-15 Lieferscheinnummer (Lieferscheindatum fehlt und wuerde nur in ZUGFeRD unterstuetzt)
+    BuyerAccountingReference : String; //BT-19 Buchungsreferenz des Kaeufers f�r die Rechnung
 
     AccountingSupplierParty : TInvoiceAccountingParty;
     AccountingCustomerParty : TInvoiceAccountingParty;

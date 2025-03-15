@@ -258,6 +258,8 @@ begin
 
   cmd := TStringList.Create;
   try
+    cmd.WriteBOM := False;
+    cmd.Add('chcp 65001 >nil');
     cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
 
     cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -Xmx1G '+
@@ -271,7 +273,7 @@ begin
             ' --profile T'+
             ' --no-additional-attachments');
 
-    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.ANSI);
+    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8);
 
     Result := ExecAndWait(tmpFilename+'.bat','');
 
@@ -314,6 +316,8 @@ begin
 
   cmd := TStringList.Create;
   try
+    cmd.WriteBOM := False;
+    cmd.Add('chcp 65001 >nil');
     cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
 
     cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -Xmx1G '+
@@ -322,7 +326,7 @@ begin
             ' --source '+ QuoteIfContainsSpace(_InvoiceXMLFilename)+
             ' >'+tmpFilename+'.xml');
 
-    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.ANSI);
+    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8);
 
     Result := ExecAndWait(tmpFilename+'.bat','');
 
@@ -363,6 +367,8 @@ begin
 
   cmd := TStringList.Create;
   try
+    cmd.WriteBOM := False;
+    cmd.Add('chcp 65001 >nil');
     cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
 
     cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -Xmx1G '+
@@ -372,7 +378,7 @@ begin
             ' --out '+tmpFilename+'.html'+
             ' --language de');
 
-    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.ANSI);
+    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8);
 
     Result := ExecAndWait(tmpFilename+'.bat','');
 
@@ -416,6 +422,8 @@ begin
 
   cmd := TStringList.Create;
   try
+    cmd.WriteBOM := False;
+    cmd.Add('chcp 65001 >nil');
     cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
 
     cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -Xmx1G '+
@@ -425,7 +433,7 @@ begin
             ' --out '+tmpFilename+'.pdf'+
             ' --language de');
 
-    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.ANSI);
+    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8);
 
     Result := ExecAndWait(tmpFilename+'.bat','');
 
@@ -535,6 +543,8 @@ begin
   hstrl := TStringList.Create;
   cmd := TStringList.Create;
   try
+    cmd.WriteBOM := False;
+    cmd.Add('chcp 65001 >nil');
     hstrl.Text := _InvoiceXMLData;
     hstrl.SaveToFile(tmpFilename,TEncoding.UTF8);
 
@@ -551,7 +561,7 @@ begin
     cmdLine := cmdLine + ' -h '+QuoteIfContainsSpace(tmpFilename);
     cmd.Add(cmdLine);
 
-    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.ANSI);
+    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8);
 
     Result := ExecAndWait(tmpFilename+'.bat','');
 
@@ -770,6 +780,8 @@ begin
   hstrl := TStringList.Create;
   cmd := TStringList.Create;
   try
+    cmd.WriteBOM := False;
+    cmd.Add('chcp 65001 >nil');
     hstrl.Text := _InvoiceXMLData;
     hstrl.SaveToFile(tmpFilename,TEncoding.UTF8);
 
@@ -800,7 +812,7 @@ begin
              ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\xrechnung-html.xsl')+
              ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-.html')));
 
-    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.ANSI);
+    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8);
 
     Result := ExecAndWait(tmpFilename+'.bat','');
 
@@ -860,6 +872,8 @@ begin
   hstrl := TStringList.Create;
   cmd := TStringList.Create;
   try
+    cmd.WriteBOM := False;
+    cmd.Add('chcp 65001 >nil');
     hstrl.Text := _InvoiceXMLData;
     hstrl.SaveToFile(tmpFilename,TEncoding.UTF8);
 
@@ -890,7 +904,7 @@ begin
              ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\xr-pdf.xsl')+
              ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-.fo'))); // geaendert von pdf auf fo
 
-    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.ANSI); //ToDo
+    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8); //ToDo
     //cmd.SaveToFile(_InvoiceXMLFilename+'.bat');
 
     Result := ExecAndWait(tmpFilename+'.bat','');
@@ -908,6 +922,8 @@ begin
     if FileExists(ChangeFileExt(tmpFilename,'-.fo')) then
     begin
       cmd.Clear;
+      cmd.WriteBOM := False;
+      cmd.Add('chcp 65001 >nil');
       cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
       cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
       QuoteIfContainsSpace(FopLibPath+'fop\build\fop.jar;'+FopLibPath+'fop\lib\batik-all-1.16.jar;' +
@@ -919,7 +935,7 @@ begin
         QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-.fo')) + ' ' +
         QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-.pdf') ));
 
-      cmd.SaveToFile(tmpFilename+'.bat');
+      cmd.SaveToFile(tmpFilename+'.bat', TEncoding.UTF8);
 
       Result := ExecAndWait(tmpFilename+'.bat','');
 
@@ -977,6 +993,8 @@ begin
   hstrl := TStringList.Create;
   cmd := TStringList.Create;
   try
+    cmd.WriteBOM := False;
+    cmd.Add('chcp 65001 >nil');
     cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(_InvoiceXMLFilename)));
     if version = 1 then
       cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
@@ -1004,7 +1022,7 @@ begin
              ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\xrechnung-html.xsl')+
              ' -o:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-.html')));
 
-    cmd.SaveToFile(_InvoiceXMLFilename+'.bat',TEncoding.ANSI);
+    cmd.SaveToFile(_InvoiceXMLFilename+'.bat',TEncoding.UTF8);
 
     Result := ExecAndWait(_InvoiceXMLFilename+'.bat','');
 
@@ -1060,6 +1078,8 @@ begin
 
   cmd := TStringList.Create;
   try
+    cmd.WriteBOM := False;
+    cmd.Add('chcp 65001 >nil');
     cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(_InvoiceXMLFilename)));
     if version = 1 then
       cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
@@ -1087,7 +1107,7 @@ begin
              ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\xr-pdf.xsl')+
              ' -o:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-.fo'))); // geaendert von pdf auf fo
 
-    cmd.SaveToFile(_InvoiceXMLFilename+'.bat',TEncoding.ANSI); //ToDo
+    cmd.SaveToFile(_InvoiceXMLFilename+'.bat',TEncoding.UTF8); //ToDo
     //cmd.SaveToFile(_InvoiceXMLFilename+'.bat');
 
     Result := ExecAndWait(_InvoiceXMLFilename+'.bat','');
@@ -1105,6 +1125,8 @@ begin
     if FileExists(ChangeFileExt(_InvoiceXMLFilename,'-.fo')) then
     begin
       cmd.Clear;
+      cmd.WriteBOM := False;
+      cmd.Add('chcp 65001 >nil');
       cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(_InvoiceXMLFilename)));
       cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
       QuoteIfContainsSpace(FopLibPath+'fop\build\fop.jar;'+FopLibPath+'fop\lib\batik-all-1.16.jar;' +
@@ -1116,7 +1138,7 @@ begin
         QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-.fo')) + ' ' +
         QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-.pdf') ));
 
-      cmd.SaveToFile(_InvoiceXMLFilename+'.bat');
+      cmd.SaveToFile(_InvoiceXMLFilename+'.bat', TEncoding.UTF8);
 
       Result := ExecAndWait(_InvoiceXMLFilename+'.bat','');
 

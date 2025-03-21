@@ -116,6 +116,9 @@ type
     InvoiceeTradePartyFound : Boolean;
     InvoiceeTradeParty : TInvoiceAccountingParty;
 
+    PaymentTermCashDiscount1Date : TDate;
+    PaymentTermCashDiscount2Date : TDate;
+
     SpecifiedLogisticsServiceChargeFound : Boolean;
     constructor Create;
     destructor Destroy; override;
@@ -2276,6 +2279,9 @@ end;
 class function TZUGFeRDInvoiceAdapter.LoadAdditionalContentFromXMLDocument(
   _AdditionalContent : TZUGFeRDAdditionalContent;
   _InvoiceDescriptor: TZUGFeRDInvoiceDescriptor) : Boolean;
+var
+  i : Integer;
+  paymentTermsType : TInvoicePaymentTermsType;
 begin
   Result := false;
   if _AdditionalContent = nil then
@@ -2308,6 +2314,29 @@ begin
     _AdditionalContent.InvoiceeTradeParty.Address.AddressLine := _InvoiceDescriptor.Invoicee.AddressLine3;
     _AdditionalContent.InvoiceeTradeParty.Address.CountryCode := TZUGFeRDCountryCodesExtensions.EnumToString(_InvoiceDescriptor.Invoicee.Country);
     _AdditionalContent.InvoiceeTradeParty.IdentifierSellerBuyer := _InvoiceDescriptor.Invoicee.ID.ID;
+  end;
+
+  paymentTermsType := iptt_None;
+  for i := 0 to _InvoiceDescriptor.PaymentTermsList.Count-1 do
+  begin
+    if (_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.CalculationPercent = 0) and
+       (_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisAmount = 0) then
+    begin
+      if paymentTermsType = iptt_None then
+        paymentTermsType := iptt_Net;
+    end else
+    if (paymentTermsType in [iptt_None,iptt_Net]) then
+    begin
+      paymentTermsType := iptt_CashDiscount1;
+      if _InvoiceDescriptor.PaymentTermsList[i].DueDate.GetValueOrDefault > 0 then
+        _AdditionalContent.PaymentTermCashDiscount1Date := _InvoiceDescriptor.PaymentTermsList[i].DueDate
+    end else
+    if paymentTermsType = iptt_CashDiscount1 then
+    begin
+      paymentTermsType := iptt_CashDiscount2;
+      if _InvoiceDescriptor.PaymentTermsList[i].DueDate.GetValueOrDefault > 0 then
+        _AdditionalContent.PaymentTermCashDiscount2Date := _InvoiceDescriptor.PaymentTermsList[i].DueDate
+    end;
   end;
 
   _AdditionalContent.SpecifiedLogisticsServiceChargeFound := _InvoiceDescriptor.ServiceCharges.Count > 0;

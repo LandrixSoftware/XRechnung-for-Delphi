@@ -129,6 +129,7 @@ type
     class function  LoadFromXMLDocument(_Invoice: TInvoice; _XmlDocument: IXMLDocument; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
   public
     class function ConsistencyCheck(_Invoice : TInvoice; _Version : TXRechnungVersion) : Boolean;
+    class procedure CorrectDueDateIfNotDefined(_Invoice : TInvoice);
 
     class procedure SaveToStream(_Invoice : TInvoice; _Version : TXRechnungVersion; _Stream : TStream);
     class procedure SaveToFile(_Invoice : TInvoice; _Version : TXRechnungVersion; const _Filename : String);
@@ -306,6 +307,25 @@ begin
 //    Result := false;
 //    exit;
 //  end;
+end;
+
+class procedure TXRechnungInvoiceAdapter.CorrectDueDateIfNotDefined(
+  _Invoice: TInvoice);
+begin
+  //Zahlungsziel gesetzt? Wenn nein, dann gesetzliche 30 Tagefrist eintragen
+  //Wenn Skonto hinter den 30 Tagen gewaehrt wird, dann laengste Frist + 1 Tag
+  if _Invoice.InvoiceDueDate = 0 then
+  begin
+    _Invoice.InvoiceDueDate := _Invoice.InvoiceIssueDate + 30;
+    case _Invoice.PaymentTermsType of
+      iptt_CashDiscount1 : if _Invoice.InvoiceDueDate <= _Invoice.InvoiceIssueDate + _Invoice.PaymentTermCashDiscount1Days then
+        _Invoice.InvoiceDueDate := _Invoice.InvoiceIssueDate + _Invoice.PaymentTermCashDiscount1Days + 1;
+      iptt_CashDiscount2 : if _Invoice.InvoiceDueDate <= _Invoice.InvoiceIssueDate + _Invoice.PaymentTermCashDiscount2Days then
+        _Invoice.InvoiceDueDate := _Invoice.InvoiceIssueDate + _Invoice.PaymentTermCashDiscount2Days + 1;
+      iptt_CashDiscount3 : if _Invoice.InvoiceDueDate <= _Invoice.InvoiceIssueDate + _Invoice.PaymentTermCashDiscount3Days then
+        _Invoice.InvoiceDueDate := _Invoice.InvoiceIssueDate + _Invoice.PaymentTermCashDiscount3Days + 1;
+    end;
+  end;
 end;
 
 class function TXRechnungInvoiceAdapter.LoadFromFile(_Invoice: TInvoice;

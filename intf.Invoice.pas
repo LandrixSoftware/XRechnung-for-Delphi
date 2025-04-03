@@ -642,7 +642,7 @@ type
   TInvoiceDeliveryInformation = class(TObject)
   public
     Name : String;
-    //LocationIdentifier : String; //optional Ein Bezeichner fuer den Ort, an den die Waren geliefert oder an dem die Dienstleistungen erbracht werden.
+    LocationIdentifier : String; //optional Ein Bezeichner fuer den Ort, an den die Waren geliefert oder an dem die Dienstleistungen erbracht werden.
     Address : TInvoiceAddress;
     ActualDeliveryDate : TDate; //Lieferdatum
   public

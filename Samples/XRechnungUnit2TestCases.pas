@@ -412,6 +412,7 @@ begin
   if LieferanschriftAusgeben then
   begin
     inv.DeliveryInformation.Name := 'Firma die es bekommt';
+    inv.DeliveryInformation.LocationIdentifier := '83745498753497';
     inv.DeliveryInformation.Address.StreetName := 'Lieferstrasse 1';
     inv.DeliveryInformation.Address.City := 'Lieferstadt';
     inv.DeliveryInformation.Address.PostalZone := '05678';
@@ -1965,7 +1966,7 @@ begin
     ID := 'MobilesBezahlen'; //BT-DEX-001
     PaidAmount := 19.96; //BT-DEX-002
     PaidAmountCurrencyID := 'EUR';
-    InstructionID := 'Mobiles Bezahlen (Brutto-Forderung für Fremdleistungen)';
+    InstructionID := 'Mobiles Bezahlen (Brutto-Forderung für Fremdleistungen)'; //BT-DEX-003
   end;
 
   inv.TaxAmountTotal := 68.40; //Summe der gesamten MwSt

@@ -267,6 +267,10 @@ begin
     begin
       if TXRechnungXMLHelper.SelectNode(node,'.//cbc:ActualDeliveryDate',node2) then
         _Invoice.DeliveryInformation.ActualDeliveryDate := TXRechnungHelper.DateFromStrUBLFormat(node2.text);
+      if TXRechnungXMLHelper.SelectNode(node,'.//cac:DeliveryLocation/cbc:ID',node2) then
+      if node2.attributes.getNamedItem('schemeID') <> nil then
+      if node2.attributes.getNamedItem('schemeID').text = '0088' then
+        _Invoice.DeliveryInformation.LocationIdentifier := node2.text;
       if TXRechnungXMLHelper.SelectNode(node,'.//cac:DeliveryLocation/cac:Address/cbc:StreetName',node2) then
         _Invoice.DeliveryInformation.Address.StreetName := node2.text;
       if TXRechnungXMLHelper.SelectNode(node,'.//cac:DeliveryLocation/cac:Address/cbc:AdditionalStreetName',node2) then
@@ -692,6 +696,10 @@ begin
     begin
       if TXRechnungXMLHelper.SelectNode(nodeApplicableHeaderTradeAgreement,'.//ram:ShipToTradeParty',node2) then
       begin
+        if TXRechnungXMLHelper.SelectNode(node2,'.//ram:GlobalID',node3) then
+        if node3.attributes.getNamedItem('schemeID') <> nil then
+        if node3.attributes.getNamedItem('schemeID').text = '0088' then
+          _Invoice.DeliveryInformation.LocationIdentifier := node3.text;
         _Invoice.DeliveryInformation.Name := TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:Name');
         if TXRechnungXMLHelper.SelectNode(node2,'.//ram:PostalTradeAddress',node3) then
         begin
@@ -1321,8 +1329,12 @@ begin
     if (_Invoice.DeliveryInformation.Address.CountryCode <> '') then
     with AddChild('cac:DeliveryLocation') do
     begin
-      //if (_Invoice.DeliveryInformation.LocationIdentifier <> '') then
-      //  AddChild('cbc:ID').Text := _Invoice.DeliveryInformation.LocationIdentifier; //TODO schemeID https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/cac-Delivery/cac-DeliveryLocation/cbc-ID/
+      if (_Invoice.DeliveryInformation.LocationIdentifier <> '') then
+      with AddChild('cbc:ID') do
+      begin
+        Attributes['schemeID'] := '0088';
+        Text := _Invoice.DeliveryInformation.LocationIdentifier;
+      end;
       with AddChild('cac:Address') do
       begin
         if _Invoice.DeliveryInformation.Address.StreetName <> '' then
@@ -1919,6 +1931,12 @@ begin
       begin
         with AddChild('ram:ShipToTradeParty') do
         begin
+          if _Invoice.DeliveryInformation.LocationIdentifier <> '' then
+          with AddChild('ram:GlobalID') do
+          begin
+            Attributes['schemeID'] := '0088';
+            Text := _Invoice.DeliveryInformation.LocationIdentifier;
+          end;
           AddChild('ram:Name').Text := _Invoice.DeliveryInformation.Name;
           with AddChild('ram:PostalTradeAddress') do
           begin

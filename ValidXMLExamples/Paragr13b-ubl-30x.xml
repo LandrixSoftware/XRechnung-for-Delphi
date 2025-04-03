@@ -59,9 +59,9 @@
         </cac:Country>
       </cac:PostalAddress>
       <cac:PartyTaxScheme>
-        <cbc:CompanyID>222/111/4444</cbc:CompanyID>
+        <cbc:CompanyID>DE12345678</cbc:CompanyID>
         <cac:TaxScheme>
-          <cbc:ID>FC</cbc:ID>
+          <cbc:ID>VAT</cbc:ID>
         </cac:TaxScheme>
       </cac:PartyTaxScheme>
       <cac:PartyLegalEntity>

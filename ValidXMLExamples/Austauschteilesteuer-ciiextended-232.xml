@@ -38,6 +38,12 @@ Zeile 3</ram:Description>
       <ram:SpecifiedLineTradeAgreement>
         <ram:GrossPriceProductTradePrice>
           <ram:ChargeAmount>1000.00</ram:ChargeAmount>
+          <ram:AppliedTradeAllowanceCharge>
+            <ram:ChargeIndicator>
+              <udt:Indicator>false</udt:Indicator>
+            </ram:ChargeIndicator>
+            <ram:ActualAmount>0.00</ram:ActualAmount>
+          </ram:AppliedTradeAllowanceCharge>
         </ram:GrossPriceProductTradePrice>
         <ram:NetPriceProductTradePrice>
           <ram:ChargeAmount>1000.00</ram:ChargeAmount>
@@ -68,6 +74,12 @@ Zeile 3</ram:Description>
       <ram:SpecifiedLineTradeAgreement>
         <ram:GrossPriceProductTradePrice>
           <ram:ChargeAmount>100.00</ram:ChargeAmount>
+          <ram:AppliedTradeAllowanceCharge>
+            <ram:ChargeIndicator>
+              <udt:Indicator>false</udt:Indicator>
+            </ram:ChargeIndicator>
+            <ram:ActualAmount>0.00</ram:ActualAmount>
+          </ram:AppliedTradeAllowanceCharge>
         </ram:GrossPriceProductTradePrice>
         <ram:NetPriceProductTradePrice>
           <ram:ChargeAmount>100.00</ram:ChargeAmount>
@@ -98,6 +110,12 @@ Zeile 3</ram:Description>
       <ram:SpecifiedLineTradeAgreement>
         <ram:GrossPriceProductTradePrice>
           <ram:ChargeAmount>100.00</ram:ChargeAmount>
+          <ram:AppliedTradeAllowanceCharge>
+            <ram:ChargeIndicator>
+              <udt:Indicator>false</udt:Indicator>
+            </ram:ChargeIndicator>
+            <ram:ActualAmount>0.00</ram:ActualAmount>
+          </ram:AppliedTradeAllowanceCharge>
         </ram:GrossPriceProductTradePrice>
         <ram:NetPriceProductTradePrice>
           <ram:ChargeAmount>100.00</ram:ChargeAmount>
@@ -128,6 +146,12 @@ Zeile 3</ram:Description>
       <ram:SpecifiedLineTradeAgreement>
         <ram:GrossPriceProductTradePrice>
           <ram:ChargeAmount>500.00</ram:ChargeAmount>
+          <ram:AppliedTradeAllowanceCharge>
+            <ram:ChargeIndicator>
+              <udt:Indicator>false</udt:Indicator>
+            </ram:ChargeIndicator>
+            <ram:ActualAmount>0.00</ram:ActualAmount>
+          </ram:AppliedTradeAllowanceCharge>
         </ram:GrossPriceProductTradePrice>
         <ram:NetPriceProductTradePrice>
           <ram:ChargeAmount>500.00</ram:ChargeAmount>

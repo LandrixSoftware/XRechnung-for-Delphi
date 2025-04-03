@@ -34,6 +34,12 @@ Zeile 3</ram:Description>
       <ram:SpecifiedLineTradeAgreement>
         <ram:GrossPriceProductTradePrice>
           <ram:ChargeAmount>50.00</ram:ChargeAmount>
+          <ram:AppliedTradeAllowanceCharge>
+            <ram:ChargeIndicator>
+              <udt:Indicator>false</udt:Indicator>
+            </ram:ChargeIndicator>
+            <ram:ActualAmount>0.00</ram:ActualAmount>
+          </ram:AppliedTradeAllowanceCharge>
         </ram:GrossPriceProductTradePrice>
         <ram:NetPriceProductTradePrice>
           <ram:ChargeAmount>50.00</ram:ChargeAmount>
@@ -108,7 +114,7 @@ Zeile 3</ram:Description>
           <ram:URIID schemeID="EM">antwortaufrechnung@kunde.de</ram:URIID>
         </ram:URIUniversalCommunication>
         <ram:SpecifiedTaxRegistration>
-          <ram:ID schemeID="FC">222/111/4444</ram:ID>
+          <ram:ID schemeID="VA">DE12345678</ram:ID>
         </ram:SpecifiedTaxRegistration>
       </ram:BuyerTradeParty>
     </ram:ApplicableHeaderTradeAgreement>

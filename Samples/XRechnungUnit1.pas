@@ -320,7 +320,7 @@ begin
 
   {$IFDEF USE_Valitool}
   GetXRechnungValidationHelperJava
-      .SetValitoolPath(DistributionBasePath+'Valitool-3.24.17A-SNAPSHOT\CLI\')
+      .SetValitoolPath(DistributionBasePath+'validool.org\CLI\')
       .SetValitoolLicense(Valitool_LICENSE)
       .ValitoolValidateDirectory(ValidXMLExamplesPath);
   {$ENDIF}
@@ -391,6 +391,10 @@ procedure TForm1.Button3Click(Sender: TObject);
 var
   od : TOpenDialog;
   cmdoutput,xmlresult,htmlresult : String;
+  {$IFDEF USE_Valitool}
+  pdfresult : TMemoryStream;
+  xml : String;
+  {$ENDIF}
 begin
   ClearBrowser;
 
@@ -407,7 +411,6 @@ begin
       ZUGFeRDExtendedVersion_232 :
         GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
             .SetValidatorLibPath(ValidatorLibPath)
-            .SetValidatorConfigurationPath(DistributionBasePath +'validator-configuration23x'+PathDelim)
             .SetValidatorConfigurationPath(ValidatorConfigurationPath)
             .SetValidatorConfigurationPath(DistributionBasePath+'validator-configuration-zugferd232'+PathDelim)
             .ValidateFile(od.FileName,cmdoutput,xmlresult,htmlresult);
@@ -424,6 +427,23 @@ begin
       htmlresult := '<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
     TFile.WriteAllText(WebBrowserContentFilename,htmlresult,TEncoding.UTF8);
     ShowFileInBrowser(WebBrowserContentFilename,1);
+
+    {$IFDEF USE_Valitool}
+    xml := TFile.ReadAllText(od.FileName,TEncoding.UTF8);
+    GetXRechnungValidationHelperJava
+        .SetValitoolPath(DistributionBasePath+'validool.org\CLI\')
+        .SetValitoolLicense(Valitool_LICENSE)
+        .ValitoolValidate(xml,cmdoutput,xmlresult,pdfresult);
+
+    Memo3.Lines.Text := cmdoutput;
+
+    if pdfresult <> nil then
+    begin
+      pdfresult.SaveToFile(WebBrowserContentFilenameValitoolPdf);
+      pdfresult.Free;
+      ShowFileInBrowser(WebBrowserContentFilenameValitoolPdf,4);
+    end;
+    {$ENDIF}
   finally
     od.Free;
   end;
@@ -741,7 +761,7 @@ begin
     if cbValidateWithJava.Checked then
     begin
       GetXRechnungValidationHelperJava
-          .SetValitoolPath(DistributionBasePath+'Valitool-3.24.17A-SNAPSHOT\CLI\')
+          .SetValitoolPath(DistributionBasePath+'validool.org\CLI\')
           .SetValitoolLicense(Valitool_LICENSE)
           .ValitoolValidate(xml,cmdoutput,xmlresult,pdfresult);
 

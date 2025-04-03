@@ -1511,11 +1511,12 @@ begin
   inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
-  //bei AccountingCustomerParty nur eine VAT von beiden
+  //Bei AccountingCustomerParty nur eine VAT von beiden
+  //Aber eine ist Pflicht
   //Die EN16931 laesst ausschliesslich die UStID zu
   //Bei dieser Rechnungsart muss man besonders aufpassen
-  //inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
-  inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
+  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
+  //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444'; //Nur bei XRechnung moeglich
   inv.AccountingCustomerParty.ContactName := 'Mueller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';

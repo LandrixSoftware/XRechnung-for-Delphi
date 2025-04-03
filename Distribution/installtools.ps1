@@ -1,3 +1,4 @@
+# Alte Versionen löschen
 If (Test-Path validator){
   Remove-Item validator -Recurse
 }
@@ -34,12 +35,12 @@ If (Test-Path mustangproject){
 
 Invoke-WebRequest -Uri "https://github.com/itplr-kosit/validator/releases/download/v1.5.0/validator-1.5.0-distribution.zip" -OutFile validator.zip
 Invoke-WebRequest -Uri "https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/release-2023-05-12/validator-configuration-xrechnung_2.3.1_2023-05-12.zip" -OutFile validator-configuration23x.zip
-Invoke-WebRequest -Uri "https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/release-2024-10-31/validator-configuration-xrechnung_3.0.2_2024-10-31.zip" -OutFile validator-configuration30x.zip
-Invoke-WebRequest -Uri "https://github.com/LandrixSoftware/validator-configuration-zugferd/releases/download/validation-configuration-zugferd-2.3.2-20241209/validator-configuration-zugferd232.zip" -OutFile validator-configuration-zugferd232.zip
+Invoke-WebRequest -Uri "https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/release-2025-03-21/validator-configuration-xrechnung_3.0.2_2025-03-21.zip" -OutFile validator-configuration30x.zip
+Invoke-WebRequest -Uri "https://github.com/LandrixSoftware/validator-configuration-zugferd/archive/refs/tags/validation-configuration-zugferd-2.3.2-2025-04-03.zip" -OutFile validator-configuration-zugferd232.zip
 Invoke-WebRequest -Uri "https://github.com/itplr-kosit/xrechnung-visualization/releases/download/v2023-05-12/xrechnung-2.3.1-xrechnung-visualization-2023-05-12.zip" -OutFile visualization23x.zip
-Invoke-WebRequest -Uri "https://github.com/itplr-kosit/xrechnung-visualization/releases/download/v2024-06-20/xrechnung-3.0.2-xrechnung-visualization-2024-06-20.zip" -OutFile visualization30x.zip
+Invoke-WebRequest -Uri "https://github.com/itplr-kosit/xrechnung-visualization/releases/download/v2025-03-21/xrechnung-3.0.2-xrechnung-visualization-2025-03-21.zip" -OutFile visualization30x.zip
 Invoke-WebRequest -Uri "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.6%2B10/OpenJDK17U-jre_x64_windows_hotspot_17.0.6_10.zip" -OutFile jre.zip
-#Invoke-WebRequest -Uri https://github.com/itplr-kosit/xrechnung-schematron/releases/download/release-2.2.0/xrechnung-3.0.2-schematron-2.2.0.zip -OutFile schematron.zip
+#Invoke-WebRequest -Uri https://github.com/itplr-kosit/xrechnung-schematron/releases/download/release-2.3.0/xrechnung-3.0.2-schematron-2.3.0.zip -OutFile schematron.zip
 Invoke-WebRequest -Uri "https://www.apache.org/dyn/closer.cgi?filename=/xmlgraphics/fop/binaries/fop-2.8-bin.zip&action=download" -OutFile fop.zip
 
 $LatestVersionContent = (Invoke-WebRequest 'https://api.github.com/repos/ZUGFeRD/mustangproject/releases/latest').Content | ConvertFrom-Json
@@ -48,6 +49,7 @@ Invoke-WebRequest -Uri $LatestVersionContent.assets.browser_download_url -OutFil
 New-Item -Name "mustangproject\Mustang-CLI-version.md" -ItemType File
 Set-Content mustangproject\Mustang-CLI-version.md -Value $LatestVersionContent.assets.name
 
+# Entpacken der ZIP-Dateien
 Expand-Archive validator.zip
 Expand-Archive validator-configuration23x.zip
 Expand-Archive validator-configuration30x.zip
@@ -56,11 +58,23 @@ Expand-Archive visualization23x.zip
 Expand-Archive visualization30x.zip
 Expand-Archive jre.zip
 Expand-Archive fop.zip
+
+# JRE Ordnerstruktur anpassen
 Move-Item .\jre\jdk-17.0.6+10-jre .\java
 Remove-Item jre -Recurse
 Move-Item .\fop\fop-2.8 .\apache-fop
 Remove-Item fop -Recurse
 
+# Validator Configuration ZUGFeRD 232 Ordnerstruktur anpassen
+$parentPath = ".\validator-configuration-zugferd232"
+# Ermittelt den (ersten) Unterordner im Hauptordner
+$subFolder = Get-ChildItem -Path $parentPath -Directory | Select-Object -First 1
+# Verschiebt alle Inhalte aus dem Unterordner in den Hauptordner
+Move-Item -Path "$($subFolder.FullName)\*" -Destination $parentPath
+# Löscht den nun leeren Unterordner
+Remove-Item -Path $subFolder.FullName -Recurse
+
+# ZIP-Dateien löschen
 If (Test-Path validator.zip){
   Remove-Item validator.zip
 }

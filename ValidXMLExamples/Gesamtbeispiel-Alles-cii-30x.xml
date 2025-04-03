@@ -27,6 +27,7 @@
       <ram:SpecifiedTradeProduct>
         <ram:GlobalID schemeID="0160">978381582086</ram:GlobalID>
         <ram:SellerAssignedID>A0815</ram:SellerAssignedID>
+        <ram:BuyerAssignedID>B0815</ram:BuyerAssignedID>
         <ram:Name>Kurzinfo Artikel 1</ram:Name>
         <ram:Description>Langtext Artikel
 Zeile 2
@@ -41,8 +42,17 @@ Zeile 3</ram:Description>
         </ram:ApplicableProductCharacteristic>
       </ram:SpecifiedTradeProduct>
       <ram:SpecifiedLineTradeAgreement>
+        <ram:BuyerOrderReferencedDocument>
+          <ram:LineID>6171175.1</ram:LineID>
+        </ram:BuyerOrderReferencedDocument>
         <ram:GrossPriceProductTradePrice>
           <ram:ChargeAmount>50.00</ram:ChargeAmount>
+          <ram:AppliedTradeAllowanceCharge>
+            <ram:ChargeIndicator>
+              <udt:Indicator>false</udt:Indicator>
+            </ram:ChargeIndicator>
+            <ram:ActualAmount>0.00</ram:ActualAmount>
+          </ram:AppliedTradeAllowanceCharge>
         </ram:GrossPriceProductTradePrice>
         <ram:NetPriceProductTradePrice>
           <ram:ChargeAmount>50.00</ram:ChargeAmount>
@@ -60,6 +70,9 @@ Zeile 3</ram:Description>
         <ram:SpecifiedTradeSettlementLineMonetarySummation>
           <ram:LineTotalAmount>100.00</ram:LineTotalAmount>
         </ram:SpecifiedTradeSettlementLineMonetarySummation>
+        <ram:ReceivableSpecifiedTradeAccountingAccount>
+          <ram:ID>6171175.1</ram:ID>
+        </ram:ReceivableSpecifiedTradeAccountingAccount>
       </ram:SpecifiedLineTradeSettlement>
     </ram:IncludedSupplyChainTradeLineItem>
     <ram:IncludedSupplyChainTradeLineItem>
@@ -120,7 +133,7 @@ Zeile 3</ram:Description>
     <ram:ApplicableHeaderTradeAgreement>
       <ram:BuyerReference>04011000-12345-34</ram:BuyerReference>
       <ram:SellerTradeParty>
-        <ram:Name>Verkaeufername</ram:Name>
+        <ram:Name>VerkaeuferRegistrationName</ram:Name>
         <ram:SpecifiedLegalOrganization>
           <ram:TradingBusinessName>Verkaeufername</ram:TradingBusinessName>
         </ram:SpecifiedLegalOrganization>
@@ -352,6 +365,9 @@ Zeile 3</ram:Description>
           <qdt:DateTimeString format="102">20240827</qdt:DateTimeString>
         </ram:FormattedIssueDateTime>
       </ram:InvoiceReferencedDocument>
+      <ram:ReceivableSpecifiedTradeAccountingAccount>
+        <ram:ID>1234</ram:ID>
+      </ram:ReceivableSpecifiedTradeAccountingAccount>
     </ram:ApplicableHeaderTradeSettlement>
   </rsm:SupplyChainTradeTransaction>
 </rsm:CrossIndustryInvoice>

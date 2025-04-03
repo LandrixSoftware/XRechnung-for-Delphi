@@ -8,6 +8,7 @@
   <cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
   <cbc:Note>#REG#Geschaeftsfuehrer Herr Meier - HRB 789</cbc:Note>
   <cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode>
+  <cbc:AccountingCost>1234</cbc:AccountingCost>
   <cbc:BuyerReference>04011000-12345-34</cbc:BuyerReference>
   <cac:InvoicePeriod>
     <cbc:StartDate>2024-11-05</cbc:StartDate>
@@ -95,7 +96,7 @@
         </cac:TaxScheme>
       </cac:PartyTaxScheme>
       <cac:PartyLegalEntity>
-        <cbc:RegistrationName>Verkaeufername</cbc:RegistrationName>
+        <cbc:RegistrationName>VerkaeuferRegistrationName</cbc:RegistrationName>
       </cac:PartyLegalEntity>
       <cac:Contact>
         <cbc:Name>Meier</cbc:Name>
@@ -270,11 +271,18 @@
     <cbc:ID>001</cbc:ID>
     <cbc:InvoicedQuantity unitCode="H87">2.0000</cbc:InvoicedQuantity>
     <cbc:LineExtensionAmount currencyID="EUR">100.00</cbc:LineExtensionAmount>
+    <cbc:AccountingCost>6171175.1</cbc:AccountingCost>
+    <cac:OrderLineReference>
+      <cbc:LineID>6171175.1</cbc:LineID>
+    </cac:OrderLineReference>
     <cac:Item>
       <cbc:Description>Langtext Artikel
 Zeile 2
 Zeile 3</cbc:Description>
       <cbc:Name>Kurzinfo Artikel 1</cbc:Name>
+      <cac:BuyersItemIdentification>
+        <cbc:ID>B0815</cbc:ID>
+      </cac:BuyersItemIdentification>
       <cac:SellersItemIdentification>
         <cbc:ID>A0815</cbc:ID>
       </cac:SellersItemIdentification>

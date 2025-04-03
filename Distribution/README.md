@@ -34,6 +34,10 @@ Set-ExecutionPolicy Unrestricted
 
 ## Historie
 
+- 03.04.2025 Update\
+  https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/release-2025-03-21/validator-configuration-xrechnung_3.0.2_2025-03-21.zip\
+  https://github.com/itplr-kosit/xrechnung-visualization/releases/download/v2025-03-21/xrechnung-3.0.2-xrechnung-visualization-2025-03-21.zip
+
 - 19.11.2024 Update\
   https://github.com/itplr-kosit/xrechnung-schematron/releases/download/release-2.2.0/xrechnung-3.0.2-schematron-2.2.0.zip\
   https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/release-2024-10-31/validator-configuration-xrechnung_3.0.2_2024-10-31.zip

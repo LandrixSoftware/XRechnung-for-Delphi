@@ -30,6 +30,12 @@
       <ram:SpecifiedLineTradeAgreement>
         <ram:GrossPriceProductTradePrice>
           <ram:ChargeAmount>360.00</ram:ChargeAmount>
+          <ram:AppliedTradeAllowanceCharge>
+            <ram:ChargeIndicator>
+              <udt:Indicator>false</udt:Indicator>
+            </ram:ChargeIndicator>
+            <ram:ActualAmount>0.00</ram:ActualAmount>
+          </ram:AppliedTradeAllowanceCharge>
         </ram:GrossPriceProductTradePrice>
         <ram:NetPriceProductTradePrice>
           <ram:ChargeAmount>360.00</ram:ChargeAmount>
@@ -67,6 +73,12 @@
       <ram:SpecifiedLineTradeAgreement>
         <ram:GrossPriceProductTradePrice>
           <ram:ChargeAmount>360.00</ram:ChargeAmount>
+          <ram:AppliedTradeAllowanceCharge>
+            <ram:ChargeIndicator>
+              <udt:Indicator>false</udt:Indicator>
+            </ram:ChargeIndicator>
+            <ram:ActualAmount>0.00</ram:ActualAmount>
+          </ram:AppliedTradeAllowanceCharge>
         </ram:GrossPriceProductTradePrice>
         <ram:NetPriceProductTradePrice>
           <ram:ChargeAmount>360.00</ram:ChargeAmount>

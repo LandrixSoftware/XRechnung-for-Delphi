@@ -567,6 +567,8 @@ begin
       11: TInvoiceTestCases.PayPalOderAndereOnlinezahlungsdienstleister(inv);
       12: TInvoiceTestCases.Kreditkarte(inv);
       13: TInvoiceTestCases.LeistungszeitraumJePosition(inv);
+      14: TInvoiceTestCases.ThirdPartyPaymentBGDEX09(inv,cbAllowanceCharges.Checked);
+      else ShowMessage('Hat einer was vergessen!');
     end;
 
     Generate(inv);

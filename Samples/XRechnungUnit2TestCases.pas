@@ -49,6 +49,8 @@ type
     class procedure PayPalOderAndereOnlinezahlungsdienstleister(inv : TInvoice);
     class procedure Kreditkarte(inv : TInvoice);
     class procedure LeistungszeitraumJePosition(inv : TInvoice);
+    class procedure ThirdPartyPaymentBGDEX09(inv : TInvoice;
+                       NachlaesseZuschlaegeVerwenden : Boolean);
   end;
 
 implementation
@@ -1860,6 +1862,139 @@ begin
   inv.ChargeTotalAmount := 0; //Zuschlaege
   inv.PrepaidAmount := 0; //Anzahlungen
   inv.PayableAmount := -428.40;      //Summe Zahlbar MwSt
+end;
+
+class procedure TInvoiceTestCases.ThirdPartyPaymentBGDEX09(inv: TInvoice;
+  NachlaesseZuschlaegeVerwenden : Boolean);
+var
+  suc : Boolean;
+begin
+  inv.InvoiceNumber := 'R2020-0815';
+  inv.InvoiceIssueDate := TInvoiceTestCases.InvoiceIssueDate;          //Rechnungsdatum
+  inv.InvoiceDueDate := TInvoiceTestCases.InvoiceDueDate;         //Faelligkeitsdatum
+  inv.InvoicePeriodStartDate := TInvoiceTestCases.InvoicePeriodStartDate;
+  inv.InvoicePeriodEndDate := TInvoiceTestCases.InvoicePeriodEndDate;
+  inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
+  inv.InvoiceCurrencyCode := 'EUR';
+  inv.TaxCurrencyCode := 'EUR';
+  inv.BuyerReference := TInvoiceEmptyLeitwegID.NON_EXISTENT; //B2B ohne Leitweg-ID
+  with inv.Notes.AddNote do //Sollte ausgefuellt werden
+  begin
+    Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
+    SubjectCode := insc_REG;
+  end;
+
+  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
+  inv.AccountingSupplierParty.CompanyID :=  '';
+  inv.AccountingSupplierParty.Address.StreetName := ''; //Nicht wirklich Pflicht
+  inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
+  inv.AccountingSupplierParty.Address.PostalZone := '01234';
+  inv.AccountingSupplierParty.Address.CountryCode := 'DE';
+  //inv.AccountingSupplierParty.VATCompanyID := 'DE12345678';
+  inv.AccountingSupplierParty.VATCompanyNumber := '222/111/4444';
+  inv.AccountingSupplierParty.ContactName := 'Meier';
+  inv.AccountingSupplierParty.ContactTelephone := '030 0815';
+  inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
+  //BT-34 Gibt die elektronische Adresse des Verkaeufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
+  //Aktuell nur Unterstuetzung fuer schemeID=EM ElectronicMail
+  //Weitere Codes auf Anfrage
+  //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+  //Um valide Rechnung zu erzeugen, weil keine UStID vorhanden ist
+  if (inv.AccountingSupplierParty.VATCompanyID = '') and
+     (inv.AccountingSupplierParty.CompanyID = '') then
+    inv.AccountingSupplierParty.CompanyID := TInvoiceEmptyLeitwegID.NON_EXISTENT;
+
+  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
+  inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
+  inv.AccountingCustomerParty.Address.StreetName := ''; //Nicht wirklich Pflicht
+  inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
+  inv.AccountingCustomerParty.Address.PostalZone := '05678';
+  inv.AccountingCustomerParty.Address.CountryCode := 'DE';
+  //bei AccountingCustomerParty nur eine VAT von beiden
+  //Die EN16931 laesst ausschliesslich die UStID zu
+  //Wenn nur die VATCompanyNumber angegeben wird, liefert die Validierung gegen ZUGFeRD einen Fehler
+  inv.AccountingCustomerParty.VATCompanyID := 'DE12345678';
+  //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+
+  //Lieferdatum
+  inv.DeliveryInformation.ActualDeliveryDate := TInvoiceTestCases.InvoicePeriodEndDate;
+
+  inv.PaymentTypes.AddPaymentType.PaymentMeansCode := ipmc_InstrumentNotDefined;
+
+  inv.PaymentTermsType := iptt_None;
+
+  with inv.InvoiceLines.AddInvoiceLine do
+  begin
+    ID := '01'; //Positionsnummer
+    Name := 'Kurzinfo Artikel 1'; //Kurztext
+    Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
+    Quantity := 1; //Menge
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    TaxPercent := 19.0; //MwSt
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    GrossPriceAmount := 360; //Brutto-Einzelpreis
+    DiscountOnTheGrossPrice := 0;
+    NetPriceAmount := 360; //Netto-Einzelpreis
+    BaseQuantity := 0; //Preiseinheit
+    BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
+    LineAmount := 360;
+  end;
+
+  if NachlaesseZuschlaegeVerwenden then
+  with inv.AllowanceCharges.AddAllowanceCharge do
+  begin
+    ChargeIndicator := true;
+    ReasonCodeCharge := TInvoiceSpecialServiceDescriptionCode.issdc_AAA_Telecommunication;
+    Reason := 'Zuschlag fuer Kommunikation';
+    BaseAmount := 10.00;
+    MultiplierFactorNumeric := 10; //10 Prozent auf 10 EUR
+    Amount := 1.00;
+    TaxPercent := 19.0;
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+  end;
+
+  //BG-DEX-09 THIRD PARTY PAYMENT
+  //Alle Werte muessen ausgefuellt werden.
+  //Summe aller PrepaidPayments muss von inv.PayableAmount abgezogen werden
+  with inv.PrepaidPayments.AddPrepaidPayment do
+  begin
+    ID := 'MobilesBezahlen'; //BT-DEX-001
+    PaidAmount := 19.96; //BT-DEX-002
+    PaidAmountCurrencyID := 'EUR';
+    InstructionID := 'Mobiles Bezahlen (Brutto-Forderung für Fremdleistungen)';
+  end;
+
+  inv.TaxAmountTotal := 68.40; //Summe der gesamten MwSt
+  with inv.TaxAmountSubtotals.AddTaxAmount do
+  begin
+    TaxPercent := 19.0;
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    TaxableAmount := 360.0;
+    TaxAmount := 68.40;
+  end;
+
+  inv.LineAmount := 360.0;         //Summe
+  inv.TaxExclusiveAmount := 360.00; //Summe ohne MwSt
+  inv.TaxInclusiveAmount := 428.40; //Summe inkl MwSt
+  inv.AllowanceTotalAmount := 0; //Abzuege
+  inv.ChargeTotalAmount := 0; //Zuschlaege
+  inv.PrepaidAmount := 0; //Anzahlungen
+  inv.PayableAmount := 428.40 + 19.96;      //Summe Zahlbar MwSt zzgl. Summe inv.PrepaidPayments
+
+  if NachlaesseZuschlaegeVerwenden then
+  begin
+    inv.ChargeTotalAmount := 1.00;
+    inv.TaxAmountSubtotals[0].TaxableAmount := inv.TaxAmountSubtotals[0].TaxableAmount + 1.00;
+    inv.TaxAmountSubtotals[0].TaxAmount := inv.TaxAmountSubtotals[0].TaxAmount+ 0.19;
+    inv.TaxAmountTotal := inv.TaxAmountTotal + 0.19;
+    inv.TaxExclusiveAmount := inv.TaxExclusiveAmount - inv.AllowanceTotalAmount + inv.ChargeTotalAmount;
+    inv.TaxInclusiveAmount := inv.TaxInclusiveAmount + 1.00 + 0.19;
+    inv.PayableAmount := inv.PayableAmount + 1.00 + 0.19;
+  end;
 end;
 
 class procedure TInvoiceTestCases.TitelPositionsgruppen(inv: TInvoice);

@@ -321,6 +321,19 @@ begin
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:PaymentTerms/cbc:Note',node) then
       TXRechnungHelper.ReadPaymentTerms(_Invoice,node.text);
 
+    if TXRechnungXMLHelper.SelectNodes(xml,'//*[local-name()="Invoice"]/cac:PrepaidPayment',nodes) then
+    for i := 0 to nodes.length-1 do
+    with _Invoice.PrepaidPayments.AddPrepaidPayment do
+    begin
+      ID := TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//cbc:ID');
+      if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//cbc:PaidAmount',node) then
+      begin
+        PaidAmountCurrencyID := TXRechnungXMLHelper.SelectAttributeText(node,'currencyID');
+        PaidAmount := TXRechnungHelper.AmountFromStr(node.text);
+      end;
+      InstructionID := TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//cbc:InstructionID');
+    end;
+
     if TXRechnungXMLHelper.SelectNodes(xml,'//*[local-name()="'+IfThen(_Invoice.InvoiceTypeCode = itc_CreditNote,'CreditNote','Invoice')+'"]/cac:AllowanceCharge',nodes) then
     for i := 0 to nodes.length-1 do
     with _Invoice.AllowanceCharges.AddAllowanceCharge do
@@ -350,6 +363,7 @@ begin
       //if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//cac:TaxCategory/cac:TaxScheme/cbc:ID',node) then
       //  VAT := node.text Ausgabe VAT fest programmiert
     end;
+
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:TaxTotal',node) then
     begin
       if TXRechnungXMLHelper.SelectNode(node,'.//cbc:TaxAmount',node2) then
@@ -1431,6 +1445,18 @@ begin
           +#13#10;
       end;
     end;
+  end;
+
+  for i := 0 to _Invoice.PrepaidPayments.Count-1 do
+  with xRoot.AddChild('cac:PrepaidPayment') do
+  begin
+    AddChild('cbc:ID').Text := _Invoice.PrepaidPayments[i].ID;
+    with AddChild('cbc:PaidAmount') do
+    begin
+      Attributes['currencyID'] := _Invoice.PrepaidPayments[i].PaidAmountCurrencyID;
+      Text := TXRechnungHelper.AmountToStr(_Invoice.PrepaidPayments[i].PaidAmount);
+    end;
+    AddChild('cbc:InstructionID').Text := _Invoice.PrepaidPayments[i].InstructionID;
   end;
 
   for i := 0 to _Invoice.AllowanceCharges.Count-1 do

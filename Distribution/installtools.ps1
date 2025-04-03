@@ -66,13 +66,13 @@ Move-Item .\fop\fop-2.8 .\apache-fop
 Remove-Item fop -Recurse
 
 # Validator Configuration ZUGFeRD 232 Ordnerstruktur anpassen
-$parentPath = ".\validator-configuration-zugferd232"
+# $parentPath = ".\validator-configuration-zugferd232"
 # Ermittelt den (ersten) Unterordner im Hauptordner
-$subFolder = Get-ChildItem -Path $parentPath -Directory | Select-Object -First 1
+# $subFolder = Get-ChildItem -Path $parentPath -Directory | Select-Object -First 1
 # Verschiebt alle Inhalte aus dem Unterordner in den Hauptordner
-Move-Item -Path "$($subFolder.FullName)\*" -Destination $parentPath
+# Move-Item -Path "$($subFolder.FullName)\*" -Destination $parentPath
 # Löscht den nun leeren Unterordner
-Remove-Item -Path $subFolder.FullName -Recurse
+# Remove-Item -Path $subFolder.FullName -Recurse
 
 # ZIP-Dateien löschen
 If (Test-Path validator.zip){

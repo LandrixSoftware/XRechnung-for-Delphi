@@ -1959,7 +1959,7 @@ begin
 
   //BG-DEX-09 THIRD PARTY PAYMENT
   //Alle Werte muessen ausgefuellt werden.
-  //Summe aller PrepaidPayments muss von inv.PayableAmount abgezogen werden
+  //Summe aller PrepaidPayments muss inv.PayableAmount hinzugefuegt werden
   with inv.PrepaidPayments.AddPrepaidPayment do
   begin
     ID := 'MobilesBezahlen'; //BT-DEX-001

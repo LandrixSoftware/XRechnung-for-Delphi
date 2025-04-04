@@ -300,6 +300,15 @@ begin
     exit;
   end;
 
+  //BG-DEX-09 THIRD PARTY PAYMENT Extension NUR XRechnung UBL !!!! https://blog.seeburger.com/de/xrechnung-2-3-1-gueltig-ab-dem-01-08-2023/
+  if _Invoice.PrepaidPayments.Count > 0 then
+  if not (_Version in [//TXRechnungVersion.XRechnungVersion_230_UBL_Deprecated, Version 2.3 wird nicht mehr gepflegt
+                   TXRechnungVersion.XRechnungVersion_30x_UBL]) then
+  begin
+    Result := false;
+    exit;
+  end;
+
   //Beide Steuernummern beim Kaeufer nicht vorgesehen
 //  if (_Invoice.AccountingCustomerParty.VATCompanyID <> '') and
 //     (_Invoice.AccountingCustomerParty.VATCompanyNumber <> '') then

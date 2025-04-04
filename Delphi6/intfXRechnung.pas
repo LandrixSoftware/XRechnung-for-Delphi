@@ -28,7 +28,7 @@ interface
 {.$DEFINE ZUGFeRD_Support}
 
 uses
-  SysUtils,Classes,Types
+  SysUtils,Classes,Types,ActiveX
   ,StrUtils,DateUtils,Contnrs
   ,XMLDoc,XMLIntf
   {$IFDEF ZUGFeRD_Support}
@@ -43,6 +43,7 @@ uses
   ,intf.ZUGFeRDAllowanceOrChargeIdentificationCodes
   ,intf.ZUGFeRDQuantityCodes
   ,intf.ZUGFeRDGlobalIDSchemeIdentifiers
+  ,intf.ZUGFeRDSubjectCodes
   {$ENDIF}
   ,intfXRechnung_2_3
   ,intfXRechnung_3_0
@@ -95,7 +96,8 @@ type
                        XRechnungVersion_30x_UBL,
                        XRechnungVersion_30x_UNCEFACT,
                        ZUGFeRDExtendedVersion_232,
-                       XRechnungVersion_ReadingSupport_ZUGFeRDFacturX);
+                       XRechnungVersion_ReadingSupport_ZUGFeRDFacturX,
+                       ZUGFeRDExtendedVersion_1_NotSupported);
 
   TXRechnungValidationHelper = class(TObject)
   public
@@ -129,6 +131,7 @@ type
     class function  LoadFromXMLDocument(_Invoice: TInvoice; _XmlDocument: IXMLDocument; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
   public
     class function ConsistencyCheck(_Invoice : TInvoice; _Version : TXRechnungVersion) : Boolean;
+    class procedure CorrectDueDateIfNotDefined(_Invoice : TInvoice);
 
     class procedure SaveToStream(_Invoice : TInvoice; _Version : TXRechnungVersion; _Stream : TStream);
     class procedure SaveToFile(_Invoice : TInvoice; _Version : TXRechnungVersion; const _Filename : String);
@@ -142,6 +145,9 @@ type
 implementation
 
 uses intfXRechnungHelper;
+
+var
+  xml : IXMLDocument;
 
 {$IFDEF ZUGFeRD_Support}
 type
@@ -161,34 +167,29 @@ type
 
 class procedure TXRechnungInvoiceAdapter.SaveToStream(_Invoice: TInvoice;
   _Version : TXRechnungVersion; _Stream: TStream);
-var
-  xml : IXMLDocument;
 begin
   if _Invoice = nil then
     exit;
   if _Stream = nil then
     exit;
 
-  xml := NewXMLDocument;
+
+  xml.XML.Clear;
   try
     TXRechnungInvoiceAdapter.SaveDocument(_Invoice,_Version,xml);
     xml.SaveToStream(_Stream);
   finally
-    xml := nil;
   end;
 end;
 
 class procedure TXRechnungInvoiceAdapter.SaveToXMLStr(_Invoice: TInvoice;
   _Version : TXRechnungVersion; out _XML: String);
-var
-  xml : IXMLDocument;
 begin
-  xml := NewXMLDocument;
+  xml.XML.Clear;
   try
     TXRechnungInvoiceAdapter.SaveDocument(_Invoice,_Version,xml);
     xml.SaveToXML(_XML);
   finally
-    xml := nil;
   end;
 end;
 
@@ -204,12 +205,11 @@ begin
   if not DirectoryExists(ExtractFilePath(_Filename)) then
     exit;
 
-  xml := NewXMLDocument;
+  xml.XML.Clear;
   try
     TXRechnungInvoiceAdapter.SaveDocument(_Invoice,_Version,xml);
     xml.SaveToFile(_Filename);
   finally
-    xml := nil;
   end;
 end;
 
@@ -220,8 +220,9 @@ var
 begin
   Result := true;
 
-  //Mindestens eine Zahlungsanweisung notwendig
-  if (_Invoice.PaymentTypes.Count = 0) then
+  //Mindestens eine Zahlungsanweisung notwendig (bei ZUGFeRD nur im Profil EXTENDED)
+  if (_Invoice.PaymentTypes.Count = 0) and
+     (_Version <> XRechnungVersion_ReadingSupport_ZUGFeRDFacturX) then
   begin
     Result := false;
     exit;
@@ -291,6 +292,15 @@ begin
     exit;
   end;
 
+  //BG-DEX-09 THIRD PARTY PAYMENT Extension NUR XRechnung UBL !!!! https://blog.seeburger.com/de/xrechnung-2-3-1-gueltig-ab-dem-01-08-2023/
+  if _Invoice.PrepaidPayments.Count > 0 then
+  if not (_Version in [//TXRechnungVersion.XRechnungVersion_230_UBL_Deprecated, Version 2.3 wird nicht mehr gepflegt
+                   XRechnungVersion_30x_UBL]) then
+  begin
+    Result := false;
+    exit;
+  end;
+
   //Beide Steuernummern beim Kaeufer nicht vorgesehen
 //  if (_Invoice.AccountingCustomerParty.VATCompanyID <> '') and
 //     (_Invoice.AccountingCustomerParty.VATCompanyNumber <> '') then
@@ -298,6 +308,25 @@ begin
 //    Result := false;
 //    exit;
 //  end;
+end;
+
+class procedure TXRechnungInvoiceAdapter.CorrectDueDateIfNotDefined(
+  _Invoice: TInvoice);
+begin
+  //Zahlungsziel gesetzt? Wenn nein, dann gesetzliche 30 Tagefrist eintragen
+  //Wenn Skonto hinter den 30 Tagen gewaehrt wird, dann laengste Frist + 1 Tag
+  if _Invoice.InvoiceDueDate = 0 then
+  begin
+    _Invoice.InvoiceDueDate := _Invoice.InvoiceIssueDate + 30;
+    case _Invoice.PaymentTermsType of
+      iptt_CashDiscount1 : if _Invoice.InvoiceDueDate <= _Invoice.InvoiceIssueDate + _Invoice.PaymentTermCashDiscount1Days then
+        _Invoice.InvoiceDueDate := _Invoice.InvoiceIssueDate + _Invoice.PaymentTermCashDiscount1Days + 1;
+      iptt_CashDiscount2 : if _Invoice.InvoiceDueDate <= _Invoice.InvoiceIssueDate + _Invoice.PaymentTermCashDiscount2Days then
+        _Invoice.InvoiceDueDate := _Invoice.InvoiceIssueDate + _Invoice.PaymentTermCashDiscount2Days + 1;
+      iptt_CashDiscount3 : if _Invoice.InvoiceDueDate <= _Invoice.InvoiceIssueDate + _Invoice.PaymentTermCashDiscount3Days then
+        _Invoice.InvoiceDueDate := _Invoice.InvoiceIssueDate + _Invoice.PaymentTermCashDiscount3Days + 1;
+    end;
+  end;
 end;
 
 class function TXRechnungInvoiceAdapter.LoadFromFile(_Invoice: TInvoice;
@@ -360,14 +389,14 @@ begin
     XRechnungVersion_30x_UBL      : Result := TXRechnungInvoiceAdapter301.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
     XRechnungVersion_230_UNCEFACT_Deprecated : Result := TXRechnungInvoiceAdapter230.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     XRechnungVersion_30x_UNCEFACT : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
+    ZUGFeRDExtendedVersion_232 : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     {$IFNDEF ZUGFeRD_Support}
-    ZUGFeRDExtendedVersion_232,
     XRechnungVersion_ReadingSupport_ZUGFeRDFacturX : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
-    else exit;
     {$ELSE}
-    else
-      Result := TZUGFeRDInvoiceAdapter.LoadFromXMLDocument(_Invoice,_XmlDocument,_Error,_AdditionalContent);
+    XRechnungVersion_ReadingSupport_ZUGFeRDFacturX,
+    ZUGFeRDExtendedVersion_1_NotSupported : Result := TZUGFeRDInvoiceAdapter.LoadFromXMLDocument(_Invoice,_XmlDocument,_Error,_AdditionalContent);
     {$ENDIF}
+    else exit;
   end;
 end;
 
@@ -801,17 +830,173 @@ end;
 class function TXRechnungHelper.InvoicePaymentMeansCodeFromStr(
   _Val: String): TInvoicePaymentMeansCode;
 begin
+  if SameText(_Val,'2') then
+    Result := ipmc_AutomatedClearingHouseCredit
+  else
+  if SameText(_Val,'3') then
+    Result := ipmc_AutomatedClearingHouseDebit
+  else
+  if SameText(_Val,'4') then
+    Result := ipmc_ACH_DemandDebitReversal
+  else
+  if SameText(_Val,'5') then
+    Result := ipmc_ACH_DemandCreditReversal
+  else
+  if SameText(_Val,'6') then
+    Result := ipmc_ACH_Demand_Credit
+  else
+  if SameText(_Val,'7') then
+    Result := ipmc_ACH_Demand_Debit
+  else
+  if SameText(_Val,'8') then
+    Result := ipmc_Hold
+  else
+  if SameText(_Val,'9') then
+    Result := ipmc_NationalOrRegionalClearing
+  else
   if SameText(_Val,'10') then
     Result := ipmc_InCash
+  else
+  if SameText(_Val,'11') then
+    Result := ipmc_ACH_SavingsCreditReversal
+  else
+  if SameText(_Val,'12') then
+    Result := ipmc_ACH_SavingsDebitReversal
+  else
+  if SameText(_Val,'13') then
+    Result := ipmc_ACH_SavingsCredit
+  else
+  if SameText(_Val,'14') then
+    Result := ipmc_ACH_SavingsDebit
+  else
+  if SameText(_Val,'15') then
+    Result := ipmc_BookEntryCredit
+  else
+  if SameText(_Val,'16') then
+    Result := ipmc_BookEntryDebit
+  else
+  if SameText(_Val,'17') then
+    Result := ipmc_ACH_DemandCashConcentrationDisbursementCredit
+  else
+  if SameText(_Val,'18') then
+    Result := ipmc_ACH_DemandCashConcentrationDisbursementDebit
+  else
+  if SameText(_Val,'19') then
+    Result := ipmc_ACH_DemandCorporateTradePaymentCredit
   else
   if SameText(_Val,'20') then
     Result := ipmc_Cheque
   else
+  if SameText(_Val,'21') then
+    Result := ipmc_BankersDraft
+  else
+  if SameText(_Val,'22') then
+    Result := ipmc_CertifiedBankerDraft
+  else
+  if SameText(_Val,'23') then
+    Result := ipmc_BankChequeIssuedByEstablishment
+  else
+  if SameText(_Val,'24') then
+    Result := ipmc_BillOfExchangeAwaitingAcceptance
+  else
+  if SameText(_Val,'25') then
+    Result := ipmc_CertifiedCheque
+  else
+  if SameText(_Val,'26') then
+    Result := ipmc_LocalCheque
+  else
+  if SameText(_Val,'27') then
+    Result := ipmc_ACH_DemandCorporateTradePaymentDebit
+  else
+  if SameText(_Val,'28') then
+    Result := ipmc_ACH_DemandCorporateTradeExchangeCredit
+  else
+  if SameText(_Val,'29') then
+    Result := ipmc_ACH_DemandCorporateTradeExchangeDebit
+  else
   if SameText(_Val,'30') then
     Result := ipmc_CreditTransfer
   else
+  if SameText(_Val,'31') then
+    Result := ipmc_DebitTransfer
+  else
+  if SameText(_Val,'32') then
+    Result := ipmc_ACH_DemandCashConcentrationDisbursementPlusCredit
+  else
+  if SameText(_Val,'33') then
+    Result := ipmc_ACH_DemandCashConcentrationDisbursementPlusDebit
+  else
+  if SameText(_Val,'34') then
+    Result := ipmc_ACH_PrearrangedPaymentAndDeposit
+  else
+  if SameText(_Val,'35') then
+    Result := ipmc_ACH_SavingsCashConcentrationDisbursementCredit
+  else
+  if SameText(_Val,'36') then
+    Result := ipmc_ACH_SavingsCashConcentrationDisbursementDebit
+  else
+  if SameText(_Val,'37') then
+    Result := ipmc_ACH_SavingsCorporateTradePaymentCredit
+  else
+  if SameText(_Val,'38') then
+    Result := ipmc_ACH_SavingsCorporateTradePaymentDebit
+  else
+  if SameText(_Val,'39') then
+    Result := ipmc_ACH_SavingsCorporateTradeExchangeCredit
+  else
+  if SameText(_Val,'40') then
+    Result := ipmc_ACH_SavingsCorporateTradeExchangeDebit
+  else
+  if SameText(_Val,'41') then
+    Result := ipmc_ACH_SavingsCashConcentrationDisbursementPlusCredit
+  else
+  if SameText(_Val,'42') then
+    Result := ipmc_PaymentToBankAccount
+  else
+  if SameText(_Val,'43') then
+    Result := ipmc_ACH_SavingsCashConcentrationDisbursementPlusDebit
+  else
+  if SameText(_Val,'44') then
+    Result := ipmc_AcceptedBillOfExchange
+  else
+  if SameText(_Val,'45') then
+    Result := ipmc_ReferencedHomeBankingCreditTransfer
+  else
+  if SameText(_Val,'46') then
+    Result := ipmc_InterbankDebitTransfer
+  else
+  if SameText(_Val,'47') then
+    Result := ipmc_HomeBankingDebitTransfer
+  else
+  if SameText(_Val,'48') then
+    Result := ipmc_BankCard
+  else
+  if SameText(_Val,'49') then
+    Result := ipmc_DirectDebit
+  else
+  if SameText(_Val,'50') then
+    Result := ipmc_PaymentByPostgiro
+  else
+  if SameText(_Val,'51') then
+    Result := ipmc_FR_Norme_6_97
+  else
+  if SameText(_Val,'52') then
+    Result := ipmc_UrgentCommercialPayment
+  else
+  if SameText(_Val,'53') then
+    Result := ipmc_UrgentTreasuryPayment
+  else
   if SameText(_Val,'54') then
     Result := ipmc_CreditCard
+  else
+  if SameText(_Val,'55') then
+    Result := ipmc_DebitCard
+  else
+  if SameText(_Val,'56') then
+    Result := ipmc_Bankgiro
+  else
+  if SameText(_Val,'57') then
+    Result := ipmc_StandingAgreement
   else
   if SameText(_Val,'58')  then
     Result := ipmc_SEPACreditTransfer
@@ -819,8 +1004,74 @@ begin
   if SameText(_Val,'59')  then
     Result := ipmc_SEPADirectDebit
   else
+  if SameText(_Val,'60')  then
+    Result := ipmc_PromissoryNote
+  else
+  if SameText(_Val,'61')  then
+    Result := ipmc_PromissoryNoteSignedByDebtor
+  else
+  if SameText(_Val,'62')  then
+    Result := ipmc_PromissoryNoteSignedByDebtorEndorsedByBank
+  else
+  if SameText(_Val,'63')  then
+    Result := ipmc_PromissoryNoteSignedByDebtorEndorsedByThirdParty
+  else
+  if SameText(_Val,'64')  then
+    Result := ipmc_PromissoryNoteSignedByBank
+  else
+  if SameText(_Val,'65')  then
+    Result := ipmc_PromissoryNoteSignedByBankEndorsedByAnotherBank
+  else
+  if SameText(_Val,'66')  then
+    Result := ipmc_PromissoryNoteSignedByThirdParty
+  else
+  if SameText(_Val,'67')  then
+    Result := ipmc_PromissoryNoteSignedByThirdPartyEndorsedByBank
+  else
   if SameText(_Val,'68')  then
     Result := ipmc_OnlinePaymentService
+  else
+  if SameText(_Val,'69')  then
+    Result := ipmc_TransferAdvice
+  else
+  if SameText(_Val,'70')  then
+    Result := ipmc_BillDrawnByCrdtOnDebtor
+  else
+  if SameText(_Val,'74')  then
+    Result := ipmc_BillDrawnByCrdtOnBank
+  else
+  if SameText(_Val,'75')  then
+    Result := ipmc_BillDrawnByCrdtEndorsedByAnotherBank
+  else
+  if SameText(_Val,'76')  then
+    Result := ipmc_BillDrawnByCrdtOnBankEndorsedByThirdParty
+  else
+  if SameText(_Val,'77')  then
+    Result := ipmc_BillDrawnByCrdtOnThirdParty
+  else
+  if SameText(_Val,'78')  then
+    Result := ipmc_BillDrawnByCrdtOnThirdPartyAcceptedAndEndorsedByBank
+  else
+  if SameText(_Val,'91')  then
+    Result := ipmc_NotTransferableBankersDraft
+  else
+  if SameText(_Val,'92')  then
+    Result := ipmc_NotTransferableLocalCheque
+  else
+  if SameText(_Val,'93')  then
+    Result := ipmc_ReferenceGiro
+  else
+  if SameText(_Val,'94')  then
+    Result := ipmc_UrgentGiro
+  else
+  if SameText(_Val,'95')  then
+    Result := ipmc_FreeFormatGiro
+  else
+  if SameText(_Val,'96')  then
+    Result := ipmc_RequestedMethodForPaymentWasNotUsed
+  else
+  if SameText(_Val,'97')  then
+    Result := ipmc_ClearingBetweenPartners
   else
   if SameText(_Val,'ZZZ')  then
     Result := ipmc_MutuallyDefined
@@ -834,13 +1085,88 @@ end;
 class function TXRechnungHelper.InvoicePaymentMeansCodeToStr(_Val: TInvoicePaymentMeansCode): String;
 begin
   case _Val of
+    ipmc_InstrumentNotDefined :                                 Result := '1';
+    ipmc_AutomatedClearingHouseCredit :                         Result := '2';
+    ipmc_AutomatedClearingHouseDebit :                          Result := '3';
+    ipmc_ACH_DemandDebitReversal :                              Result := '4';
+    ipmc_ACH_DemandCreditReversal :                             Result := '5';
+    ipmc_ACH_Demand_Credit :                                    Result := '6';
+    ipmc_ACH_Demand_Debit :                                     Result := '7';
+    ipmc_Hold :                                                 Result := '8';
+    ipmc_NationalOrRegionalClearing :                           Result := '9';
     ipmc_InCash: Result := '10';
+    ipmc_ACH_SavingsCreditReversal :                            Result := '11';
+    ipmc_ACH_SavingsDebitReversal :                             Result := '12';
+    ipmc_ACH_SavingsCredit :                                    Result := '13';
+    ipmc_ACH_SavingsDebit :                                     Result := '14';
+    ipmc_BookEntryCredit :                                      Result := '15';
+    ipmc_BookEntryDebit :                                       Result := '16';
+    ipmc_ACH_DemandCashConcentrationDisbursementCredit :        Result := '17';
+    ipmc_ACH_DemandCashConcentrationDisbursementDebit :         Result := '18';
+    ipmc_ACH_DemandCorporateTradePaymentCredit :                Result := '19';
     ipmc_Cheque: Result := '20';
+    ipmc_BankersDraft :                                         Result := '21';
+    ipmc_CertifiedBankerDraft :                                 Result := '22';
+    ipmc_BankChequeIssuedByEstablishment :                      Result := '23';
+    ipmc_BillOfExchangeAwaitingAcceptance :                     Result := '24';
+    ipmc_CertifiedCheque :                                      Result := '25';
+    ipmc_LocalCheque :                                          Result := '26';
+    ipmc_ACH_DemandCorporateTradePaymentDebit :                 Result := '27';
+    ipmc_ACH_DemandCorporateTradeExchangeCredit :               Result := '28';
+    ipmc_ACH_DemandCorporateTradeExchangeDebit :                Result := '29';
     ipmc_CreditTransfer: Result := '30';
+    ipmc_DebitTransfer :                                        Result := '31';
+    ipmc_ACH_DemandCashConcentrationDisbursementPlusCredit :    Result := '32';
+    ipmc_ACH_DemandCashConcentrationDisbursementPlusDebit :     Result := '33';
+    ipmc_ACH_PrearrangedPaymentAndDeposit :                     Result := '34';
+    ipmc_ACH_SavingsCashConcentrationDisbursementCredit :       Result := '35';
+    ipmc_ACH_SavingsCashConcentrationDisbursementDebit :        Result := '36';
+    ipmc_ACH_SavingsCorporateTradePaymentCredit :               Result := '37';
+    ipmc_ACH_SavingsCorporateTradePaymentDebit :                Result := '38';
+    ipmc_ACH_SavingsCorporateTradeExchangeCredit :              Result := '39';
+    ipmc_ACH_SavingsCorporateTradeExchangeDebit :               Result := '40';
+    ipmc_ACH_SavingsCashConcentrationDisbursementPlusCredit :   Result := '41';
+    ipmc_PaymentToBankAccount :                                 Result := '42';
+    ipmc_ACH_SavingsCashConcentrationDisbursementPlusDebit :    Result := '43';
+    ipmc_AcceptedBillOfExchange :                               Result := '44';
+    ipmc_ReferencedHomeBankingCreditTransfer :                  Result := '45';
+    ipmc_InterbankDebitTransfer :                               Result := '46';
+    ipmc_HomeBankingDebitTransfer :                             Result := '47';
+    ipmc_BankCard :                                             Result := '48';
+    ipmc_DirectDebit :                                          Result := '49';
+    ipmc_PaymentByPostgiro :                                    Result := '50';
+    ipmc_FR_Norme_6_97 :                                        Result := '51';
+    ipmc_UrgentCommercialPayment :                              Result := '52';
+    ipmc_UrgentTreasuryPayment :                                Result := '53';
     ipmc_CreditCard: Result := '54';
+    ipmc_DebitCard :                                            Result := '55';
+    ipmc_Bankgiro :                                             Result := '56';
+    ipmc_StandingAgreement :                                    Result := '57';
     ipmc_SEPACreditTransfer: Result := '58';
     ipmc_SEPADirectDebit: Result := '59';
+    ipmc_PromissoryNote :                                       Result := '60';
+    ipmc_PromissoryNoteSignedByDebtor :                         Result := '61';
+    ipmc_PromissoryNoteSignedByDebtorEndorsedByBank :           Result := '62';
+    ipmc_PromissoryNoteSignedByDebtorEndorsedByThirdParty :     Result := '63';
+    ipmc_PromissoryNoteSignedByBank :                           Result := '64';
+    ipmc_PromissoryNoteSignedByBankEndorsedByAnotherBank :      Result := '65';
+    ipmc_PromissoryNoteSignedByThirdParty :                     Result := '66';
+    ipmc_PromissoryNoteSignedByThirdPartyEndorsedByBank :       Result := '67';
     ipmc_OnlinePaymentService: Result := '68';
+    ipmc_TransferAdvice :                                       Result := '69';
+    ipmc_BillDrawnByCrdtOnDebtor :                              Result := '70';
+    ipmc_BillDrawnByCrdtOnBank :                                Result := '74';
+    ipmc_BillDrawnByCrdtEndorsedByAnotherBank :                 Result := '75';
+    ipmc_BillDrawnByCrdtOnBankEndorsedByThirdParty :            Result := '76';
+    ipmc_BillDrawnByCrdtOnThirdParty :                          Result := '77';
+    ipmc_BillDrawnByCrdtOnThirdPartyAcceptedAndEndorsedByBank : Result := '78';
+    ipmc_NotTransferableBankersDraft :                          Result := '91';
+    ipmc_NotTransferableLocalCheque :                           Result := '92';
+    ipmc_ReferenceGiro :                                        Result := '93';
+    ipmc_UrgentGiro :                                           Result := '94';
+    ipmc_FreeFormatGiro :                                       Result := '95';
+    ipmc_RequestedMethodForPaymentWasNotUsed :                  Result := '96';
+    ipmc_ClearingBetweenPartners :                              Result := '97';
     ipmc_MutuallyDefined: Result := 'ZZZ';
     else Result := '1'; //ipmc_InstrumentNotDefined
   end;
@@ -1043,109 +1369,84 @@ end;
 class procedure TXRechnungHelper.ReadPaymentTerms(_Invoice: TInvoice;
   _PaymentTermsText: String);
 var
-  posLineBreak, posSkonto, posBasis: Integer;
-  term1, term2: String;
+  lPoshashtag, lPosBasis: Integer;
+  lPaymentTermsList : TStringList;
+  lPaymentTerm : String;
+  i, lDays : Integer;
+  lSkonto : double;
+  lBasisbetrag : Currency;
 begin
   if _PaymentTermsText = '' then
     exit;
+
+  _Invoice.PaymentTermsType := iptt_Net;
+  _Invoice.PaymentTermNetNote := _PaymentTermsText;
+
   if Pos('#SKONTO#',_PaymentTermsText) = 0 then
-  begin
-    _Invoice.PaymentTermsType := iptt_Net;
-    _Invoice.PaymentTermNetNote := _PaymentTermsText;
-  end
-  else if (Pos('#SKONTO#', _PaymentTermsText) = 1) and (Pos(#10, Trim(_PaymentTermsText)) > 1) then // zweimal Skonto
-  begin
-    _Invoice.PaymentTermsType := iptt_CashDiscount2;
+    exit;
 
-    // Erster Teil: bis zum ersten Zeilenumbruch (#10)
-    posLineBreak := Pos(#10, _PaymentTermsText);
-    if posLineBreak > 0 then
+  lPaymentTermsList := TStringList.Create;
+  try
+    lPaymentTermsList.Text := Trim(_PaymentTermsText);
+    if lPaymentTermsList.Count = 0 then
+      exit;
+    for i := 0 to lPaymentTermsList.Count-1 do
+    if (Pos('#SKONTO#', lPaymentTermsList[i]) = 1) then
     begin
-      term1 := Copy(_PaymentTermsText, 1, posLineBreak - 1);
-      term2 := Copy(_PaymentTermsText, posLineBreak + 1, Length(_PaymentTermsText) - posLineBreak);
-    end;
+      if _Invoice.PaymentTermsType = iptt_CashDiscount3 then
+        break; //Mehr geht nicht
+      _Invoice.PaymentTermsType := TInvoicePaymentTermsType(Integer(_Invoice.PaymentTermsType)+1);
 
-    // Prüfen, ob zweiter Teil Skonto enthält
-    if Pos('#SKONTO#', term2) = 1 then
-    begin
-      posSkonto := Pos('#', term2);
-      Delete(term2, 1, posSkonto); // Entfernen des ersten '#'
+      lPaymentTerm := Trim(lPaymentTermsList[i]);
+
+      lPoshashtag := Pos('#', lPaymentTerm);
+      Delete(lPaymentTerm, 1, lPoshashtag); // Entfernen des ersten '#'
 
       // Zerlegen der Werte
-      posSkonto := Pos('#', term2);
-      Delete(term2, 1, posSkonto); // Skonto entfernen
-      _Invoice.PaymentTermCashDiscount2Days := StrToIntDef(Copy(term2, Pos('=', term2)+1, Pos('#', term2) - 1 - Pos('=', term2)), 0);
+      lPoshashtag := Pos('#', lPaymentTerm);
+      Delete(lPaymentTerm, 1, lPoshashtag); // Skonto entfernen
+      lDays := StrToIntDef(Copy(lPaymentTerm, Pos('=', lPaymentTerm)+1, Pos('#', lPaymentTerm) - 1 - Pos('=', lPaymentTerm)), 0);
 
-      posSkonto := Pos('#', term2);
-      Delete(term2, 1, posSkonto); // Tage entfernen
-      _Invoice.PaymentTermCashDiscount2Percent := TXRechnungHelper.FloatFromStr(Copy(term2, Pos('=', term2) + 1, Pos('#', term2) - 1 - Pos('=', term2)));
+      lPoshashtag := Pos('#', lPaymentTerm);
+      Delete(lPaymentTerm, 1, lPoshashtag); // Tage entfernen
+      lSkonto := TXRechnungHelper.FloatFromStr(Copy(lPaymentTerm, Pos('=', lPaymentTerm) + 1, Pos('#', lPaymentTerm) - 1 - Pos('=', lPaymentTerm)));
 
-      posBasis := Pos('BASISBETRAG=', term2);
-      if posBasis = 1 then
+      lPoshashtag := Pos('#', lPaymentTerm);
+      Delete(lPaymentTerm, 1, lPoshashtag); // Prozent entfernen
+      lPosBasis := Pos('BASISBETRAG=', lPaymentTerm);
+      if lPosBasis = 1 then
       begin
-        Delete(term2, 1, 12); // "BASISBETRAG=" entfernen
-        _Invoice.PaymentTermCashDiscount2Base := TXRechnungHelper.AmountFromStr(term2);
+        Delete(lPaymentTerm, 1, 12); // "BASISBETRAG=" entfernen
+        if Length(lPaymentTerm)>0 then //# entfernen
+        if lPaymentTerm[Length(lPaymentTerm)]='#' then
+          Delete(lPaymentTerm,Length(lPaymentTerm),1);
+        lBasisbetrag := TXRechnungHelper.AmountFromStr(lPaymentTerm);
       end
       else
-        _Invoice.PaymentTermCashDiscount2Base := 0;
-    end
-    else
-      _Invoice.PaymentTermsType := iptt_CashDiscount1;
-
-    // Erster Teil behandeln (falls vorhanden)
-    if Pos('#SKONTO#', term1) = 1 then
-    begin
-      posSkonto := Pos('#', term1);
-      Delete(term1, 1, posSkonto); // Entfernen des ersten '#'
-
-      posSkonto := Pos('#', term1);
-      Delete(term1, 1, posSkonto); // Skonto entfernen
-      _Invoice.PaymentTermCashDiscount1Days := StrToIntDef(Copy(term1, Pos('=', term1) + 1, Pos('#', term1) - 1 - Pos('=', term1)), 0);
-
-      posSkonto := Pos('#', term1);
-      Delete(term1, 1, posSkonto); // Tage entfernen
-      _Invoice.PaymentTermCashDiscount1Percent := TXRechnungHelper.FloatFromStr(Copy(term1, Pos('=', term1) + 1, Pos('#', term1) - 1 - Pos('=', term1)));
-
-      posBasis := Pos('BASISBETRAG=', term1);
-      if posBasis = 1 then
-      begin
-        Delete(term1, 1, 12); // "BASISBETRAG=" entfernen
-        _Invoice.PaymentTermCashDiscount1Base := TXRechnungHelper.AmountFromStr(term1);
-      end
-      else
-        _Invoice.PaymentTermCashDiscount1Base := 0;
-    end
-    else
-      _Invoice.PaymentTermsType := iptt_Net;
-  end
-  else if Pos('#SKONTO#', _PaymentTermsText) = 1 then // einmal Skonto
-  begin
-    _Invoice.PaymentTermsType := iptt_CashDiscount1;
-
-    posSkonto := Pos('#', _PaymentTermsText);
-    Delete(_PaymentTermsText, 1, posSkonto); // Entfernen des ersten '#'
-
-    posSkonto := Pos('#', _PaymentTermsText);
-    Delete(_PaymentTermsText, 1, posSkonto); // Skonto entfernen
-    _Invoice.PaymentTermCashDiscount1Days := StrToIntDef(Copy(_PaymentTermsText, Pos('=', _PaymentTermsText) + 1, Pos('#', _PaymentTermsText) - 1 - Pos('=', _PaymentTermsText)), 0);
-
-    posSkonto := Pos('#', _PaymentTermsText);
-    Delete(_PaymentTermsText, 1, posSkonto); // Tage entfernen
-    _Invoice.PaymentTermCashDiscount1Percent := TXRechnungHelper.FloatFromStr(Copy(_PaymentTermsText, Pos('=', _PaymentTermsText) + 1, Pos('#', _PaymentTermsText) - 1 - Pos('=', _PaymentTermsText)));
-    
-    posBasis := Pos('BASISBETRAG=', _PaymentTermsText);
-    if posBasis = 1 then
-    begin
-      Delete(_PaymentTermsText, 1, 12); // "BASISBETRAG=" entfernen
-      _Invoice.PaymentTermCashDiscount1Base := TXRechnungHelper.AmountFromStr(_PaymentTermsText);
-    end
-    else
-      _Invoice.PaymentTermCashDiscount1Base := 0;
-  end
-  else
-  begin
-    _Invoice.PaymentTermsType := iptt_None;
-    _Invoice.PaymentTermNetNote := _PaymentTermsText;
+        lBasisbetrag := 0;
+      case _Invoice.PaymentTermsType of
+        iptt_CashDiscount1 :
+        begin
+          _Invoice.PaymentTermCashDiscount1Days := lDays;
+          _Invoice.PaymentTermCashDiscount1Percent := lSkonto;
+          _Invoice.PaymentTermCashDiscount1Base := lBasisbetrag;
+        end;
+        iptt_CashDiscount2 :
+        begin
+          _Invoice.PaymentTermCashDiscount2Days := lDays;
+          _Invoice.PaymentTermCashDiscount2Percent := lSkonto;
+          _Invoice.PaymentTermCashDiscount2Base := lBasisbetrag;
+        end;
+        iptt_CashDiscount3 :
+        begin
+          _Invoice.PaymentTermCashDiscount3Days := lDays;
+          _Invoice.PaymentTermCashDiscount3Percent := lSkonto;
+          _Invoice.PaymentTermCashDiscount3Base := lBasisbetrag;
+        end;
+      end;
+    end;
+  finally
+    lPaymentTermsList.Free;
   end;
 end;
 
@@ -1203,6 +1504,11 @@ begin
     else
     if Pos('urn:cen.eu:en16931:2017',AnsiLowerCase(node.Text))>0 then
       Result := XRechnungVersion_ReadingSupport_ZUGFeRDFacturX;
+  end else
+  if (SameText(_XML.DocumentElement.NodeName,'CrossIndustryDocument') or
+      SameText(_XML.DocumentElement.NodeName,'rsm:CrossIndustryDocument')) then
+  begin
+    Result := ZUGFeRDExtendedVersion_1_NotSupported;
   end;
 end;
 
@@ -1426,7 +1732,7 @@ begin
   _Invoice.InvoiceIssueDate := _InvoiceDescriptor.InvoiceDate;
   _Invoice.InvoiceDueDate := 0;
   for i := 0 to _InvoiceDescriptor.PaymentTermsList.Count-1 do
-  if (_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.CalculationPercent = 0.0) then
+  if (_InvoiceDescriptor.PaymentTermsList[i].Percentage.Value = 0.0) then
   begin
     _Invoice.InvoiceDueDate := _InvoiceDescriptor.PaymentTermsList[i].DueDate;
     break;
@@ -1455,11 +1761,27 @@ begin
   _Invoice.TaxCurrencyCode := _Invoice.InvoiceCurrencyCode; //TODO fehlt in ZUGFeRD-Lib
   _Invoice.BuyerReference := _InvoiceDescriptor.ReferenceOrderNo;
   for i := 0 to _InvoiceDescriptor.Notes.Count-1 do
+  begin
     _Invoice.Notes.AddNote.Content := _InvoiceDescriptor.Notes[i].Content;
+    case _InvoiceDescriptor.Notes[i].SubjectCode of
+      //TZUGFeRDSubjectCodes.AAC :_Invoice.Notes.Last.SubjectCode :=
+      TZUGFeRDSubjectCodes.AAI :_Invoice.Notes.Last.SubjectCode := insc_AAI;
+      TZUGFeRDSubjectCodes.AAJ :_Invoice.Notes.Last.SubjectCode := insc_AAJ;
+      //TZUGFeRDSubjectCodes.ABN :_Invoice.Notes.Last.SubjectCode :=
+      TZUGFeRDSubjectCodes.AAK :_Invoice.Notes.Last.SubjectCode := insc_AAK;
+      //TZUGFeRDSubjectCodes.ACB :_Invoice.Notes.Last.SubjectCode :=
+      //TZUGFeRDSubjectCodes.ADU :_Invoice.Notes.Last.SubjectCode :=
+      TZUGFeRDSubjectCodes.PMT :_Invoice.Notes.Last.SubjectCode := insc_PMT;
+      //TZUGFeRDSubjectCodes.PRF :_Invoice.Notes.Last.SubjectCode :=
+      TZUGFeRDSubjectCodes.REG :_Invoice.Notes.Last.SubjectCode := insc_REG;
+      TZUGFeRDSubjectCodes.SUR :_Invoice.Notes.Last.SubjectCode := insc_SUR;
+      TZUGFeRDSubjectCodes.TXD :_Invoice.Notes.Last.SubjectCode := insc_TXD;
+    end; //TODO insc_ABL, insc_CUS
+  end;
   if _InvoiceDescriptor.SellerOrderReferencedDocument <> nil then
     _Invoice.SellerOrderReference := _InvoiceDescriptor.SellerOrderReferencedDocument.ID;
   _Invoice.PurchaseOrderReference := _InvoiceDescriptor.OrderNo;
-  if _InvoiceDescriptor.SpecifiedProcuringProject <> nil then 
+  if _InvoiceDescriptor.SpecifiedProcuringProject <> nil then
     _Invoice.ProjectReference := _InvoiceDescriptor.SpecifiedProcuringProject.ID;
   if _InvoiceDescriptor.ContractReferencedDocument <> nil then
     _Invoice.ContractDocumentReference := _InvoiceDescriptor.ContractReferencedDocument.ID;
@@ -1502,7 +1824,7 @@ begin
     _Invoice.AccountingSupplierParty.ContactTelephone := _InvoiceDescriptor.SellerContact.PhoneNo;
     _Invoice.AccountingSupplierParty.ContactElectronicMail := _InvoiceDescriptor.SellerContact.EmailAddress;
   end;
-  _Invoice.AccountingSupplierParty.AdditionalLegalInformationSeller := ''; //TODO fehlt in ZUGFeRD-Lib
+  _Invoice.AccountingSupplierParty.AdditionalLegalInformationSeller := _InvoiceDescriptor.Seller.Description;
   _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer := _InvoiceDescriptor.SellerElectronicAddress.Address;
   //Buyer
   if _InvoiceDescriptor.Buyer <> nil then
@@ -1596,6 +1918,9 @@ begin
       FinancialInstitutionBranch := _InvoiceDescriptor.DebitorBankAccounts[i].BIC;
     end;
   end else
+  if lPaymentMeansCode = ipmc_InstrumentNotDefined then
+    _Invoice.PaymentTypes.AddPaymentType.PaymentMeansCode := ipmc_InstrumentNotDefined
+  else
   if lPaymentMeansCode <> ipmc_NotImplemented then
   begin
     for i := 0 to _InvoiceDescriptor.CreditorBankAccounts.Count-1 do
@@ -1608,44 +1933,58 @@ begin
     end;
   end;
 
+  _Invoice.PaymentMandateID := _InvoiceDescriptor.PaymentMeans.SEPAMandateReference;
+
   _Invoice.PaymentTermsType := iptt_None;
   for i := 0 to _InvoiceDescriptor.PaymentTermsList.Count-1 do
   begin
-    if _InvoiceDescriptor.PaymentTermsList[i].DirectDebitMandateID <> '' then //Koennte Probleme bei mehrere Eintraegen der Art geben
-      _Invoice.PaymentMandateID := _InvoiceDescriptor.PaymentTermsList[i].DirectDebitMandateID;
-    if (_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.CalculationPercent = 0) and
-       (_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisAmount = 0) then
+    if (not _InvoiceDescriptor.PaymentTermsList[i].Percentage.HasValue) and
+       (not _InvoiceDescriptor.PaymentTermsList[i].BaseAmount.HasValue) then
     begin
       if _Invoice.PaymentTermsType = iptt_None then
         _Invoice.PaymentTermsType := iptt_Net;
       if _InvoiceDescriptor.PaymentTermsList[i].DueDate.GetValueOrDefault > 0 then
         _Invoice.InvoiceDueDate := _InvoiceDescriptor.PaymentTermsList[i].DueDate
       else
-      if _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisPeriodMeasure.Value > 0 then
-        _Invoice.InvoiceDueDate := Trunc(_Invoice.InvoiceIssueDate)+ Trunc(_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisPeriodMeasure.Value);
+      if _InvoiceDescriptor.PaymentTermsList[i].DueDays.HasValue then
+        _Invoice.InvoiceDueDate := Trunc(_Invoice.InvoiceIssueDate)+ Trunc(_InvoiceDescriptor.PaymentTermsList[i].DueDays.Value);
       _Invoice.PaymentTermNetNote := _InvoiceDescriptor.PaymentTermsList[i].Description;
     end else
     if (_Invoice.PaymentTermsType in [iptt_None,iptt_Net]) then
     begin
       _Invoice.PaymentTermsType := iptt_CashDiscount1;
-      if _InvoiceDescriptor.PaymentTermsList[i].DueDate.GetValueOrDefault > 0 then
+      if _InvoiceDescriptor.PaymentTermsList[i].DueDate.HasValue then
         _Invoice.PaymentTermCashDiscount1Days := DaysBetween(_Invoice.InvoiceIssueDate,_InvoiceDescriptor.PaymentTermsList[i].DueDate)
       else
-      if _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisPeriodMeasure.Value > 0 then
-        _Invoice.PaymentTermCashDiscount1Days := Trunc(_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisPeriodMeasure.Value);
-      _Invoice.PaymentTermCashDiscount1Percent := _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.CalculationPercent;
-      _Invoice.PaymentTermCashDiscount1Base := _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisAmount;
+      if _InvoiceDescriptor.PaymentTermsList[i].DueDays.HasValue then
+        _Invoice.PaymentTermCashDiscount1Days := Trunc(_InvoiceDescriptor.PaymentTermsList[i].DueDate.Value);
+      _Invoice.PaymentTermCashDiscount1Percent := _InvoiceDescriptor.PaymentTermsList[i].Percentage;
+      _Invoice.PaymentTermCashDiscount1Base := _InvoiceDescriptor.PaymentTermsList[i].BaseAmount;
+      _Invoice.PaymentTermCashDiscount1ActualAmount := _InvoiceDescriptor.PaymentTermsList[i].ActualAmount;
     end else
     if _Invoice.PaymentTermsType = iptt_CashDiscount1 then
     begin
       _Invoice.PaymentTermsType := iptt_CashDiscount2;
-      if _InvoiceDescriptor.PaymentTermsList[i].DueDate.GetValueOrDefault > 0 then
+      if _InvoiceDescriptor.PaymentTermsList[i].DueDate.HasValue then
         _Invoice.PaymentTermCashDiscount2Days := DaysBetween(_Invoice.InvoiceIssueDate,_InvoiceDescriptor.PaymentTermsList[i].DueDate)
       else
-      if _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisPeriodMeasure.Value > 0 then
-        _Invoice.PaymentTermCashDiscount2Days := Trunc(_InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisPeriodMeasure.Value);
-      _Invoice.PaymentTermCashDiscount2Percent := _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.CalculationPercent;
-      _Invoice.PaymentTermCashDiscount2Base := _InvoiceDescriptor.PaymentTermsList[i].ApplicableTradePaymentDiscountTerms.BasisAmount;
+      if _InvoiceDescriptor.PaymentTermsList[i].DueDays.HasValue then
+        _Invoice.PaymentTermCashDiscount2Days := Trunc(_InvoiceDescriptor.PaymentTermsList[i].DueDays.Value);
+      _Invoice.PaymentTermCashDiscount2Percent := _InvoiceDescriptor.PaymentTermsList[i].Percentage;
+      _Invoice.PaymentTermCashDiscount2Base := _InvoiceDescriptor.PaymentTermsList[i].BaseAmount;
+      _Invoice.PaymentTermCashDiscount2ActualAmount := _InvoiceDescriptor.PaymentTermsList[i].ActualAmount;
+    end else
+    if _Invoice.PaymentTermsType = iptt_CashDiscount2 then
+    begin
+      _Invoice.PaymentTermsType := iptt_CashDiscount3;
+      if _InvoiceDescriptor.PaymentTermsList[i].DueDate.HasValue then
+        _Invoice.PaymentTermCashDiscount3Days := DaysBetween(_Invoice.InvoiceIssueDate,_InvoiceDescriptor.PaymentTermsList[i].DueDate)
+      else
+      if _InvoiceDescriptor.PaymentTermsList[i].DueDays.HasValue then
+        _Invoice.PaymentTermCashDiscount3Days := Trunc(_InvoiceDescriptor.PaymentTermsList[i].DueDays.Value);
+      _Invoice.PaymentTermCashDiscount3Percent := _InvoiceDescriptor.PaymentTermsList[i].Percentage;
+      _Invoice.PaymentTermCashDiscount3Base := _InvoiceDescriptor.PaymentTermsList[i].BaseAmount;
+      _Invoice.PaymentTermCashDiscount3ActualAmount := _InvoiceDescriptor.PaymentTermsList[i].ActualAmount;
     end;
   end;
 
@@ -1671,6 +2010,11 @@ begin
     //lInvoiceLine.UnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(TZUGFeRDQuantityCodesExtensions.EnumToString(_InvoiceDescriptor.TradeLineItems[i].BilledQuantityUnitCode));
     lInvoiceLine.UnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(TZUGFeRDQuantityCodesExtensions.EnumToString(_InvoiceDescriptor.TradeLineItems[i].UnitCode));
     lInvoiceLine.SellersItemIdentification := _InvoiceDescriptor.TradeLineItems[i].SellerAssignedID;
+    lInvoiceLine.BuyersItemIdentification := _InvoiceDescriptor.TradeLineItems[i].BuyerAssignedID;
+    if _InvoiceDescriptor.TradeLineItems[i].BuyerOrderReferencedDocument <> nil then
+      lInvoiceLine.OrderLineReference := _InvoiceDescriptor.TradeLineItems[i].BuyerOrderReferencedDocument.LineID;
+    if _InvoiceDescriptor.TradeLineItems[i].ReceivableSpecifiedTradeAccountingAccounts.Count > 0 then
+      lInvoiceLine.BuyerAccountingReference := _InvoiceDescriptor.TradeLineItems[i].ReceivableSpecifiedTradeAccountingAccounts.First.TradeAccountID;
     lInvoiceLine.TaxPercent := _InvoiceDescriptor.TradeLineItems[i].TaxPercent;
     case _InvoiceDescriptor.TradeLineItems[i].TaxCategoryCode of
       TZUGFeRDTaxCategoryCodes.AE : lInvoiceLine.TaxCategory := idtfcc_AE_VATReverseCharge;
@@ -1748,8 +2092,12 @@ begin
         end;
       end;
     end;
+    if _InvoiceDescriptor.TradeLineItems[i].BillingPeriodStart.HasValue then
+      lInvoiceLine.InvoiceLinePeriodStartDate := _InvoiceDescriptor.TradeLineItems[i].BillingPeriodStart;
+    if _InvoiceDescriptor.TradeLineItems[i].BillingPeriodEnd.HasValue then
+      lInvoiceLine.InvoiceLinePeriodEndDate := _InvoiceDescriptor.TradeLineItems[i].BillingPeriodEnd;
     lInvoiceLine.NetPriceAmount := _InvoiceDescriptor.TradeLineItems[i].NetUnitPrice.GetValueOrDefault(0);
-    lInvoiceLine.BaseQuantity := _InvoiceDescriptor.TradeLineItems[i].UnitQuantity.GetValueOrDefault(0);
+    lInvoiceLine.BaseQuantity := _InvoiceDescriptor.TradeLineItems[i].NetQuantity.GetValueOrDefault(0);
     lInvoiceLine.BaseQuantityUnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(TZUGFeRDQuantityCodesExtensions.EnumToString(_InvoiceDescriptor.TradeLineItems[i].UnitCode));
     lInvoiceLine.LineAmount := _InvoiceDescriptor.TradeLineItems[i].LineTotalAmount.GetValueOrDefault(0);
     for j := 0 to _InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges.Count-1 do
@@ -1998,6 +2346,10 @@ begin
 end;
 
 {$ENDIF}
+
+initialization
+  CoInitialize(nil);
+  xml := NewXMLDocument;
 
 end.
 

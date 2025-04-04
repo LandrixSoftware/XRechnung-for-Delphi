@@ -134,7 +134,8 @@ begin
   Result := false;
   CmdOutput.Clear;
 
-  _Filename := QuoteIfContainsSpace(_Filename);
+  if (Length(_FileName)>1) and (_FileName[1]<>'"') then // quote only if not already quoted
+   _Filename := QuoteIfContainsSpace(_Filename);
 
   SA.nLength := SizeOf(SA);
   SA.bInheritHandle := True;

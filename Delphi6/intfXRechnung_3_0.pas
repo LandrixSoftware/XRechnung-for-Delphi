@@ -24,7 +24,7 @@ unit intfXRechnung_3_0;
 interface
 
 uses
-  SysUtils,Classes,Types,StrUtils,ActiveX
+  SysUtils,Classes,Types,StrUtils,ActiveX,DateUtils
   ,xmldom,XMLDoc,XMLIntf,XMLSchema
   ,msxmldom,intfMSXML2_TLB
   ,intfInvoice
@@ -214,6 +214,7 @@ begin
     end;
     if TXRechnungXMLHelper.SelectNode(xml,'//cbc:DocumentCurrencyCode',node) then
       _Invoice.InvoiceCurrencyCode := node.Text;
+    _Invoice.BuyerAccountingReference := TXRechnungXMLHelper.SelectNodeText(xml,'//cbc:AccountingCost');
     if TXRechnungXMLHelper.SelectNode(xml,'//cbc:BuyerReference',node) then
       _Invoice.BuyerReference := node.Text;
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:InvoicePeriod',node) then
@@ -266,6 +267,10 @@ begin
     begin
       if TXRechnungXMLHelper.SelectNode(node,'.//cbc:ActualDeliveryDate',node2) then
         _Invoice.DeliveryInformation.ActualDeliveryDate := TXRechnungHelper.DateFromStrUBLFormat(node2.text);
+      if TXRechnungXMLHelper.SelectNode(node,'.//cac:DeliveryLocation/cbc:ID',node2) then
+      if node2.attributes.getNamedItem('schemeID') <> nil then
+      if node2.attributes.getNamedItem('schemeID').text = '0088' then
+        _Invoice.DeliveryInformation.LocationIdentifier := node2.text;
       if TXRechnungXMLHelper.SelectNode(node,'.//cac:DeliveryLocation/cac:Address/cbc:StreetName',node2) then
         _Invoice.DeliveryInformation.Address.StreetName := node2.text;
       if TXRechnungXMLHelper.SelectNode(node,'.//cac:DeliveryLocation/cac:Address/cbc:AdditionalStreetName',node2) then
@@ -320,6 +325,19 @@ begin
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:PaymentTerms/cbc:Note',node) then
       TXRechnungHelper.ReadPaymentTerms(_Invoice,node.text);
 
+    if TXRechnungXMLHelper.SelectNodes(xml,'//*[local-name()="Invoice"]/cac:PrepaidPayment',nodes) then
+    for i := 0 to nodes.length-1 do
+    with _Invoice.PrepaidPayments.AddPrepaidPayment do
+    begin
+      ID := TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//cbc:ID');
+      if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//cbc:PaidAmount',node) then
+      begin
+        PaidAmountCurrencyID := TXRechnungXMLHelper.SelectAttributeText(node,'currencyID');
+        PaidAmount := TXRechnungHelper.AmountFromStr(node.text);
+      end;
+      InstructionID := TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//cbc:InstructionID');
+    end;
+
     if TXRechnungXMLHelper.SelectNodes(xml,'//*[local-name()="'+IfThen(_Invoice.InvoiceTypeCode = itc_CreditNote,'CreditNote','Invoice')+'"]/cac:AllowanceCharge',nodes) then
     for i := 0 to nodes.length-1 do
     with _Invoice.AllowanceCharges.AddAllowanceCharge do
@@ -349,6 +367,7 @@ begin
       //if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//cac:TaxCategory/cac:TaxScheme/cbc:ID',node) then
       //  VAT := node.text Ausgabe VAT fest programmiert
     end;
+
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:TaxTotal',node) then
     begin
       if TXRechnungXMLHelper.SelectNode(node,'.//cbc:TaxAmount',node2) then
@@ -677,6 +696,10 @@ begin
     begin
       if TXRechnungXMLHelper.SelectNode(nodeApplicableHeaderTradeAgreement,'.//ram:ShipToTradeParty',node2) then
       begin
+        if TXRechnungXMLHelper.SelectNode(node2,'.//ram:GlobalID',node3) then
+        if node3.attributes.getNamedItem('schemeID') <> nil then
+        if node3.attributes.getNamedItem('schemeID').text = '0088' then
+          _Invoice.DeliveryInformation.LocationIdentifier := node3.text;
         _Invoice.DeliveryInformation.Name := TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:Name');
         if TXRechnungXMLHelper.SelectNode(node2,'.//ram:PostalTradeAddress',node3) then
         begin
@@ -795,12 +818,12 @@ begin
           if TXRechnungXMLHelper.SelectNode(node3,'.//udt:DateTimeString',node) then
             _Invoice.InvoiceDueDate := TXRechnungHelper.DateFromStrUNCEFACTFormat(node.text);
         end;
-        //ZUGFeRD-Variante
+        //ZUGFeRD-Variante //TODO ZUGFeRD-for-Delphi ebenfalls pruefen
         if _Invoice.PaymentTermsType = iptt_None then
-        for i := 0 to nodes.length-1 do
         begin
-          if (_Invoice.PaymentTermsType = iptt_None) and
-             (not TXRechnungXMLHelper.FindNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms')) then
+          //Erst mal Netto finden
+          for i := 0 to nodes.length-1 do
+          if (not TXRechnungXMLHelper.FindNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms')) then
           begin
             _Invoice.PaymentTermsType := iptt_Net;
             _Invoice.PaymentTermNetNote := TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:Description');
@@ -810,14 +833,19 @@ begin
               if TXRechnungXMLHelper.SelectNode(node3,'.//udt:DateTimeString',node) then
                 _Invoice.InvoiceDueDate := TXRechnungHelper.DateFromStrUNCEFACTFormat(node.text);
             end;
-            continue;
+            break;
           end;
-          if TXRechnungXMLHelper.FindNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:CalculationPercent') then
+          //Restliche Skontoeintraege finden
+          for i := 0 to nodes.length-1 do
+          if (TXRechnungXMLHelper.FindNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:CalculationPercent')) then
           begin
             if _Invoice.PaymentTermsType in [iptt_None,iptt_Net] then
               _Invoice.PaymentTermsType := iptt_CashDiscount1
             else
-              _Invoice.PaymentTermsType := iptt_CashDiscount2;
+            if _Invoice.PaymentTermsType in [iptt_CashDiscount1] then
+              _Invoice.PaymentTermsType := iptt_CashDiscount2
+            else
+              _Invoice.PaymentTermsType := iptt_CashDiscount3;
 
             if (_Invoice.PaymentTermsType = iptt_CashDiscount1) then
             begin
@@ -825,11 +853,20 @@ begin
               _Invoice.PaymentTermCashDiscount1Percent := 0;
               _Invoice.PaymentTermCashDiscount1Base := 0;
               if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:BasisPeriodMeasure',node3) then
-                _Invoice.PaymentTermCashDiscount1Days := StrToIntDef(node3.text,0);
+                _Invoice.PaymentTermCashDiscount1Days := StrToIntDef(node3.text,0)
+              else
+              if TXRechnungXMLHelper.FindNode(nodes[i],'.//ram:DueDateDateTime') then
+              begin
+                if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:DueDateDateTime',node3) then
+                if TXRechnungXMLHelper.SelectNode(node3,'.//udt:DateTimeString',node) then
+                  _Invoice.PaymentTermCashDiscount1Days := DaysBetween(Trunc(_Invoice.InvoiceIssueDate),Trunc(TXRechnungHelper.DateFromStrUNCEFACTFormat(node.text)));
+              end;
               if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:CalculationPercent',node3) then
                 _Invoice.PaymentTermCashDiscount1Percent := TXRechnungHelper.FloatFromStr(node3.text);
               if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:BasisAmount',node3) then
                 _Invoice.PaymentTermCashDiscount1Base := TXRechnungHelper.FloatFromStr(node3.text);
+              if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:ActualDiscountAmount',node3) then
+                _Invoice.PaymentTermCashDiscount1ActualAmount:= TXRechnungHelper.FloatFromStr(node3.text);
             end;
 
             if (_Invoice.PaymentTermsType = iptt_CashDiscount2) then
@@ -838,15 +875,45 @@ begin
               _Invoice.PaymentTermCashDiscount2Percent := 0;
               _Invoice.PaymentTermCashDiscount2Base := 0;
               if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:BasisPeriodMeasure',node3) then
-                _Invoice.PaymentTermCashDiscount2Days := StrToIntDef(node3.text,0);
+                _Invoice.PaymentTermCashDiscount2Days := StrToIntDef(node3.text,0)
+              else
+              if TXRechnungXMLHelper.FindNode(nodes[i],'.//ram:DueDateDateTime') then
+              begin
+                if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:DueDateDateTime',node3) then
+                if TXRechnungXMLHelper.SelectNode(node3,'.//udt:DateTimeString',node) then
+                  _Invoice.PaymentTermCashDiscount2Days := DaysBetween(Trunc(_Invoice.InvoiceIssueDate),Trunc(TXRechnungHelper.DateFromStrUNCEFACTFormat(node.text)));
+              end;
               if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:CalculationPercent',node3) then
                 _Invoice.PaymentTermCashDiscount2Percent := TXRechnungHelper.FloatFromStr(node3.text);
               if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:BasisAmount',node3) then
                 _Invoice.PaymentTermCashDiscount2Base := TXRechnungHelper.FloatFromStr(node3.text);
+              if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:ActualDiscountAmount',node3) then
+                _Invoice.PaymentTermCashDiscount2ActualAmount:= TXRechnungHelper.FloatFromStr(node3.text);
             end;
 
-          end;
-        end;
+            if (_Invoice.PaymentTermsType = iptt_CashDiscount3) then
+            begin
+              _Invoice.PaymentTermCashDiscount3Days := 0;
+              _Invoice.PaymentTermCashDiscount3Percent := 0;
+              _Invoice.PaymentTermCashDiscount3Base := 0;
+              if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:BasisPeriodMeasure',node3) then
+                _Invoice.PaymentTermCashDiscount3Days := StrToIntDef(node3.text,0)
+              else
+              if TXRechnungXMLHelper.FindNode(nodes[i],'.//ram:DueDateDateTime') then
+              begin
+                if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:DueDateDateTime',node3) then
+                if TXRechnungXMLHelper.SelectNode(node3,'.//udt:DateTimeString',node) then
+                  _Invoice.PaymentTermCashDiscount3Days := DaysBetween(Trunc(_Invoice.InvoiceIssueDate),Trunc(TXRechnungHelper.DateFromStrUNCEFACTFormat(node.text)));
+              end;
+              if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:CalculationPercent',node3) then
+                _Invoice.PaymentTermCashDiscount3Percent := TXRechnungHelper.FloatFromStr(node3.text);
+              if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:BasisAmount',node3) then
+                _Invoice.PaymentTermCashDiscount3Base := TXRechnungHelper.FloatFromStr(node3.text);
+              if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:ActualDiscountAmount',node3) then
+                _Invoice.PaymentTermCashDiscount3ActualAmount:= TXRechnungHelper.FloatFromStr(node3.text);
+            end;
+          end; //for i := 0 to nodes.length-1 do
+        end; //Ende ZUGFeRD if _Invoice.PaymentTermsType = iptt_None then
       end;
       if TXRechnungXMLHelper.SelectNode(nodeApplicableHeaderTradeAgreement,'.//ram:SpecifiedTradeSettlementHeaderMonetarySummation',node2) then
       begin
@@ -873,7 +940,7 @@ begin
         if TXRechnungXMLHelper.SelectNode(node2,'.//qdt:DateTimeString',node) then
           IssueDate := TXRechnungHelper.DateFromStrUNCEFACTFormat(node.text);
       end;
-
+      _Invoice.BuyerAccountingReference := TXRechnungXMLHelper.SelectNodeText(nodeApplicableHeaderTradeAgreement,'.//ram:ReceivableSpecifiedTradeAccountingAccount/ram:ID');
     end;
     Result := true;
   except
@@ -1060,6 +1127,8 @@ begin
          _Invoice.Notes[i].Content;
   xRoot.AddChild('cbc:DocumentCurrencyCode').Text := _Invoice.InvoiceCurrencyCode;
   //xRoot.AddChild('cbc:TaxCurrencyCode').Text := _Invoice.TaxCurrencyCode; //Nicht in XRechnung 3
+  if _Invoice.BuyerAccountingReference <> '' then
+    xRoot.AddChild('cbc:AccountingCost').Text := _Invoice.BuyerAccountingReference;
   xRoot.AddChild('cbc:BuyerReference').Text := _Invoice.BuyerReference;
   if (_Invoice.InvoicePeriodStartDate > 100) and (_Invoice.InvoicePeriodEndDate >= _Invoice.InvoicePeriodStartDate) then
   with xRoot.AddChild('cac:InvoicePeriod') do
@@ -1260,8 +1329,12 @@ begin
     if (_Invoice.DeliveryInformation.Address.CountryCode <> '') then
     with AddChild('cac:DeliveryLocation') do
     begin
-      //if (_Invoice.DeliveryInformation.LocationIdentifier <> '') then
-      //  AddChild('cbc:ID').Text := _Invoice.DeliveryInformation.LocationIdentifier; //TODO schemeID https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/cac-Delivery/cac-DeliveryLocation/cbc-ID/
+      if (_Invoice.DeliveryInformation.LocationIdentifier <> '') then
+      with AddChild('cbc:ID') do
+      begin
+        Attributes['schemeID'] := '0088';
+        Text := _Invoice.DeliveryInformation.LocationIdentifier;
+      end;
       with AddChild('cac:Address') do
       begin
         if _Invoice.DeliveryInformation.Address.StreetName <> '' then
@@ -1360,6 +1433,42 @@ begin
             TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount2Base)+'#','')+#13#10;
       end;
     end;
+    iptt_CashDiscount3:
+    begin
+      with xRoot.AddChild('cac:PaymentTerms') do
+      begin
+        AddChild('cbc:Note').Text := Format('#SKONTO#TAGE=%d#PROZENT=%s#',
+          [_Invoice.PaymentTermCashDiscount1Days,
+           TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount1Percent)])+
+          IfThen(_Invoice.PaymentTermCashDiscount1Base <> 0,'BASISBETRAG='+
+            TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount1Base)+'#','')+
+          #13#10+
+          Format('#SKONTO#TAGE=%d#PROZENT=%s#',
+          [_Invoice.PaymentTermCashDiscount2Days,
+           TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount2Percent)])+
+          IfThen(_Invoice.PaymentTermCashDiscount2Base <> 0,'BASISBETRAG='+
+            TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount2Base)+'#','')
+          +#13#10+
+          Format('#SKONTO#TAGE=%d#PROZENT=%s#',
+          [_Invoice.PaymentTermCashDiscount3Days,
+           TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount3Percent)])+
+          IfThen(_Invoice.PaymentTermCashDiscount3Base <> 0,'BASISBETRAG='+
+            TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount3Base)+'#','')
+          +#13#10;
+      end;
+    end;
+  end;
+
+  for i := 0 to _Invoice.PrepaidPayments.Count-1 do
+  with xRoot.AddChild('cac:PrepaidPayment') do
+  begin
+    AddChild('cbc:ID').Text := _Invoice.PrepaidPayments[i].ID;
+    with AddChild('cbc:PaidAmount') do
+    begin
+      Attributes['currencyID'] := _Invoice.PrepaidPayments[i].PaidAmountCurrencyID;
+      Text := TXRechnungHelper.AmountToStr(_Invoice.PrepaidPayments[i].PaidAmount);
+    end;
+    AddChild('cbc:InstructionID').Text := _Invoice.PrepaidPayments[i].InstructionID;
   end;
 
   for i := 0 to _Invoice.AllowanceCharges.Count-1 do
@@ -1478,6 +1587,10 @@ class procedure TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(
 var
   xRoot : IXMLNode;
   i : Integer;
+  iPaymentTermsType : TInvoicePaymentTermsType;
+  lDays : Integer;
+  lSkonto : double;
+  lBasisAmount,lActualDiscountAmount : Currency;
 
   procedure InternalAddInvoiceLine(_Invoiceline : TInvoiceLine; _Node : IXMLNode);
   var
@@ -1517,9 +1630,6 @@ var
     end;
     with _Node.AddChild('ram:SpecifiedLineTradeAgreement') do
     begin
-//        <ram:BuyerOrderReferencedDocument>
-//            <ram:LineID>6171175.1</ram:LineID>
-//        </ram:BuyerOrderReferencedDocument>
       if _InvoiceLine.OrderLineReference <> '' then
       with AddChild('ram:BuyerOrderReferencedDocument') do
       begin
@@ -1535,8 +1645,7 @@ var
           Attributes['unitCode'] := TXRechnungHelper.InvoiceUnitCodeToStr(_Invoiceline.BaseQuantityUnitCode);
           Text := TXRechnungHelper.FloatToStr(_Invoiceline.BaseQuantity);
         end;
-        if _Invoiceline.DiscountOnTheGrossPrice <> 0 then
-        with AddChild('ram:AppliedTradeAllowanceCharge') do
+        with AddChild('ram:AppliedTradeAllowanceCharge') do //auch wenn DiscountOnTheGrossPrice 0 ist ausgeben
         begin
           AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := 'false';
           //<ram:CalculationPercent>45</ram:CalculationPercent> nicht möglich bei UBL
@@ -1823,6 +1932,12 @@ begin
       begin
         with AddChild('ram:ShipToTradeParty') do
         begin
+          if _Invoice.DeliveryInformation.LocationIdentifier <> '' then
+          with AddChild('ram:GlobalID') do
+          begin
+            Attributes['schemeID'] := '0088';
+            Text := _Invoice.DeliveryInformation.LocationIdentifier;
+          end;
           AddChild('ram:Name').Text := _Invoice.DeliveryInformation.Name;
           with AddChild('ram:PostalTradeAddress') do
           begin
@@ -1974,6 +2089,27 @@ begin
                   TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount2Base)+'#','')+
                 #13#10;
           end;
+          iptt_CashDiscount3:
+          begin
+            AddChild('ram:Description').Text := Format('#SKONTO#TAGE=%d#PROZENT=%s#',
+                [_Invoice.PaymentTermCashDiscount1Days,
+                 TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount1Percent)])+
+                IfThen(_Invoice.PaymentTermCashDiscount1Base <> 0,'BASISBETRAG='+
+                  TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount1Base)+'#','')+
+                #13#10+
+                Format('#SKONTO#TAGE=%d#PROZENT=%s#',
+                [_Invoice.PaymentTermCashDiscount2Days,
+                 TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount2Percent)])+
+                IfThen(_Invoice.PaymentTermCashDiscount2Base <> 0,'BASISBETRAG='+
+                  TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount2Base)+'#','')+
+                #13#10+
+                Format('#SKONTO#TAGE=%d#PROZENT=%s#',
+                [_Invoice.PaymentTermCashDiscount3Days,
+                 TXRechnungHelper.FloatToStr(_Invoice.PaymentTermCashDiscount3Percent)])+
+                IfThen(_Invoice.PaymentTermCashDiscount3Base <> 0,'BASISBETRAG='+
+                  TXRechnungHelper.AmountToStr(_Invoice.PaymentTermCashDiscount3Base)+'#','')+
+                #13#10;
+          end;
         end;
         if _Invoice.InvoiceTypeCode <> itc_CreditNote then
         if _Invoice.InvoiceDueDate > 100 then
@@ -2002,13 +2138,37 @@ begin
           if (_Invoice.PaymentMandateID <> '') then
             AddChild('ram:DirectDebitMandateID').Text := _Invoice.PaymentMandateID;
         end;
-        if (_Invoice.PaymentTermsType in [iptt_CashDiscount1,iptt_CashDiscount2]) then
+        if (_Invoice.PaymentTermsType in [iptt_CashDiscount1,iptt_CashDiscount2,iptt_CashDiscount3]) then
+        for iPaymentTermsType := iptt_CashDiscount1 to _Invoice.PaymentTermsType do
         with AddChild('ram:SpecifiedTradePaymentTerms') do
         begin
+          case iPaymentTermsType of
+            iptt_CashDiscount2:
+            begin
+              lDays := _Invoice.PaymentTermCashDiscount2Days;
+              lSkonto := _Invoice.PaymentTermCashDiscount2Percent;
+              lBasisAmount := _Invoice.PaymentTermCashDiscount2Base;
+              lActualDiscountAmount := _Invoice.PaymentTermCashDiscount2ActualAmount;
+            end;
+            iptt_CashDiscount3:
+            begin
+              lDays := _Invoice.PaymentTermCashDiscount3Days;
+              lSkonto := _Invoice.PaymentTermCashDiscount3Percent;
+              lBasisAmount := _Invoice.PaymentTermCashDiscount3Base;
+              lActualDiscountAmount := _Invoice.PaymentTermCashDiscount3ActualAmount;
+            end;
+            else //iptt_CashDiscount1
+            begin
+              lDays := _Invoice.PaymentTermCashDiscount1Days;
+              lSkonto := _Invoice.PaymentTermCashDiscount1Percent;
+              lBasisAmount := _Invoice.PaymentTermCashDiscount1Base;
+              lActualDiscountAmount := _Invoice.PaymentTermCashDiscount1ActualAmount;
+            end;
+          end;
           with AddChild('ram:DueDateDateTime').AddChild('udt:DateTimeString') do
           begin
             Attributes['format'] := '102';
-            Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.InvoiceIssueDate + _Invoice.PaymentTermCashDiscount1Days);
+            Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.InvoiceIssueDate + lDays);
           end;
           with AddChild('ram:ApplicableTradePaymentDiscountTerms') do
           begin
@@ -2019,37 +2179,14 @@ begin
             end;
             with AddChild('ram:BasisPeriodMeasure') do
             begin
-              Text := IntToStr(_Invoice.PaymentTermCashDiscount1Days);
+              Text := IntToStr(lDays);
               Attributes['unitCode'] := 'DAY';
             end;
-            if _Invoice.PaymentTermCashDiscount1Base <> 0 then
-              AddChild('ram:BasisAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoice.PaymentTermCashDiscount1Base);
-            AddChild('ram:CalculationPercent').Text := TXRechnungHelper.PercentageToStr(_Invoice.PaymentTermCashDiscount1Percent);
-          end;
-        end;
-        if (_Invoice.PaymentTermsType in [iptt_CashDiscount2]) then
-        with AddChild('ram:SpecifiedTradePaymentTerms') do
-        begin
-          with AddChild('ram:DueDateDateTime').AddChild('udt:DateTimeString') do
-          begin
-            Attributes['format'] := '102';
-            Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.InvoiceIssueDate + _Invoice.PaymentTermCashDiscount2Days);
-          end;
-          with AddChild('ram:ApplicableTradePaymentDiscountTerms') do
-          begin
-            with AddChild('ram:BasisDateTime').AddChild('udt:DateTimeString') do
-            begin
-              Attributes['format'] := '102';
-              Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.InvoiceIssueDate);
-            end;
-            with AddChild('ram:BasisPeriodMeasure') do
-            begin
-              Text := IntToStr(_Invoice.PaymentTermCashDiscount2Days);
-              Attributes['unitCode'] := 'DAY';
-            end;
-            if _Invoice.PaymentTermCashDiscount2Base <> 0 then
-              AddChild('ram:BasisAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoice.PaymentTermCashDiscount2Base);
-            AddChild('ram:CalculationPercent').Text := TXRechnungHelper.PercentageToStr(_Invoice.PaymentTermCashDiscount2Percent);
+            if lBasisAmount <> 0 then
+              AddChild('ram:BasisAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(lBasisAmount);
+            AddChild('ram:CalculationPercent').Text := TXRechnungHelper.PercentageToStr(lSkonto);
+            if lActualDiscountAmount <> 0 then
+              AddChild('ram:ActualDiscountAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(lActualDiscountAmount);
           end;
         end;
       end; //end if _ProfileZUGFeRDExtended then
@@ -2082,6 +2219,11 @@ begin
         end;
         if _ProfileXRechnung then
           break; //only one item allowed in xrechnung cii
+      end;
+      if _Invoice.BuyerAccountingReference <> '' then
+      with AddChild('ram:ReceivableSpecifiedTradeAccountingAccount') do
+      begin
+        AddChild('ram:ID').Text := _Invoice.BuyerAccountingReference;
       end;
     end;
   end;

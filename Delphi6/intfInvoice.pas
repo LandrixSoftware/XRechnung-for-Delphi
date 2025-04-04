@@ -111,20 +111,95 @@ type
   TInvoicePaymentMeansCode = (
     ipmc_NotImplemented,
     ipmc_InstrumentNotDefined, //1  Keine Angaben
+    ipmc_AutomatedClearingHouseCredit,                         //2  A credit transaction made through the automated clearing house system.
+    ipmc_AutomatedClearingHouseDebit,                          //3  A debit transaction made through the automated clearing house system.
+    ipmc_ACH_DemandDebitReversal,                              //4  A request to reverse an ACH debit transaction to a demand deposit account.
+    ipmc_ACH_DemandCreditReversal,                             //5  A request to reverse a credit transaction to a demand deposit account.
+    ipmc_ACH_Demand_Credit,                                    //6  A credit transaction made through the ACH system to a demand deposit account.
+    ipmc_ACH_Demand_Debit,                                     //7  A debit transaction made through the ACH system to a demand deposit account.
+    ipmc_Hold,                                                 //8  Indicates that the bank should hold the payment for collection by the beneficiary or other instructions.
+    ipmc_NationalOrRegionalClearing,                           //9  Indicates that the payment should be made using the national or regional clearing.
     ipmc_InCash,               //10 Barzahlung
+    ipmc_ACH_SavingsCreditReversal,                            //11 A request to reverse an ACH credit transaction to a savings account.
+    ipmc_ACH_SavingsDebitReversal,                             //12 A request to reverse an ACH debit transaction to a savings account.
+    ipmc_ACH_SavingsCredit,                                    //13 A credit transaction made through the ACH system to a savings account.
+    ipmc_ACH_SavingsDebit,                                     //14 A debit transaction made through the ACH system to a savings account.
+    ipmc_BookEntryCredit,                                      //15 A credit entry between two accounts at the same bank branch. Synonym: house credit.
+    ipmc_BookEntryDebit,                                       //16 A debit entry between two accounts at the same bank branch. Synonym: house debit.
+    ipmc_ACH_DemandCashConcentrationDisbursementCredit,        //17 A credit transaction made through the ACH system to a demand deposit account using the CCD payment format.
+    ipmc_ACH_DemandCashConcentrationDisbursementDebit,         //18 A debit transaction made through the ACH system to a demand deposit account using the CCD payment format.
+    ipmc_ACH_DemandCorporateTradePaymentCredit,                //19 A credit transaction made through the ACH system to a demand deposit account using the CTP payment format.
     ipmc_Cheque,               //20 Scheck
+    ipmc_BankersDraft,                                         //21 Issue of a banker's draft in payment of the funds.
+    ipmc_CertifiedBankerDraft,                                 //22 Cheque drawn by a bank on itself or its agent. A person who owes money to another buys the draft from a bank for cash and hands it to the Crdt who need have no fear that it might be dishonoured.
+    ipmc_BankChequeIssuedByEstablishment,                      //23 Payment by a pre-printed form, which has been completed by a financial institution, on which instructions are given to an account holder (a bank or building society) to pay a stated sum to a named recipient.
+    ipmc_BillOfExchangeAwaitingAcceptance,                     //24 Bill drawn by the Crdt on the debtor but not yet accepted by the debtor.
+    ipmc_CertifiedCheque,                                      //25 Payment by a pre-printed form stamped with the paying bank's certification on which instructions are given to an account holder (a bank or building society) to pay a stated sum to a named recipient .
+    ipmc_LocalCheque,                                          //26 Indicates that the cheque is given local to the recipient.
+    ipmc_ACH_DemandCorporateTradePaymentDebit,                 //27 A debit transaction made through the ACH system to a demand deposit account using the CTP payment format.
+    ipmc_ACH_DemandCorporateTradeExchangeCredit,               //28 A credit transaction made through the ACH system to a demand deposit account using the CTX payment format.
+    ipmc_ACH_DemandCorporateTradeExchangeDebit,                //29 A debit transaction made through the ACH system to a demand account using the CTX payment format.
     ipmc_CreditTransfer,       //30 Ueberweisung nicht SEPA (nicht SEPA)
+    ipmc_DebitTransfer,                                        //31 Payment by debit movement of funds from one account to another.
+    ipmc_ACH_DemandCashConcentrationDisbursementPlusCredit,    //32 A credit transaction made through the ACH system to a demand deposit account using the CCD+ payment format.
+    ipmc_ACH_DemandCashConcentrationDisbursementPlusDebit,     //33 A debit transaction made through the ACH system to a demand deposit account using the CCD+ payment format.
+    ipmc_ACH_PrearrangedPaymentAndDeposit,                     //34 A consumer credit transaction made through the ACH system to a demand deposit or savings account.
+    ipmc_ACH_SavingsCashConcentrationDisbursementCredit,       //35 A credit transaction made through the ACH system to a demand deposit or savings account.
+    ipmc_ACH_SavingsCashConcentrationDisbursementDebit,        //36 A debit transaction made through the ACH system to a savings account using the CCD payment format.
+    ipmc_ACH_SavingsCorporateTradePaymentCredit,               //37 A credit transaction made through the ACH system to a savings account using the CTP payment format.
+    ipmc_ACH_SavingsCorporateTradePaymentDebit,                //38 A debit transaction made through the ACH system to a savings account using the CTP payment format.
+    ipmc_ACH_SavingsCorporateTradeExchangeCredit,              //39 A credit transaction made through the ACH system to a savings account using the CTX payment format.
+    ipmc_ACH_SavingsCorporateTradeExchangeDebit,               //40 A debit transaction made through the ACH system to a savings account using the CTX payment format.
+    ipmc_ACH_SavingsCashConcentrationDisbursementPlusCredit,   //41 A credit transaction made through the ACH system to a savings account using the CCD+ payment format.
+    ipmc_PaymentToBankAccount,                                 //42 Payment by an arrangement for settling debts that is operated by the Post Office.
+    ipmc_ACH_SavingsCashConcentrationDisbursementPlusDebit,    //43 A debit transaction made through the ACH system to a savings account using the CCD+ payment format.
+    ipmc_AcceptedBillOfExchange,                               //44 Bill drawn by the Crdt on the debtor and accepted by the debtor.
+    ipmc_ReferencedHomeBankingCreditTransfer,                  //45 A referenced credit transfer initiated through home-banking.
+    ipmc_InterbankDebitTransfer,                               //46 A debit transfer via interbank means.
+    ipmc_HomeBankingDebitTransfer,                             //47 A debit transfer initiated through home-banking.
+    ipmc_BankCard,                                             //48 Payment by means of a card issued by a bank or other financial institution.
+    ipmc_DirectDebit,                                          //49 The amount is to be, or has been, directly debited to the customer's bank account.
+    ipmc_PaymentByPostgiro,                                    //50 A method for the transmission of funds through the postal system rather than through the banking system.
+    ipmc_FR_Norme_6_97,                                        //51 A French standard procedure that allows a debtor to pay an amount due to a Crdt. The Crdt will forward it to its bank, which will collect the money on the bank account of the debtor.
+    ipmc_UrgentCommercialPayment,                              //52 Payment order which requires guaranteed processing by the most appropriate means to ensure it occurs on the requested execution date, provided that it is issued to the ordered bank before the agreed cut-off time.
+    ipmc_UrgentTreasuryPayment,                                //53 Payment order or transfer which must be executed, by the most appropriate means, as urgently as possible and before urgent commercial payments.
     ipmc_CreditCard,           //54 Kreditkarte
+    ipmc_DebitCard,                                            //55 Payment made by means of debit card.
+    ipmc_Bankgiro,                                             //56 Payment will be, or has been, made by bankgiro.
+    ipmc_StandingAgreement,                                    //57 The payment means have been previously agreed between seller and buyer and thus are not stated again.
     ipmc_SEPACreditTransfer,   //58 Ueberweisung (SEPA)
     ipmc_SEPADirectDebit,      //59 Lastschrift (SEPA)
+    ipmc_PromissoryNote,                                       //60 Payment by an unconditional promise in writing made by one person to another, signed by the maker, engaging to pay on demand or at a fixed or determinable future time a sum certain in money, to order or to bearer.
+    ipmc_PromissoryNoteSignedByDebtor,                         //61 Payment by an unconditional promise in writing made by the debtor to another person, signed by the debtor, engaging to pay on demand or at a fixed or determinable future time a sum certain in money, to order or to bearer.
+    ipmc_PromissoryNoteSignedByDebtorEndorsedByBank,           //62 Payment by an unconditional promise in writing made by the debtor to another person, signed by the debtor and endorsed by a bank, engaging to pay on demand or at a fixed or determinable future time a sum certain in money, to order or to bearer.
+    ipmc_PromissoryNoteSignedByDebtorEndorsedByThirdParty,     //63 Payment by an unconditional promise in writing made by the debtor to another person, signed by the debtor and endorsed by a third party, engaging to pay on demand or at a fixed or determinable future time a sum certain in money, to order or to bearer.
+    ipmc_PromissoryNoteSignedByBank,                           //64 Payment by an unconditional promise in writing made by the bank to another person, signed by the bank, engaging to pay on demand or at a fixed or determinable future time a sum certain in money, to order or to bearer.
+    ipmc_PromissoryNoteSignedByBankEndorsedByAnotherBank,      //65 Payment by an unconditional promise in writing made by the bank to another person, signed by the bank and endorsed by another bank, engaging to pay on demand or at a fixed or determinable future time a sum certain in money, to order or to bearer.
+    ipmc_PromissoryNoteSignedByThirdParty,                     //66 Payment by an unconditional promise in writing made by a third party to another person, signed by the third party, engaging to pay on demand or at a fixed or determinable future time a sum certain in money, to order or to bearer.
+    ipmc_PromissoryNoteSignedByThirdPartyEndorsedByBank,       //67 Payment by an unconditional promise in writing made by a third party to another person, signed by the third party and endorsed by a bank, engaging to pay on demand or at a fixed or determinable future time a sum certain in money, to order or to bearer.
     ipmc_OnlinePaymentService, //68 Online Payment Service PayPal, etc.
+    ipmc_TransferAdvice,                                       //69 Transfer of an amount of money in the books of the account servicer. An advice should be sent back to the account owner.
+    ipmc_BillDrawnByCrdtOnDebtor,                              //70 Bill drawn by the Crdt on the debtor.
+    ipmc_BillDrawnByCrdtOnBank,                                //74 Bill drawn by the Crdt on a bank.
+    ipmc_BillDrawnByCrdtEndorsedByAnotherBank,                 //75 Bill drawn by the Crdt, endorsed by another bank.
+    ipmc_BillDrawnByCrdtOnBankEndorsedByThirdParty,            //76 Bill drawn by the Crdt on a bank and endorsed by a third party.
+    ipmc_BillDrawnByCrdtOnThirdParty,                          //77 Bill drawn by the Crdt on a third party.
+    ipmc_BillDrawnByCrdtOnThirdPartyAcceptedAndEndorsedByBank, //78 Bill drawn by Crdt on third party, accepted and endorsed by bank.
+    ipmc_NotTransferableBankersDraft,                          //91 Issue a bankers draft not endorsable.
+    ipmc_NotTransferableLocalCheque,                           //92 Issue a cheque not endorsable in payment of the funds.
+    ipmc_ReferenceGiro,                                        //93 Ordering customer tells the bank to use the payment system 'Reference giro'. Used in the Finnish national banking system.
+    ipmc_UrgentGiro,                                           //94 Ordering customer tells the bank to use the bank service 'Urgent Giro' when transferring the payment. Used in Finnish national banking system.
+    ipmc_FreeFormatGiro,                                       //95 Ordering customer tells the ordering bank to use the bank service 'Free Format Giro' when transferring the payment. Used in Finnish national banking system.
+    ipmc_RequestedMethodForPaymentWasNotUsed,                  //96 If the requested method for payment was or could not be used, this code indicates that.
+    ipmc_ClearingBetweenPartners,                              //97 Amounts which two partners owe to each other to be compensated in order to avoid useless payments.
     ipmc_MutuallyDefined       //ZZZ Gegenseitig definiert (PayPal, etc.)
   );
 
   TInvoicePaymentTermsType = (iptt_None,
                       iptt_Net,
                       iptt_CashDiscount1,
-                      iptt_CashDiscount2);
+                      iptt_CashDiscount2,
+                      iptt_CashDiscount3);
 
   TInvoiceUnitCode = (iuc_None //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:rec20_1
                       ,iuc_one   //C62 A unit of count defining the number of pieces
@@ -214,6 +289,27 @@ type
   public
     function AddAttachment(_AttachmentType : TInvoiceAttachmentType) : TInvoiceAttachment;
     function TryAddAttachmentByExtension(const _Filename : String; out _Attachment : TInvoiceAttachment) : Boolean;
+  end;
+
+  TInvoicePrepaidPayment = class(TObject)
+  public
+    ID : String; //BT-DEX-001
+    PaidAmount : Currency; //BT-DEX-002
+    PaidAmountCurrencyID : String; //BT-DEX-002
+    InstructionID : String; //BT-DEX-003
+  end;
+
+  TInvoicePrepaidPaymentList = class(TObjectList)
+  protected
+    function GetItem(Index: Integer): TInvoicePrepaidPayment;
+    procedure SetItem(Index: Integer; AItem: TInvoicePrepaidPayment);
+  public
+	  function  Extract(Item: TObject): TInvoicePrepaidPayment;
+	  function  First: TInvoicePrepaidPayment;
+	  function  Last: TInvoicePrepaidPayment;
+	  property  Items[Index: Integer]: TInvoicePrepaidPayment read GetItem write SetItem; default;
+  public
+    function AddPrepaidPayment : TInvoicePrepaidPayment;
   end;
 
   TInvoiceUnitCodeHelper = class(TObject)
@@ -540,7 +636,7 @@ type
   TInvoiceDeliveryInformation = class(TObject)
   public
     Name : String;
-    //LocationIdentifier : String; //optional Ein Bezeichner fuer den Ort, an den die Waren geliefert oder an dem die Dienstleistungen erbracht werden.
+    LocationIdentifier : String; //optional Ein Bezeichner fuer den Ort, an den die Waren geliefert oder an dem die Dienstleistungen erbracht werden.
     Address : TInvoiceAddress;
     ActualDeliveryDate : TDate; //Lieferdatum
   public
@@ -630,21 +726,23 @@ type
 
   TInvoice = class(TObject)
   public
-    InvoiceNumber : String;  //Rechnungsnummer
-    InvoiceIssueDate : TDate; //Rechnungsdatum
-    InvoiceDueDate : TDate; //Faelligkeitsdatum
-    InvoicePeriodStartDate : TDate; //Leistungszeitraum Beginn
-    InvoicePeriodEndDate : TDate; //Leistungszeitraum Ende
-    InvoiceTypeCode : TInvoiceTypeCode;
-    InvoiceCurrencyCode : String; //EUR
-    TaxCurrencyCode : String;     //EUR
-    BuyerReference : String; //Pflicht - Leitweg-ID - https://leitweg-id.de/home/ wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
-    Notes : TInvoiceNotes; //Hinweise zur Rechnung allgemein
-    SellerOrderReference : String; //Auftragsnummer der Verkaeufers
-    PurchaseOrderReference : String; //Bestellnummer oder Vertragsnummer des Kaeufers
-    ProjectReference : String;
-    ContractDocumentReference : String;
-    DeliveryReceiptNumber : String; //Lieferscheinnummer (Lieferscheindatum fehlt und wuerde nur in ZUGFeRD unterstuetzt)
+    InvoiceNumber : String;  //BT-1 Rechnungsnummer
+    InvoiceIssueDate : TDate; //BT-2 Rechnungsdatum
+    InvoiceDueDate : TDate; //BT-9 Faelligkeitsdatum
+    InvoicePeriodStartDate : TDate; //BG-14, BT-73 Leistungszeitraum Beginn
+    InvoicePeriodEndDate : TDate; //BG-14, BT-74 Leistungszeitraum Ende
+    InvoiceTypeCode : TInvoiceTypeCode; // BT-3
+    // BT-4 gibt es nicht!
+    InvoiceCurrencyCode : String; //BT-5 EUR
+    TaxCurrencyCode : String;     //BT-6 EUR
+    BuyerReference : String; //BT-10 Pflicht - Leitweg-ID - https://leitweg-id.de/home/ wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
+    Notes : TInvoiceNotes; //BG-1, BT-21..BT-22 Hinweise zur Rechnung allgemein
+    SellerOrderReference : String; //BT-14 Auftragsnummer der Verkaeufers
+    PurchaseOrderReference : String; //BT-13 Bestellnummer oder Vertragsnummer des Kaeufers
+    ProjectReference : String; //BT-11
+    ContractDocumentReference : String; //BT-12
+    DeliveryReceiptNumber : String; //BT-15 Lieferscheinnummer (Lieferscheindatum fehlt und wuerde nur in ZUGFeRD unterstuetzt)
+    BuyerAccountingReference : String; //BT-19 Buchungsreferenz des Kaeufers für die Rechnung UBL ein Wert, CII Liste
 
     AccountingSupplierParty : TInvoiceAccountingParty;
     AccountingCustomerParty : TInvoiceAccountingParty;
@@ -661,14 +759,21 @@ type
     PaymentTermCashDiscount1Days : Integer;
     PaymentTermCashDiscount1Percent : double;
     PaymentTermCashDiscount1Base : Currency; //Anderer Betrag als der Rechnungsbetrag
+    PaymentTermCashDiscount1ActualAmount : Currency; //Nur ZUGFeRD/Factur-X: Muss immer Basis * Prozent ergeben
     PaymentTermCashDiscount2Days : Integer;
     PaymentTermCashDiscount2Percent : double;
     PaymentTermCashDiscount2Base : Currency; //Anderer Betrag als der Rechnungsbetrag
+    PaymentTermCashDiscount2ActualAmount : Currency; //Nur ZUGFeRD/Factur-X: Muss immer Basis * Prozent ergeben
+    PaymentTermCashDiscount3Days : Integer;
+    PaymentTermCashDiscount3Percent : double;
+    PaymentTermCashDiscount3Base : Currency; //Anderer Betrag als der Rechnungsbetrag
+    PaymentTermCashDiscount3ActualAmount : Currency; //Nur ZUGFeRD/Factur-X: Muss immer Basis * Prozent ergeben
 
     InvoiceLines : TInvoiceLines;
 
     Attachments : TInvoiceAttachmentList; //BG-24
 
+    PrepaidPayments : TInvoicePrepaidPaymentList; //BG-DEX-09 Third Party Payment Extension NUR XRechnung UBL !!!! https://blog.seeburger.com/de/xrechnung-2-3-1-gueltig-ab-dem-01-08-2023/
     AllowanceCharges : TInvoiceAllowanceCharges; //Nachlaesse, Zuschlaege
     PrecedingInvoiceReferences : TInvoicePrecedingInvoiceReferences;
 
@@ -676,13 +781,13 @@ type
     TaxAmountSubtotals : TInvoiceTaxAmounts;
 
     LineAmount : Currency;
-    TaxExclusiveAmount : Currency;
-    TaxInclusiveAmount : Currency;
+    TaxExclusiveAmount : Currency;    //BT-109
+    TaxInclusiveAmount : Currency;    //BT-112
     AllowanceTotalAmount : Currency;
     ChargeTotalAmount : Currency;
     PrepaidAmount : Currency;         //BT-113
     PayableRoundingAmount : Currency; //BT-114
-    PayableAmount : Currency;
+    PayableAmount : Currency;         //BT-115 = BT-112 - BT-113 + BT-114 + Summe BT-DEX-002
   public
     constructor Create;
     destructor Destroy; override;
@@ -698,6 +803,7 @@ begin
   PaymentTypes := TInvoicePaymentTypeList.Create;
   InvoiceLines := TInvoiceLines.Create;
   Attachments := TInvoiceAttachmentList.Create;
+  PrepaidPayments := TInvoicePrepaidPaymentList.Create;
   AllowanceCharges := TInvoiceAllowanceCharges.Create;
   PrecedingInvoiceReferences := TInvoicePrecedingInvoiceReferences.Create;
   TaxAmountSubtotals := TInvoiceTaxAmounts.Create;
@@ -714,6 +820,7 @@ begin
   if Assigned(PaymentTypes) then begin PaymentTypes.Free; PaymentTypes := nil; end;
   if Assigned(InvoiceLines) then begin InvoiceLines.Free; InvoiceLines := nil; end;
   if Assigned(Attachments) then begin Attachments.Free; Attachments := nil; end;
+  if Assigned(PrepaidPayments) then begin PrepaidPayments.Free; PrepaidPayments := nil; end;
   if Assigned(AllowanceCharges) then begin AllowanceCharges.Free; AllowanceCharges := nil; end;
   if Assigned(PrecedingInvoiceReferences) then begin PrecedingInvoiceReferences.Free; PrecedingInvoiceReferences := nil; end;
   if Assigned(TaxAmountSubtotals) then begin TaxAmountSubtotals.Free; TaxAmountSubtotals := nil; end;
@@ -786,6 +893,29 @@ begin inherited Items[Index] := AItem; end;
 function TInvoiceAllowanceCharges.AddAllowanceCharge: TInvoiceAllowanceCharge;
 begin
   Result := TInvoiceAllowanceCharge.Create;
+  Add(Result);
+end;
+
+{ TInvoicePrepaidPaymentList }
+
+function TInvoicePrepaidPaymentList.Extract(Item: TObject): TInvoicePrepaidPayment;
+begin Result := TInvoicePrepaidPayment(inherited Extract(Item)); end;
+
+function TInvoicePrepaidPaymentList.First: TInvoicePrepaidPayment;
+begin if Count = 0 then Result := nil else Result := TInvoicePrepaidPayment(inherited First); end;
+
+function TInvoicePrepaidPaymentList.GetItem(Index: Integer): TInvoicePrepaidPayment;
+begin Result := TInvoicePrepaidPayment(inherited Items[Index]); end;
+
+function TInvoicePrepaidPaymentList.Last: TInvoicePrepaidPayment;
+begin if Count = 0 then Result := nil else Result := TInvoicePrepaidPayment(inherited Last); end;
+
+procedure TInvoicePrepaidPaymentList.SetItem(Index: Integer; AItem: TInvoicePrepaidPayment);
+begin inherited Items[Index] := AItem; end;
+
+function TInvoicePrepaidPaymentList.AddPrepaidPayment: TInvoicePrepaidPayment;
+begin
+  Result := TInvoicePrepaidPayment.Create;
   Add(Result);
 end;
 
@@ -962,7 +1092,8 @@ begin
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'tag') or SameText(_UnitOfMeasure,'tage') then
+  if SameText(_UnitOfMeasure,'tag') or
+     SameText(_UnitOfMeasure,'tage') then
   begin
     Result := iuc_day;
     _Success := true;
@@ -1011,7 +1142,8 @@ begin
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'t') or SameText(_UnitOfMeasure,'tonne') then
+  if SameText(_UnitOfMeasure,'t') or
+     SameText(_UnitOfMeasure,'tonne') then
   begin
     Result := iuc_tonne_metric_ton;
     _Success := true;
@@ -1071,7 +1203,8 @@ begin
   end;
   if SameText(_UnitOfMeasure,'Paket') or
      SameText(_UnitOfMeasure,'PCK') or
-     SameText(_UnitOfMeasure,'Pack') then
+     SameText(_UnitOfMeasure,'Pack') or
+     SameText(_UnitOfMeasure,'Kart.') then
   begin
     Result := iuc_packaging;
     _Success := true;

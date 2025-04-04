@@ -49,7 +49,7 @@ type
     class procedure PayPalOderAndereOnlinezahlungsdienstleister(inv : TInvoice);
     class procedure Kreditkarte(inv : TInvoice);
     class procedure LeistungszeitraumJePosition(inv : TInvoice);
-    class procedure ThirdPartyPaymentBGDEX09(inv : TInvoice;
+    class procedure ThirdPartyPaymentBGDEX09(inv : TInvoice; //Durchlaufender Posten
                        NachlaesseZuschlaegeVerwenden : Boolean);
   end;
 

@@ -1,8 +1,8 @@
 object Form1: TForm1
-  Left = 18
-  Top = 153
+  Left = 2088
+  Top = 30
   Width = 1630
-  Height = 748
+  Height = 749
   Caption = 'XRechnung for Delphi v3.0.x'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -15,7 +15,7 @@ object Form1: TForm1
   OnCreate = FormCreate
   DesignSize = (
     1614
-    709)
+    710)
   PixelsPerInch = 96
   TextHeight = 13
   object Label3: TLabel
@@ -38,14 +38,14 @@ object Form1: TForm1
     Left = 144
     Top = 8
     Width = 649
-    Height = 516
+    Height = 517
     Anchors = [akLeft, akTop, akBottom]
     ScrollBars = ssBoth
     TabOrder = 1
   end
   object Memo3: TMemo
     Left = 144
-    Top = 530
+    Top = 531
     Width = 1453
     Height = 169
     Anchors = [akLeft, akRight, akBottom]
@@ -112,36 +112,40 @@ object Form1: TForm1
   end
   object Button2: TButton
     Left = 8
-    Top = 596
+    Top = 597
     Width = 129
     Height = 25
+    Anchors = [akLeft, akBottom]
     Caption = 'Datei laden'
     TabOrder = 9
     OnClick = Button2Click
   end
   object Button3: TButton
     Left = 8
-    Top = 624
+    Top = 625
     Width = 130
     Height = 25
+    Anchors = [akLeft, akBottom]
     Caption = 'XRechnung validieren'
     TabOrder = 10
     OnClick = Button3Click
   end
   object Button5: TButton
     Left = 8
-    Top = 652
+    Top = 653
     Width = 130
     Height = 25
+    Anchors = [akLeft, akBottom]
     Caption = 'XRechnung als HTML'
     TabOrder = 11
     OnClick = Button5Click
   end
   object Button6: TButton
     Left = 8
-    Top = 681
+    Top = 682
     Width = 130
     Height = 25
+    Anchors = [akLeft, akBottom]
     Caption = 'XRechnung als PDF'
     TabOrder = 12
     OnClick = Button6Click
@@ -163,7 +167,7 @@ object Form1: TForm1
     Left = 799
     Top = 8
     Width = 798
-    Height = 516
+    Height = 517
     ActivePage = TabSheet1
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabIndex = 0
@@ -174,11 +178,11 @@ object Form1: TForm1
         Left = 0
         Top = 0
         Width = 790
-        Height = 488
+        Height = 489
         Align = alClient
         TabOrder = 0
         ControlData = {
-          4C000000A6510000703200000000000000000000000000000000000000000000
+          4C000000A65100008A3200000000000000000000000000000000000000000000
           000000004C000000000000000000000001000000E0D057007335CF11AE690800
           2B2E126208000000000000004C0000000114020000000000C000000000000046
           8000000000000000000000000000000000000000000000000000000000000000
@@ -196,9 +200,10 @@ object Form1: TForm1
   end
   object Button9: TButton
     Left = 8
-    Top = 554
+    Top = 555
     Width = 130
     Height = 25
+    Anchors = [akLeft, akBottom]
     Caption = 'Erzeugen'
     TabOrder = 15
     OnClick = Button9Click
@@ -207,7 +212,8 @@ object Form1: TForm1
     Left = 8
     Top = 394
     Width = 130
-    Height = 154
+    Height = 155
+    Anchors = [akLeft, akTop, akBottom]
     ItemHeight = 13
     Items.Strings = (
       'Kleinunternehmerregelung'
@@ -222,7 +228,9 @@ object Form1: TForm1
       'Lastschrift'
       'Innergem.Lief.EUoMwSt'
       'PayPal'
-      'Kreditkarte')
+      'Kreditkarte'
+      'Leistungszeitraum je Pos.'
+      'Third Party Payment BG-DEX-09')
     TabOrder = 16
   end
   object cbValidateWithJava: TCheckBox

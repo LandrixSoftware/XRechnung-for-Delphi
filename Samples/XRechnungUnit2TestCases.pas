@@ -363,6 +363,7 @@ begin
   inv.PurchaseOrderReference := 'B0815'; //Bestell-Nr. optional
   inv.SellerOrderReference := 'A0815';
   inv.ProjectReference := 'PR456789';
+  inv.ReceiptDocumentReference := 'RDR456789';
   inv.ContractDocumentReference := 'V876543210';
   inv.DeliveryReceiptNumber := 'Lieferschein123';
   inv.BuyerAccountingReference := '1234';
@@ -478,6 +479,24 @@ begin
     else
       inv.PaymentTermsType := iptt_None;
   end;
+
+  with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_application_None) do
+  begin
+    ID := 'BT-17 12345';
+    TypeCode := iatc_50; //BT-17 "Price/sales catalogue response" wird benutzt, um die Ausschreibung oder das Los zu referenzieren.
+  end;
+  with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_application_None) do
+  begin
+    ID := 'BT-18 12345';
+    TypeCode := iatc_130; //BT-18 "Rechnungsdatenblatt" wird benutzt, um eine vom Verkäufer angegebene Kennung für ein Objekt zu referenzieren.
+  end;
+  //Validator für XRechnung UBL meckert BT-122 an, aber eigentlich ist es korrekt
+  //Validator validool.org validiert korrekt
+  //with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_application_None) do
+  //begin
+  //  ID := 'BT-122 12345';
+  //  TypeCode := iatc_916; //BT-122 "Referenzpapier" wird benutzt, um die Kennung der rechnungsbegründenden Unterlage zu referenzieren.
+  //end;
 
   // Der Dateiname des angehaengten Dokuments muss innerhalb einer
   //Rechnung eindeutig sein (nicht case-sensitiv). Die Dateinamenserweiterung (extension), in der meist der Typ der

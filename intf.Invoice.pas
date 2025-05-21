@@ -617,9 +617,9 @@ type
 
   TInvoiceAccountingParty = class(TObject)
   public
-    Name : String;
-    RegistrationName : String;
-    CompanyID : String; //BT-30
+    Name : String; //BT-28 Handelsname des Verkäufers wenn abweichend
+    RegistrationName : String; //BT-27 Vollständiger Name der Verkäufers/Käufers (Firma)
+    CompanyID : String; //BT-30 Handelsregisternummer
 
     Address : TInvoiceAddress;
 
@@ -644,7 +644,7 @@ type
     Name : String;
     LocationIdentifier : String; //optional Ein Bezeichner fuer den Ort, an den die Waren geliefert oder an dem die Dienstleistungen erbracht werden.
     Address : TInvoiceAddress;
-    ActualDeliveryDate : TDate; //Lieferdatum
+    ActualDeliveryDate : TDate; //BT-72 Lieferdatum
   public
     constructor Create;
     destructor Destroy; override;

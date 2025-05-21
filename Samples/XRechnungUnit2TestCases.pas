@@ -82,7 +82,7 @@ begin
     SubjectCode := insc_TXD;
   end;
 
-  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.Name := '';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
   inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
@@ -100,7 +100,7 @@ begin
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
-  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
   inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
@@ -252,7 +252,7 @@ begin
     SubjectCode := insc_TXD;
   end;
 
-  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.Name := '';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
   inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
@@ -270,7 +270,7 @@ begin
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
-  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
   inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
@@ -368,7 +368,7 @@ begin
   inv.DeliveryReceiptNumber := 'Lieferschein123';
   inv.BuyerAccountingReference := '1234';
 
-  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.Name := 'Verkaeufername'; //wenn von RegistrationName abweichend
   inv.AccountingSupplierParty.RegistrationName := 'VerkaeuferRegistrationName'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
   inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
@@ -389,7 +389,7 @@ begin
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
-  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
   inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
@@ -772,7 +772,7 @@ begin
     SubjectCode := insc_REG;
   end;
 
-  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.Name := '';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
   inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
@@ -792,7 +792,7 @@ begin
   //Pflichtangabe
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
-  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
   inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
@@ -878,7 +878,7 @@ begin
     SubjectCode := insc_REG;
   end;
 
-  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.Name := '';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
   inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
@@ -898,7 +898,7 @@ begin
   //Pflichtangabe
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
-  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
   inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
@@ -988,7 +988,7 @@ begin
     SubjectCode := insc_REG;
   end;
 
-  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.Name := '';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  'non-existent';
   inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
@@ -1008,7 +1008,7 @@ begin
   //Pflichtangabe
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
-  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
   inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
@@ -1093,7 +1093,7 @@ begin
     SubjectCode := insc_REG;
   end;
 
-  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.Name := '';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
   inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
@@ -1111,7 +1111,7 @@ begin
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
-  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
   inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
@@ -1197,7 +1197,7 @@ begin
     SubjectCode := insc_REG;
   end;
 
-  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.Name := '';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
   inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
@@ -1215,7 +1215,7 @@ begin
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
-  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
   inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
@@ -1297,7 +1297,7 @@ begin
     SubjectCode := insc_REG;
   end;
 
-  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.Name := '';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
   inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
@@ -1315,7 +1315,7 @@ begin
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
-  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
   inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
@@ -1410,7 +1410,7 @@ begin
     SubjectCode := insc_REG;
   end;
 
-  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.Name := '';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
   inv.AccountingSupplierParty.Address.StreetName := ''; //Nicht wirklich Pflicht
@@ -1432,7 +1432,7 @@ begin
      (inv.AccountingSupplierParty.CompanyID = '') then
     inv.AccountingSupplierParty.CompanyID := TInvoiceEmptyLeitwegID.NON_EXISTENT;
 
-  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
   inv.AccountingCustomerParty.Address.StreetName := ''; //Nicht wirklich Pflicht
@@ -1507,7 +1507,7 @@ begin
     SubjectCode := insc_REG;
   end;
 
-  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.Name := '';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  TInvoiceEmptyLeitwegID.NON_EXISTENT;
   inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
@@ -1526,7 +1526,7 @@ begin
   //Pflichtangabe
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
-  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
   inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
@@ -1614,7 +1614,7 @@ begin
     SubjectCode := insc_REG;
   end;
 
-  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.Name := '';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
   inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
@@ -1632,7 +1632,7 @@ begin
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
-  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
   inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
@@ -1713,7 +1713,7 @@ begin
     SubjectCode := insc_REG;
   end;
 
-  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.Name := '';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
   inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
@@ -1731,7 +1731,7 @@ begin
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
-  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
   inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
@@ -1811,7 +1811,7 @@ begin
     SubjectCode := insc_REG;
   end;
 
-  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.Name := '';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
   inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
@@ -1829,7 +1829,7 @@ begin
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
-  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
   inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
@@ -1904,7 +1904,7 @@ begin
     SubjectCode := insc_REG;
   end;
 
-  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.Name := '';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
   inv.AccountingSupplierParty.Address.StreetName := ''; //Nicht wirklich Pflicht
@@ -1926,7 +1926,7 @@ begin
      (inv.AccountingSupplierParty.CompanyID = '') then
     inv.AccountingSupplierParty.CompanyID := TInvoiceEmptyLeitwegID.NON_EXISTENT;
 
-  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
   inv.AccountingCustomerParty.Address.StreetName := ''; //Nicht wirklich Pflicht
@@ -2039,7 +2039,7 @@ begin
     SubjectCode := insc_REG;
   end;
 
-  inv.AccountingSupplierParty.Name := 'Verkaeufername';
+  inv.AccountingSupplierParty.Name := '';
   inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
   inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
@@ -2057,7 +2057,7 @@ begin
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
 
-  inv.AccountingCustomerParty.Name := 'Kaeufername';
+  inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
   inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';

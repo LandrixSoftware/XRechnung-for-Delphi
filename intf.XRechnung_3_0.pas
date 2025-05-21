@@ -1233,6 +1233,7 @@ begin
       Attributes['schemeID'] := 'SEPA';
       Text := _Invoice.AccountingSupplierParty.BankAssignedCreditorIdentifier;
     end;
+    if _Invoice.AccountingSupplierParty.Name <> '' then
     with AddChild('cac:PartyName') do
     begin
       AddChild('cbc:Name').Text := _Invoice.AccountingSupplierParty.Name;
@@ -1293,6 +1294,7 @@ begin
       Attributes['schemeID'] := '0088';
       Text := _Invoice.AccountingCustomerParty.IdentifierSellerBuyer;
     end;
+    if _Invoice.AccountingCustomerParty.Name <> '' then
     with AddChild('cac:PartyName') do
     begin
       AddChild('cbc:Name').Text := _Invoice.AccountingCustomerParty.Name;

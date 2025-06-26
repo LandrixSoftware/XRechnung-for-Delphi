@@ -853,7 +853,8 @@ begin
           end;
           //Restliche Skontoeintraege finden
           for i := 0 to nodes.length-1 do
-          if (TXRechnungXMLHelper.FindNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:CalculationPercent')) then
+          if (TXRechnungXMLHelper.FindNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:CalculationPercent') or
+              TXRechnungXMLHelper.FindNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:ActualDiscountAmount')) then
           begin
             if _Invoice.PaymentTermsType in [iptt_None,iptt_Net] then
               _Invoice.PaymentTermsType := iptt_CashDiscount1

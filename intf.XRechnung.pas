@@ -127,8 +127,19 @@ type
   private
     class procedure SaveDocument(_Invoice: TInvoice;_Version : TXRechnungVersion; _Xml : IXMLDocument);
     class function  LoadFromXMLDocument(_Invoice: TInvoice; _XmlDocument: IXMLDocument; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
+  public const
+    ccOK                       = 0;
+    ccNoPaymentsCount          = 1;
+    ccInvoiceTypeNotSupported  = 2;
+    ccTooManyPrecedingInvoices = 3;
+    ccTooManySEPADirectDebit   = 4;
+    ccTooManyCreditCard        = 5;
+    ccNoBT31BT30               = 6;
+    ccNoBT31BT32               = 7;
+    ccPrepaidPaymentNotSupported = 8;
   public
-    class function ConsistencyCheck(_Invoice : TInvoice; _Version : TXRechnungVersion) : Boolean;
+    class function ConsistencyCheck(_Invoice : TInvoice; _Version : TXRechnungVersion) : Boolean; overload;
+    class function ConsistencyCheck(_Invoice : TInvoice; _Version : TXRechnungVersion; out _ErrorCode : Integer) : Boolean; overload;
     class procedure CorrectDueDateIfNotDefined(_Invoice : TInvoice);
 
     class procedure SaveToStream(_Invoice : TInvoice; _Version : TXRechnungVersion; _Stream : TStream);
@@ -224,14 +235,24 @@ end;
 class function TXRechnungInvoiceAdapter.ConsistencyCheck(_Invoice: TInvoice;
   _Version: TXRechnungVersion): Boolean;
 var
+  lErrorCode : Integer;
+begin
+  Result := TXRechnungInvoiceAdapter.ConsistencyCheck(_Invoice, _Version, lErrorCode);
+end;
+
+class function TXRechnungInvoiceAdapter.ConsistencyCheck(_Invoice: TInvoice;
+  _Version: TXRechnungVersion; out _ErrorCode: Integer): Boolean;
+var
   lCount,i : Integer;
 begin
   Result := true;
+  _ErrorCode := ccOK;
 
   //Mindestens eine Zahlungsanweisung notwendig (bei ZUGFeRD nur im Profil EXTENDED)
   if (_Invoice.PaymentTypes.Count = 0) and
      (_Version <> TXRechnungVersion.XRechnungVersion_ReadingSupport_ZUGFeRDFacturX) then
   begin
+    _ErrorCode := ccNoPaymentsCount;
     Result := false;
     exit;
   end;
@@ -248,6 +269,7 @@ begin
                                    itc_Cancellation
                                    ]) then
   begin
+    _ErrorCode := ccInvoiceTypeNotSupported;
     Result := false;
     exit;
   end;
@@ -257,6 +279,7 @@ begin
                    TXRechnungVersion.XRechnungVersion_30x_UNCEFACT]) then
   if _Invoice.PrecedingInvoiceReferences.Count > 1 then
   begin
+    _ErrorCode := ccTooManyPrecedingInvoices;
     Result := false;
     exit;
   end;
@@ -268,6 +291,7 @@ begin
     inc(lCount);
   if lCount > 1 then
   begin
+    _ErrorCode := ccTooManySEPADirectDebit;
     Result := false;
     exit;
   end;
@@ -279,6 +303,7 @@ begin
     inc(lCount);
   if lCount > 1 then
   begin
+    _ErrorCode := ccTooManyCreditCard;
     Result := false;
     exit;
   end;
@@ -288,6 +313,7 @@ begin
   if (_Invoice.AccountingSupplierParty.VATCompanyID = '') and
      (_Invoice.AccountingSupplierParty.CompanyID = '') then
   begin
+    _ErrorCode := ccNoBT31BT30;
     Result := false;
     exit;
   end;
@@ -296,6 +322,7 @@ begin
   if (_Invoice.AccountingSupplierParty.VATCompanyID = '') and
      (_Invoice.AccountingSupplierParty.VATCompanyNumber = '') then
   begin
+    _ErrorCode := ccNoBT31BT32;
     Result := false;
     exit;
   end;
@@ -305,6 +332,7 @@ begin
   if not (_Version in [//TXRechnungVersion.XRechnungVersion_230_UBL_Deprecated, Version 2.3 wird nicht mehr gepflegt
                    TXRechnungVersion.XRechnungVersion_30x_UBL]) then
   begin
+    _ErrorCode := ccPrepaidPaymentNotSupported;
     Result := false;
     exit;
   end;

@@ -870,7 +870,13 @@ begin
               _Invoice.PaymentTermCashDiscount1Percent := 0;
               _Invoice.PaymentTermCashDiscount1Base := 0;
               if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:BasisPeriodMeasure',node3) then
-                _Invoice.PaymentTermCashDiscount1Days := StrToIntDef(node3.text,0)
+              begin
+                _Invoice.PaymentTermCashDiscount1Days := StrToIntDef(node3.text,0);
+                //Sonderfall beim Einlesen von ZUGFeRD, wird intern von TInvoice nicht unterstuetzt
+                //Das Basisdatum + Skontotage wird auf das Rechnungsdatum + Skontotage umgerechnet
+                if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:BasisDateTime/udt:DateTimeString',node3) then
+                  _Invoice.PaymentTermCashDiscount1Days := DaysBetween(Trunc(_Invoice.InvoiceIssueDate),Trunc(TXRechnungHelper.DateFromStrUNCEFACTFormat(node3.text))+_Invoice.PaymentTermCashDiscount1Days);
+              end
               else
               if TXRechnungXMLHelper.FindNode(nodes[i],'.//ram:DueDateDateTime') then
               begin
@@ -892,7 +898,13 @@ begin
               _Invoice.PaymentTermCashDiscount2Percent := 0;
               _Invoice.PaymentTermCashDiscount2Base := 0;
               if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:BasisPeriodMeasure',node3) then
-                _Invoice.PaymentTermCashDiscount2Days := StrToIntDef(node3.text,0)
+              begin
+                _Invoice.PaymentTermCashDiscount2Days := StrToIntDef(node3.text,0);
+                //Sonderfall beim Einlesen von ZUGFeRD, wird intern von TInvoice nicht unterstuetzt
+                //Das Basisdatum + Skontotage wird auf das Rechnungsdatum + Skontotage umgerechnet
+                if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ApplicableTradePaymentDiscountTerms/ram:BasisDateTime/udt:DateTimeString',node3) then
+                  _Invoice.PaymentTermCashDiscount2Days := DaysBetween(Trunc(_Invoice.InvoiceIssueDate),Trunc(TXRechnungHelper.DateFromStrUNCEFACTFormat(node3.text))+_Invoice.PaymentTermCashDiscount2Days);
+              end
               else
               if TXRechnungXMLHelper.FindNode(nodes[i],'.//ram:DueDateDateTime') then
               begin

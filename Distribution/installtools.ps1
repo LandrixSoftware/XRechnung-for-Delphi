@@ -35,12 +35,12 @@ If (Test-Path mustangproject){
 
 Invoke-WebRequest -Uri "https://github.com/itplr-kosit/validator/releases/download/v1.5.0/validator-1.5.0-distribution.zip" -OutFile validator.zip
 Invoke-WebRequest -Uri "https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/release-2023-05-12/validator-configuration-xrechnung_2.3.1_2023-05-12.zip" -OutFile validator-configuration23x.zip
-Invoke-WebRequest -Uri "https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/release-2025-03-21/validator-configuration-xrechnung_3.0.2_2025-03-21.zip" -OutFile validator-configuration30x.zip
+Invoke-WebRequest -Uri "https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/release-2025-07-10/validator-configuration-xrechnung_3.0.2_2025-07-10.zip" -OutFile validator-configuration30x.zip
 Invoke-WebRequest -Uri "https://github.com/LandrixSoftware/validator-configuration-zugferd/releases/download/validation-configuration-zugferd-2.3.2-2025-04-03/validation-configuration-zugferd-2.3.2-2025-04-03.zip" -OutFile validator-configuration-zugferd232.zip
 Invoke-WebRequest -Uri "https://github.com/itplr-kosit/xrechnung-visualization/releases/download/v2023-05-12/xrechnung-2.3.1-xrechnung-visualization-2023-05-12.zip" -OutFile visualization23x.zip
-Invoke-WebRequest -Uri "https://github.com/itplr-kosit/xrechnung-visualization/releases/download/v2025-03-21/xrechnung-3.0.2-xrechnung-visualization-2025-03-21.zip" -OutFile visualization30x.zip
+Invoke-WebRequest -Uri "https://github.com/itplr-kosit/xrechnung-visualization/releases/download/v2025-07-10/xrechnung-3.0.2-xrechnung-visualization-2025-07-10.zip" -OutFile visualization30x.zip
 Invoke-WebRequest -Uri "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.6%2B10/OpenJDK17U-jre_x64_windows_hotspot_17.0.6_10.zip" -OutFile jre.zip
-#Invoke-WebRequest -Uri https://github.com/itplr-kosit/xrechnung-schematron/releases/download/release-2.3.0/xrechnung-3.0.2-schematron-2.3.0.zip -OutFile schematron.zip
+#Invoke-WebRequest -Uri https://github.com/itplr-kosit/xrechnung-schematron/releases/download/release-2.4.0/xrechnung-3.0.2-schematron-2.4.0.zip -OutFile schematron.zip
 Invoke-WebRequest -Uri "https://www.apache.org/dyn/closer.cgi?filename=/xmlgraphics/fop/binaries/fop-2.8-bin.zip&action=download" -OutFile fop.zip
 
 $LatestVersionContent = (Invoke-WebRequest 'https://api.github.com/repos/ZUGFeRD/mustangproject/releases/latest').Content | ConvertFrom-Json

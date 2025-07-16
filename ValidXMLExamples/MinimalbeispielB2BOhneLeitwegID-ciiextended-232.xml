@@ -64,7 +64,6 @@ Zeile 3</ram:Description>
         <ram:Name>Verkaeufername</ram:Name>
         <ram:SpecifiedLegalOrganization>
           <ram:ID>non-existent</ram:ID>
-          <ram:TradingBusinessName>Verkaeufername</ram:TradingBusinessName>
         </ram:SpecifiedLegalOrganization>
         <ram:DefinedTradeContact>
           <ram:PersonName>Meier</ram:PersonName>
@@ -91,7 +90,6 @@ Zeile 3</ram:Description>
         <ram:Name>Kaeufername</ram:Name>
         <ram:SpecifiedLegalOrganization>
           <ram:ID>HRB 456</ram:ID>
-          <ram:TradingBusinessName>Kaeufername</ram:TradingBusinessName>
         </ram:SpecifiedLegalOrganization>
         <ram:PostalTradeAddress>
           <ram:PostcodeCode>05678</ram:PostcodeCode>

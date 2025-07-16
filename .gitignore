@@ -43,7 +43,7 @@ Delphi6/Samples/Indy9
 Delphi6/Samples/*.ddp
 SaxonHE-Unmanaged
 Distribution/validator*
-Distribution/validool.org
+Distribution/valitool
 Distribution/visualization23x
 Distribution/visualization30x
 Distribution/java
@@ -57,6 +57,7 @@ xrechnung-3.0.0-testsuite-2023-07-31
 Webservice via Peppol
 
 # Delphi compiler-generated binaries (safe to delete)
+*.cbk
 *.exe
 *.dll
 *.bpl

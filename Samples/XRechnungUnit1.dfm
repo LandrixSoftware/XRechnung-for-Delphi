@@ -221,7 +221,7 @@ object Form1: TForm1
   end
   object Button1: TButton
     Left = 8
-    Top = 711
+    Top = 708
     Width = 162
     Height = 25
     Anchors = [akLeft, akBottom]

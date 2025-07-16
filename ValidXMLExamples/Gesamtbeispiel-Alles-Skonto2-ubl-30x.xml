@@ -33,9 +33,19 @@
   <cac:DespatchDocumentReference>
     <cbc:ID>Lieferschein123</cbc:ID>
   </cac:DespatchDocumentReference>
+  <cac:ReceiptDocumentReference>
+    <cbc:ID>RDR456789</cbc:ID>
+  </cac:ReceiptDocumentReference>
+  <cac:OriginatorDocumentReference>
+    <cbc:ID>BT-17 12345</cbc:ID>
+  </cac:OriginatorDocumentReference>
   <cac:ContractDocumentReference>
     <cbc:ID>V876543210</cbc:ID>
   </cac:ContractDocumentReference>
+  <cac:AdditionalDocumentReference>
+    <cbc:ID>BT-18 12345</cbc:ID>
+    <cbc:DocumentTypeCode>130</cbc:DocumentTypeCode>
+  </cac:AdditionalDocumentReference>
   <cac:AdditionalDocumentReference>
     <cbc:ID>attachment.pdf</cbc:ID>
     <cbc:DocumentDescription>Eine PDF</cbc:DocumentDescription>
@@ -108,9 +118,6 @@
   <cac:AccountingCustomerParty>
     <cac:Party>
       <cbc:EndpointID schemeID="EM">antwortaufrechnung@kunde.de</cbc:EndpointID>
-      <cac:PartyName>
-        <cbc:Name>Kaeufername</cbc:Name>
-      </cac:PartyName>
       <cac:PostalAddress>
         <cbc:StreetName>Kaeuferstrasse 1</cbc:StreetName>
         <cbc:CityName>Kaeuferstadt</cbc:CityName>
@@ -139,6 +146,7 @@
   <cac:Delivery>
     <cbc:ActualDeliveryDate>2024-12-04</cbc:ActualDeliveryDate>
     <cac:DeliveryLocation>
+      <cbc:ID schemeID="0088">83745498753497</cbc:ID>
       <cac:Address>
         <cbc:StreetName>Lieferstrasse 1</cbc:StreetName>
         <cbc:CityName>Lieferstadt</cbc:CityName>

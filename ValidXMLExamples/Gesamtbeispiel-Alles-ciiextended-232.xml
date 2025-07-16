@@ -169,7 +169,6 @@ Zeile 3</ram:Description>
         <ram:Name>Kaeufername</ram:Name>
         <ram:SpecifiedLegalOrganization>
           <ram:ID>HRB 456</ram:ID>
-          <ram:TradingBusinessName>Kaeufername</ram:TradingBusinessName>
         </ram:SpecifiedLegalOrganization>
         <ram:DefinedTradeContact>
           <ram:PersonName>Mueller</ram:PersonName>
@@ -203,6 +202,14 @@ Zeile 3</ram:Description>
         <ram:IssuerAssignedID>V876543210</ram:IssuerAssignedID>
       </ram:ContractReferencedDocument>
       <ram:AdditionalReferencedDocument>
+        <ram:IssuerAssignedID>BT-17 12345</ram:IssuerAssignedID>
+        <ram:TypeCode>50</ram:TypeCode>
+      </ram:AdditionalReferencedDocument>
+      <ram:AdditionalReferencedDocument>
+        <ram:IssuerAssignedID>BT-18 12345</ram:IssuerAssignedID>
+        <ram:TypeCode>130</ram:TypeCode>
+      </ram:AdditionalReferencedDocument>
+      <ram:AdditionalReferencedDocument>
         <ram:IssuerAssignedID>attachment.pdf</ram:IssuerAssignedID>
         <ram:TypeCode>916</ram:TypeCode>
         <ram:Name>Eine PDF</ram:Name>
@@ -230,6 +237,7 @@ Zeile 3</ram:Description>
     </ram:ApplicableHeaderTradeAgreement>
     <ram:ApplicableHeaderTradeDelivery>
       <ram:ShipToTradeParty>
+        <ram:GlobalID schemeID="0088">83745498753497</ram:GlobalID>
         <ram:Name>Firma die es bekommt</ram:Name>
         <ram:PostalTradeAddress>
           <ram:PostcodeCode>05678</ram:PostcodeCode>
@@ -246,6 +254,9 @@ Zeile 3</ram:Description>
       <ram:DespatchAdviceReferencedDocument>
         <ram:IssuerAssignedID>Lieferschein123</ram:IssuerAssignedID>
       </ram:DespatchAdviceReferencedDocument>
+      <ram:ReceivingAdviceReferencedDocument>
+        <ram:IssuerAssignedID>RDR456789</ram:IssuerAssignedID>
+      </ram:ReceivingAdviceReferencedDocument>
     </ram:ApplicableHeaderTradeDelivery>
     <ram:ApplicableHeaderTradeSettlement>
       <ram:PaymentReference>Verwendungszweck R2020-0815</ram:PaymentReference>

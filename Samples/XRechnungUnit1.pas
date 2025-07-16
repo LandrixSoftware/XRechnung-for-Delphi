@@ -27,6 +27,7 @@ uses
   ,Vcl.OleCtrls, SHDocVw, Vcl.ExtCtrls, Vcl.ComCtrls
   ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema
   {$IFDEF USE_EDGE_BROWSER}
+  //https://www.nuget.org/packages/Microsoft.Web.WebView2
   ,Winapi.WebView2, Vcl.Edge
   {$ENDIF}
   ,XRechnungUnit2TestCases
@@ -148,7 +149,8 @@ begin
   MessageDlg('Fuer vollen Browsersupport bitte Edge nutzen: USE_EDGE_BROWSER', mtWarning, [mbOK], 0);
   {$ELSE}
   if not FileExists(ExtractFilePath(Application.ExeName)+'WebView2Loader.dll') then
-    MessageDlg('WebView2Loader.dll nicht gefunden, Edge-Browser nicht nutzbar!', mtError, [mbOK], 0);
+    MessageDlg('WebView2Loader.dll nicht gefunden, Edge-Browser nicht nutzbar!'+#10+
+               'https://www.nuget.org/packages/Microsoft.Web.WebView2', mtError, [mbOK], 0);
   EdgeBrowser1 := TEdgeBrowser.Create(Self);
   EdgeBrowser1.Name := 'EdgeBrowser1';
   EdgeBrowser1.SetParentComponent(TabSheet1);
@@ -320,7 +322,7 @@ begin
 
   {$IFDEF USE_Valitool}
   GetXRechnungValidationHelperJava
-      .SetValitoolPath(DistributionBasePath+'validool.org\CLI\')
+      .SetValitoolPath(DistributionBasePath+'Valitool\VALITOOL\')
       .SetValitoolLicense(Valitool_LICENSE)
       .ValitoolValidateDirectory(ValidXMLExamplesPath);
   {$ENDIF}
@@ -431,7 +433,7 @@ begin
     {$IFDEF USE_Valitool}
     xml := TFile.ReadAllText(od.FileName,TEncoding.UTF8);
     GetXRechnungValidationHelperJava
-        .SetValitoolPath(DistributionBasePath+'validool.org\CLI\')
+        .SetValitoolPath(DistributionBasePath+'Valitool\VALITOOL\')
         .SetValitoolLicense(Valitool_LICENSE)
         .ValitoolValidate(xml,cmdoutput,xmlresult,pdfresult);
 
@@ -763,7 +765,7 @@ begin
     if cbValidateWithJava.Checked then
     begin
       GetXRechnungValidationHelperJava
-          .SetValitoolPath(DistributionBasePath+'validool.org\CLI\')
+          .SetValitoolPath(DistributionBasePath+'Valitool\VALITOOL\')
           .SetValitoolLicense(Valitool_LICENSE)
           .ValitoolValidate(xml,cmdoutput,xmlresult,pdfresult);
 

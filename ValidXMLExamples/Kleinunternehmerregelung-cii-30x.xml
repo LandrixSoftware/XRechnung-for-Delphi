@@ -63,7 +63,6 @@
         <ram:Description>Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemaess Paragraph 19 UStG</ram:Description>
         <ram:SpecifiedLegalOrganization>
           <ram:ID>non-existent</ram:ID>
-          <ram:TradingBusinessName>Verkaeufername</ram:TradingBusinessName>
         </ram:SpecifiedLegalOrganization>
         <ram:DefinedTradeContact>
           <ram:PersonName>Meier</ram:PersonName>
@@ -91,7 +90,6 @@
         <ram:Name>Kaeufername</ram:Name>
         <ram:SpecifiedLegalOrganization>
           <ram:ID>HRB 456</ram:ID>
-          <ram:TradingBusinessName>Kaeufername</ram:TradingBusinessName>
         </ram:SpecifiedLegalOrganization>
         <ram:DefinedTradeContact>
           <ram:PersonName>Mueller</ram:PersonName>

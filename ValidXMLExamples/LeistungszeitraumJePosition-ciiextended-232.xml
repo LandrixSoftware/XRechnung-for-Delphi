@@ -110,9 +110,6 @@
       <ram:BuyerReference>non-existent</ram:BuyerReference>
       <ram:SellerTradeParty>
         <ram:Name>Verkaeufername</ram:Name>
-        <ram:SpecifiedLegalOrganization>
-          <ram:TradingBusinessName>Verkaeufername</ram:TradingBusinessName>
-        </ram:SpecifiedLegalOrganization>
         <ram:DefinedTradeContact>
           <ram:PersonName>Meier</ram:PersonName>
           <ram:TelephoneUniversalCommunication>
@@ -142,7 +139,6 @@
         <ram:Name>Kaeufername</ram:Name>
         <ram:SpecifiedLegalOrganization>
           <ram:ID>HRB 456</ram:ID>
-          <ram:TradingBusinessName>Kaeufername</ram:TradingBusinessName>
         </ram:SpecifiedLegalOrganization>
         <ram:PostalTradeAddress>
           <ram:PostcodeCode>05678</ram:PostcodeCode>

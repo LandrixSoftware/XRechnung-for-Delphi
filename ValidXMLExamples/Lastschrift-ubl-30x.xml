@@ -19,9 +19,6 @@
       <cac:PartyIdentification>
         <cbc:ID schemeID="SEPA">111111</cbc:ID>
       </cac:PartyIdentification>
-      <cac:PartyName>
-        <cbc:Name>Verkaeufername</cbc:Name>
-      </cac:PartyName>
       <cac:PostalAddress>
         <cbc:StreetName>Verkaeuferstrasse 1</cbc:StreetName>
         <cbc:CityName>Verkaeuferstadt</cbc:CityName>
@@ -55,9 +52,6 @@
   <cac:AccountingCustomerParty>
     <cac:Party>
       <cbc:EndpointID schemeID="EM">antwortaufrechnung@kunde.de</cbc:EndpointID>
-      <cac:PartyName>
-        <cbc:Name>Kaeufername</cbc:Name>
-      </cac:PartyName>
       <cac:PostalAddress>
         <cbc:StreetName>Kaeuferstrasse 1</cbc:StreetName>
         <cbc:CityName>Kaeuferstadt</cbc:CityName>

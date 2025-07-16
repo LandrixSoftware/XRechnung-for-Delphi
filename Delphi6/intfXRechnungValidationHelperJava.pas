@@ -669,7 +669,7 @@ begin
     exit;
   if ValitoolLicense = '' then
     exit;
-  if not FileExists(ValitoolPath+'valitool.cli.exe') then
+  if not FileExists(ValitoolPath+'valitool.exe') then
     exit;
   if not DirectoryExists(TempPath) then
     exit;
@@ -689,7 +689,7 @@ begin
              ' --mode validate'+
              ' --pdfReport';
 
-    Result := ExecAndWait(QuoteIfContainsSpace(ValitoolPath+'valitool.cli.exe'),cmdline);
+    Result := ExecAndWait(QuoteIfContainsSpace(ValitoolPath+'valitool.exe'),cmdline);
 
     _CmdOutput := CmdOutput.Text;
 
@@ -727,7 +727,7 @@ begin
     exit;
   if not DirectoryExists(_Directory) then
     exit;
-  if not FileExists(ValitoolPath+'valitool.cli.exe') then
+  if not FileExists(ValitoolPath+'valitool.exe') then
     exit;
 
   cmdLine :=
@@ -738,7 +738,7 @@ begin
            ' --pdfReport'+
            ' --noXMLReport';
 
-  Result := ExecAndWait(QuoteIfContainsSpace(ValitoolPath+'valitool.cli.exe'),cmdline);
+  Result := ExecAndWait(QuoteIfContainsSpace(ValitoolPath+'valitool.exe'),cmdline);
 end;
 
 function TXRechnungValidationHelperJava.Visualize(const _InvoiceXMLData: String;

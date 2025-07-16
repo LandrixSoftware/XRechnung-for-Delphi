@@ -175,9 +175,6 @@ Zeile 3</ram:Description>
       <ram:BuyerReference>04011000-12345-34</ram:BuyerReference>
       <ram:SellerTradeParty>
         <ram:Name>Verkaeufername</ram:Name>
-        <ram:SpecifiedLegalOrganization>
-          <ram:TradingBusinessName>Verkaeufername</ram:TradingBusinessName>
-        </ram:SpecifiedLegalOrganization>
         <ram:DefinedTradeContact>
           <ram:PersonName>Meier</ram:PersonName>
           <ram:TelephoneUniversalCommunication>
@@ -207,7 +204,6 @@ Zeile 3</ram:Description>
         <ram:Name>Kaeufername</ram:Name>
         <ram:SpecifiedLegalOrganization>
           <ram:ID>HRB 456</ram:ID>
-          <ram:TradingBusinessName>Kaeufername</ram:TradingBusinessName>
         </ram:SpecifiedLegalOrganization>
         <ram:DefinedTradeContact>
           <ram:PersonName>Mueller</ram:PersonName>

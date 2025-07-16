@@ -1202,7 +1202,7 @@ begin
     with xRoot.AddChild('cac:AdditionalDocumentReference') do
     begin
       AddChild('cbc:ID').Text := _Invoice.Attachments[i].ID;
-      if (_Invoice.Attachments[i].TypeCode in [iatc_130,iatc_916]) then
+      if (_Invoice.Attachments[i].TypeCode in [iatc_130{,iatc_916}]) then //916 gibt derzeit Fehler bei UBL, ggf. spaeter wieder aktivieren
         AddChild('cbc:DocumentTypeCode').Text := TXRechnungHelper.InvoiceAttachmentTypeCodeToStr(_Invoice.Attachments[i].TypeCode);
       if _Invoice.Attachments[i].DocumentDescription <> '' then
         AddChild('cbc:DocumentDescription').Text := _Invoice.Attachments[i].DocumentDescription;

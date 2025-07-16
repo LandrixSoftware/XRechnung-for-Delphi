@@ -250,9 +250,9 @@ type
   //Der Code 130 "Rechnungsdatenblatt" wird benutzt, um eine vom Verkäufer angegebene Kennung für ein Objekt zu referenzieren. (BT-18)
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:untdid.1001_4#version
   TInvoiceAttachmentTypeCode = (iatc_None,
-                      iatc_50,
-                      iatc_130,
-                      iatc_916);//Default
+                      iatc_50,  //BT-17
+                      iatc_130, //BT-18
+                      iatc_916);//BT-122 Default
 
   //Entweder externe Referenz oder eingebettetes Objekt
   //Ob man die Daten als Base64 integriert oder separat mitliefert,
@@ -611,9 +611,9 @@ type
 
   TInvoiceAccountingParty = class(TObject)
   public
-    Name : String;
-    RegistrationName : String;
-    CompanyID : String; //BT-30
+    Name : String; //BT-28 Handelsname des Verkäufers wenn abweichend
+    RegistrationName : String; //BT-27 Vollständiger Name der Verkäufers/Käufers (Firma)
+    CompanyID : String; //BT-30 Handelsregisternummer
 
     Address : TInvoiceAddress;
 
@@ -638,7 +638,7 @@ type
     Name : String;
     LocationIdentifier : String; //optional Ein Bezeichner fuer den Ort, an den die Waren geliefert oder an dem die Dienstleistungen erbracht werden.
     Address : TInvoiceAddress;
-    ActualDeliveryDate : TDate; //Lieferdatum
+    ActualDeliveryDate : TDate; //BT-72 Lieferdatum
   public
     constructor Create;
     destructor Destroy; override;
@@ -740,8 +740,9 @@ type
     SellerOrderReference : String; //BT-14 Auftragsnummer der Verkaeufers
     PurchaseOrderReference : String; //BT-13 Bestellnummer oder Vertragsnummer des Kaeufers
     ProjectReference : String; //BT-11
+    ReceiptDocumentReference : String; //BT-15
     ContractDocumentReference : String; //BT-12
-    DeliveryReceiptNumber : String; //BT-15 Lieferscheinnummer (Lieferscheindatum fehlt und wuerde nur in ZUGFeRD unterstuetzt)
+    DeliveryReceiptNumber : String; //BT-16 Lieferscheinnummer (Lieferscheindatum fehlt und wuerde nur in ZUGFeRD unterstuetzt)
     BuyerAccountingReference : String; //BT-19 Buchungsreferenz des Kaeufers für die Rechnung UBL ein Wert, CII Liste
 
     AccountingSupplierParty : TInvoiceAccountingParty;

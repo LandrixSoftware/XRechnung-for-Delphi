@@ -426,11 +426,12 @@ begin
     XRechnungVersion_30x_UBL      : Result := TXRechnungInvoiceAdapter301.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
     XRechnungVersion_230_UNCEFACT_Deprecated : Result := TXRechnungInvoiceAdapter230.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     XRechnungVersion_30x_UNCEFACT : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
-    ZUGFeRDExtendedVersion_232 : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     {$IFNDEF ZUGFeRD_Support}
+    ZUGFeRDExtendedVersion_232 : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     XRechnungVersion_ReadingSupport_ZUGFeRDFacturX : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     {$ELSE}
     XRechnungVersion_ReadingSupport_ZUGFeRDFacturX,
+    ZUGFeRDExtendedVersion_232,
     ZUGFeRDExtendedVersion_1_NotSupported : Result := TZUGFeRDInvoiceAdapter.LoadFromXMLDocument(_Invoice,_XmlDocument,_Error,_AdditionalContent);
     {$ENDIF}
     else exit;
@@ -1844,10 +1845,13 @@ begin
   _Invoice.PurchaseOrderReference := _InvoiceDescriptor.OrderNo;
   if _InvoiceDescriptor.SpecifiedProcuringProject <> nil then
     _Invoice.ProjectReference := _InvoiceDescriptor.SpecifiedProcuringProject.ID;
+  //noch nicht unterstuetzt  _Invoice.ReceiptDocumentReference
   if _InvoiceDescriptor.ContractReferencedDocument <> nil then
     _Invoice.ContractDocumentReference := _InvoiceDescriptor.ContractReferencedDocument.ID;
   if _InvoiceDescriptor.DespatchAdviceReferencedDocument <> nil then
     _Invoice.DeliveryReceiptNumber := _InvoiceDescriptor.DespatchAdviceReferencedDocument.ID;
+  if _InvoiceDescriptor.ReceivableSpecifiedTradeAccountingAccounts.Count > 0 then
+    _Invoice.BuyerAccountingReference := _InvoiceDescriptor.ReceivableSpecifiedTradeAccountingAccounts[0].TradeAccountID;
   //Seller
   if _InvoiceDescriptor.Seller <> nil then
   begin
@@ -2018,7 +2022,7 @@ begin
         _Invoice.PaymentTermCashDiscount1Days := DaysBetween(_Invoice.InvoiceIssueDate,_InvoiceDescriptor.PaymentTermsList[i].DueDate)
       else
       if _InvoiceDescriptor.PaymentTermsList[i].DueDays.HasValue then
-        _Invoice.PaymentTermCashDiscount1Days := Trunc(_InvoiceDescriptor.PaymentTermsList[i].DueDate.Value);
+        _Invoice.PaymentTermCashDiscount1Days := Trunc(_InvoiceDescriptor.PaymentTermsList[i].DueDays.Value);
       _Invoice.PaymentTermCashDiscount1Percent := _InvoiceDescriptor.PaymentTermsList[i].Percentage;
       _Invoice.PaymentTermCashDiscount1Base := _InvoiceDescriptor.PaymentTermsList[i].BaseAmount;
       _Invoice.PaymentTermCashDiscount1ActualAmount := _InvoiceDescriptor.PaymentTermsList[i].ActualAmount;
@@ -2073,7 +2077,10 @@ begin
     lInvoiceLine.SellersItemIdentification := _InvoiceDescriptor.TradeLineItems[i].SellerAssignedID;
     lInvoiceLine.BuyersItemIdentification := _InvoiceDescriptor.TradeLineItems[i].BuyerAssignedID;
     if _InvoiceDescriptor.TradeLineItems[i].BuyerOrderReferencedDocument <> nil then
+    begin
+      lInvoiceLine.OrderNumber := _InvoiceDescriptor.TradeLineItems[i].BuyerOrderReferencedDocument.ID;
       lInvoiceLine.OrderLineReference := _InvoiceDescriptor.TradeLineItems[i].BuyerOrderReferencedDocument.LineID;
+    end;
     if _InvoiceDescriptor.TradeLineItems[i].ReceivableSpecifiedTradeAccountingAccounts.Count > 0 then
       lInvoiceLine.BuyerAccountingReference := _InvoiceDescriptor.TradeLineItems[i].ReceivableSpecifiedTradeAccountingAccounts.First.TradeAccountID;
     lInvoiceLine.TaxPercent := _InvoiceDescriptor.TradeLineItems[i].TaxPercent;

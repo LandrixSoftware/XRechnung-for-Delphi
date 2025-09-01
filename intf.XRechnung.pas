@@ -28,7 +28,7 @@ interface
 {.$DEFINE ZUGFeRD_Support}
 
 uses
-  System.SysUtils,System.Classes,System.Types
+  System.SysUtils,System.Classes,System.Types,System.Math
   ,System.StrUtils,System.DateUtils,System.Contnrs
   ,Xml.XMLDoc,Xml.XMLIntf
   {$IFDEF ZUGFeRD_Support}
@@ -59,7 +59,8 @@ type
     class function DateToStrUNCEFACTFormat(const _Val : TDateTime) : String;
     class function AmountToStr(_Val : Currency) : String;
     class function AmountFromStr(_Val : String) : Currency;
-    class function UnitPriceAmountToStr(_Val : Currency) : String;
+    class function UnitPriceAmountToStrUBL(_Val : Currency) : String;
+    class function UnitPriceAmountToStrCII(_Val : Currency) : String;
     class function UnitPriceAmountFromStr(_Val : String) : Currency;
     class function FloatToStr(_Val : double; _DecimalPlaces : Integer = 2) : String;
     class function FloatFromStr(_Val : String) : double;
@@ -500,10 +501,22 @@ begin
   Result := StrToCurrDef(_Val,0,fs);
 end;
 
-class function TXRechnungHelper.UnitPriceAmountToStr(
+class function TXRechnungHelper.UnitPriceAmountToStrUBL(
   _Val: Currency): String;
 begin
   Result := System.StrUtils.ReplaceText(Format('%.2f',[_Val]),',','.');
+end;
+
+class function TXRechnungHelper.UnitPriceAmountToStrCII(
+  _Val: Currency): String;
+var
+  lRounded : Currency;
+begin
+  lRounded := RoundTo(_Val,-2);
+  if _Val = lRounded then
+    Result := System.StrUtils.ReplaceText(Format('%.2f',[_Val]),',','.')
+  else
+    Result := System.StrUtils.ReplaceText(Format('%.4f',[_Val]),',','.');
 end;
 
 class function TXRechnungHelper.DateFromStrUBLFormat(const _Val : String) : TDateTime;

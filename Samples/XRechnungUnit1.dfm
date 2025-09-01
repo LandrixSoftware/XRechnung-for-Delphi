@@ -206,7 +206,8 @@ object Form1: TForm1
       'PayPal'
       'Kreditkarte'
       'Leistungszeitraum je Pos.'
-      'Third Party Payment BG-DEX-09')
+      'Third Party Payment BG-DEX-09'
+      '4 Nachkommastellen')
     TabOrder = 15
   end
   object cbValidateWithJava: TCheckBox

@@ -134,6 +134,7 @@ begin
   Top := 50;
   Width := Screen.WorkAreaWidth-100;
   Height := Screen.WorkAreaHeight-100;
+  PageControl1.ActivePageIndex := 0;
 
   WebBrowserContentFilename := ExtractFilePath(Application.ExeName)+'content.html';
   WebBrowserContentFilenameHtml := ExtractFilePath(Application.ExeName)+'content2.html';
@@ -570,6 +571,11 @@ begin
       12: TInvoiceTestCases.Kreditkarte(inv);
       13: TInvoiceTestCases.LeistungszeitraumJePosition(inv);
       14: TInvoiceTestCases.ThirdPartyPaymentBGDEX09(inv,cbAllowanceCharges.Checked);
+      15: begin
+            if rbFormatVersion.ItemIndex = 0 then
+              MessageDlg('4 Nachkommastellen nur im ZUGFeRD-Format!', mtWarning, [mbOK], 0);
+            TInvoiceTestCases.VierNachkommastellen(inv);
+          end;
       else ShowMessage('Hat einer was vergessen!');
     end;
 

@@ -1,4 +1,4 @@
-{
+﻿{
 Copyright (C) 2025 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
 Version 3.0.2
@@ -547,6 +547,7 @@ begin
     SellersItemIdentification := 'A0815'; //Artikelnummer Verkaeufer
     BuyersItemIdentification := 'B0815'; //Artikelnummer Kaeufer
     BuyerAccountingReference := '6171175.1';
+    OrderNumber := '0815'; //Bestellnummer BT-X-21 nur ZUGFeRD/Factur-X
     OrderLineReference := '6171175.1';
     TaxPercent := 7.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;

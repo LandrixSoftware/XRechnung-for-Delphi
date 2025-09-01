@@ -541,6 +541,7 @@ type
     UnitCode : TInvoiceUnitCode; //BT-130 Mengeneinheit
     SellersItemIdentification : String; //BG-31, BT-155 Artikelnummer, vom Verkaeufer vergeben
     BuyersItemIdentification : String; //BG-31, BT-156 Artikelkennung, vom Kaeufer vergeben
+    OrderNumber : String; //BT-X-21 Bestellnummer vom Kaeufer - Nur ZUGFeRD/Factur-X
     OrderLineReference : String; //BT-132 Referenz zur Bestellposition, vom Kaeufer vergeben
     BuyerAccountingReference : String; //BT-133 Buchungsreferenz des Kaeufers für die Rechnungsposition, vom Kaeufer vergeben
     TaxPercent : double; //BG-30, BT-152 MwSt

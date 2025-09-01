@@ -462,9 +462,7 @@ var
     end;
     if TXRechnungXMLHelper.SelectNode(_Node,'.//ram:SpecifiedLineTradeAgreement',node2) then
     begin
-//        <ram:BuyerOrderReferencedDocument>
-//            <ram:LineID>6171175.1</ram:LineID>
-//        </ram:BuyerOrderReferencedDocument>
+      _InvoiceLine.OrderNumber :=  TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:BuyerOrderReferencedDocument/ram:IssuerAssignedID');
       _InvoiceLine.OrderLineReference :=  TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:BuyerOrderReferencedDocument/ram:LineID');
       if TXRechnungXMLHelper.SelectNode(node2,'.//ram:GrossPriceProductTradePrice',node3) then
       begin
@@ -1672,15 +1670,20 @@ var
     end;
     with _Node.AddChild('ram:SpecifiedLineTradeAgreement') do
     begin
-      if _InvoiceLine.OrderLineReference <> '' then
+      if (_InvoiceLine.OrderLineReference <> '') or
+         ((_InvoiceLine.OrderNumber <> '') and (not _ProfileXRechnung)) then
       with AddChild('ram:BuyerOrderReferencedDocument') do
       begin
-        AddChild('ram:LineID').Text := _InvoiceLine.OrderLineReference;
+        if (not _ProfileXRechnung) then
+        if (_InvoiceLine.OrderNumber <> '') then
+          AddChild('ram:IssuerAssignedID').Text := _InvoiceLine.OrderNumber;
+        if (_InvoiceLine.OrderLineReference <> '') then
+          AddChild('ram:LineID').Text := _InvoiceLine.OrderLineReference;
       end;
       if _Invoiceline.GrossPriceAmount <> 0 then
       with AddChild('ram:GrossPriceProductTradePrice') do
       begin
-        AddChild('ram:ChargeAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoiceline.GrossPriceAmount);
+        AddChild('ram:ChargeAmount').Text := TXRechnungHelper.UnitPriceAmountToStrCII(_Invoiceline.GrossPriceAmount);
         if (_Invoiceline.BaseQuantity <> 0) and (_Invoiceline.BaseQuantityUnitCode <> iuc_None) then
         with AddChild('ram:BasisQuantity') do
         begin
@@ -1690,9 +1693,9 @@ var
         with AddChild('ram:AppliedTradeAllowanceCharge') do //auch wenn DiscountOnTheGrossPrice 0 ist ausgeben
         begin
           AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := 'false';
-          //<ram:CalculationPercent>45</ram:CalculationPercent> nicht mï¿½glich bei UBL
+          //<ram:CalculationPercent>45</ram:CalculationPercent> nicht möglich bei UBL
           AddChild('ram:ActualAmount').Text := TXRechnungHelper.UnitPriceAmountToStrCII(_Invoiceline.DiscountOnTheGrossPrice);
-          //<ram:Reason>Rabatt1</ram:Reason> nicht mï¿½glich bei UBL
+          //<ram:Reason>Rabatt1</ram:Reason> nicht möglich bei UBL
         end;
       end;
       with AddChild('ram:NetPriceProductTradePrice') do

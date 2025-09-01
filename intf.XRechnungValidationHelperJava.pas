@@ -16,8 +16,8 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages
-  ,System.IOUtils, System.SysUtils, System.Variants, System.Classes, System.Types
-  ,System.Win.COMObj,System.UITypes
+  ,System.IOUtils, System.SysUtils, System.Variants, System.Classes
+  ,System.Types, System.Win.COMObj,System.UITypes, System.StrUtils
   ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema
   ;
 
@@ -262,6 +262,7 @@ begin
     cmd.Add('chcp 65001 >nul');
     cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
 
+    //https://github.com/ZUGFeRD/mustangproject/blob/f9905d6fca18733b468541415b9750654045cc09/Mustang-CLI/src/main/java/org/mustangproject/commandline/Main.java#L45
     cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -Xmx1G '+
             '-Dfile.encoding=UTF-8 -jar '+QuoteIfContainsSpace(MustangprojectPath+'Mustang-CLI.jar')+
             ' --action combine' +

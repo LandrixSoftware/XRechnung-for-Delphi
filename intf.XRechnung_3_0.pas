@@ -1082,7 +1082,7 @@ var
       with AddChild('cbc:PriceAmount') do
       begin
         Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
-        Text := TXRechnungHelper.UnitPriceAmountToStrUBL(_Invoiceline.NetPriceAmount);
+        Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoiceline.NetPriceAmount);
       end;
       if (_Invoiceline.BaseQuantity <> 0) and (_Invoiceline.BaseQuantityUnitCode <> iuc_None) then
       with AddChild('cbc:BaseQuantity') do
@@ -1097,12 +1097,12 @@ var
         with AddChild('cbc:Amount') do
         begin
           Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
-          Text := TXRechnungHelper.UnitPriceAmountToStrUBL(_Invoiceline.DiscountOnTheGrossPrice);
+          Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoiceline.DiscountOnTheGrossPrice);
         end;
         with AddChild('cbc:BaseAmount') do
         begin
           Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
-          Text := TXRechnungHelper.UnitPriceAmountToStrUBL(_Invoiceline.GrossPriceAmount);
+          Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoiceline.GrossPriceAmount);
         end;
       end;
     end;
@@ -1683,7 +1683,7 @@ var
       if _Invoiceline.GrossPriceAmount <> 0 then
       with AddChild('ram:GrossPriceProductTradePrice') do
       begin
-        AddChild('ram:ChargeAmount').Text := TXRechnungHelper.UnitPriceAmountToStrCII(_Invoiceline.GrossPriceAmount);
+        AddChild('ram:ChargeAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoiceline.GrossPriceAmount);
         if (_Invoiceline.BaseQuantity <> 0) and (_Invoiceline.BaseQuantityUnitCode <> iuc_None) then
         with AddChild('ram:BasisQuantity') do
         begin
@@ -1694,13 +1694,13 @@ var
         begin
           AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := 'false';
           //<ram:CalculationPercent>45</ram:CalculationPercent> nicht möglich bei UBL
-          AddChild('ram:ActualAmount').Text := TXRechnungHelper.UnitPriceAmountToStrCII(_Invoiceline.DiscountOnTheGrossPrice);
+          AddChild('ram:ActualAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoiceline.DiscountOnTheGrossPrice);
           //<ram:Reason>Rabatt1</ram:Reason> nicht möglich bei UBL
         end;
       end;
       with AddChild('ram:NetPriceProductTradePrice') do
       begin
-        AddChild('ram:ChargeAmount').Text := TXRechnungHelper.UnitPriceAmountToStrCII(_Invoiceline.NetPriceAmount);
+        AddChild('ram:ChargeAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoiceline.NetPriceAmount);
         if (_Invoiceline.BaseQuantity <> 0) and (_Invoiceline.BaseQuantityUnitCode <> iuc_None) then
         with AddChild('ram:BasisQuantity') do
         begin
@@ -2233,10 +2233,10 @@ begin
               Attributes['unitCode'] := 'DAY';
             end;
             if lBasisAmount <> 0 then
-              AddChild('ram:BasisAmount').Text := TXRechnungHelper.UnitPriceAmountToStrCII(lBasisAmount);
+              AddChild('ram:BasisAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(lBasisAmount);
             AddChild('ram:CalculationPercent').Text := TXRechnungHelper.PercentageToStr(lSkonto);
             if lActualDiscountAmount <> 0 then
-              AddChild('ram:ActualDiscountAmount').Text := TXRechnungHelper.UnitPriceAmountToStrCII(lActualDiscountAmount);
+              AddChild('ram:ActualDiscountAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(lActualDiscountAmount);
           end;
         end;
       end; //end if _ProfileZUGFeRDExtended then

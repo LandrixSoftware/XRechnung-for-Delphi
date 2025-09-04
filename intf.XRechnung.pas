@@ -59,8 +59,7 @@ type
     class function DateToStrUNCEFACTFormat(const _Val : TDateTime) : String;
     class function AmountToStr(_Val : Currency) : String;
     class function AmountFromStr(_Val : String) : Currency;
-    class function UnitPriceAmountToStrUBL(_Val : Currency) : String;
-    class function UnitPriceAmountToStrCII(_Val : Currency) : String;
+    class function UnitPriceAmountToStr(_Val : Currency) : String;
     class function UnitPriceAmountFromStr(_Val : String) : Currency;
     class function FloatToStr(_Val : double; _DecimalPlaces : Integer = 2) : String;
     class function FloatFromStr(_Val : String) : double;
@@ -502,13 +501,7 @@ begin
   Result := StrToCurrDef(_Val,0,fs);
 end;
 
-class function TXRechnungHelper.UnitPriceAmountToStrUBL(
-  _Val: Currency): String;
-begin
-  Result := System.StrUtils.ReplaceText(Format('%.2f',[_Val]),',','.');
-end;
-
-class function TXRechnungHelper.UnitPriceAmountToStrCII(
+class function TXRechnungHelper.UnitPriceAmountToStr(
   _Val: Currency): String;
 var
   lRounded : Currency;

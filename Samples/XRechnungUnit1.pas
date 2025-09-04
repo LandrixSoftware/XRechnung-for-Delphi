@@ -327,7 +327,7 @@ begin
 
   inv := TInvoice.Create;
   TInvoiceTestCases.VierNachkommastellen(inv);
-  //TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-Skonto2-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Vier-Nachkommastellen-ubl-30x.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'Vier-Nachkommastellen-ciiextended-232.xml');
   inv.Free;
   inv := TInvoice.Create;
@@ -606,11 +606,7 @@ begin
       12: TInvoiceTestCases.Kreditkarte(inv);
       13: TInvoiceTestCases.LeistungszeitraumJePosition(inv);
       14: TInvoiceTestCases.ThirdPartyPaymentBGDEX09(inv,cbAllowanceCharges.Checked);
-      15: begin
-            if rbFormatVersion.ItemIndex = 0 then
-              MessageDlg('4 Nachkommastellen nur im ZUGFeRD-Format!', mtWarning, [mbOK], 0);
-            TInvoiceTestCases.VierNachkommastellen(inv);
-          end;
+      15: TInvoiceTestCases.VierNachkommastellen(inv);
       else ShowMessage('Hat einer was vergessen!');
     end;
 
@@ -652,6 +648,8 @@ begin
     XRechnungVersion_30x_UBL :
     begin
       TXRechnungInvoiceAdapter.SaveToXMLStr(inv,version,xml);
+
+      Memo2.Lines.Text := xml;
 
       if cbValidateWithJava.Checked then
       begin
@@ -698,6 +696,8 @@ begin
     begin
       TXRechnungInvoiceAdapter.SaveToXMLStr(inv,version,xml);
 
+      Memo2.Lines.Text := xml;
+
       if cbValidateWithJava.Checked then
       begin
         GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
@@ -741,6 +741,8 @@ begin
     ZUGFeRDExtendedVersion_232 :
     begin
       TXRechnungInvoiceAdapter.SaveToXMLStr(inv,version,xml);
+
+      Memo2.Lines.Text := xml;
 
       if cbValidateWithJava.Checked then
       begin

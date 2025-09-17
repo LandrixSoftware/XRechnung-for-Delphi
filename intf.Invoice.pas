@@ -278,6 +278,7 @@ type
     destructor Destroy; override;
     procedure EmbedDataFromStream(_Stream : TStream);
     procedure EmbedDataFromFile(const _Filename : String);
+    procedure EmbedDataFromText(const _Value : TStrings);
     function GetDataAsBase64 : String;
     procedure SetDataFromBase64(const _Val : String);
     function ContainsBinaryObject : Boolean;
@@ -1261,6 +1262,14 @@ begin
     exit;
   Data.Clear;
   Data.LoadFromStream(_Stream);
+end;
+
+procedure TInvoiceAttachment.EmbedDataFromText(const _Value: TStrings);
+begin
+  if _Value = nil then
+    exit;
+  Data.Clear;
+  _Value.SaveToStream(Data,TEncoding.Unicode);
 end;
 
 function TInvoiceAttachment.GetDataAsBase64: String;

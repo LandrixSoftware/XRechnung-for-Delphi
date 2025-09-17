@@ -1693,9 +1693,9 @@ var
         with AddChild('ram:AppliedTradeAllowanceCharge') do //auch wenn DiscountOnTheGrossPrice 0 ist ausgeben
         begin
           AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := 'false';
-          //<ram:CalculationPercent>45</ram:CalculationPercent> nicht möglich bei UBL
+          //<ram:CalculationPercent>45</ram:CalculationPercent> nicht mï¿½glich bei UBL
           AddChild('ram:ActualAmount').Text := TXRechnungHelper.UnitPriceAmountToStr(_Invoiceline.DiscountOnTheGrossPrice);
-          //<ram:Reason>Rabatt1</ram:Reason> nicht möglich bei UBL
+          //<ram:Reason>Rabatt1</ram:Reason> nicht mï¿½glich bei UBL
         end;
       end;
       with AddChild('ram:NetPriceProductTradePrice') do
@@ -1818,7 +1818,9 @@ begin
 
     with AddChild('ram:ApplicableHeaderTradeAgreement') do
     begin
-      AddChild('ram:BuyerReference').Text := _Invoice.BuyerReference;
+      if (_Invoice.BuyerReference <> '') then
+      if not ((not _ProfileXRechnung) and SameText(_Invoice.BuyerReference,'non-existent')) then
+        AddChild('ram:BuyerReference').Text := _Invoice.BuyerReference;
 
       with AddChild('ram:SellerTradeParty') do
       begin

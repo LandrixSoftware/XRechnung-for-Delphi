@@ -39,8 +39,9 @@ uses
   ,intf.ZUGFeRDCountryCodes
   ,intf.ZUGFeRDPaymentMeansTypeCodes
   ,intf.ZUGFeRDTaxCategoryCodes
-  ,intf.ZUGFeRDSpecialServiceDescriptionCodes
-  ,intf.ZUGFeRDAllowanceOrChargeIdentificationCodes
+  ,intf.ZUGFeRDTradeAllowanceCharge
+  ,intf.ZUGFeRDAllowanceReasonCodes
+  ,intf.ZUGFeRDChargeReasonCodes
   ,intf.ZUGFeRDQuantityCodes
   ,intf.ZUGFeRDGlobalIDSchemeIdentifiers
   ,intf.ZUGFeRDSubjectCodes
@@ -1806,13 +1807,13 @@ begin
     SelfBilledInvoice: _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_SelfbilledInvoice;
     //InvoiceInformation: ;
     //CorrectionOld: ;
-    Cancellation: _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_Cancellation;
+    ReversalOfDebit: _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_Cancellation;
     PartialConstructionInvoice: _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_PartialConstructionInvoice;
     PartialFinalConstructionInvoice: _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_PartialFinalConstructionInvoice;
     FinalConstructionInvoice: _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_FinalConstructionInvoice;
     else _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_None;
   end;
-  _Invoice.InvoiceCurrencyCode := TZUGFeRDCurrencyCodesExtensions.EnumToString(_InvoiceDescriptor.Currency);
+  _Invoice.InvoiceCurrencyCode := ZUGFeRDCurrencyCodesExtensions.EnumToString(_InvoiceDescriptor.Currency);
   _Invoice.TaxCurrencyCode := _Invoice.InvoiceCurrencyCode; //TODO fehlt in ZUGFeRD-Lib
   _Invoice.BuyerReference := _InvoiceDescriptor.ReferenceOrderNo;
   for i := 0 to _InvoiceDescriptor.Notes.Count-1 do
@@ -1867,7 +1868,7 @@ begin
     _Invoice.AccountingSupplierParty.Address.PostalZone := _InvoiceDescriptor.Seller.Postcode;
     _Invoice.AccountingSupplierParty.Address.CountrySubentity := _InvoiceDescriptor.Seller.CountrySubdivisionName;
     _Invoice.AccountingSupplierParty.Address.AddressLine := _InvoiceDescriptor.Seller.AddressLine3;
-    _Invoice.AccountingSupplierParty.Address.CountryCode := TZUGFeRDCountryCodesExtensions.EnumToString(_InvoiceDescriptor.Seller.Country);
+    _Invoice.AccountingSupplierParty.Address.CountryCode := ZUGFeRDCountryCodesExtensions.EnumToString(_InvoiceDescriptor.Seller.Country);
     _Invoice.AccountingSupplierParty.IdentifierSellerBuyer := _InvoiceDescriptor.Seller.ID.ID;
   end;
   for i := 0 to _InvoiceDescriptor.SellerTaxRegistration.Count-1 do
@@ -1906,7 +1907,7 @@ begin
     _Invoice.AccountingCustomerParty.Address.PostalZone := _InvoiceDescriptor.Buyer.Postcode;
     _Invoice.AccountingCustomerParty.Address.CountrySubentity := _InvoiceDescriptor.Buyer.CountrySubdivisionName;
     _Invoice.AccountingCustomerParty.Address.AddressLine := _InvoiceDescriptor.Buyer.AddressLine3;
-    _Invoice.AccountingCustomerParty.Address.CountryCode := TZUGFeRDCountryCodesExtensions.EnumToString(_InvoiceDescriptor.Buyer.Country);
+    _Invoice.AccountingCustomerParty.Address.CountryCode := ZUGFeRDCountryCodesExtensions.EnumToString(_InvoiceDescriptor.Buyer.Country);
     _Invoice.AccountingCustomerParty.IdentifierSellerBuyer := _InvoiceDescriptor.Buyer.ID.ID;
   end;
   for i := 0 to _InvoiceDescriptor.BuyerTaxRegistration.Count-1 do
@@ -1940,7 +1941,7 @@ begin
     _Invoice.DeliveryInformation.Address.PostalZone := _InvoiceDescriptor.ShipTo.Postcode;
     _Invoice.DeliveryInformation.Address.CountrySubentity := _InvoiceDescriptor.ShipTo.CountrySubdivisionName;
     _Invoice.DeliveryInformation.Address.AddressLine := _InvoiceDescriptor.ShipTo.AddressLine3;
-    _Invoice.DeliveryInformation.Address.CountryCode := TZUGFeRDCountryCodesExtensions.EnumToString(_InvoiceDescriptor.ShipTo.Country);
+    _Invoice.DeliveryInformation.Address.CountryCode := ZUGFeRDCountryCodesExtensions.EnumToString(_InvoiceDescriptor.ShipTo.Country);
   end;
   _Invoice.DeliveryInformation.ActualDeliveryDate := _InvoiceDescriptor.ActualDeliveryDate.GetValueOrDefault(0);
 
@@ -1949,11 +1950,11 @@ begin
   case _InvoiceDescriptor.PaymentMeans.TypeCode of
     InCash: lPaymentMeansCode := ipmc_InCash;
     Cheque: lPaymentMeansCode := ipmc_Cheque;
-    CreditTransfer: lPaymentMeansCode := ipmc_CreditTransfer;
+    CreditTransferNonSEPA: lPaymentMeansCode := ipmc_CreditTransfer;
     //TODO Fehlt : _Invoice.PaymentMeansCode := ipmc_CreditCard; 54
     SEPACreditTransfer: lPaymentMeansCode := ipmc_SEPACreditTransfer;
     SEPADirectDebit: lPaymentMeansCode := ipmc_SEPADirectDebit;
-    NotDefined: lPaymentMeansCode := ipmc_InstrumentNotDefined;
+    InstrumentNotDefined: lPaymentMeansCode := ipmc_InstrumentNotDefined;
     //TODO Fehlt 68
     //    AutomatedClearingHouseDebit: ;
     //    DebitTransfer: ;
@@ -2066,7 +2067,7 @@ begin
     lInvoiceLine.Description := _InvoiceDescriptor.TradeLineItems[i].Description;
     lInvoiceLine.Quantity := _InvoiceDescriptor.TradeLineItems[i].BilledQuantity;
     //lInvoiceLine.UnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(TZUGFeRDQuantityCodesExtensions.EnumToString(_InvoiceDescriptor.TradeLineItems[i].BilledQuantityUnitCode));
-    lInvoiceLine.UnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(TZUGFeRDQuantityCodesExtensions.EnumToString(_InvoiceDescriptor.TradeLineItems[i].UnitCode));
+    lInvoiceLine.UnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(ZUGFeRDQuantityCodesExtensions.EnumToString(_InvoiceDescriptor.TradeLineItems[i].UnitCode));
     lInvoiceLine.SellersItemIdentification := _InvoiceDescriptor.TradeLineItems[i].SellerAssignedID;
     lInvoiceLine.BuyersItemIdentification := _InvoiceDescriptor.TradeLineItems[i].BuyerAssignedID;
     if _InvoiceDescriptor.TradeLineItems[i].BuyerOrderReferencedDocument <> nil then
@@ -2108,21 +2109,21 @@ begin
           ReasonCodeAllowance := iacic_None;
           ReasonCodeCharge := issdc_None;
           if ChargeIndicator then
-            case _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ReasonCodeCharge of
-              AA_Advertising : ReasonCodeCharge := issdc_AA_Advertising;
-              AAA_Telecommunication : ReasonCodeCharge := issdc_AAA_Telecommunication;
-              ABK_Miscellaneous : ReasonCodeCharge := issdc_ABK_Miscellaneous;
-              ABL_AdditionalPackaging : ReasonCodeCharge := issdc_ABL_AdditionalPackaging;
-              ADR_OtherServices : ReasonCodeCharge := issdc_ADR_OtherServices;
-              ADT_Pickup : ReasonCodeCharge := issdc_ADT_Pickup;
-              FC_FreightService : ReasonCodeCharge := issdc_FC_FreightService;
-              FI_Financing : ReasonCodeCharge := issdc_FI_Financing;
-              LA_Labelling : ReasonCodeCharge := issdc_LA_Labelling;
-              PC_Packing  : ReasonCodeCharge := issdc_PC_Packing;
+            case TZUGFeRDTradeCharge(_InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j]).ReasonCode.Value of
+              Advertising : ReasonCodeCharge := issdc_AA_Advertising;
+              Telecommunication : ReasonCodeCharge := issdc_AAA_Telecommunication;
+              Miscellaneous : ReasonCodeCharge := issdc_ABK_Miscellaneous;
+              AdditionalPackaging : ReasonCodeCharge := issdc_ABL_AdditionalPackaging;
+              OtherServices : ReasonCodeCharge := issdc_ADR_OtherServices;
+              Pickup : ReasonCodeCharge := issdc_ADT_Pickup;
+              FreightService : ReasonCodeCharge := issdc_FC_FreightService;
+              Financing : ReasonCodeCharge := issdc_FI_Financing;
+              Labelling : ReasonCodeCharge := issdc_LA_Labelling;
+              Packing  : ReasonCodeCharge := issdc_PC_Packing;
               else ReasonCodeCharge := issdc_None;
             end
           else
-            case _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ReasonCodeAllowance of
+            case TZUGFeRDTradeAllowance(_InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j]).ReasonCode.Value of
               BonusForWorksAheadOfSchedule : ReasonCodeAllowance := iacic_BonusForWorksAheadOfSchedule;
               OtherBonus : ReasonCodeAllowance := iacic_OtherBonus;
               ManufacturersConsumerDiscount : ReasonCodeAllowance :=  iacic_ManufacturersConsumerDiscount;
@@ -2134,8 +2135,8 @@ begin
               SampleDiscount : ReasonCodeAllowance :=  iacic_SampleDiscount;
               EndOfRangeDiscount : ReasonCodeAllowance :=  iacic_EndOfRangeDiscount;
               IncotermDiscount : ReasonCodeAllowance :=  iacic_IncotermDiscount;
-              PointOfSalesThresholdAllowance : ReasonCodeAllowance :=  iacic_PointOfSalesThresholdAllowance;
-              MaterialSurchargeDeduction : ReasonCodeAllowance :=  iacic_MaterialSurchargeDeduction;
+              TZUGFeRDAllowanceReasonCodes.PointOfSalesThresholdAllowance : ReasonCodeAllowance :=  iacic_PointOfSalesThresholdAllowance;
+              MaterialSurchargeOrDeduction : ReasonCodeAllowance :=  iacic_MaterialSurchargeDeduction;
               Discount : ReasonCodeAllowance :=  iacic_Discount;
               SpecialRebate : ReasonCodeAllowance :=  iacic_SpecialRebate;
               FixedLongTerm : ReasonCodeAllowance :=  iacic_FixedLongTerm;
@@ -2159,7 +2160,7 @@ begin
       lInvoiceLine.InvoiceLinePeriodEndDate := _InvoiceDescriptor.TradeLineItems[i].BillingPeriodEnd;
     lInvoiceLine.NetPriceAmount := _InvoiceDescriptor.TradeLineItems[i].NetUnitPrice.GetValueOrDefault(0);
     lInvoiceLine.BaseQuantity := _InvoiceDescriptor.TradeLineItems[i].NetQuantity.GetValueOrDefault(0);
-    lInvoiceLine.BaseQuantityUnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(TZUGFeRDQuantityCodesExtensions.EnumToString(_InvoiceDescriptor.TradeLineItems[i].UnitCode));
+    lInvoiceLine.BaseQuantityUnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(ZUGFeRDQuantityCodesExtensions.EnumToString(_InvoiceDescriptor.TradeLineItems[i].UnitCode));
     lInvoiceLine.LineAmount := _InvoiceDescriptor.TradeLineItems[i].LineTotalAmount.GetValueOrDefault(0);
     for j := 0 to _InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges.Count-1 do
     with lInvoiceLine.AllowanceCharges.AddAllowanceCharge do
@@ -2168,21 +2169,21 @@ begin
       ReasonCodeAllowance := iacic_None;
       ReasonCodeCharge := issdc_None;
       if ChargeIndicator then
-        case _InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges[j].ReasonCodeCharge of
-          AA_Advertising : ReasonCodeCharge := issdc_AA_Advertising;
-          AAA_Telecommunication : ReasonCodeCharge := issdc_AAA_Telecommunication;
-          ABK_Miscellaneous : ReasonCodeCharge := issdc_ABK_Miscellaneous;
-          ABL_AdditionalPackaging : ReasonCodeCharge := issdc_ABL_AdditionalPackaging;
-          ADR_OtherServices : ReasonCodeCharge := issdc_ADR_OtherServices;
-          ADT_Pickup : ReasonCodeCharge := issdc_ADT_Pickup;
-          FC_FreightService : ReasonCodeCharge := issdc_FC_FreightService;
-          FI_Financing : ReasonCodeCharge := issdc_FI_Financing;
-          LA_Labelling : ReasonCodeCharge := issdc_LA_Labelling;
-          PC_Packing  : ReasonCodeCharge := issdc_PC_Packing;
+        case TZUGFeRDTradeCharge(_InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges[j]).ReasonCode.Value of
+          Advertising : ReasonCodeCharge := issdc_AA_Advertising;
+          Telecommunication : ReasonCodeCharge := issdc_AAA_Telecommunication;
+          Miscellaneous : ReasonCodeCharge := issdc_ABK_Miscellaneous;
+          AdditionalPackaging : ReasonCodeCharge := issdc_ABL_AdditionalPackaging;
+          OtherServices : ReasonCodeCharge := issdc_ADR_OtherServices;
+          Pickup : ReasonCodeCharge := issdc_ADT_Pickup;
+          FreightService : ReasonCodeCharge := issdc_FC_FreightService;
+          Financing : ReasonCodeCharge := issdc_FI_Financing;
+          Labelling : ReasonCodeCharge := issdc_LA_Labelling;
+          Packing  : ReasonCodeCharge := issdc_PC_Packing;
           else ReasonCodeCharge := issdc_None;
         end
       else
-        case _InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges[j].ReasonCodeAllowance of
+        case TZUGFeRDTradeAllowance(_InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges[j]).ReasonCode.Value of
           BonusForWorksAheadOfSchedule : ReasonCodeAllowance := iacic_BonusForWorksAheadOfSchedule;
           OtherBonus : ReasonCodeAllowance := iacic_OtherBonus;
           ManufacturersConsumerDiscount : ReasonCodeAllowance :=  iacic_ManufacturersConsumerDiscount;
@@ -2194,8 +2195,8 @@ begin
           SampleDiscount : ReasonCodeAllowance :=  iacic_SampleDiscount;
           EndOfRangeDiscount : ReasonCodeAllowance :=  iacic_EndOfRangeDiscount;
           IncotermDiscount : ReasonCodeAllowance :=  iacic_IncotermDiscount;
-          PointOfSalesThresholdAllowance : ReasonCodeAllowance :=  iacic_PointOfSalesThresholdAllowance;
-          MaterialSurchargeDeduction : ReasonCodeAllowance :=  iacic_MaterialSurchargeDeduction;
+          TZUGFeRDAllowanceReasonCodes.PointOfSalesThresholdAllowance : ReasonCodeAllowance :=  iacic_PointOfSalesThresholdAllowance;
+          MaterialSurchargeOrDeduction : ReasonCodeAllowance :=  iacic_MaterialSurchargeDeduction;
           Discount : ReasonCodeAllowance :=  iacic_Discount;
           SpecialRebate : ReasonCodeAllowance :=  iacic_SpecialRebate;
           FixedLongTerm : ReasonCodeAllowance :=  iacic_FixedLongTerm;
@@ -2244,21 +2245,21 @@ begin
     ReasonCodeAllowance := iacic_None;
     ReasonCodeCharge := issdc_None;
     if ChargeIndicator then
-      case _InvoiceDescriptor.TradeAllowanceCharges[i].ReasonCodeCharge of
-        AA_Advertising : ReasonCodeCharge := issdc_AA_Advertising;
-        AAA_Telecommunication : ReasonCodeCharge := issdc_AAA_Telecommunication;
-        ABK_Miscellaneous : ReasonCodeCharge := issdc_ABK_Miscellaneous;
-        ABL_AdditionalPackaging : ReasonCodeCharge := issdc_ABL_AdditionalPackaging;
-        ADR_OtherServices : ReasonCodeCharge := issdc_ADR_OtherServices;
-        ADT_Pickup : ReasonCodeCharge := issdc_ADT_Pickup;
-        FC_FreightService : ReasonCodeCharge := issdc_FC_FreightService;
-        FI_Financing : ReasonCodeCharge := issdc_FI_Financing;
-        LA_Labelling : ReasonCodeCharge := issdc_LA_Labelling;
-        PC_Packing  : ReasonCodeCharge := issdc_PC_Packing;
+      case TZUGFeRDTradeCharge(_InvoiceDescriptor.TradeAllowanceCharges[i]).ReasonCode.Value of
+        Advertising : ReasonCodeCharge := issdc_AA_Advertising;
+        Telecommunication : ReasonCodeCharge := issdc_AAA_Telecommunication;
+        Miscellaneous : ReasonCodeCharge := issdc_ABK_Miscellaneous;
+        AdditionalPackaging : ReasonCodeCharge := issdc_ABL_AdditionalPackaging;
+        OtherServices : ReasonCodeCharge := issdc_ADR_OtherServices;
+        Pickup : ReasonCodeCharge := issdc_ADT_Pickup;
+        FreightService : ReasonCodeCharge := issdc_FC_FreightService;
+        Financing : ReasonCodeCharge := issdc_FI_Financing;
+        Labelling : ReasonCodeCharge := issdc_LA_Labelling;
+        Packing  : ReasonCodeCharge := issdc_PC_Packing;
         else ReasonCodeCharge := issdc_None;
       end
     else
-      case _InvoiceDescriptor.TradeAllowanceCharges[i].ReasonCodeAllowance of
+      case TZUGFeRDTradeAllowance(_InvoiceDescriptor.TradeAllowanceCharges[i]).ReasonCode.Value of
         BonusForWorksAheadOfSchedule : ReasonCodeAllowance := iacic_BonusForWorksAheadOfSchedule;
         OtherBonus : ReasonCodeAllowance := iacic_OtherBonus;
         ManufacturersConsumerDiscount : ReasonCodeAllowance :=  iacic_ManufacturersConsumerDiscount;
@@ -2270,8 +2271,8 @@ begin
         SampleDiscount : ReasonCodeAllowance :=  iacic_SampleDiscount;
         EndOfRangeDiscount : ReasonCodeAllowance :=  iacic_EndOfRangeDiscount;
         IncotermDiscount : ReasonCodeAllowance :=  iacic_IncotermDiscount;
-        PointOfSalesThresholdAllowance : ReasonCodeAllowance :=  iacic_PointOfSalesThresholdAllowance;
-        MaterialSurchargeDeduction : ReasonCodeAllowance :=  iacic_MaterialSurchargeDeduction;
+        TZUGFeRDAllowanceReasonCodes.PointOfSalesThresholdAllowance : ReasonCodeAllowance :=  iacic_PointOfSalesThresholdAllowance;
+        MaterialSurchargeOrDeduction : ReasonCodeAllowance :=  iacic_MaterialSurchargeDeduction;
         Discount : ReasonCodeAllowance :=  iacic_Discount;
         SpecialRebate : ReasonCodeAllowance :=  iacic_SpecialRebate;
         FixedLongTerm : ReasonCodeAllowance :=  iacic_FixedLongTerm;
@@ -2376,7 +2377,7 @@ begin
     _AdditionalContent.InvoiceeTradeParty.Address.PostalZone := _InvoiceDescriptor.Invoicee.Postcode;
     _AdditionalContent.InvoiceeTradeParty.Address.CountrySubentity := _InvoiceDescriptor.Invoicee.CountrySubdivisionName;
     _AdditionalContent.InvoiceeTradeParty.Address.AddressLine := _InvoiceDescriptor.Invoicee.AddressLine3;
-    _AdditionalContent.InvoiceeTradeParty.Address.CountryCode := TZUGFeRDCountryCodesExtensions.EnumToString(_InvoiceDescriptor.Invoicee.Country);
+    _AdditionalContent.InvoiceeTradeParty.Address.CountryCode := ZUGFeRDCountryCodesExtensions.EnumToString(_InvoiceDescriptor.Invoicee.Country);
     _AdditionalContent.InvoiceeTradeParty.IdentifierSellerBuyer := _InvoiceDescriptor.Invoicee.ID.ID;
   end;
 

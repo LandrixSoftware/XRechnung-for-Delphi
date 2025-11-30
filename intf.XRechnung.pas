@@ -45,6 +45,7 @@ uses
   ,intf.ZUGFeRDQuantityCodes
   ,intf.ZUGFeRDGlobalIDSchemeIdentifiers
   ,intf.ZUGFeRDSubjectCodes
+  ,intf.ZUGFeRDHelper
   {$ENDIF}
   ,intf.XRechnung_2_3
   ,intf.XRechnung_3_0
@@ -1813,13 +1814,14 @@ begin
     FinalConstructionInvoice: _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_FinalConstructionInvoice;
     else _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_None;
   end;
-  _Invoice.InvoiceCurrencyCode := ZUGFeRDCurrencyCodesExtensions.EnumToString(_InvoiceDescriptor.Currency);
+  _Invoice.InvoiceCurrencyCode := TEnumExtensions<TZUGFeRDCurrencyCodes>.EnumToString(_InvoiceDescriptor.Currency);
   _Invoice.TaxCurrencyCode := _Invoice.InvoiceCurrencyCode; //TODO fehlt in ZUGFeRD-Lib
   _Invoice.BuyerReference := _InvoiceDescriptor.ReferenceOrderNo;
   for i := 0 to _InvoiceDescriptor.Notes.Count-1 do
   begin
     _Invoice.Notes.AddNote.Content := _InvoiceDescriptor.Notes[i].Content;
-    case _InvoiceDescriptor.Notes[i].SubjectCode of
+    if _InvoiceDescriptor.Notes[i].SubjectCode.HasValue then
+    case _InvoiceDescriptor.Notes[i].SubjectCode.Value of
       //TZUGFeRDSubjectCodes.AAC :_Invoice.Notes.Last.SubjectCode :=
       TZUGFeRDSubjectCodes.AAI :_Invoice.Notes.Last.SubjectCode := insc_AAI;
       TZUGFeRDSubjectCodes.AAJ :_Invoice.Notes.Last.SubjectCode := insc_AAJ;
@@ -1868,7 +1870,7 @@ begin
     _Invoice.AccountingSupplierParty.Address.PostalZone := _InvoiceDescriptor.Seller.Postcode;
     _Invoice.AccountingSupplierParty.Address.CountrySubentity := _InvoiceDescriptor.Seller.CountrySubdivisionName;
     _Invoice.AccountingSupplierParty.Address.AddressLine := _InvoiceDescriptor.Seller.AddressLine3;
-    _Invoice.AccountingSupplierParty.Address.CountryCode := ZUGFeRDCountryCodesExtensions.EnumToString(_InvoiceDescriptor.Seller.Country);
+    _Invoice.AccountingSupplierParty.Address.CountryCode := TEnumExtensions<TZUGFeRDCountryCodes>.EnumToString(_InvoiceDescriptor.Seller.Country);
     _Invoice.AccountingSupplierParty.IdentifierSellerBuyer := _InvoiceDescriptor.Seller.ID.ID;
   end;
   for i := 0 to _InvoiceDescriptor.SellerTaxRegistration.Count-1 do
@@ -1907,7 +1909,7 @@ begin
     _Invoice.AccountingCustomerParty.Address.PostalZone := _InvoiceDescriptor.Buyer.Postcode;
     _Invoice.AccountingCustomerParty.Address.CountrySubentity := _InvoiceDescriptor.Buyer.CountrySubdivisionName;
     _Invoice.AccountingCustomerParty.Address.AddressLine := _InvoiceDescriptor.Buyer.AddressLine3;
-    _Invoice.AccountingCustomerParty.Address.CountryCode := ZUGFeRDCountryCodesExtensions.EnumToString(_InvoiceDescriptor.Buyer.Country);
+    _Invoice.AccountingCustomerParty.Address.CountryCode := TEnumExtensions<TZUGFeRDCountryCodes>.EnumToString(_InvoiceDescriptor.Buyer.Country);
     _Invoice.AccountingCustomerParty.IdentifierSellerBuyer := _InvoiceDescriptor.Buyer.ID.ID;
   end;
   for i := 0 to _InvoiceDescriptor.BuyerTaxRegistration.Count-1 do
@@ -1941,13 +1943,13 @@ begin
     _Invoice.DeliveryInformation.Address.PostalZone := _InvoiceDescriptor.ShipTo.Postcode;
     _Invoice.DeliveryInformation.Address.CountrySubentity := _InvoiceDescriptor.ShipTo.CountrySubdivisionName;
     _Invoice.DeliveryInformation.Address.AddressLine := _InvoiceDescriptor.ShipTo.AddressLine3;
-    _Invoice.DeliveryInformation.Address.CountryCode := ZUGFeRDCountryCodesExtensions.EnumToString(_InvoiceDescriptor.ShipTo.Country);
+    _Invoice.DeliveryInformation.Address.CountryCode := TEnumExtensions<TZUGFeRDCountryCodes>.EnumToString(_InvoiceDescriptor.ShipTo.Country);
   end;
   _Invoice.DeliveryInformation.ActualDeliveryDate := _InvoiceDescriptor.ActualDeliveryDate.GetValueOrDefault(0);
 
   var lPaymentMeansCode : TInvoicePaymentMeansCode := ipmc_NotImplemented;
-  if _InvoiceDescriptor.PaymentMeans <> nil then
-  case _InvoiceDescriptor.PaymentMeans.TypeCode of
+  if (_InvoiceDescriptor.PaymentMeans <> nil) and _InvoiceDescriptor.PaymentMeans.TypeCode.HasValue then
+  case _InvoiceDescriptor.PaymentMeans.TypeCode.Value of
     InCash: lPaymentMeansCode := ipmc_InCash;
     Cheque: lPaymentMeansCode := ipmc_Cheque;
     CreditTransferNonSEPA: lPaymentMeansCode := ipmc_CreditTransfer;
@@ -2067,7 +2069,7 @@ begin
     lInvoiceLine.Description := _InvoiceDescriptor.TradeLineItems[i].Description;
     lInvoiceLine.Quantity := _InvoiceDescriptor.TradeLineItems[i].BilledQuantity;
     //lInvoiceLine.UnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(TZUGFeRDQuantityCodesExtensions.EnumToString(_InvoiceDescriptor.TradeLineItems[i].BilledQuantityUnitCode));
-    lInvoiceLine.UnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(ZUGFeRDQuantityCodesExtensions.EnumToString(_InvoiceDescriptor.TradeLineItems[i].UnitCode));
+    lInvoiceLine.UnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(TEnumExtensions<TZUGFeRDQuantityCodes>.EnumToString(_InvoiceDescriptor.TradeLineItems[i].UnitCode));
     lInvoiceLine.SellersItemIdentification := _InvoiceDescriptor.TradeLineItems[i].SellerAssignedID;
     lInvoiceLine.BuyersItemIdentification := _InvoiceDescriptor.TradeLineItems[i].BuyerAssignedID;
     if _InvoiceDescriptor.TradeLineItems[i].BuyerOrderReferencedDocument <> nil then
@@ -2078,7 +2080,9 @@ begin
     if _InvoiceDescriptor.TradeLineItems[i].ReceivableSpecifiedTradeAccountingAccounts.Count > 0 then
       lInvoiceLine.BuyerAccountingReference := _InvoiceDescriptor.TradeLineItems[i].ReceivableSpecifiedTradeAccountingAccounts.First.TradeAccountID;
     lInvoiceLine.TaxPercent := _InvoiceDescriptor.TradeLineItems[i].TaxPercent;
-    case _InvoiceDescriptor.TradeLineItems[i].TaxCategoryCode of
+    lInvoiceLine.TaxCategory := idtfcc_None;
+    if _InvoiceDescriptor.TradeLineItems[i].TaxCategoryCode.HasValue then
+    case _InvoiceDescriptor.TradeLineItems[i].TaxCategoryCode.Value of
       TZUGFeRDTaxCategoryCodes.AE : lInvoiceLine.TaxCategory := idtfcc_AE_VATReverseCharge;
       TZUGFeRDTaxCategoryCodes.E : lInvoiceLine.TaxCategory := idtfcc_E_ExemptFromTax;
       TZUGFeRDTaxCategoryCodes.G : lInvoiceLine.TaxCategory := idtfcc_G_FreeExportItemTaxNotCharged;
@@ -2160,7 +2164,7 @@ begin
       lInvoiceLine.InvoiceLinePeriodEndDate := _InvoiceDescriptor.TradeLineItems[i].BillingPeriodEnd;
     lInvoiceLine.NetPriceAmount := _InvoiceDescriptor.TradeLineItems[i].NetUnitPrice.GetValueOrDefault(0);
     lInvoiceLine.BaseQuantity := _InvoiceDescriptor.TradeLineItems[i].NetQuantity.GetValueOrDefault(0);
-    lInvoiceLine.BaseQuantityUnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(ZUGFeRDQuantityCodesExtensions.EnumToString(_InvoiceDescriptor.TradeLineItems[i].UnitCode));
+    lInvoiceLine.BaseQuantityUnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(TEnumExtensions<TZUGFeRDQuantityCodes>.EnumToString(_InvoiceDescriptor.TradeLineItems[i].UnitCode));
     lInvoiceLine.LineAmount := _InvoiceDescriptor.TradeLineItems[i].LineTotalAmount.GetValueOrDefault(0);
     for j := 0 to _InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges.Count-1 do
     with lInvoiceLine.AllowanceCharges.AddAllowanceCharge do
@@ -2286,7 +2290,9 @@ begin
     MultiplierFactorNumeric := _InvoiceDescriptor.TradeAllowanceCharges[i].ChargePercentage;
     Amount := _InvoiceDescriptor.TradeAllowanceCharges[i].ActualAmount;
     TaxPercent := _InvoiceDescriptor.TradeAllowanceCharges[i].Tax.Percent;
-    case _InvoiceDescriptor.TradeAllowanceCharges[i].Tax.CategoryCode of
+    TaxCategory := idtfcc_None; //TODO weitere Category Types von ZUGFeRD
+    if _InvoiceDescriptor.TradeAllowanceCharges[i].Tax.CategoryCode.HasValue then
+    case _InvoiceDescriptor.TradeAllowanceCharges[i].Tax.CategoryCode.Value of
       TZUGFeRDTaxCategoryCodes.AE : TaxCategory := idtfcc_AE_VATReverseCharge;
       TZUGFeRDTaxCategoryCodes.E : TaxCategory := idtfcc_E_ExemptFromTax;
       TZUGFeRDTaxCategoryCodes.G : TaxCategory := idtfcc_G_FreeExportItemTaxNotCharged;
@@ -2318,7 +2324,9 @@ begin
     TaxAmount := _InvoiceDescriptor.Taxes[i].TaxAmount;
     TaxPercent := _InvoiceDescriptor.Taxes[i].Percent;
     //TODO DEFAULT VAT_InvoiceDescriptor.Taxes[i].TypeCode
-    case _InvoiceDescriptor.Taxes[i].CategoryCode of
+    TaxCategory := idtfcc_None; //TODO weitere Category Types von ZUGFeRD
+    if _InvoiceDescriptor.Taxes[i].CategoryCode.HasValue then
+    case _InvoiceDescriptor.Taxes[i].CategoryCode.Value of
       TZUGFeRDTaxCategoryCodes.AE : TaxCategory := idtfcc_AE_VATReverseCharge;
       TZUGFeRDTaxCategoryCodes.E : TaxCategory := idtfcc_E_ExemptFromTax;
       TZUGFeRDTaxCategoryCodes.G : TaxCategory := idtfcc_G_FreeExportItemTaxNotCharged;
@@ -2377,7 +2385,7 @@ begin
     _AdditionalContent.InvoiceeTradeParty.Address.PostalZone := _InvoiceDescriptor.Invoicee.Postcode;
     _AdditionalContent.InvoiceeTradeParty.Address.CountrySubentity := _InvoiceDescriptor.Invoicee.CountrySubdivisionName;
     _AdditionalContent.InvoiceeTradeParty.Address.AddressLine := _InvoiceDescriptor.Invoicee.AddressLine3;
-    _AdditionalContent.InvoiceeTradeParty.Address.CountryCode := ZUGFeRDCountryCodesExtensions.EnumToString(_InvoiceDescriptor.Invoicee.Country);
+    _AdditionalContent.InvoiceeTradeParty.Address.CountryCode := TEnumExtensions<TZUGFeRDCountryCodes>.EnumToString(_InvoiceDescriptor.Invoicee.Country);
     _AdditionalContent.InvoiceeTradeParty.IdentifierSellerBuyer := _InvoiceDescriptor.Invoicee.ID.ID;
   end;
 

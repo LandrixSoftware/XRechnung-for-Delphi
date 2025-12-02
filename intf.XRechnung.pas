@@ -1994,8 +1994,24 @@ begin
   _Invoice.PaymentMandateID := _InvoiceDescriptor.PaymentMeans.SEPAMandateReference;
 
   _Invoice.PaymentTermsType := iptt_None;
+
   for i := 0 to _InvoiceDescriptor.PaymentTermsList.Count-1 do
   begin
+    //Sonderfall, Skonto XRechnung-Format in ZUGFeRD, eigentlich nicht erlaubt
+    if _InvoiceDescriptor.PaymentTermsList.Count = 1 then
+    if (_InvoiceDescriptor.PaymentTermsList[i].DueDays.GetValueOrDefault > 0) and
+       (_InvoiceDescriptor.PaymentTermsList[i].DueDate.GetValueOrDefault > 0) and
+       (_InvoiceDescriptor.PaymentTermsList[i].DueDate.GetValueOrDefault <> Trunc(_Invoice.InvoiceIssueDate)+_InvoiceDescriptor.PaymentTermsList[i].DueDays.GetValueOrDefault) then
+    begin
+      _Invoice.InvoiceDueDate := _InvoiceDescriptor.PaymentTermsList[i].DueDate;
+      _Invoice.PaymentTermsType := iptt_CashDiscount1;
+      _Invoice.PaymentTermCashDiscount1Days := Trunc(_InvoiceDescriptor.PaymentTermsList[i].DueDays.Value);
+      _Invoice.PaymentTermCashDiscount1Percent := _InvoiceDescriptor.PaymentTermsList[i].Percentage;
+      _Invoice.PaymentTermCashDiscount1Base := _InvoiceDescriptor.PaymentTermsList[i].BaseAmount;
+      _Invoice.PaymentTermCashDiscount1ActualAmount := _InvoiceDescriptor.PaymentTermsList[i].ActualAmount;
+      break;
+    end;
+
     if (not _InvoiceDescriptor.PaymentTermsList[i].Percentage.HasValue) and
        (not _InvoiceDescriptor.PaymentTermsList[i].BaseAmount.HasValue) then
     begin

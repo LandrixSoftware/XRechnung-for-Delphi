@@ -33,6 +33,8 @@ const
 
 type
 
+  TInvoiceListItemType = Integer;
+
   TInvoiceTypeCode = (
     itc_None,
 
@@ -219,8 +221,10 @@ type
                       ,iuc_millimetre
                       ,iuc_minute_unit_of_time
                       ,iuc_second_unit_of_time
+                      ,iuc_millilitre
                       ,iuc_litre
                       ,iuc_hour
+                      ,iuc_milligram
                       ,iuc_gram
                       ,iuc_kilogram
                       ,iuc_kilometre
@@ -272,6 +276,7 @@ type
     destructor Destroy; override;
     procedure EmbedDataFromStream(_Stream : TStream);
     procedure EmbedDataFromFile(const _Filename : String);
+    procedure EmbedDataFromText(const _Value : TStrings);
     function GetDataAsBase64 : String;
     procedure SetDataFromBase64(const _Val : String);
     function ContainsBinaryObject : Boolean;
@@ -279,13 +284,13 @@ type
 
   TInvoiceAttachmentList = class(TObjectList)
   protected
-    function GetItem(Index: Integer): TInvoiceAttachment;
-    procedure SetItem(Index: Integer; AItem: TInvoiceAttachment);
+    function GetItem(Index: TInvoiceListItemType): TInvoiceAttachment;
+    procedure SetItem(Index: TInvoiceListItemType; AItem: TInvoiceAttachment);
   public
 	  function  Extract(Item: TObject): TInvoiceAttachment;
 	  function  First: TInvoiceAttachment;
 	  function  Last: TInvoiceAttachment;
-	  property  Items[Index: Integer]: TInvoiceAttachment read GetItem write SetItem; default;
+	  property  Items[Index: TInvoiceListItemType]: TInvoiceAttachment read GetItem write SetItem; default;
   public
     function AddAttachment(_AttachmentType : TInvoiceAttachmentType) : TInvoiceAttachment;
     function TryAddAttachmentByExtension(const _Filename : String; out _Attachment : TInvoiceAttachment) : Boolean;
@@ -301,13 +306,13 @@ type
 
   TInvoicePrepaidPaymentList = class(TObjectList)
   protected
-    function GetItem(Index: Integer): TInvoicePrepaidPayment;
-    procedure SetItem(Index: Integer; AItem: TInvoicePrepaidPayment);
+    function GetItem(Index: TInvoiceListItemType): TInvoicePrepaidPayment;
+    procedure SetItem(Index: TInvoiceListItemType; AItem: TInvoicePrepaidPayment);
   public
 	  function  Extract(Item: TObject): TInvoicePrepaidPayment;
 	  function  First: TInvoicePrepaidPayment;
 	  function  Last: TInvoicePrepaidPayment;
-	  property  Items[Index: Integer]: TInvoicePrepaidPayment read GetItem write SetItem; default;
+	  property  Items[Index: TInvoiceListItemType]: TInvoicePrepaidPayment read GetItem write SetItem; default;
   public
     function AddPrepaidPayment : TInvoicePrepaidPayment;
   end;
@@ -491,13 +496,13 @@ type
 
   TInvoiceAllowanceCharges = class(TObjectList)
   protected
-    function GetItem(Index: Integer): TInvoiceAllowanceCharge;
-    procedure SetItem(Index: Integer; AItem: TInvoiceAllowanceCharge);
+    function GetItem(Index: TInvoiceListItemType): TInvoiceAllowanceCharge;
+    procedure SetItem(Index: TInvoiceListItemType; AItem: TInvoiceAllowanceCharge);
   public
 	  function  Extract(Item: TObject): TInvoiceAllowanceCharge;
 	  function  First: TInvoiceAllowanceCharge;
 	  function  Last: TInvoiceAllowanceCharge;
-	  property  Items[Index: Integer]: TInvoiceAllowanceCharge read GetItem write SetItem; default;
+	  property  Items[Index: TInvoiceListItemType]: TInvoiceAllowanceCharge read GetItem write SetItem; default;
   public
     function AddAllowanceCharge : TInvoiceAllowanceCharge;
   end;
@@ -512,13 +517,13 @@ type
 
   TInvoiceLineItemAttributes = class(TObjectList)
   protected
-    function GetItem(Index: Integer): TInvoiceLineItemAttribute;
-    procedure SetItem(Index: Integer; AItem: TInvoiceLineItemAttribute);
+    function GetItem(Index: TInvoiceListItemType): TInvoiceLineItemAttribute;
+    procedure SetItem(Index: TInvoiceListItemType; AItem: TInvoiceLineItemAttribute);
   public
 	  function  Extract(Item: TObject): TInvoiceLineItemAttribute;
 	  function  First: TInvoiceLineItemAttribute;
 	  function  Last: TInvoiceLineItemAttribute;
-	  property  Items[Index: Integer]: TInvoiceLineItemAttribute read GetItem write SetItem; default;
+	  property  Items[Index: TInvoiceListItemType]: TInvoiceLineItemAttribute read GetItem write SetItem; default;
   public
     function  AddItemAttribute : TInvoiceLineItemAttribute;
   end;
@@ -535,6 +540,7 @@ type
     UnitCode : TInvoiceUnitCode; //BT-130 Mengeneinheit
     SellersItemIdentification : String; //BG-31, BT-155 Artikelnummer, vom Verkaeufer vergeben
     BuyersItemIdentification : String; //BG-31, BT-156 Artikelkennung, vom Kaeufer vergeben
+    OrderNumber : String; //BT-X-21 Bestellnummer vom Kaeufer - Nur ZUGFeRD/Factur-X
     OrderLineReference : String; //BT-132 Referenz zur Bestellposition, vom Kaeufer vergeben
     BuyerAccountingReference : String; //BT-133 Buchungsreferenz des Kaeufers für die Rechnungsposition, vom Kaeufer vergeben
     TaxPercent : double; //BG-30, BT-152 MwSt
@@ -562,13 +568,13 @@ type
 
   TInvoiceLines = class(TObjectList)
   protected
-    function GetItem(Index: Integer): TInvoiceLine;
-    procedure SetItem(Index: Integer; AItem: TInvoiceLine);
+    function GetItem(Index: TInvoiceListItemType): TInvoiceLine;
+    procedure SetItem(Index: TInvoiceListItemType; AItem: TInvoiceLine);
   public
 	  function  Extract(Item: TObject): TInvoiceLine;
 	  function  First: TInvoiceLine;
 	  function  Last: TInvoiceLine;
-	  property  Items[Index: Integer]: TInvoiceLine read GetItem write SetItem; default;
+	  property  Items[Index: TInvoiceListItemType]: TInvoiceLine read GetItem write SetItem; default;
   public
     function AddInvoiceLine : TInvoiceLine;
   end;
@@ -586,13 +592,13 @@ type
 
   TInvoiceTaxAmounts = class(TObjectList)
   protected
-    function GetItem(Index: Integer): TInvoiceTaxAmount;
-    procedure SetItem(Index: Integer; AItem: TInvoiceTaxAmount);
+    function GetItem(Index: TInvoiceListItemType): TInvoiceTaxAmount;
+    procedure SetItem(Index: TInvoiceListItemType; AItem: TInvoiceTaxAmount);
   public
 	  function  Extract(Item: TObject): TInvoiceTaxAmount;
 	  function  First: TInvoiceTaxAmount;
 	  function  Last: TInvoiceTaxAmount;
-	  property  Items[Index: Integer]: TInvoiceTaxAmount read GetItem write SetItem; default;
+	  property  Items[Index: TInvoiceListItemType]: TInvoiceTaxAmount read GetItem write SetItem; default;
   public
     function AddTaxAmountIfTaxExists(_TaxPercent : double; _TaxableAmount,_TaxAmount : Currency) : Boolean;
     function AddTaxAmount : TInvoiceTaxAmount;
@@ -652,13 +658,13 @@ type
 
   TInvoicePrecedingInvoiceReferences = class(TObjectList)
   protected
-    function GetItem(Index: Integer): TInvoicePrecedingInvoiceReference;
-    procedure SetItem(Index: Integer; AItem: TInvoicePrecedingInvoiceReference);
+    function GetItem(Index: TInvoiceListItemType): TInvoicePrecedingInvoiceReference;
+    procedure SetItem(Index: TInvoiceListItemType; AItem: TInvoicePrecedingInvoiceReference);
   public
 	  function  Extract(Item: TObject): TInvoicePrecedingInvoiceReference;
 	  function  First: TInvoicePrecedingInvoiceReference;
 	  function  Last: TInvoicePrecedingInvoiceReference;
-	  property  Items[Index: Integer]: TInvoicePrecedingInvoiceReference read GetItem write SetItem; default;
+	  property  Items[Index: TInvoiceListItemType]: TInvoicePrecedingInvoiceReference read GetItem write SetItem; default;
   public
     function AddPrecedingInvoiceReference : TInvoicePrecedingInvoiceReference;
     function IndexOfPrecedingInvoiceReference(const _ID : String) : Integer;
@@ -688,13 +694,13 @@ type
 
   TInvoiceNotes = class(TObjectList)
   protected
-    function GetItem(Index: Integer): TInvoiceNote;
-    procedure SetItem(Index: Integer; AItem: TInvoiceNote);
+    function GetItem(Index: TInvoiceListItemType): TInvoiceNote;
+    procedure SetItem(Index: TInvoiceListItemType; AItem: TInvoiceNote);
   public
 	  function  Extract(Item: TObject): TInvoiceNote;
 	  function  First: TInvoiceNote;
 	  function  Last: TInvoiceNote;
-	  property  Items[Index: Integer]: TInvoiceNote read GetItem write SetItem; default;
+	  property  Items[Index: TInvoiceListItemType]: TInvoiceNote read GetItem write SetItem; default;
   public
     function AddNote: TInvoiceNote;
     function NodeContentsAsText : String;
@@ -714,14 +720,14 @@ type
 
   TInvoicePaymentTypeList = class(TObjectList)
   protected
-    function GetItem(Index: Integer): TInvoicePaymentType;
-    procedure SetItem(Index: Integer; AItem: TInvoicePaymentType);
+    function GetItem(Index: TInvoiceListItemType): TInvoicePaymentType;
+    procedure SetItem(Index: TInvoiceListItemType; AItem: TInvoicePaymentType);
   public
 	  function  Extract(Item: TObject): TInvoicePaymentType;
 	  function  First: TInvoicePaymentType;
 	  function  Last: TInvoicePaymentType;
     function  AddPaymentType : TInvoicePaymentType;
-	  property  Items[Index: Integer]: TInvoicePaymentType read GetItem write SetItem; default;
+	  property  Items[Index: TInvoiceListItemType]: TInvoicePaymentType read GetItem write SetItem; default;
   end;
 
   TInvoice = class(TObject)
@@ -859,13 +865,13 @@ begin Result := TInvoiceLine(inherited Extract(Item)); end;
 function TInvoiceLines.First: TInvoiceLine;
 begin if Count = 0 then Result := nil else Result := TInvoiceLine(inherited First); end;
 
-function TInvoiceLines.GetItem(Index: Integer): TInvoiceLine;
+function TInvoiceLines.GetItem(Index: TInvoiceListItemType): TInvoiceLine;
 begin Result := TInvoiceLine(inherited Items[Index]); end;
 
 function TInvoiceLines.Last: TInvoiceLine;
 begin if Count = 0 then Result := nil else Result := TInvoiceLine(inherited Last); end;
 
-procedure TInvoiceLines.SetItem(Index: Integer; AItem: TInvoiceLine);
+procedure TInvoiceLines.SetItem(Index: TInvoiceListItemType; AItem: TInvoiceLine);
 begin inherited Items[Index] := AItem; end;
 
 function TInvoiceLines.AddInvoiceLine: TInvoiceLine;
@@ -882,13 +888,13 @@ begin Result := TInvoiceAllowanceCharge(inherited Extract(Item)); end;
 function TInvoiceAllowanceCharges.First: TInvoiceAllowanceCharge;
 begin if Count = 0 then Result := nil else Result := TInvoiceAllowanceCharge(inherited First); end;
 
-function TInvoiceAllowanceCharges.GetItem(Index: Integer): TInvoiceAllowanceCharge;
+function TInvoiceAllowanceCharges.GetItem(Index: TInvoiceListItemType): TInvoiceAllowanceCharge;
 begin Result := TInvoiceAllowanceCharge(inherited Items[Index]); end;
 
 function TInvoiceAllowanceCharges.Last: TInvoiceAllowanceCharge;
 begin if Count = 0 then Result := nil else Result := TInvoiceAllowanceCharge(inherited Last); end;
 
-procedure TInvoiceAllowanceCharges.SetItem(Index: Integer; AItem: TInvoiceAllowanceCharge);
+procedure TInvoiceAllowanceCharges.SetItem(Index: TInvoiceListItemType; AItem: TInvoiceAllowanceCharge);
 begin inherited Items[Index] := AItem; end;
 
 function TInvoiceAllowanceCharges.AddAllowanceCharge: TInvoiceAllowanceCharge;
@@ -905,13 +911,13 @@ begin Result := TInvoicePrepaidPayment(inherited Extract(Item)); end;
 function TInvoicePrepaidPaymentList.First: TInvoicePrepaidPayment;
 begin if Count = 0 then Result := nil else Result := TInvoicePrepaidPayment(inherited First); end;
 
-function TInvoicePrepaidPaymentList.GetItem(Index: Integer): TInvoicePrepaidPayment;
+function TInvoicePrepaidPaymentList.GetItem(Index: TInvoiceListItemType): TInvoicePrepaidPayment;
 begin Result := TInvoicePrepaidPayment(inherited Items[Index]); end;
 
 function TInvoicePrepaidPaymentList.Last: TInvoicePrepaidPayment;
 begin if Count = 0 then Result := nil else Result := TInvoicePrepaidPayment(inherited Last); end;
 
-procedure TInvoicePrepaidPaymentList.SetItem(Index: Integer; AItem: TInvoicePrepaidPayment);
+procedure TInvoicePrepaidPaymentList.SetItem(Index: TInvoiceListItemType; AItem: TInvoicePrepaidPayment);
 begin inherited Items[Index] := AItem; end;
 
 function TInvoicePrepaidPaymentList.AddPrepaidPayment: TInvoicePrepaidPayment;
@@ -928,13 +934,13 @@ begin Result := TInvoicePrecedingInvoiceReference(inherited Extract(Item)); end;
 function TInvoicePrecedingInvoiceReferences.First: TInvoicePrecedingInvoiceReference;
 begin if Count = 0 then Result := nil else Result := TInvoicePrecedingInvoiceReference(inherited First); end;
 
-function TInvoicePrecedingInvoiceReferences.GetItem(Index: Integer): TInvoicePrecedingInvoiceReference;
+function TInvoicePrecedingInvoiceReferences.GetItem(Index: TInvoiceListItemType): TInvoicePrecedingInvoiceReference;
 begin Result := TInvoicePrecedingInvoiceReference(inherited Items[Index]); end;
 
 function TInvoicePrecedingInvoiceReferences.Last: TInvoicePrecedingInvoiceReference;
 begin if Count = 0 then Result := nil else Result := TInvoicePrecedingInvoiceReference(inherited Last); end;
 
-procedure TInvoicePrecedingInvoiceReferences.SetItem(Index: Integer; AItem: TInvoicePrecedingInvoiceReference);
+procedure TInvoicePrecedingInvoiceReferences.SetItem(Index: TInvoiceListItemType; AItem: TInvoicePrecedingInvoiceReference);
 begin inherited Items[Index] := AItem; end;
 
 function TInvoicePrecedingInvoiceReferences.AddPrecedingInvoiceReference: TInvoicePrecedingInvoiceReference;
@@ -973,13 +979,13 @@ begin Result := TInvoiceNote(inherited Extract(Item)); end;
 function TInvoiceNotes.First: TInvoiceNote;
 begin if Count = 0 then Result := nil else Result := TInvoiceNote(inherited First); end;
 
-function TInvoiceNotes.GetItem(Index: Integer): TInvoiceNote;
+function TInvoiceNotes.GetItem(Index: TInvoiceListItemType): TInvoiceNote;
 begin Result := TInvoiceNote(inherited Items[Index]); end;
 
 function TInvoiceNotes.Last: TInvoiceNote;
 begin if Count = 0 then Result := nil else Result := TInvoiceNote(inherited Last); end;
 
-procedure TInvoiceNotes.SetItem(Index: Integer; AItem: TInvoiceNote);
+procedure TInvoiceNotes.SetItem(Index: TInvoiceListItemType; AItem: TInvoiceNote);
 begin inherited Items[Index] := AItem; end;
 
 function TInvoiceNotes.AddNote: TInvoiceNote;
@@ -1057,12 +1063,24 @@ begin
   _Success := false;
   _UnitOfMeasure := Trim(_UnitOfMeasure);
   if _UnitOfMeasure = '' then
+  begin
+    Result := iuc_one;
+    _Success := true;
     exit;
+  end;
+
   if SameText(_UnitOfMeasure,'st') or
      SameText(_UnitOfMeasure,'st.') or
      SameText(_UnitOfMeasure,'stk.') or
      SameText(_UnitOfMeasure,'stk') or
-     SameText(_UnitOfMeasure,'C62') or
+     SameText(_UnitOfMeasure,'pc') or
+     SameText(_UnitOfMeasure,'pcs') or
+     SameText(_UnitOfMeasure,'stueck') or
+     SameText(_UnitOfMeasure,'stuecke') or
+     SameText(_UnitOfMeasure,'stück') or
+     SameText(_UnitOfMeasure,'stücke') or
+     SameText(_UnitOfMeasure,'piece') or
+     SameText(_UnitOfMeasure,'pieces') or
      SameText(_UnitOfMeasure,'stck') then
   begin
     Result := iuc_piece;
@@ -1073,13 +1091,26 @@ begin
      SameText(_UnitOfMeasure,'psch') or
      SameText(_UnitOfMeasure,'psch.') or
      SameText(_UnitOfMeasure,'pschl') or
-     SameText(_UnitOfMeasure,'pschl.') then
+     SameText(_UnitOfMeasure,'pschl.') or
+     SameText(_UnitOfMeasure,'pausch') or
+     SameText(_UnitOfMeasure,'pauschal') or
+     SameText(_UnitOfMeasure,'flat') or
+     SameText(_UnitOfMeasure,'flat rate') or
+     SameText(_UnitOfMeasure,'lump sum') or
+     SameText(_UnitOfMeasure,'fix') then
   begin
     Result := iuc_flaterate;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'mal') then
+  if SameText(_UnitOfMeasure,'mal') or
+     SameText(_UnitOfMeasure,'C62') or
+     SameText(_UnitOfMeasure,'ea') or
+     SameText(_UnitOfMeasure,'unit') or
+     SameText(_UnitOfMeasure,'units') or
+     SameText(_UnitOfMeasure,'one') or
+     SameText(_UnitOfMeasure,'AE') or
+     SameText(_UnitOfMeasure,'einheit') then
   begin
     Result := iuc_one;
     _Success := true;
@@ -1087,6 +1118,10 @@ begin
   end;
   if SameText(_UnitOfMeasure,'std') or
      SameText(_UnitOfMeasure,'std.') or
+     SameText(_UnitOfMeasure,'stunde') or
+     SameText(_UnitOfMeasure,'stunden') or
+     SameText(_UnitOfMeasure,'hour') or
+     SameText(_UnitOfMeasure,'hours') or
      SameText(_UnitOfMeasure,'h') then
   begin
     Result := iuc_hour;
@@ -1094,56 +1129,96 @@ begin
     exit;
   end;
   if SameText(_UnitOfMeasure,'tag') or
+     SameText(_UnitOfMeasure,'d') or
+     SameText(_UnitOfMeasure,'day') or
+     SameText(_UnitOfMeasure,'days') or
      SameText(_UnitOfMeasure,'tage') then
   begin
     Result := iuc_day;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'monat') then
+  if SameText(_UnitOfMeasure,'monat') or
+     SameText(_UnitOfMeasure,'mon') or
+     SameText(_UnitOfMeasure,'mo') or
+     SameText(_UnitOfMeasure,'mth') or
+     SameText(_UnitOfMeasure,'monate') or
+     SameText(_UnitOfMeasure,'month') or
+     SameText(_UnitOfMeasure,'months') or
+     SameText(_UnitOfMeasure,'mona') then
   begin
     Result := iuc_month;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'%') then
+  if SameText(_UnitOfMeasure,'%') or
+     SameText(_UnitOfMeasure,'nt') or
+     SameText(_UnitOfMeasure,'nte') or
+     SameText(_UnitOfMeasure,'percent') then
   begin
     Result := iuc_percent;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'woche') then
+  if SameText(_UnitOfMeasure,'woche') or
+     SameText(_UnitOfMeasure,'wochen') or
+     SameText(_UnitOfMeasure,'week') or
+     SameText(_UnitOfMeasure,'weeks') then
   begin
     Result := iuc_week;
     _Success := true;
     exit;
   end;
+  if SameText(_UnitOfMeasure,'mg') or
+     SameText(_UnitOfMeasure,'milligramm') or
+     SameText(_UnitOfMeasure,'milligram') then
+  begin
+    Result := iuc_milligram;
+    _Success := true;
+    exit;
+  end;
   if SameText(_UnitOfMeasure,'g') or
-     SameText(_UnitOfMeasure,'Gramm') then
+     SameText(_UnitOfMeasure,'gr') or
+     SameText(_UnitOfMeasure,'gramm') or
+     SameText(_UnitOfMeasure,'gram') then
   begin
     Result := iuc_gram;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'kg') then
+  if SameText(_UnitOfMeasure,'kg') or
+     SameText(_UnitOfMeasure,'kilogramm') or
+     SameText(_UnitOfMeasure,'kilogram') or
+     SameText(_UnitOfMeasure,'kilograms') then
   begin
     Result := iuc_kilogram;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'km') then
+  if SameText(_UnitOfMeasure,'km') or
+     SameText(_UnitOfMeasure,'kilometer') or
+     SameText(_UnitOfMeasure,'kilometre') or
+     SameText(_UnitOfMeasure,'kilometres') or
+     SameText(_UnitOfMeasure,'kilometers') then
   begin
     Result := iuc_kilometre;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'kwh') then
+  if SameText(_UnitOfMeasure,'kwh') or
+     SameText(_UnitOfMeasure,'kilowattstunde') or
+     SameText(_UnitOfMeasure,'kilowattstunden') or
+     SameText(_UnitOfMeasure,'kilowatt hour') or
+     SameText(_UnitOfMeasure,'kilowatt-hour') then
   begin
     Result := iuc_kilowatt_hour;
     _Success := true;
     exit;
   end;
   if SameText(_UnitOfMeasure,'t') or
+     SameText(_UnitOfMeasure,'tonnen') or
+     SameText(_UnitOfMeasure,'ton') or
+     SameText(_UnitOfMeasure,'tons') or
      SameText(_UnitOfMeasure,'tonne') then
   begin
     Result := iuc_tonne_metric_ton;
@@ -1151,9 +1226,14 @@ begin
     exit;
   end;
   if SameText(_UnitOfMeasure,'qm') or
+     SameText(_UnitOfMeasure,'dm2') or
      SameText(_UnitOfMeasure,'m2') or
-     SameText(_UnitOfMeasure,'m'+#178)
-      then
+     SameText(_UnitOfMeasure,'m'+#178) or
+     SameText(_UnitOfMeasure,'quadratmeter') or
+     SameText(_UnitOfMeasure,'square meter') or
+     SameText(_UnitOfMeasure,'square meters') or
+     SameText(_UnitOfMeasure,'square metre') or
+     SameText(_UnitOfMeasure,'square metres') then
   begin
     Result := iuc_square_metre;
     _Success := true;
@@ -1161,8 +1241,14 @@ begin
   end;
   if SameText(_UnitOfMeasure,'qqm')or
      SameText(_UnitOfMeasure,'cbm') or
+     SameText(_UnitOfMeasure,'dm3') or
      SameText(_UnitOfMeasure,'m3') or
-     SameText(_UnitOfMeasure,'m'+#179)
+     SameText(_UnitOfMeasure,'m'+#179) or
+     SameText(_UnitOfMeasure,'kubikmeter') or
+     SameText(_UnitOfMeasure,'cubic meter') or
+     SameText(_UnitOfMeasure,'cubic meters') or
+     SameText(_UnitOfMeasure,'cubic metre') or
+     SameText(_UnitOfMeasure,'cubic metres')
    then
   begin
     Result := iuc_cubic_metre;
@@ -1172,39 +1258,89 @@ begin
   if SameText(_UnitOfMeasure,'m') or
      SameText(_UnitOfMeasure,'lfm') or
      SameText(_UnitOfMeasure,'me') or
+     SameText(_UnitOfMeasure,'meter') or
+     SameText(_UnitOfMeasure,'meters') or
+     SameText(_UnitOfMeasure,'metre') or
+     SameText(_UnitOfMeasure,'metres') or
      SameText(_UnitOfMeasure,'mtr') then
   begin
     Result := iuc_metre;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'mm') then
+  if SameText(_UnitOfMeasure,'mm') or
+     SameText(_UnitOfMeasure,'millimeter') or
+     SameText(_UnitOfMeasure,'millimeters') or
+     SameText(_UnitOfMeasure,'millimetre') or
+     SameText(_UnitOfMeasure,'millimetres') then
   begin
     Result := iuc_millimetre;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'min') then
+  if SameText(_UnitOfMeasure,'qmm') or
+     SameText(_UnitOfMeasure,'mm3') or
+     SameText(_UnitOfMeasure,'mm'+#179) or
+     SameText(_UnitOfMeasure,'kubikmillimeter') or
+     SameText(_UnitOfMeasure,'cubic millimeter') or
+     SameText(_UnitOfMeasure,'cubic millimeters') or
+     SameText(_UnitOfMeasure,'cubic millimetre') or
+     SameText(_UnitOfMeasure,'cubic millimetres') then
+  begin
+    Result := iuc_cubic_millimetre;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'min') or
+     SameText(_UnitOfMeasure,'min') or
+     SameText(_UnitOfMeasure,'minute') or
+     SameText(_UnitOfMeasure,'minuten') or
+     SameText(_UnitOfMeasure,'minutes') then
   begin
     Result := iuc_minute_unit_of_time;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'sek') then
+  if SameText(_UnitOfMeasure,'sek') or
+     SameText(_UnitOfMeasure,'s') or
+     SameText(_UnitOfMeasure,'sekunde') or
+     SameText(_UnitOfMeasure,'sekunden') or
+     SameText(_UnitOfMeasure,'sec') or
+     SameText(_UnitOfMeasure,'second') or
+     SameText(_UnitOfMeasure,'seconds') then
   begin
     Result := iuc_second_unit_of_time;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'l') then
+  if SameText(_UnitOfMeasure,'ml') or
+     SameText(_UnitOfMeasure,'milliliter') or
+     SameText(_UnitOfMeasure,'milliliters') or
+     SameText(_UnitOfMeasure,'millilitre') or
+     SameText(_UnitOfMeasure,'millilitres') then
+  begin
+    Result := iuc_millilitre;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'l') or
+     SameText(_UnitOfMeasure,'ltr') or
+     SameText(_UnitOfMeasure,'liter') or
+     SameText(_UnitOfMeasure,'liters') or
+     SameText(_UnitOfMeasure,'litre') or
+     SameText(_UnitOfMeasure,'litres') then
   begin
     Result := iuc_litre;
     _Success := true;
     exit;
   end;
   if SameText(_UnitOfMeasure,'Paket') or
+     SameText(_UnitOfMeasure,'packet') or
+     SameText(_UnitOfMeasure,'pkg') or
+     SameText(_UnitOfMeasure,'parcel') or
      SameText(_UnitOfMeasure,'PCK') or
      SameText(_UnitOfMeasure,'Pack') or
+     SameText(_UnitOfMeasure,'VP') or
      SameText(_UnitOfMeasure,'Kart.') then
   begin
     Result := iuc_packaging;
@@ -1256,6 +1392,14 @@ begin
   Data.LoadFromStream(_Stream);
 end;
 
+procedure TInvoiceAttachment.EmbedDataFromText(const _Value: TStrings);
+begin
+  if _Value = nil then
+    exit;
+  Data.Clear;
+  _Value.SaveToStream(Data);
+end;
+
 function TInvoiceAttachment.GetDataAsBase64: String;
 var
   base64 : TIdEncoderMIME;
@@ -1296,13 +1440,13 @@ begin Result := TInvoiceAttachment(inherited Extract(Item)); end;
 function TInvoiceAttachmentList.First: TInvoiceAttachment;
 begin if Count = 0 then Result := nil else Result := TInvoiceAttachment(inherited First); end;
 
-function TInvoiceAttachmentList.GetItem(Index: Integer): TInvoiceAttachment;
+function TInvoiceAttachmentList.GetItem(Index: TInvoiceListItemType): TInvoiceAttachment;
 begin Result := TInvoiceAttachment(inherited Items[Index]); end;
 
 function TInvoiceAttachmentList.Last: TInvoiceAttachment;
 begin if Count = 0 then Result := nil else Result := TInvoiceAttachment(inherited Last); end;
 
-procedure TInvoiceAttachmentList.SetItem(Index: Integer; AItem: TInvoiceAttachment);
+procedure TInvoiceAttachmentList.SetItem(Index: TInvoiceListItemType; AItem: TInvoiceAttachment);
 begin inherited Items[Index] := AItem; end;
 
 function TInvoiceAttachmentList.AddAttachment(_AttachmentType: TInvoiceAttachmentType): TInvoiceAttachment;
@@ -1381,13 +1525,13 @@ begin Result := TInvoiceTaxAmount(inherited Extract(Item)); end;
 function TInvoiceTaxAmounts.First: TInvoiceTaxAmount;
 begin if Count = 0 then Result := nil else Result := TInvoiceTaxAmount(inherited First); end;
 
-function TInvoiceTaxAmounts.GetItem(Index: Integer): TInvoiceTaxAmount;
+function TInvoiceTaxAmounts.GetItem(Index: TInvoiceListItemType): TInvoiceTaxAmount;
 begin Result := TInvoiceTaxAmount(inherited Items[Index]); end;
 
 function TInvoiceTaxAmounts.Last: TInvoiceTaxAmount;
 begin if Count = 0 then Result := nil else Result := TInvoiceTaxAmount(inherited Last); end;
 
-procedure TInvoiceTaxAmounts.SetItem(Index: Integer; AItem: TInvoiceTaxAmount);
+procedure TInvoiceTaxAmounts.SetItem(Index: TInvoiceListItemType; AItem: TInvoiceTaxAmount);
 begin inherited Items[Index] := AItem; end;
 
 function TInvoiceTaxAmounts.AddTaxAmount: TInvoiceTaxAmount;
@@ -1452,13 +1596,13 @@ begin Result := TInvoiceLineItemAttribute(inherited Extract(Item)); end;
 function TInvoiceLineItemAttributes.First: TInvoiceLineItemAttribute;
 begin if Count = 0 then Result := nil else Result := TInvoiceLineItemAttribute(inherited First); end;
 
-function TInvoiceLineItemAttributes.GetItem(Index: Integer): TInvoiceLineItemAttribute;
+function TInvoiceLineItemAttributes.GetItem(Index: TInvoiceListItemType): TInvoiceLineItemAttribute;
 begin Result := TInvoiceLineItemAttribute(inherited Items[Index]); end;
 
 function TInvoiceLineItemAttributes.Last: TInvoiceLineItemAttribute;
 begin if Count = 0 then Result := nil else Result := TInvoiceLineItemAttribute(inherited Last); end;
 
-procedure TInvoiceLineItemAttributes.SetItem(Index: Integer; AItem: TInvoiceLineItemAttribute);
+procedure TInvoiceLineItemAttributes.SetItem(Index: TInvoiceListItemType; AItem: TInvoiceLineItemAttribute);
 begin inherited Items[Index] := AItem; end;
 
 { TInvoicePaymentType }
@@ -1480,13 +1624,13 @@ begin Result := TInvoicePaymentType(inherited Extract(Item)); end;
 function TInvoicePaymentTypeList.First: TInvoicePaymentType;
 begin if Count = 0 then Result := nil else Result := TInvoicePaymentType(inherited First); end;
 
-function TInvoicePaymentTypeList.GetItem(Index: Integer): TInvoicePaymentType;
+function TInvoicePaymentTypeList.GetItem(Index: TInvoiceListItemType): TInvoicePaymentType;
 begin Result := TInvoicePaymentType(inherited Items[Index]); end;
 
 function TInvoicePaymentTypeList.Last: TInvoicePaymentType;
 begin if Count = 0 then Result := nil else Result := TInvoicePaymentType(inherited Last); end;
 
-procedure TInvoicePaymentTypeList.SetItem(Index: Integer; AItem: TInvoicePaymentType);
+procedure TInvoicePaymentTypeList.SetItem(Index: TInvoiceListItemType; AItem: TInvoicePaymentType);
 begin inherited Items[Index] := AItem; end;
 
 function TInvoicePaymentTypeList.AddPaymentType : TInvoicePaymentType;

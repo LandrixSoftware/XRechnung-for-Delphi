@@ -150,19 +150,6 @@ object Form1: TForm1
     TabOrder = 12
     OnClick = Button6Click
   end
-  object rbVersion: TRadioGroup
-    Left = 8
-    Top = 91
-    Width = 129
-    Height = 53
-    Caption = 'Ausgabeversion'
-    ItemIndex = 1
-    Items.Strings = (
-      '2.3.1'
-      '3.0.2')
-    TabOrder = 13
-    OnClick = rbVersionClick
-  end
   object PageControl1: TPageControl
     Left = 799
     Top = 8
@@ -171,7 +158,7 @@ object Form1: TForm1
     ActivePage = TabSheet1
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabIndex = 0
-    TabOrder = 14
+    TabOrder = 13
     object TabSheet1: TTabSheet
       Caption = 'Pr'#252'fprotokoll'
       object WebBrowser2: TWebBrowser
@@ -205,7 +192,7 @@ object Form1: TForm1
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Erzeugen'
-    TabOrder = 15
+    TabOrder = 14
     OnClick = Button9Click
   end
   object ListBox1: TListBox
@@ -231,7 +218,7 @@ object Form1: TForm1
       'Kreditkarte'
       'Leistungszeitraum je Pos.'
       'Third Party Payment BG-DEX-09')
-    TabOrder = 16
+    TabOrder = 15
   end
   object cbValidateWithJava: TCheckBox
     Left = 8
@@ -241,6 +228,6 @@ object Form1: TForm1
     Caption = 'Validierung aktiv'
     Checked = True
     State = cbChecked
-    TabOrder = 17
+    TabOrder = 16
   end
 end

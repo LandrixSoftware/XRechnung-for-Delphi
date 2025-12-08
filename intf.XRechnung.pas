@@ -47,7 +47,6 @@ uses
   ,intf.ZUGFeRDSubjectCodes
   ,intf.ZUGFeRDHelper
   {$ENDIF}
-  ,intf.XRechnung_2_3
   ,intf.XRechnung_3_0
   ,intf.Invoice
   ;

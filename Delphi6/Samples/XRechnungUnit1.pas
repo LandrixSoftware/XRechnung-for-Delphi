@@ -45,7 +45,6 @@ type
     Button3: TButton;
     Button5: TButton;
     Button6: TButton;
-    rbVersion: TRadioGroup;
     PageControl1: TPageControl;
     TabSheet1: TTabSheet;
     TabSheet2: TTabSheet;
@@ -99,8 +98,8 @@ begin
   DistributionBasePath := ExtractFileDir(DistributionBasePath)+PathDelim+'Distribution'+PathDelim;
   JavaRuntimeEnvironmentPath := DistributionBasePath +'java'+PathDelim;
   ValidatorLibPath := DistributionBasePath +'validator'+PathDelim;
-  ValidatorConfigurationPath := DistributionBasePath +'validator-configuration'+ifthen(rbVersion.ItemIndex = 0,'23x','30x')+PathDelim;
-  VisualizationLibPath := DistributionBasePath +'visualization'+ifthen(rbVersion.ItemIndex = 0,'23x','30x')+PathDelim;
+  ValidatorConfigurationPath := DistributionBasePath +'validator-configuration30x'+PathDelim;
+  VisualizationLibPath := DistributionBasePath +'visualization30x'+PathDelim;
   FopLibPath := DistributionBasePath + 'apache-fop'+PathDelim;
 
   Left := 50;
@@ -338,15 +337,9 @@ begin
   try
 
   if rbFormat.itemindex = 0 then
-    case rbVersion.ItemIndex of
-      0 : version := XRechnungVersion_230_UBL_Deprecated;
-      else version := XRechnungVersion_30x_UBL;
-    end
+    version := XRechnungVersion_30x_UBL
   else
-    case rbVersion.ItemIndex of
-      0 : version := XRechnungVersion_230_UNCEFACT_Deprecated;
-      else version := XRechnungVersion_30x_UNCEFACT;
-    end;
+    version := XRechnungVersion_30x_UNCEFACT;
 
   if not TXRechnungInvoiceAdapter.ConsistencyCheck(inv,version) then
   begin
@@ -452,8 +445,8 @@ end;
 
 procedure TForm1.rbVersionClick(Sender: TObject);
 begin
-  ValidatorConfigurationPath := DistributionBasePath +'validator-configuration'+ifthen(rbVersion.ItemIndex = 0,'23x','30x')+PathDelim;
-  VisualizationLibPath := DistributionBasePath +'visualization'+ifthen(rbVersion.ItemIndex = 0,'23x','30x')+PathDelim;
+  ValidatorConfigurationPath := DistributionBasePath +'validator-configuration30x'+PathDelim;
+  VisualizationLibPath := DistributionBasePath +'visualization30x'+PathDelim;
 end;
 
 procedure TForm1.ClearBrowser;

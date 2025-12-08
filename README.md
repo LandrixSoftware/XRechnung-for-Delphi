@@ -13,14 +13,13 @@ Erstellen von Rechnungen im
 Aktuell unterstützte Versionen:
 
 - XRechnung 3.0.2 gültig ab 1.2.2024 - Übersicht der Pflichtfelder unter https://blog.seeburger.com/de/xrechnung-version-3-0-1-gueltig-ab-01-februar-2024/
-- XRechnung 2.3.1 gültig ab 1.8.2023 (deprectated, wird in Zukunft nicht mehr unterstützt)
 - ZUGFeRD 2.3.2 EXTENDED
 
 ## Beispiele
 
 Zu finden unter Samples\XRechnungUnit2TestCases.pas
 
-Alle Beispiele als erzeugte ERechnung sind im Ordner ValidXMLExamples zu finden. Sie sind komplett valide gegenüber dem Validierer [validool.org](https://validool.org/).
+Alle Beispiele als erzeugte ERechnung sind im Ordner ValidXMLExamples zu finden. Sie sind komplett valide gegenüber dem Validierer [valitool.org](https://valitool.org/).
 
 ## ZUGFeRD Support
 

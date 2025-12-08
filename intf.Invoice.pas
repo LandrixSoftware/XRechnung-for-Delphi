@@ -225,8 +225,10 @@ type
                       ,iuc_millimetre
                       ,iuc_minute_unit_of_time
                       ,iuc_second_unit_of_time
+                      ,iuc_millilitre
                       ,iuc_litre
                       ,iuc_hour
+                      ,iuc_milligram
                       ,iuc_gram
                       ,iuc_kilogram
                       ,iuc_kilometre
@@ -1065,12 +1067,24 @@ begin
   _Success := false;
   _UnitOfMeasure := Trim(_UnitOfMeasure);
   if _UnitOfMeasure = '' then
+  begin
+    Result := iuc_one;
+    _Success := true;
     exit;
+  end;
+
   if SameText(_UnitOfMeasure,'st') or
      SameText(_UnitOfMeasure,'st.') or
      SameText(_UnitOfMeasure,'stk.') or
      SameText(_UnitOfMeasure,'stk') or
-     SameText(_UnitOfMeasure,'C62') or
+     SameText(_UnitOfMeasure,'pc') or
+     SameText(_UnitOfMeasure,'pcs') or
+     SameText(_UnitOfMeasure,'stueck') or
+     SameText(_UnitOfMeasure,'stuecke') or
+     SameText(_UnitOfMeasure,'stück') or
+     SameText(_UnitOfMeasure,'stücke') or
+     SameText(_UnitOfMeasure,'piece') or
+     SameText(_UnitOfMeasure,'pieces') or
      SameText(_UnitOfMeasure,'stck') then
   begin
     Result := iuc_piece;
@@ -1081,13 +1095,26 @@ begin
      SameText(_UnitOfMeasure,'psch') or
      SameText(_UnitOfMeasure,'psch.') or
      SameText(_UnitOfMeasure,'pschl') or
-     SameText(_UnitOfMeasure,'pschl.') then
+     SameText(_UnitOfMeasure,'pschl.') or
+     SameText(_UnitOfMeasure,'pausch') or
+     SameText(_UnitOfMeasure,'pauschal') or
+     SameText(_UnitOfMeasure,'flat') or
+     SameText(_UnitOfMeasure,'flat rate') or
+     SameText(_UnitOfMeasure,'lump sum') or
+     SameText(_UnitOfMeasure,'fix') then
   begin
     Result := iuc_flaterate;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'mal') then
+  if SameText(_UnitOfMeasure,'mal') or
+     SameText(_UnitOfMeasure,'C62') or
+     SameText(_UnitOfMeasure,'ea') or
+     SameText(_UnitOfMeasure,'unit') or
+     SameText(_UnitOfMeasure,'units') or
+     SameText(_UnitOfMeasure,'one') or
+     SameText(_UnitOfMeasure,'AE') or
+     SameText(_UnitOfMeasure,'einheit') then
   begin
     Result := iuc_one;
     _Success := true;
@@ -1095,6 +1122,10 @@ begin
   end;
   if SameText(_UnitOfMeasure,'std') or
      SameText(_UnitOfMeasure,'std.') or
+     SameText(_UnitOfMeasure,'stunde') or
+     SameText(_UnitOfMeasure,'stunden') or
+     SameText(_UnitOfMeasure,'hour') or
+     SameText(_UnitOfMeasure,'hours') or
      SameText(_UnitOfMeasure,'h') then
   begin
     Result := iuc_hour;
@@ -1102,56 +1133,96 @@ begin
     exit;
   end;
   if SameText(_UnitOfMeasure,'tag') or
+     SameText(_UnitOfMeasure,'d') or
+     SameText(_UnitOfMeasure,'day') or
+     SameText(_UnitOfMeasure,'days') or
      SameText(_UnitOfMeasure,'tage') then
   begin
     Result := iuc_day;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'monat') then
+  if SameText(_UnitOfMeasure,'monat') or
+     SameText(_UnitOfMeasure,'mon') or
+     SameText(_UnitOfMeasure,'mo') or
+     SameText(_UnitOfMeasure,'mth') or
+     SameText(_UnitOfMeasure,'monate') or
+     SameText(_UnitOfMeasure,'month') or
+     SameText(_UnitOfMeasure,'months') or
+     SameText(_UnitOfMeasure,'mona') then
   begin
     Result := iuc_month;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'%') then
+  if SameText(_UnitOfMeasure,'%') or
+     SameText(_UnitOfMeasure,'nt') or
+     SameText(_UnitOfMeasure,'nte') or
+     SameText(_UnitOfMeasure,'percent') then
   begin
     Result := iuc_percent;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'woche') then
+  if SameText(_UnitOfMeasure,'woche') or
+     SameText(_UnitOfMeasure,'wochen') or
+     SameText(_UnitOfMeasure,'week') or
+     SameText(_UnitOfMeasure,'weeks') then
   begin
     Result := iuc_week;
     _Success := true;
     exit;
   end;
+  if SameText(_UnitOfMeasure,'mg') or
+     SameText(_UnitOfMeasure,'milligramm') or
+     SameText(_UnitOfMeasure,'milligram') then
+  begin
+    Result := iuc_milligram;
+    _Success := true;
+    exit;
+  end;
   if SameText(_UnitOfMeasure,'g') or
-     SameText(_UnitOfMeasure,'Gramm') then
+     SameText(_UnitOfMeasure,'gr') or
+     SameText(_UnitOfMeasure,'gramm') or
+     SameText(_UnitOfMeasure,'gram') then
   begin
     Result := iuc_gram;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'kg') then
+  if SameText(_UnitOfMeasure,'kg') or
+     SameText(_UnitOfMeasure,'kilogramm') or
+     SameText(_UnitOfMeasure,'kilogram') or
+     SameText(_UnitOfMeasure,'kilograms') then
   begin
     Result := iuc_kilogram;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'km') then
+  if SameText(_UnitOfMeasure,'km') or
+     SameText(_UnitOfMeasure,'kilometer') or
+     SameText(_UnitOfMeasure,'kilometre') or
+     SameText(_UnitOfMeasure,'kilometres') or
+     SameText(_UnitOfMeasure,'kilometers') then
   begin
     Result := iuc_kilometre;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'kwh') then
+  if SameText(_UnitOfMeasure,'kwh') or
+     SameText(_UnitOfMeasure,'kilowattstunde') or
+     SameText(_UnitOfMeasure,'kilowattstunden') or
+     SameText(_UnitOfMeasure,'kilowatt hour') or
+     SameText(_UnitOfMeasure,'kilowatt-hour') then
   begin
     Result := iuc_kilowatt_hour;
     _Success := true;
     exit;
   end;
   if SameText(_UnitOfMeasure,'t') or
+     SameText(_UnitOfMeasure,'tonnen') or
+     SameText(_UnitOfMeasure,'ton') or
+     SameText(_UnitOfMeasure,'tons') or
      SameText(_UnitOfMeasure,'tonne') then
   begin
     Result := iuc_tonne_metric_ton;
@@ -1159,9 +1230,14 @@ begin
     exit;
   end;
   if SameText(_UnitOfMeasure,'qm') or
+     SameText(_UnitOfMeasure,'dm2') or
      SameText(_UnitOfMeasure,'m2') or
-     SameText(_UnitOfMeasure,'m'+#178)
-      then
+     SameText(_UnitOfMeasure,'m'+#178) or
+     SameText(_UnitOfMeasure,'quadratmeter') or
+     SameText(_UnitOfMeasure,'square meter') or
+     SameText(_UnitOfMeasure,'square meters') or
+     SameText(_UnitOfMeasure,'square metre') or
+     SameText(_UnitOfMeasure,'square metres') then
   begin
     Result := iuc_square_metre;
     _Success := true;
@@ -1169,8 +1245,14 @@ begin
   end;
   if SameText(_UnitOfMeasure,'qqm')or
      SameText(_UnitOfMeasure,'cbm') or
+     SameText(_UnitOfMeasure,'dm3') or
      SameText(_UnitOfMeasure,'m3') or
-     SameText(_UnitOfMeasure,'m'+#179)
+     SameText(_UnitOfMeasure,'m'+#179) or
+     SameText(_UnitOfMeasure,'kubikmeter') or
+     SameText(_UnitOfMeasure,'cubic meter') or
+     SameText(_UnitOfMeasure,'cubic meters') or
+     SameText(_UnitOfMeasure,'cubic metre') or
+     SameText(_UnitOfMeasure,'cubic metres')
    then
   begin
     Result := iuc_cubic_metre;
@@ -1180,39 +1262,89 @@ begin
   if SameText(_UnitOfMeasure,'m') or
      SameText(_UnitOfMeasure,'lfm') or
      SameText(_UnitOfMeasure,'me') or
+     SameText(_UnitOfMeasure,'meter') or
+     SameText(_UnitOfMeasure,'meters') or
+     SameText(_UnitOfMeasure,'metre') or
+     SameText(_UnitOfMeasure,'metres') or
      SameText(_UnitOfMeasure,'mtr') then
   begin
     Result := iuc_metre;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'mm') then
+  if SameText(_UnitOfMeasure,'mm') or
+     SameText(_UnitOfMeasure,'millimeter') or
+     SameText(_UnitOfMeasure,'millimeters') or
+     SameText(_UnitOfMeasure,'millimetre') or
+     SameText(_UnitOfMeasure,'millimetres') then
   begin
     Result := iuc_millimetre;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'min') then
+  if SameText(_UnitOfMeasure,'qmm') or
+     SameText(_UnitOfMeasure,'mm3') or
+     SameText(_UnitOfMeasure,'mm'+#179) or
+     SameText(_UnitOfMeasure,'kubikmillimeter') or
+     SameText(_UnitOfMeasure,'cubic millimeter') or
+     SameText(_UnitOfMeasure,'cubic millimeters') or
+     SameText(_UnitOfMeasure,'cubic millimetre') or
+     SameText(_UnitOfMeasure,'cubic millimetres') then
+  begin
+    Result := iuc_cubic_millimetre;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'min') or
+     SameText(_UnitOfMeasure,'min') or
+     SameText(_UnitOfMeasure,'minute') or
+     SameText(_UnitOfMeasure,'minuten') or
+     SameText(_UnitOfMeasure,'minutes') then
   begin
     Result := iuc_minute_unit_of_time;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'sek') then
+  if SameText(_UnitOfMeasure,'sek') or
+     SameText(_UnitOfMeasure,'s') or
+     SameText(_UnitOfMeasure,'sekunde') or
+     SameText(_UnitOfMeasure,'sekunden') or
+     SameText(_UnitOfMeasure,'sec') or
+     SameText(_UnitOfMeasure,'second') or
+     SameText(_UnitOfMeasure,'seconds') then
   begin
     Result := iuc_second_unit_of_time;
     _Success := true;
     exit;
   end;
-  if SameText(_UnitOfMeasure,'l') then
+  if SameText(_UnitOfMeasure,'ml') or
+     SameText(_UnitOfMeasure,'milliliter') or
+     SameText(_UnitOfMeasure,'milliliters') or
+     SameText(_UnitOfMeasure,'millilitre') or
+     SameText(_UnitOfMeasure,'millilitres') then
+  begin
+    Result := iuc_millilitre;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'l') or
+     SameText(_UnitOfMeasure,'ltr') or
+     SameText(_UnitOfMeasure,'liter') or
+     SameText(_UnitOfMeasure,'liters') or
+     SameText(_UnitOfMeasure,'litre') or
+     SameText(_UnitOfMeasure,'litres') then
   begin
     Result := iuc_litre;
     _Success := true;
     exit;
   end;
   if SameText(_UnitOfMeasure,'Paket') or
+     SameText(_UnitOfMeasure,'packet') or
+     SameText(_UnitOfMeasure,'pkg') or
+     SameText(_UnitOfMeasure,'parcel') or
      SameText(_UnitOfMeasure,'PCK') or
      SameText(_UnitOfMeasure,'Pack') or
+     SameText(_UnitOfMeasure,'VP') or
      SameText(_UnitOfMeasure,'Kart.') then
   begin
     Result := iuc_packaging;

@@ -1345,10 +1345,14 @@ begin
     Result := iuc_second_unit_of_time else
   if SameText(_Val,'LTR') then
     Result := iuc_litre else
+  if SameText(_Val,'MLT') then
+    Result := iuc_millilitre else
   if SameText(_Val,'HUR') then
     Result := iuc_hour else
   if SameText(_Val,'GRM') then
     Result := iuc_gram else
+  if SameText(_Val,'MGM') then
+    Result := iuc_milligram else
   if SameText(_Val,'KGM') then
     Result := iuc_kilogram else
   if SameText(_Val,'KMT') then
@@ -1383,10 +1387,12 @@ begin
     iuc_millimetre : Result := 'MMT';
     iuc_minute_unit_of_time : Result := 'MIN';
     iuc_second_unit_of_time : Result := 'SEC';
+    iuc_millilitre : Result := 'MLT';
     iuc_litre : Result := 'LTR';
     iuc_hour : Result := 'HUR';
     iuc_kilogram : Result := 'KGM';
     iuc_gram : Result := 'GRM';
+    iuc_milligram : Result := 'MGM';
     iuc_kilometre : Result := 'KMT';
     iuc_kilowatt_hour : Result := 'KWH';
     iuc_percent : Result := 'P1';

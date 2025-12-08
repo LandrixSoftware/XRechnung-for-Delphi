@@ -431,8 +431,6 @@ begin
       exit;
 
     case TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) of
-      XRechnungVersion_230_UBL_Deprecated,
-      XRechnungVersion_230_UNCEFACT_Deprecated,
       XRechnungVersion_30x_UBL,
       XRechnungVersion_30x_UNCEFACT,
       ZUGFeRDExtendedVersion_232 :

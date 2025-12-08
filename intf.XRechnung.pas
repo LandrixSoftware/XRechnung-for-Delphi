@@ -91,8 +91,6 @@ type
   end;
 
   TXRechnungVersion = (XRechnungVersion_Unknown,
-                       XRechnungVersion_230_UBL_Deprecated,
-                       XRechnungVersion_230_UNCEFACT_Deprecated,
                        XRechnungVersion_30x_UBL,
                        XRechnungVersion_30x_UNCEFACT,
                        ZUGFeRDExtendedVersion_232,
@@ -260,9 +258,7 @@ begin
   end;
 
   //In XRechnung nicht unterstuetzte Rechnungsarten
-  if (_Version in [TXRechnungVersion.XRechnungVersion_230_UBL_Deprecated,
-                   TXRechnungVersion.XRechnungVersion_230_UNCEFACT_Deprecated,
-                   TXRechnungVersion.XRechnungVersion_30x_UBL,
+  if (_Version in [TXRechnungVersion.XRechnungVersion_30x_UBL,
                    TXRechnungVersion.XRechnungVersion_30x_UNCEFACT]) then
   if (_Invoice.InvoiceTypeCode in [itc_DebitnoteRelatedToFinancialAdjustments,
                                    itc_SelfBilledCreditNote,
@@ -277,8 +273,7 @@ begin
   end;
 
   //Nur maximal eine Referenzrechnung in ZUGFeRD erlaubt
-  if (_Version in [TXRechnungVersion.XRechnungVersion_230_UNCEFACT_Deprecated,
-                   TXRechnungVersion.XRechnungVersion_30x_UNCEFACT]) then
+  if (_Version in [TXRechnungVersion.XRechnungVersion_30x_UNCEFACT]) then
   if _Invoice.PrecedingInvoiceReferences.Count > 1 then
   begin
     _ErrorCode := ccTooManyPrecedingInvoices;
@@ -423,9 +418,7 @@ begin
     exit;
 
   case TXRechnungValidationHelper.GetXRechnungVersion(_XmlDocument) of
-    XRechnungVersion_230_UBL_Deprecated      : Result := TXRechnungInvoiceAdapter230.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
     XRechnungVersion_30x_UBL      : Result := TXRechnungInvoiceAdapter301.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
-    XRechnungVersion_230_UNCEFACT_Deprecated : Result := TXRechnungInvoiceAdapter230.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     XRechnungVersion_30x_UNCEFACT : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     {$IFNDEF ZUGFeRD_Support}
     ZUGFeRDExtendedVersion_232 : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
@@ -464,9 +457,7 @@ class procedure TXRechnungInvoiceAdapter.SaveDocument(_Invoice: TInvoice;
   _Version : TXRechnungVersion; _Xml: IXMLDocument);
 begin
   case _Version of
-    XRechnungVersion_230_UBL_Deprecated : TXRechnungInvoiceAdapter230.SaveDocumentUBL(_Invoice,_Xml);
     XRechnungVersion_30x_UBL : TXRechnungInvoiceAdapter301.SaveDocumentUBL(_Invoice,_Xml);
-    XRechnungVersion_230_UNCEFACT_Deprecated : TXRechnungInvoiceAdapter230.SaveDocumentUNCEFACT(_Invoice,_Xml);
     XRechnungVersion_30x_UNCEFACT : TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(_Invoice,_Xml,true);
     ZUGFeRDExtendedVersion_232 : TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(_Invoice,_Xml,false);
     else raise Exception.Create('XRechnung - wrong version');
@@ -1534,10 +1525,7 @@ begin
   begin
     if not TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'cbc:CustomizationID',node) then
       exit;
-    if node.Text.EndsWith('xrechnung_2.3',true) then
-      Result := XRechnungVersion_230_UBL_Deprecated
-    else
-    if node.Text.EndsWith('xrechnung_3.0',true) then
+    if Pos('xrechnung_3.0',AnsiLowerCase(node.Text))>0 then
       Result := XRechnungVersion_30x_UBL;
   end else
   if (SameText(_XML.DocumentElement.NodeName,'CrossIndustryInvoice') or
@@ -1550,16 +1538,13 @@ begin
       exit;
     if not TXRechnungXMLHelper.FindChild(node2,'ram:ID',node) then
       exit;
-    if node.Text.EndsWith('xrechnung_2.3',true) then
-      Result := XRechnungVersion_230_UNCEFACT_Deprecated
-    else
-    if node.Text.EndsWith('xrechnung_3.0',true) then
+    if Pos('xrechnung_3.0',AnsiLowerCase(node.Text))>0 then
       Result := XRechnungVersion_30x_UNCEFACT
     else
     if SameText(node.Text,'urn:cen.eu:en16931:2017#conformant#urn:factur-x.eu:1p0:extended') then
       Result := ZUGFeRDExtendedVersion_232
     else
-    if node.Text.StartsWith('urn:cen.eu:en16931:2017',true) then
+    if Pos('urn:cen.eu:en16931:2017',AnsiLowerCase(node.Text))>0 then
       Result := XRechnungVersion_ReadingSupport_ZUGFeRDFacturX;
   end else
   if (SameText(_XML.DocumentElement.NodeName,'CrossIndustryDocument') or

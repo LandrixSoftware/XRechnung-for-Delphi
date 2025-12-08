@@ -100,7 +100,8 @@ begin
   Result := _Result <> nil;
 end;
 
-class function TXRechnungXMLHelper.PrepareDocumentForXPathQuerys(_Xml: IXMLDocument): IXMLDOMDocument2;
+class function TXRechnungXMLHelper.PrepareDocumentForXPathQuerys(
+  _Xml: IXMLDocument): IXMLDOMDocument2;
 var
 //  hList: IDOMNodeList;
 //  i: Integer;

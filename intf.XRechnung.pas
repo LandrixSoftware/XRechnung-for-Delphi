@@ -151,6 +151,52 @@ type
     class function  LoadFromXMLStr(_Invoice : TInvoice; const _XML : String; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
   end;
 
+const
+  ZUGFERD_INVOICE_PDF_FILENAME_FACTURX =
+    'factur-x.xml';
+
+  ZUGFERD_INVOICE_PDF_XMP_INFO =
+    '<rdf:Description xmlns:fx="urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#"' + #32 + 'rdf:about="">' + #10 +
+    '<fx:DocumentType>INVOICE</fx:DocumentType>' + #10 +
+    '<fx:DocumentFileName>factur-x.xml</fx:DocumentFileName>' + #10 +
+    '<fx:Version>1.0</fx:Version>' + #10 +
+    '<fx:ConformanceLevel>EXTENDED</fx:ConformanceLevel></rdf:Description>';
+
+  ZUGFERD_INVOICE_PDF_SCHEMA =
+    '<rdf:li rdf:parseType="Resource">' + #10 +
+      '<pdfaSchema:schema>Factur-X PDFA Extension Schema</pdfaSchema:schema>' + #10 +
+      '<pdfaSchema:namespaceURI>urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#</pdfaSchema:namespaceURI>' + #10 +
+      '<pdfaSchema:prefix>zf</pdfaSchema:prefix>' + #10 +
+      '<pdfaSchema:property>' + #10 +
+         '<rdf:Seq>' + #10 +
+           '<rdf:li rdf:parseType="Resource">' + #10 +
+              '<pdfaProperty:name>DocumentFileName</pdfaProperty:name>' + #10 +
+              '<pdfaProperty:valueType>Text</pdfaProperty:valueType>' + #10 +
+              '<pdfaProperty:category>external</pdfaProperty:category>' + #10 +
+              '<pdfaProperty:description>name of the embedded XML invoice file</pdfaProperty:description>' + #10 +
+           '</rdf:li>' + #10 +
+           '<rdf:li rdf:parseType="Resource">' + #10 +
+              '<pdfaProperty:name>DocumentType</pdfaProperty:name> ' + #10 +
+              '<pdfaProperty:valueType>Text</pdfaProperty:valueType>' + #10 +
+              '<pdfaProperty:category>external</pdfaProperty:category>' + #10 +
+              '<pdfaProperty:description>INVOICE</pdfaProperty:description>' + #10 +
+           '</rdf:li> ' + #10 +
+           '<rdf:li rdf:parseType="Resource"> ' + #10 +
+              '<pdfaProperty:name>Version</pdfaProperty:name>' + #10 +
+              '<pdfaProperty:valueType>Text</pdfaProperty:valueType>' + #10 +
+              '<pdfaProperty:category>external</pdfaProperty:category>' + #10 +
+              '<pdfaProperty:description>The actual version of the ZUGFeRD data</pdfaProperty:description>' + #10 +
+           '</rdf:li>' + #10 +
+           '<rdf:li rdf:parseType="Resource">' + #10 +
+              '<pdfaProperty:name>ConformanceLevel</pdfaProperty:name>' + #10 +
+              '<pdfaProperty:valueType>Text</pdfaProperty:valueType>' + #10 +
+              '<pdfaProperty:category>external</pdfaProperty:category>' + #10 +
+              '<pdfaProperty:description>The conformance level of the ZUGFeRD data</pdfaProperty:description>' + #10 +
+           '</rdf:li>' + #10 +
+        '</rdf:Seq> ' + #10 +
+     '</pdfaSchema:property>' + #10 +
+  '</rdf:li>';
+
 implementation
 
 uses intf.XRechnungHelper;

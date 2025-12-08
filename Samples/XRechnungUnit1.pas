@@ -16,7 +16,7 @@ interface
 
 {$DEFINE USE_EDGE_BROWSER}
 
-//https://Validool.org/
+//https://valitool.org/
 {.$DEFINE USE_Valitool}
 
 uses
@@ -181,6 +181,9 @@ end;
 procedure TForm1.Button1Click(Sender: TObject);
 var
   inv : TInvoice;
+  {$IFDEF USE_Valitool}
+  cmdOutput : String;
+  {$ENDIF}
 begin
   inv := TInvoice.Create;
   TInvoiceTestCases.Kleinunternehmerregelung(inv);//Kleinunternehmerregelung
@@ -339,10 +342,14 @@ begin
   inv.Free;
 
   {$IFDEF USE_Valitool}
-  GetXRechnungValidationHelperJava
-      .SetValitoolPath(DistributionBasePath+'Valitool\VALITOOL\')
+  Memo3.Clear;
+
+  GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+      .SetValitoolPath(DistributionBasePath+'valitool\')
       .SetValitoolLicense(Valitool_LICENSE)
-      .ValitoolValidateDirectory(ValidXMLExamplesPath);
+      .ValitoolValidateDirectory(ValidXMLExamplesPath,cmdoutput);
+
+  Memo3.Lines.Append(cmdoutput);
   {$ENDIF}
 end;
 
@@ -450,8 +457,8 @@ begin
 
     {$IFDEF USE_Valitool}
     xml := TFile.ReadAllText(od.FileName,TEncoding.UTF8);
-    GetXRechnungValidationHelperJava
-        .SetValitoolPath(DistributionBasePath+'Valitool\VALITOOL\')
+    GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+        .SetValitoolPath(DistributionBasePath+'valitool\')
         .SetValitoolLicense(Valitool_LICENSE)
         .ValitoolValidate(xml,cmdoutput,xmlresult,pdfresult);
 
@@ -798,8 +805,8 @@ begin
     {$IFDEF USE_Valitool}
     if cbValidateWithJava.Checked then
     begin
-      GetXRechnungValidationHelperJava
-          .SetValitoolPath(DistributionBasePath+'Valitool\VALITOOL\')
+      GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+          .SetValitoolPath(DistributionBasePath+'valitool\')
           .SetValitoolLicense(Valitool_LICENSE)
           .ValitoolValidate(xml,cmdoutput,xmlresult,pdfresult);
 

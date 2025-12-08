@@ -45,7 +45,7 @@ type
     function MustangVisualizeFileAsPdf(const _InvoiceXMLFilename : String; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function MustangCombinePdfAndXML(const _InvoicePDFFilename, _InvoiceXMLFilename : String; out _CmdOutput : String; out _CombinedPdf : TMemoryStream) : Boolean;
     function ValitoolValidate(const _InvoiceXMLData : String; out _CmdOutput,_ValidationResultAsXML : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
-    function ValitoolValidateDirectory(const _Directory : String) : Boolean;
+    function ValitoolValidateDirectory(const _Directory : String; out _CmdOutput : String) : Boolean;
   end;
 
   function GetXRechnungValidationHelperJava : IXRechnungValidationHelperJava;
@@ -97,7 +97,7 @@ type
     function MustangVisualizeFileAsPdf(const _InvoiceXMLFilename : String; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function MustangCombinePdfAndXML(const _InvoicePDFFilename, _InvoiceXMLFilename : String; out _CmdOutput : String; out _CombinedPdf : TMemoryStream) : Boolean;
     function ValitoolValidate(const _InvoiceXMLData : String; out _CmdOutput,_ValidationResultAsXML : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
-    function ValitoolValidateDirectory(const _Directory : String) : Boolean;
+    function ValitoolValidateDirectory(const _Directory : String; out _CmdOutput : String) : Boolean;
   end;
 
 function GetXRechnungValidationHelperJava : IXRechnungValidationHelperJava;
@@ -672,13 +672,15 @@ function TXRechnungValidationHelperJava.ValitoolValidate(
   out _CmdOutput, _ValidationResultAsXML: String;
   out _VisualizationAsPdf : TMemoryStream): Boolean;
 var
-  hstrl: TStringList;
+  hstrl,cmd: TStringList;
   tmpFilename,cmdLine : String;
   lResults : TStringDynArray;
   i : Integer;
 begin
   Result := false;
   if _InvoiceXMLData = '' then
+    exit;
+  if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
     exit;
   if ValitoolLicense = '' then
     exit;
@@ -690,22 +692,34 @@ begin
   tmpFilename := GetNewTempFileName(TempPath);
 
   hstrl := TStringList.Create;
+  cmd := TStringList.Create;
   try
+    cmd.WriteBOM := False;
+    cmd.Add('chcp 65001 >nul');
+
     hstrl.Text := _InvoiceXMLData;
     hstrl.WriteBOM := false;
     hstrl.SaveToFile(tmpFilename,TEncoding.UTF8);
 
-    cmdLine :=
+    cmdLine := QuoteIfContainsSpace(ValitoolPath+'valitool.exe')+
              ' --license '+ValitoolLicense+
              ' --lang de'+
              ' --file '+QuoteIfContainsSpace(tmpFilename)+
              ' --mode validate'+
              ' --pdfReport';
 
-    Result := ExecAndWait(QuoteIfContainsSpace(ValitoolPath+'valitool.exe'),cmdline);
+    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
+    cmd.Add('SET JAVA_HOME='+QuoteIfContainsSpace(JavaRuntimeEnvironmentPath));
+    cmd.Add('SET PATH=%JAVA_HOME%\bin;%PATH%');
+    cmd.Add(cmdLine);
+
+    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8);
+
+    Result := ExecAndWait(tmpFilename+'.bat','');
 
     _CmdOutput := CmdOutput.Text;
 
+    DeleteFile(tmpFilename+'.bat');
     DeleteFile(tmpFilename);
 
     _VisualizationAsPdf := nil;
@@ -728,17 +742,21 @@ begin
     end;
 
   finally
+    cmd.Free;
     hstrl.Free;
   end;
 end;
 
 function TXRechnungValidationHelperJava.ValitoolValidateDirectory(
-  const _Directory: String): Boolean;
+  const _Directory: String; out _CmdOutput : String): Boolean;
 var
-  cmdLine : String;
+  cmd: TStringList;
+  tmpFilename,cmdLine : String;
 begin
   Result := false;
   if _Directory = '' then
+    exit;
+  if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
     exit;
   if ValitoolLicense = '' then
     exit;
@@ -747,7 +765,14 @@ begin
   if not FileExists(ValitoolPath+'valitool.exe') then
     exit;
 
-  cmdLine :=
+  tmpFilename := GetNewTempFileName(TempPath);
+
+  cmd := TStringList.Create;
+  try
+    cmd.WriteBOM := False;
+    cmd.Add('chcp 65001 >nul');
+
+    cmdLine := QuoteIfContainsSpace(ValitoolPath+'valitool.exe')+
            ' --license '+ValitoolLicense+
            ' --lang de'+
            ' --dir '+QuoteIfContainsSpace(_Directory)+
@@ -755,7 +780,21 @@ begin
            ' --pdfReport'+
            ' --noXMLReport';
 
-  Result := ExecAndWait(QuoteIfContainsSpace(ValitoolPath+'valitool.exe'),cmdline);
+    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
+    cmd.Add('SET JAVA_HOME='+QuoteIfContainsSpace(JavaRuntimeEnvironmentPath));
+    cmd.Add('SET PATH=%JAVA_HOME%\bin;%PATH%');
+    cmd.Add(cmdLine);
+
+    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8);
+
+    Result := ExecAndWait(tmpFilename+'.bat','');
+
+    _CmdOutput := CmdOutput.Text;
+
+    DeleteFile(tmpFilename+'.bat');
+  finally
+    cmd.Free;
+  end;
 end;
 
 function TXRechnungValidationHelperJava.Visualize(const _InvoiceXMLData: String;

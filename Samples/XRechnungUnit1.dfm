@@ -197,7 +197,7 @@ object Form1: TForm1
       end
     end
     object TabSheet4: TTabSheet
-      Caption = 'https://validool.org/'
+      Caption = 'https://valitool.org'
       ImageIndex = 3
     end
   end

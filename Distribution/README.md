@@ -34,7 +34,8 @@ Set-ExecutionPolicy Unrestricted
 
 ## Historie
 - 08.12.2025 Update\
-  https://github.com/Saxonica/Saxon-HE/releases/download/SaxonHE12-9/SaxonHE12-9J.zip
+  https://github.com/Saxonica/Saxon-HE/releases/download/SaxonHE12-9/SaxonHE12-9J.zip\
+  https://github.com/LandrixSoftware/validator-configuration-zugferd/releases/download/validation-configuration-zugferd-2.3.3-20251208/validation-configuration-zugferd-2.3.3-2025-12-08.zip
 
 - 20.11.2025 Update\
   https://github.com/itplr-kosit/validator/releases/download/v1.6.0/validator-1.6.0.zip

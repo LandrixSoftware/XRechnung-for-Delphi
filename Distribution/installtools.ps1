@@ -1,6 +1,6 @@
 <#
   Installationstool mit Profilen je Modul. Ohne Parameter werden alle Module installiert.
-  Module: validator, config23x, config30x, zugferd232, vis23x, vis30x, jre, fop, mustang, saxon
+  Module: validator, config23x, config30x, zugferd, vis23x, vis30x, jre, fop, mustang, saxon
 
   Beispiele:
   - Alle Module installieren (Default ohne Parameter):
@@ -17,7 +17,7 @@
 #>
 
 param(
-  [Parameter(Position=0, HelpMessage='Module: validator, config23x, config30x, zugferd232, vis23x, vis30x, jre, fop, mustang, saxon')]
+  [Parameter(Position=0, HelpMessage='Module: validator, config23x, config30x, zugferd, vis23x, vis30x, jre, fop, mustang, saxon')]
   [string[]]$Modules
 )
 
@@ -122,12 +122,12 @@ function Install-Config30x {
   Remove-File $zip
 }
 
-function Install-Zugferd232 {
-  Write-Host 'Installing: validator-configuration-zugferd232'
-  Remove-Dir (Join-Path $Root 'validator-configuration-zugferd232')
-  $zip = Join-Path $Root 'validator-configuration-zugferd232.zip'
-  Invoke-Download -Uri "https://github.com/LandrixSoftware/validator-configuration-zugferd/releases/download/validation-configuration-zugferd-2.3.2-2025-04-03/validation-configuration-zugferd-2.3.2-2025-04-03.zip" -Destination $zip -Label 'zugferd232 download'
-  Expand-Archive $zip -DestinationPath (Join-Path $Root 'validator-configuration-zugferd232') -Force
+function Install-Zugferd {
+  Write-Host 'Installing: validator-configuration-zugferd'
+  Remove-Dir (Join-Path $Root 'validator-configuration-zugferd')
+  $zip = Join-Path $Root 'validator-configuration-zugferd.zip'
+  Invoke-Download -Uri "https://github.com/LandrixSoftware/validator-configuration-zugferd/releases/download/validation-configuration-zugferd-2.3.3-20251208/validation-configuration-zugferd-2.3.3-2025-12-08.zip" -Destination $zip -Label 'zugferd download'
+  Expand-Archive $zip -DestinationPath (Join-Path $Root 'validator-configuration-zugferd') -Force
   Remove-File $zip
 }
 
@@ -206,7 +206,7 @@ function Install-Mustang {
   }
 }
 
-$all = @('validator','config23x','config30x','zugferd232','vis23x','vis30x','jre','fop','saxon','mustang')
+$all = @('validator','config23x','config30x','zugferd','vis23x','vis30x','jre','fop','saxon','mustang')
 if (-not $Modules -or $Modules.Count -eq 0) { $Modules = $all }
 $Modules = $Modules | ForEach-Object { $_.ToLower() }
 
@@ -222,7 +222,7 @@ foreach ($m in $Modules) {
     'validator'   { Install-Validator }
     'config23x'   { Install-Config23x }
     'config30x'   { Install-Config30x }
-    'zugferd232'  { Install-Zugferd232 }
+    'zugferd'     { Install-Zugferd }
     'vis23x'      { Install-Vis23x }
     'vis30x'      { Install-Vis30x }
     'jre'         { Install-Jre }

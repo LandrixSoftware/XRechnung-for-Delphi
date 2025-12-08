@@ -98,6 +98,7 @@ type
     procedure ClearBrowser;
     procedure ShowFileInBrowser(const _Filename : String; _BrowserIdx : Integer);
     procedure ShowXMLAsHtml(_Content : String);
+    procedure ShowXMLAsPdf(_Content : String);
     procedure ShowXMLAsHtmlMustang(_Filename : String);
     procedure ShowXMLAsPdfMustang(_Filename : String);
   public
@@ -107,6 +108,7 @@ type
     ValidatorLibPath : String;
     ValidatorConfigurationPath : String;
     VisualizationLibPath : String;
+    SaxonLibPath : String;
     FopLibPath : String;
     MustangLibPath : String;
   end;
@@ -129,6 +131,7 @@ begin
   ValidatorLibPath := DistributionBasePath +'validator'+PathDelim;
   ValidatorConfigurationPath := DistributionBasePath +'validator-configuration30x'+PathDelim;
   VisualizationLibPath := DistributionBasePath +'visualization30x'+PathDelim;
+  SaxonLibPath := DistributionBasePath + 'saxon'+PathDelim;
   FopLibPath := DistributionBasePath + 'apache-fop'+PathDelim;
   MustangLibPath := DistributionBasePath + 'mustangproject'+PathDelim;
 
@@ -519,7 +522,7 @@ begin
       exit;
 
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
-        .SetValidatorLibPath(ValidatorLibPath)
+        .SetSaxonLibPath(SaxonLibPath)
         .SetVisualizationLibPath(VisualizationLibPath)
         .VisualizeFile(od.FileName,cmdoutput,htmlresult);
 
@@ -548,7 +551,7 @@ begin
       exit;
 
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
-        .SetValidatorLibPath(ValidatorLibPath)
+        .SetSaxonLibPath(SaxonLibPath)
         .SetVisualizationLibPath(VisualizationLibPath)
         .SetFopLibPath(FopLibPath)
         .VisualizeFileAsPdf(od.FileName,cmdoutput,pdfresult);
@@ -665,6 +668,7 @@ begin
           if cbVisualizeWithJava.Checked then
           begin
             ShowXMLAsHtml(xml);
+            ShowXMLAsPdf(xml);
           end;
         end else
           htmlresult := '<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
@@ -712,6 +716,7 @@ begin
           if cbVisualizeWithJava.Checked then
           begin
             ShowXMLAsHtml(xml);
+            ShowXMLAsPdf(xml);
           end;
         end else
           htmlresult := '<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
@@ -850,7 +855,7 @@ var
   cmdoutput,htmlresult : String;
 begin
   GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
-      .SetValidatorLibPath(ValidatorLibPath)
+      .SetSaxonLibPath(SaxonLibPath)
       .SetVisualizationLibPath(VisualizationLibPath)
       .Visualize(_Content,cmdoutput,htmlresult);
 
@@ -867,12 +872,36 @@ begin
 {$IFEND}
 end;
 
+procedure TForm1.ShowXMLAsPdf(_Content: String);
+var
+  cmdoutput : String;
+  pdfresult : TMemoryStream;
+begin
+    GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+        .SetSaxonLibPath(SaxonLibPath)
+        .SetVisualizationLibPath(VisualizationLibPath)
+        .SetFopLibPath(FopLibPath)
+        .VisualizeAsPdf(_Content,cmdoutput,pdfresult);
+
+    Memo3.Lines.Append(cmdoutput);
+
+    if pdfresult <> nil then
+    begin
+      pdfresult.SaveToFile(WebBrowserContentFilenamePdf);
+      pdfresult.Free;
+      ShowFileInBrowser(WebBrowserContentFilenamePdf,3);
+    end else
+    begin
+      TFile.WriteAllText(WebBrowserContentFilename,'<html><body>Visualisierung nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>',TEncoding.UTF8);
+      ShowFileInBrowser(WebBrowserContentFilename,3);
+    end;
+end;
+
 procedure TForm1.ShowXMLAsHtmlMustang(_Filename: String);
 var
   cmdoutput,htmlresult : String;
 begin
   GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
-      .SetValidatorLibPath(ValidatorLibPath)
       .SetMustangprojectLibPath(MustangLibPath)
       .MustangVisualizeFile(_Filename,cmdoutput,htmlresult);
 

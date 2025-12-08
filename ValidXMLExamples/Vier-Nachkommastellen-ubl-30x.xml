@@ -17,19 +17,12 @@
     <cac:Party>
       <cbc:EndpointID schemeID="EM">antwortaufrechnung@company.com</cbc:EndpointID>
       <cac:PostalAddress>
-        <cbc:StreetName>Verkaeuferstrasse 1</cbc:StreetName>
         <cbc:CityName>Verkaeuferstadt</cbc:CityName>
         <cbc:PostalZone>01234</cbc:PostalZone>
         <cac:Country>
           <cbc:IdentificationCode>DE</cbc:IdentificationCode>
         </cac:Country>
       </cac:PostalAddress>
-      <cac:PartyTaxScheme>
-        <cbc:CompanyID>DE123456788</cbc:CompanyID>
-        <cac:TaxScheme>
-          <cbc:ID>VAT</cbc:ID>
-        </cac:TaxScheme>
-      </cac:PartyTaxScheme>
       <cac:PartyTaxScheme>
         <cbc:CompanyID>222/111/4444</cbc:CompanyID>
         <cac:TaxScheme>
@@ -38,6 +31,7 @@
       </cac:PartyTaxScheme>
       <cac:PartyLegalEntity>
         <cbc:RegistrationName>Verkaeufername</cbc:RegistrationName>
+        <cbc:CompanyID>non-existent</cbc:CompanyID>
       </cac:PartyLegalEntity>
       <cac:Contact>
         <cbc:Name>Meier</cbc:Name>
@@ -50,7 +44,6 @@
     <cac:Party>
       <cbc:EndpointID schemeID="EM">antwortaufrechnung@kunde.de</cbc:EndpointID>
       <cac:PostalAddress>
-        <cbc:StreetName>Kaeuferstrasse 1</cbc:StreetName>
         <cbc:CityName>Kaeuferstadt</cbc:CityName>
         <cbc:PostalZone>05678</cbc:PostalZone>
         <cac:Country>
@@ -76,10 +69,10 @@
     <cbc:PaymentMeansCode>1</cbc:PaymentMeansCode>
   </cac:PaymentMeans>
   <cac:TaxTotal>
-    <cbc:TaxAmount currencyID="EUR">6.84</cbc:TaxAmount>
+    <cbc:TaxAmount currencyID="EUR">1.57</cbc:TaxAmount>
     <cac:TaxSubtotal>
-      <cbc:TaxableAmount currencyID="EUR">36.00</cbc:TaxableAmount>
-      <cbc:TaxAmount currencyID="EUR">6.84</cbc:TaxAmount>
+      <cbc:TaxableAmount currencyID="EUR">8.25</cbc:TaxableAmount>
+      <cbc:TaxAmount currencyID="EUR">1.57</cbc:TaxAmount>
       <cac:TaxCategory>
         <cbc:ID>S</cbc:ID>
         <cbc:Percent>19.00</cbc:Percent>
@@ -90,18 +83,18 @@
     </cac:TaxSubtotal>
   </cac:TaxTotal>
   <cac:LegalMonetaryTotal>
-    <cbc:LineExtensionAmount currencyID="EUR">36.00</cbc:LineExtensionAmount>
-    <cbc:TaxExclusiveAmount currencyID="EUR">36.00</cbc:TaxExclusiveAmount>
-    <cbc:TaxInclusiveAmount currencyID="EUR">42.84</cbc:TaxInclusiveAmount>
+    <cbc:LineExtensionAmount currencyID="EUR">8.25</cbc:LineExtensionAmount>
+    <cbc:TaxExclusiveAmount currencyID="EUR">8.25</cbc:TaxExclusiveAmount>
+    <cbc:TaxInclusiveAmount currencyID="EUR">9.82</cbc:TaxInclusiveAmount>
     <cbc:AllowanceTotalAmount currencyID="EUR">0.00</cbc:AllowanceTotalAmount>
     <cbc:ChargeTotalAmount currencyID="EUR">0.00</cbc:ChargeTotalAmount>
     <cbc:PrepaidAmount currencyID="EUR">0.00</cbc:PrepaidAmount>
-    <cbc:PayableAmount currencyID="EUR">42.84</cbc:PayableAmount>
+    <cbc:PayableAmount currencyID="EUR">9.82</cbc:PayableAmount>
   </cac:LegalMonetaryTotal>
   <cac:InvoiceLine>
     <cbc:ID>01</cbc:ID>
-    <cbc:InvoicedQuantity unitCode="H87">1.0000</cbc:InvoicedQuantity>
-    <cbc:LineExtensionAmount currencyID="EUR">36.00</cbc:LineExtensionAmount>
+    <cbc:InvoicedQuantity unitCode="H87">2.0000</cbc:InvoicedQuantity>
+    <cbc:LineExtensionAmount currencyID="EUR">8.25</cbc:LineExtensionAmount>
     <cac:Item>
       <cbc:Description>Langtext Artikel
 Zeile 2
@@ -116,12 +109,11 @@ Zeile 3</cbc:Description>
       </cac:ClassifiedTaxCategory>
     </cac:Item>
     <cac:Price>
-      <cbc:PriceAmount currencyID="EUR">360.00</cbc:PriceAmount>
-      <cbc:BaseQuantity unitCode="H87">10.00</cbc:BaseQuantity>
+      <cbc:PriceAmount currencyID="EUR">4.1235</cbc:PriceAmount>
       <cac:AllowanceCharge>
         <cbc:ChargeIndicator>false</cbc:ChargeIndicator>
         <cbc:Amount currencyID="EUR">0.00</cbc:Amount>
-        <cbc:BaseAmount currencyID="EUR">360.00</cbc:BaseAmount>
+        <cbc:BaseAmount currencyID="EUR">4.1235</cbc:BaseAmount>
       </cac:AllowanceCharge>
     </cac:Price>
   </cac:InvoiceLine>

@@ -57,7 +57,6 @@
       </ram:SpecifiedLineTradeSettlement>
     </ram:IncludedSupplyChainTradeLineItem>
     <ram:ApplicableHeaderTradeAgreement>
-      <ram:BuyerReference>non-existent</ram:BuyerReference>
       <ram:SellerTradeParty>
         <ram:Name>Verkaeufername</ram:Name>
         <ram:Description>Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemaess Paragraph 19 UStG</ram:Description>
@@ -80,7 +79,7 @@
           <ram:URIID schemeID="EM">antwortaufrechnung@company.com</ram:URIID>
         </ram:URIUniversalCommunication>
         <ram:SpecifiedTaxRegistration>
-          <ram:ID schemeID="VA">DE12345678</ram:ID>
+          <ram:ID schemeID="VA">DE123456788</ram:ID>
         </ram:SpecifiedTaxRegistration>
         <ram:SpecifiedTaxRegistration>
           <ram:ID schemeID="FC">222/111/4444</ram:ID>
@@ -110,7 +109,7 @@
           <ram:URIID schemeID="EM">antwortaufrechnung@kunde.at</ram:URIID>
         </ram:URIUniversalCommunication>
         <ram:SpecifiedTaxRegistration>
-          <ram:ID schemeID="VA">AT12345678</ram:ID>
+          <ram:ID schemeID="VA">ATU12345675</ram:ID>
         </ram:SpecifiedTaxRegistration>
       </ram:BuyerTradeParty>
     </ram:ApplicableHeaderTradeAgreement>

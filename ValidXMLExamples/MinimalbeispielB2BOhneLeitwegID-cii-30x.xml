@@ -100,7 +100,7 @@ Zeile 3</ram:Description>
           <ram:URIID schemeID="EM">antwortaufrechnung@kunde.de</ram:URIID>
         </ram:URIUniversalCommunication>
         <ram:SpecifiedTaxRegistration>
-          <ram:ID schemeID="VA">DE12345678</ram:ID>
+          <ram:ID schemeID="VA">DE123456788</ram:ID>
         </ram:SpecifiedTaxRegistration>
       </ram:BuyerTradeParty>
     </ram:ApplicableHeaderTradeAgreement>

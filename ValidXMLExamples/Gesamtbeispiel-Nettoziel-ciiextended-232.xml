@@ -43,6 +43,7 @@ Zeile 3</ram:Description>
       </ram:SpecifiedTradeProduct>
       <ram:SpecifiedLineTradeAgreement>
         <ram:BuyerOrderReferencedDocument>
+          <ram:IssuerAssignedID>0815</ram:IssuerAssignedID>
           <ram:LineID>6171175.1</ram:LineID>
         </ram:BuyerOrderReferencedDocument>
         <ram:GrossPriceProductTradePrice>
@@ -143,7 +144,7 @@ Zeile 3</ram:Description>
           <ram:URIID schemeID="EM">antwortaufrechnung@company.com</ram:URIID>
         </ram:URIUniversalCommunication>
         <ram:SpecifiedTaxRegistration>
-          <ram:ID schemeID="VA">DE12345678</ram:ID>
+          <ram:ID schemeID="VA">DE123456788</ram:ID>
         </ram:SpecifiedTaxRegistration>
         <ram:SpecifiedTaxRegistration>
           <ram:ID schemeID="FC">222/111/4444</ram:ID>
@@ -173,7 +174,7 @@ Zeile 3</ram:Description>
           <ram:URIID schemeID="EM">antwortaufrechnung@kunde.de</ram:URIID>
         </ram:URIUniversalCommunication>
         <ram:SpecifiedTaxRegistration>
-          <ram:ID schemeID="VA">DE12345678</ram:ID>
+          <ram:ID schemeID="VA">DE123456788</ram:ID>
         </ram:SpecifiedTaxRegistration>
       </ram:BuyerTradeParty>
       <ram:SellerOrderReferencedDocument>

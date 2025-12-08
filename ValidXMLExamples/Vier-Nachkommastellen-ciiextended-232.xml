@@ -5,14 +5,14 @@
       <ram:ID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</ram:ID>
     </ram:BusinessProcessSpecifiedDocumentContextParameter>
     <ram:GuidelineSpecifiedDocumentContextParameter>
-      <ram:ID>urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0</ram:ID>
+      <ram:ID>urn:cen.eu:en16931:2017#conformant#urn:factur-x.eu:1p0:extended</ram:ID>
     </ram:GuidelineSpecifiedDocumentContextParameter>
   </rsm:ExchangedDocumentContext>
   <rsm:ExchangedDocument>
     <ram:ID>R2020-0815</ram:ID>
     <ram:TypeCode>380</ram:TypeCode>
     <ram:IssueDateTime>
-      <udt:DateTimeString format="102">20241001</udt:DateTimeString>
+      <udt:DateTimeString format="102">20241205</udt:DateTimeString>
     </ram:IssueDateTime>
     <ram:IncludedNote>
       <ram:Content>Geschaeftsfuehrer Herr Meier - HRB 789</ram:Content>
@@ -26,10 +26,13 @@
       </ram:AssociatedDocumentLineDocument>
       <ram:SpecifiedTradeProduct>
         <ram:Name>Kurzinfo Artikel 1</ram:Name>
+        <ram:Description>Langtext Artikel
+Zeile 2
+Zeile 3</ram:Description>
       </ram:SpecifiedTradeProduct>
       <ram:SpecifiedLineTradeAgreement>
         <ram:GrossPriceProductTradePrice>
-          <ram:ChargeAmount>360.00</ram:ChargeAmount>
+          <ram:ChargeAmount>4.1235</ram:ChargeAmount>
           <ram:AppliedTradeAllowanceCharge>
             <ram:ChargeIndicator>
               <udt:Indicator>false</udt:Indicator>
@@ -38,11 +41,11 @@
           </ram:AppliedTradeAllowanceCharge>
         </ram:GrossPriceProductTradePrice>
         <ram:NetPriceProductTradePrice>
-          <ram:ChargeAmount>360.00</ram:ChargeAmount>
+          <ram:ChargeAmount>4.1235</ram:ChargeAmount>
         </ram:NetPriceProductTradePrice>
       </ram:SpecifiedLineTradeAgreement>
       <ram:SpecifiedLineTradeDelivery>
-        <ram:BilledQuantity unitCode="H87">1.0000</ram:BilledQuantity>
+        <ram:BilledQuantity unitCode="H87">2.0000</ram:BilledQuantity>
       </ram:SpecifiedLineTradeDelivery>
       <ram:SpecifiedLineTradeSettlement>
         <ram:ApplicableTradeTax>
@@ -50,66 +53,17 @@
           <ram:CategoryCode>S</ram:CategoryCode>
           <ram:RateApplicablePercent>19.00</ram:RateApplicablePercent>
         </ram:ApplicableTradeTax>
-        <ram:BillingSpecifiedPeriod>
-          <ram:StartDateTime>
-            <udt:DateTimeString format="102">20241002</udt:DateTimeString>
-          </ram:StartDateTime>
-          <ram:EndDateTime>
-            <udt:DateTimeString format="102">20250929</udt:DateTimeString>
-          </ram:EndDateTime>
-        </ram:BillingSpecifiedPeriod>
         <ram:SpecifiedTradeSettlementLineMonetarySummation>
-          <ram:LineTotalAmount>360.00</ram:LineTotalAmount>
-        </ram:SpecifiedTradeSettlementLineMonetarySummation>
-      </ram:SpecifiedLineTradeSettlement>
-    </ram:IncludedSupplyChainTradeLineItem>
-    <ram:IncludedSupplyChainTradeLineItem>
-      <ram:AssociatedDocumentLineDocument>
-        <ram:LineID>02</ram:LineID>
-      </ram:AssociatedDocumentLineDocument>
-      <ram:SpecifiedTradeProduct>
-        <ram:Name>Kurzinfo Artikel 2</ram:Name>
-      </ram:SpecifiedTradeProduct>
-      <ram:SpecifiedLineTradeAgreement>
-        <ram:GrossPriceProductTradePrice>
-          <ram:ChargeAmount>360.00</ram:ChargeAmount>
-          <ram:AppliedTradeAllowanceCharge>
-            <ram:ChargeIndicator>
-              <udt:Indicator>false</udt:Indicator>
-            </ram:ChargeIndicator>
-            <ram:ActualAmount>0.00</ram:ActualAmount>
-          </ram:AppliedTradeAllowanceCharge>
-        </ram:GrossPriceProductTradePrice>
-        <ram:NetPriceProductTradePrice>
-          <ram:ChargeAmount>360.00</ram:ChargeAmount>
-        </ram:NetPriceProductTradePrice>
-      </ram:SpecifiedLineTradeAgreement>
-      <ram:SpecifiedLineTradeDelivery>
-        <ram:BilledQuantity unitCode="H87">1.0000</ram:BilledQuantity>
-      </ram:SpecifiedLineTradeDelivery>
-      <ram:SpecifiedLineTradeSettlement>
-        <ram:ApplicableTradeTax>
-          <ram:TypeCode>VAT</ram:TypeCode>
-          <ram:CategoryCode>S</ram:CategoryCode>
-          <ram:RateApplicablePercent>19.00</ram:RateApplicablePercent>
-        </ram:ApplicableTradeTax>
-        <ram:BillingSpecifiedPeriod>
-          <ram:StartDateTime>
-            <udt:DateTimeString format="102">20241002</udt:DateTimeString>
-          </ram:StartDateTime>
-          <ram:EndDateTime>
-            <udt:DateTimeString format="102">20241230</udt:DateTimeString>
-          </ram:EndDateTime>
-        </ram:BillingSpecifiedPeriod>
-        <ram:SpecifiedTradeSettlementLineMonetarySummation>
-          <ram:LineTotalAmount>360.00</ram:LineTotalAmount>
+          <ram:LineTotalAmount>8.25</ram:LineTotalAmount>
         </ram:SpecifiedTradeSettlementLineMonetarySummation>
       </ram:SpecifiedLineTradeSettlement>
     </ram:IncludedSupplyChainTradeLineItem>
     <ram:ApplicableHeaderTradeAgreement>
-      <ram:BuyerReference>non-existent</ram:BuyerReference>
       <ram:SellerTradeParty>
         <ram:Name>Verkaeufername</ram:Name>
+        <ram:SpecifiedLegalOrganization>
+          <ram:ID>non-existent</ram:ID>
+        </ram:SpecifiedLegalOrganization>
         <ram:DefinedTradeContact>
           <ram:PersonName>Meier</ram:PersonName>
           <ram:TelephoneUniversalCommunication>
@@ -121,16 +75,12 @@
         </ram:DefinedTradeContact>
         <ram:PostalTradeAddress>
           <ram:PostcodeCode>01234</ram:PostcodeCode>
-          <ram:LineOne>Verkaeuferstrasse 1</ram:LineOne>
           <ram:CityName>Verkaeuferstadt</ram:CityName>
           <ram:CountryID>DE</ram:CountryID>
         </ram:PostalTradeAddress>
         <ram:URIUniversalCommunication>
           <ram:URIID schemeID="EM">antwortaufrechnung@company.com</ram:URIID>
         </ram:URIUniversalCommunication>
-        <ram:SpecifiedTaxRegistration>
-          <ram:ID schemeID="VA">DE123456788</ram:ID>
-        </ram:SpecifiedTaxRegistration>
         <ram:SpecifiedTaxRegistration>
           <ram:ID schemeID="FC">222/111/4444</ram:ID>
         </ram:SpecifiedTaxRegistration>
@@ -142,7 +92,6 @@
         </ram:SpecifiedLegalOrganization>
         <ram:PostalTradeAddress>
           <ram:PostcodeCode>05678</ram:PostcodeCode>
-          <ram:LineOne>Kaeuferstrasse 1</ram:LineOne>
           <ram:CityName>Kaeuferstadt</ram:CityName>
           <ram:CountryID>DE</ram:CountryID>
         </ram:PostalTradeAddress>
@@ -157,7 +106,7 @@
     <ram:ApplicableHeaderTradeDelivery>
       <ram:ActualDeliverySupplyChainEvent>
         <ram:OccurrenceDateTime>
-          <udt:DateTimeString format="102">20250930</udt:DateTimeString>
+          <udt:DateTimeString format="102">20241204</udt:DateTimeString>
         </ram:OccurrenceDateTime>
       </ram:ActualDeliverySupplyChainEvent>
     </ram:ApplicableHeaderTradeDelivery>
@@ -167,34 +116,34 @@
         <ram:TypeCode>1</ram:TypeCode>
       </ram:SpecifiedTradeSettlementPaymentMeans>
       <ram:ApplicableTradeTax>
-        <ram:CalculatedAmount>136.80</ram:CalculatedAmount>
+        <ram:CalculatedAmount>1.57</ram:CalculatedAmount>
         <ram:TypeCode>VAT</ram:TypeCode>
-        <ram:BasisAmount>720.00</ram:BasisAmount>
+        <ram:BasisAmount>8.25</ram:BasisAmount>
         <ram:CategoryCode>S</ram:CategoryCode>
         <ram:RateApplicablePercent>19.00</ram:RateApplicablePercent>
       </ram:ApplicableTradeTax>
       <ram:BillingSpecifiedPeriod>
         <ram:StartDateTime>
-          <udt:DateTimeString format="102">20241001</udt:DateTimeString>
+          <udt:DateTimeString format="102">20241105</udt:DateTimeString>
         </ram:StartDateTime>
         <ram:EndDateTime>
-          <udt:DateTimeString format="102">20250930</udt:DateTimeString>
+          <udt:DateTimeString format="102">20241204</udt:DateTimeString>
         </ram:EndDateTime>
       </ram:BillingSpecifiedPeriod>
       <ram:SpecifiedTradePaymentTerms>
         <ram:DueDateDateTime>
-          <udt:DateTimeString format="102">20241101</udt:DateTimeString>
+          <udt:DateTimeString format="102">20250104</udt:DateTimeString>
         </ram:DueDateDateTime>
       </ram:SpecifiedTradePaymentTerms>
       <ram:SpecifiedTradeSettlementHeaderMonetarySummation>
-        <ram:LineTotalAmount>720.00</ram:LineTotalAmount>
+        <ram:LineTotalAmount>8.25</ram:LineTotalAmount>
         <ram:ChargeTotalAmount>0.00</ram:ChargeTotalAmount>
         <ram:AllowanceTotalAmount>0.00</ram:AllowanceTotalAmount>
-        <ram:TaxBasisTotalAmount>720.00</ram:TaxBasisTotalAmount>
-        <ram:TaxTotalAmount currencyID="EUR">136.80</ram:TaxTotalAmount>
-        <ram:GrandTotalAmount>856.80</ram:GrandTotalAmount>
+        <ram:TaxBasisTotalAmount>8.25</ram:TaxBasisTotalAmount>
+        <ram:TaxTotalAmount currencyID="EUR">1.57</ram:TaxTotalAmount>
+        <ram:GrandTotalAmount>9.82</ram:GrandTotalAmount>
         <ram:TotalPrepaidAmount>0.00</ram:TotalPrepaidAmount>
-        <ram:DuePayableAmount>856.80</ram:DuePayableAmount>
+        <ram:DuePayableAmount>9.82</ram:DuePayableAmount>
       </ram:SpecifiedTradeSettlementHeaderMonetarySummation>
     </ram:ApplicableHeaderTradeSettlement>
   </rsm:SupplyChainTradeTransaction>

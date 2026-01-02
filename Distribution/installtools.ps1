@@ -25,6 +25,8 @@ $Root = $PSScriptRoot
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 $ProgressPreference = 'SilentlyContinue'
 
+Add-Type -AssemblyName System.Net.Http
+
 function Remove-Dir($path) {
   if ([string]::IsNullOrWhiteSpace($path)) { return }
   if (Test-Path $path) { Remove-Item $path -Recurse -Force -ErrorAction SilentlyContinue }

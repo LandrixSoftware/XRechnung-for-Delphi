@@ -1,5 +1,5 @@
 ﻿{
-Copyright (C) 2025 Landrix Software GmbH & Co. KG
+Copyright (C) 2026 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
 Version 3.0.2
 
@@ -577,7 +577,6 @@ begin
     Description := 'Langtext Artikel 2'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
     Quantity := 1; //Menge
     UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
-    //TODO Artikelnummer Kaeufer
     SellersItemIdentification := 'A0816'; //Artikelnummer
     TaxPercent := 19.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
@@ -750,8 +749,6 @@ begin
     inv.PrepaidAmount := 100.00; //Euro angezahlt
     inv.PayableAmount := inv.PayableAmount - inv.PrepaidAmount; //Vom Zahlbetrag abziehen
   end;
-
-  //TODO PayableRoundingAmount
 end;
 
 class procedure TInvoiceTestCases.Gutschrift(inv: TInvoice);

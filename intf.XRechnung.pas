@@ -1574,7 +1574,8 @@ begin
       SameText(_XML.DocumentElement.NodeName,'ubl:CreditNote') or
       SameText(_XML.DocumentElement.NodeName,'ns0:CreditNote')) then
   begin
-    if not TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'cbc:CustomizationID',node) then
+    if not (TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'cbc:CustomizationID',node) or
+            TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'CustomizationID',node)) then
       exit;
     if Pos('xrechnung_3.0',AnsiLowerCase(node.Text))>0 then
       Result := XRechnungVersion_30x_UBL;

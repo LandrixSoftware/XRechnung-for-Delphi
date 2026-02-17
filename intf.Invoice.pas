@@ -791,7 +791,7 @@ type
     TaxAmountTotal : Currency;
     TaxAmountSubtotals : TInvoiceTaxAmounts;
 
-    LineAmount : Currency;
+    LineAmount : Currency;            //BT-106
     TaxExclusiveAmount : Currency;    //BT-109
     TaxInclusiveAmount : Currency;    //BT-112
     AllowanceTotalAmount : Currency;

@@ -15,6 +15,7 @@ object Form1: TForm1
   DesignSize = (
     1605
     741)
+  TextHeight = 13
   object Label3: TLabel
     Left = 8
     Top = 359

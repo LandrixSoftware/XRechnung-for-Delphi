@@ -100,10 +100,10 @@ function Invoke-Download {
 function Install-Validator {
   Write-Host 'Installing: validator'
   Remove-Dir (Join-Path $Root 'validator')
-  $zip = Join-Path $Root 'validator.zip'
-  Invoke-Download -Uri "https://github.com/itplr-kosit/validator/releases/download/v1.6.0/validator-1.6.0.zip" -Destination $zip -Label 'validator download'
-  Expand-Archive $zip -DestinationPath (Join-Path $Root 'validator') -Force
-  Remove-File $zip
+  $targetDir = Join-Path $Root 'validator'
+  New-Item -Path $targetDir -ItemType Directory -Force | Out-Null
+  $destinationJar = Join-Path $targetDir 'validator-1.6.1-standalone.jar'
+  Invoke-Download -Uri "https://github.com/itplr-kosit/validator/releases/download/v1.6.1/validator-1.6.1-standalone.jar" -Destination $destinationJar -Label 'validator download'
 }
 
 function Install-Config23x {
@@ -119,7 +119,7 @@ function Install-Config30x {
   Write-Host 'Installing: validator-configuration30x'
   Remove-Dir (Join-Path $Root 'validator-configuration30x')
   $zip = Join-Path $Root 'validator-configuration30x.zip'
-  Invoke-Download -Uri "https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/release-2025-07-10/validator-configuration-xrechnung_3.0.2_2025-07-10.zip" -Destination $zip -Label 'config30x download'
+  Invoke-Download -Uri "https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/v2026-01-31/xrechnung-3.0.2-validator-configuration-2026-01-31.zip" -Destination $zip -Label 'config30x download'
   Expand-Archive $zip -DestinationPath (Join-Path $Root 'validator-configuration30x') -Force
   Remove-File $zip
 }
@@ -146,7 +146,7 @@ function Install-Vis30x {
   Write-Host 'Installing: visualization30x'
   Remove-Dir (Join-Path $Root 'visualization30x')
   $zip = Join-Path $Root 'visualization30x.zip'
-  Invoke-Download -Uri "https://github.com/itplr-kosit/xrechnung-visualization/releases/download/v2025-07-10/xrechnung-3.0.2-xrechnung-visualization-2025-07-10.zip" -Destination $zip -Label 'visualization30x download'
+  Invoke-Download -Uri "https://github.com/itplr-kosit/xrechnung-visualization/releases/download/v2026-01-31/xrechnung-3.0.2-visualization-2026-01-31.zip" -Destination $zip -Label 'visualization30x download'
   Expand-Archive $zip -DestinationPath (Join-Path $Root 'visualization30x') -Force
   Remove-File $zip
 }

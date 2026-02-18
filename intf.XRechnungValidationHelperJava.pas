@@ -539,7 +539,7 @@ begin
     exit;
   if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
     exit;
-  if not FileExists(ValidatorLibPath+'validator-1.6.1-standalone.jar') then
+  if not FileExists(ValidatorLibPath+'validator-1.6.2-standalone.jar') then
     exit;
   if ValidatorConfigurationPath.Count=0 then
     exit;
@@ -562,7 +562,7 @@ begin
     cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
     cmdLine := QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -Xmx1024m -classpath '+
              QuoteIfContainsSpace(ValidatorLibPath+'libs')+' -jar '+
-             QuoteIfContainsSpace(ValidatorLibPath+'validator-1.6.1-standalone.jar');
+             QuoteIfContainsSpace(ValidatorLibPath+'validator-1.6.2-standalone.jar');
     for i := 0 to ValidatorConfigurationPath.Count-1 do
     begin
       cmdLine := cmdLine +
@@ -616,7 +616,7 @@ begin
     exit;
   if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
     exit;
-  if not FileExists(ValidatorLibPath+'validator-1.6.1-standalone.jar') then
+  if not FileExists(ValidatorLibPath+'validator-1.6.2-standalone.jar') then
     exit;
   if ValidatorConfigurationPath.Count=0 then
     exit;
@@ -629,7 +629,7 @@ begin
     cmd := QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe');
     params:= ' -Xmx1024m -classpath '+
              QuoteIfContainsSpace(ValidatorLibPath+'libs')+' -jar '+
-             QuoteIfContainsSpace(ValidatorLibPath+'validator-1.6.1-standalone.jar');
+             QuoteIfContainsSpace(ValidatorLibPath+'validator-1.6.2-standalone.jar');
     for i := 0 to ValidatorConfigurationPath.Count-1 do
     begin
       params := params +

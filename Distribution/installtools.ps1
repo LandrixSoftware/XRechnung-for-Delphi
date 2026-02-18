@@ -102,8 +102,8 @@ function Install-Validator {
   Remove-Dir (Join-Path $Root 'validator')
   $targetDir = Join-Path $Root 'validator'
   New-Item -Path $targetDir -ItemType Directory -Force | Out-Null
-  $destinationJar = Join-Path $targetDir 'validator-1.6.1-standalone.jar'
-  Invoke-Download -Uri "https://github.com/itplr-kosit/validator/releases/download/v1.6.1/validator-1.6.1-standalone.jar" -Destination $destinationJar -Label 'validator download'
+  $destinationJar = Join-Path $targetDir 'validator-1.6.2-standalone.jar'
+  Invoke-Download -Uri "https://github.com/itplr-kosit/validator/releases/download/v1.6.2/validator-1.6.2-standalone.jar" -Destination $destinationJar -Label 'validator download'
 }
 
 function Install-Config23x {

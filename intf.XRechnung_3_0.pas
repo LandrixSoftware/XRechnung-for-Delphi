@@ -1112,13 +1112,11 @@ var
   end;
 
 begin
-  TXMLDocument(_Xml).Options := TXMLDocument(_Xml).Options + [doNodeAutoIndent];
-  _Xml.Active := True;
-  _Xml.Version := '1.0';
-  _Xml.StandAlone := 'yes';
-  _Xml.Encoding := 'UTF-8';
-
   _Xml.Options := [doNodeAutoCreate, doNodeAutoIndent, doAttrNull];
+  _Xml.Version := '1.0';
+  _Xml.StandAlone := '';
+  _Xml.Encoding := 'UTF-8';
+  _Xml.Active := True;
 
   if _Invoice.InvoiceTypeCode = itc_CreditNote then
   begin
@@ -1765,13 +1763,11 @@ var
   end;
 
 begin
-  TXMLDocument(_Xml).Options := TXMLDocument(_Xml).Options + [doNodeAutoIndent];
-  _Xml.Active := True;
-  _Xml.Version := '1.0';
-  _Xml.StandAlone := 'yes';
-  _Xml.Encoding := 'UTF-8';
-
   _Xml.Options := [doNodeAutoCreate, doNodeAutoIndent, doAttrNull];
+  _Xml.Version := '1.0';
+  _Xml.StandAlone := '';
+  _Xml.Encoding := 'UTF-8';
+  _Xml.Active := True;
 
   xRoot := _Xml.AddChild('rsm:CrossIndustryInvoice');
 

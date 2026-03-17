@@ -269,6 +269,9 @@ begin
     TXRechnungInvoiceAdapter.SaveDocument(_Invoice,_Version,xml);
     xml.SaveToXML(xmlstring);
     hstrl.Text := xmlstring;
+    if hstrl.Count > 0 then
+    if SameText(hstrl[0],'<?xml version="1.0"?>') then
+      hstrl[0] := '<?xml version="1.0" encoding="UTF-8"?>';
     hstrl.WriteBOM := false;
     hstrl.SaveToFile(_Filename,TEncoding.UTF8);
   finally

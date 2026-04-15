@@ -708,8 +708,7 @@ begin
     begin
       if TXRechnungXMLHelper.SelectNode(nodeApplicableHeaderTradeAgreement,'.//ram:ShipToTradeParty',node2) then
       begin
-        if TXRechnungXMLHelper.SelectNode(node2,'.//ram:ID',node3) or
-           TXRechnungXMLHelper.SelectNode(node2,'.//ram:GlobalID',node3) then
+        if TXRechnungXMLHelper.SelectNode(node2,'.//ram:GlobalID',node3) then
         begin
           if node3.attributes.getNamedItem('schemeID') <> nil then
             _Invoice.DeliveryInformation.LocationIdentifierSchemeID := node3.attributes.getNamedItem('schemeID').text;
@@ -2009,7 +2008,7 @@ begin
         with AddChild('ram:ShipToTradeParty') do
         begin
           if _Invoice.DeliveryInformation.LocationIdentifier <> '' then
-          with AddChild('ram:ID') do
+          with AddChild('ram:GlobalID') do
           begin
             Attributes['schemeID'] := IfThen(_Invoice.DeliveryInformation.LocationIdentifierSchemeID = '','0088',_Invoice.DeliveryInformation.LocationIdentifierSchemeID);
             Text := _Invoice.DeliveryInformation.LocationIdentifier;

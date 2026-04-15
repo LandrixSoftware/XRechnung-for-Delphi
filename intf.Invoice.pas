@@ -647,6 +647,7 @@ type
   public
     Name : String;
     LocationIdentifier : String; //optional Ein Bezeichner fuer den Ort, an den die Waren geliefert oder an dem die Dienstleistungen erbracht werden.
+    LocationIdentifierSchemeID : String; //optional Schema des LocationIdentifier, Standard 0088 (GLN nach ISO/IEC 6523)
     Address : TInvoiceAddress;
     ActualDeliveryDate : TDate; //BT-72 Lieferdatum
   public
@@ -1592,6 +1593,7 @@ end;
 constructor TInvoiceDeliveryInformation.Create;
 begin
   Address := TInvoiceAddress.Create;
+  LocationIdentifierSchemeID := '0088';
 end;
 
 destructor TInvoiceDeliveryInformation.Destroy;
@@ -1658,4 +1660,3 @@ begin
 end;
 
 end.
-

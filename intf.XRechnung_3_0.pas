@@ -280,9 +280,11 @@ begin
       if TXRechnungXMLHelper.SelectNode(node,'.//cbc:ActualDeliveryDate',node2) then
         _Invoice.DeliveryInformation.ActualDeliveryDate := TXRechnungHelper.DateFromStrUBLFormat(node2.text);
       if TXRechnungXMLHelper.SelectNode(node,'.//cac:DeliveryLocation/cbc:ID',node2) then
-      if node2.attributes.getNamedItem('schemeID') <> nil then
-      if node2.attributes.getNamedItem('schemeID').text = '0088' then
+      begin
+        if node2.attributes.getNamedItem('schemeID') <> nil then
+          _Invoice.DeliveryInformation.LocationIdentifierSchemeID := node2.attributes.getNamedItem('schemeID').text;
         _Invoice.DeliveryInformation.LocationIdentifier := node2.text;
+      end;
       if TXRechnungXMLHelper.SelectNode(node,'.//cac:DeliveryLocation/cac:Address/cbc:StreetName',node2) then
         _Invoice.DeliveryInformation.Address.StreetName := node2.text;
       if TXRechnungXMLHelper.SelectNode(node,'.//cac:DeliveryLocation/cac:Address/cbc:AdditionalStreetName',node2) then
@@ -1361,21 +1363,42 @@ begin
   end;
 
   if (_Invoice.DeliveryInformation.ActualDeliveryDate > 0) or
-     (_Invoice.DeliveryInformation.Address.CountryCode <> '') or
-     (_Invoice.DeliveryInformation.Name <> '') then
+     (_Invoice.DeliveryInformation.LocationIdentifier <> '') or
+     (_Invoice.DeliveryInformation.Name <> '') or
+     (_Invoice.DeliveryInformation.Address.StreetName <> '') or
+     (_Invoice.DeliveryInformation.Address.AdditionalStreetName <> '') or
+     (_Invoice.DeliveryInformation.Address.AddressLine <> '') or
+     (_Invoice.DeliveryInformation.Address.City <> '') or
+     (_Invoice.DeliveryInformation.Address.PostalZone <> '') or
+     (_Invoice.DeliveryInformation.Address.CountrySubentity <> '') or
+     (_Invoice.DeliveryInformation.Address.CountryCode <> '') then
   with xRoot.AddChild('cac:Delivery') do
   begin
     if (_Invoice.DeliveryInformation.ActualDeliveryDate > 0) then
       AddChild('cbc:ActualDeliveryDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.DeliveryInformation.ActualDeliveryDate);
-    if (_Invoice.DeliveryInformation.Address.CountryCode <> '') then
+    if (_Invoice.DeliveryInformation.LocationIdentifier <> '') or
+       (_Invoice.DeliveryInformation.Address.StreetName <> '') or
+       (_Invoice.DeliveryInformation.Address.AdditionalStreetName <> '') or
+       (_Invoice.DeliveryInformation.Address.AddressLine <> '') or
+       (_Invoice.DeliveryInformation.Address.City <> '') or
+       (_Invoice.DeliveryInformation.Address.PostalZone <> '') or
+       (_Invoice.DeliveryInformation.Address.CountrySubentity <> '') or
+       (_Invoice.DeliveryInformation.Address.CountryCode <> '') then
     with AddChild('cac:DeliveryLocation') do
     begin
       if (_Invoice.DeliveryInformation.LocationIdentifier <> '') then
       with AddChild('cbc:ID') do
       begin
-        Attributes['schemeID'] := '0088';
+        Attributes['schemeID'] := IfThen(_Invoice.DeliveryInformation.LocationIdentifierSchemeID = '','0088',_Invoice.DeliveryInformation.LocationIdentifierSchemeID);
         Text := _Invoice.DeliveryInformation.LocationIdentifier;
       end;
+      if (_Invoice.DeliveryInformation.Address.StreetName <> '') or
+         (_Invoice.DeliveryInformation.Address.AdditionalStreetName <> '') or
+         (_Invoice.DeliveryInformation.Address.AddressLine <> '') or
+         (_Invoice.DeliveryInformation.Address.City <> '') or
+         (_Invoice.DeliveryInformation.Address.PostalZone <> '') or
+         (_Invoice.DeliveryInformation.Address.CountrySubentity <> '') or
+         (_Invoice.DeliveryInformation.Address.CountryCode <> '') then
       with AddChild('cac:Address') do
       begin
         if _Invoice.DeliveryInformation.Address.StreetName <> '' then
@@ -1390,7 +1413,8 @@ begin
           AddChild('cbc:CountrySubentity').Text := _Invoice.DeliveryInformation.Address.CountrySubentity;
         if _Invoice.DeliveryInformation.Address.AddressLine <> '' then
           AddChild('cac:AddressLine').AddChild('cbc:Line').Text := _Invoice.DeliveryInformation.Address.AddressLine;
-        AddChild('cac:Country').AddChild('cbc:IdentificationCode').Text := _Invoice.DeliveryInformation.Address.CountryCode;
+        if _Invoice.DeliveryInformation.Address.CountryCode <> '' then
+          AddChild('cac:Country').AddChild('cbc:IdentificationCode').Text := _Invoice.DeliveryInformation.Address.CountryCode;
       end;
     end;
     if (_Invoice.DeliveryInformation.Name <> '') then

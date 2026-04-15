@@ -280,9 +280,11 @@ begin
       if TXRechnungXMLHelper.SelectNode(node,'.//cbc:ActualDeliveryDate',node2) then
         _Invoice.DeliveryInformation.ActualDeliveryDate := TXRechnungHelper.DateFromStrUBLFormat(node2.text);
       if TXRechnungXMLHelper.SelectNode(node,'.//cac:DeliveryLocation/cbc:ID',node2) then
-      if node2.attributes.getNamedItem('schemeID') <> nil then
-      if node2.attributes.getNamedItem('schemeID').text = '0088' then
+      begin
+        if node2.attributes.getNamedItem('schemeID') <> nil then
+          _Invoice.DeliveryInformation.LocationIdentifierSchemeID := node2.attributes.getNamedItem('schemeID').text;
         _Invoice.DeliveryInformation.LocationIdentifier := node2.text;
+      end;
       if TXRechnungXMLHelper.SelectNode(node,'.//cac:DeliveryLocation/cac:Address/cbc:StreetName',node2) then
         _Invoice.DeliveryInformation.Address.StreetName := node2.text;
       if TXRechnungXMLHelper.SelectNode(node,'.//cac:DeliveryLocation/cac:Address/cbc:AdditionalStreetName',node2) then
@@ -706,10 +708,13 @@ begin
     begin
       if TXRechnungXMLHelper.SelectNode(nodeApplicableHeaderTradeAgreement,'.//ram:ShipToTradeParty',node2) then
       begin
-        if TXRechnungXMLHelper.SelectNode(node2,'.//ram:GlobalID',node3) then
-        if node3.attributes.getNamedItem('schemeID') <> nil then
-        if node3.attributes.getNamedItem('schemeID').text = '0088' then
+        if TXRechnungXMLHelper.SelectNode(node2,'.//ram:ID',node3) or
+           TXRechnungXMLHelper.SelectNode(node2,'.//ram:GlobalID',node3) then
+        begin
+          if node3.attributes.getNamedItem('schemeID') <> nil then
+            _Invoice.DeliveryInformation.LocationIdentifierSchemeID := node3.attributes.getNamedItem('schemeID').text;
           _Invoice.DeliveryInformation.LocationIdentifier := node3.text;
+        end;
         _Invoice.DeliveryInformation.Name := TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:Name');
         if TXRechnungXMLHelper.SelectNode(node2,'.//ram:PostalTradeAddress',node3) then
         begin
@@ -1358,21 +1363,42 @@ begin
   end;
 
   if (_Invoice.DeliveryInformation.ActualDeliveryDate > 0) or
-     (_Invoice.DeliveryInformation.Address.CountryCode <> '') or
-     (_Invoice.DeliveryInformation.Name <> '') then
+     (_Invoice.DeliveryInformation.LocationIdentifier <> '') or
+     (_Invoice.DeliveryInformation.Name <> '') or
+     (_Invoice.DeliveryInformation.Address.StreetName <> '') or
+     (_Invoice.DeliveryInformation.Address.AdditionalStreetName <> '') or
+     (_Invoice.DeliveryInformation.Address.AddressLine <> '') or
+     (_Invoice.DeliveryInformation.Address.City <> '') or
+     (_Invoice.DeliveryInformation.Address.PostalZone <> '') or
+     (_Invoice.DeliveryInformation.Address.CountrySubentity <> '') or
+     (_Invoice.DeliveryInformation.Address.CountryCode <> '') then
   with xRoot.AddChild('cac:Delivery') do
   begin
     if (_Invoice.DeliveryInformation.ActualDeliveryDate > 0) then
       AddChild('cbc:ActualDeliveryDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.DeliveryInformation.ActualDeliveryDate);
-    if (_Invoice.DeliveryInformation.Address.CountryCode <> '') then
+    if (_Invoice.DeliveryInformation.LocationIdentifier <> '') or
+       (_Invoice.DeliveryInformation.Address.StreetName <> '') or
+       (_Invoice.DeliveryInformation.Address.AdditionalStreetName <> '') or
+       (_Invoice.DeliveryInformation.Address.AddressLine <> '') or
+       (_Invoice.DeliveryInformation.Address.City <> '') or
+       (_Invoice.DeliveryInformation.Address.PostalZone <> '') or
+       (_Invoice.DeliveryInformation.Address.CountrySubentity <> '') or
+       (_Invoice.DeliveryInformation.Address.CountryCode <> '') then
     with AddChild('cac:DeliveryLocation') do
     begin
       if (_Invoice.DeliveryInformation.LocationIdentifier <> '') then
       with AddChild('cbc:ID') do
       begin
-        Attributes['schemeID'] := '0088';
+        Attributes['schemeID'] := IfThen(_Invoice.DeliveryInformation.LocationIdentifierSchemeID = '','0088',_Invoice.DeliveryInformation.LocationIdentifierSchemeID);
         Text := _Invoice.DeliveryInformation.LocationIdentifier;
       end;
+      if (_Invoice.DeliveryInformation.Address.StreetName <> '') or
+         (_Invoice.DeliveryInformation.Address.AdditionalStreetName <> '') or
+         (_Invoice.DeliveryInformation.Address.AddressLine <> '') or
+         (_Invoice.DeliveryInformation.Address.City <> '') or
+         (_Invoice.DeliveryInformation.Address.PostalZone <> '') or
+         (_Invoice.DeliveryInformation.Address.CountrySubentity <> '') or
+         (_Invoice.DeliveryInformation.Address.CountryCode <> '') then
       with AddChild('cac:Address') do
       begin
         if _Invoice.DeliveryInformation.Address.StreetName <> '' then
@@ -1387,7 +1413,8 @@ begin
           AddChild('cbc:CountrySubentity').Text := _Invoice.DeliveryInformation.Address.CountrySubentity;
         if _Invoice.DeliveryInformation.Address.AddressLine <> '' then
           AddChild('cac:AddressLine').AddChild('cbc:Line').Text := _Invoice.DeliveryInformation.Address.AddressLine;
-        AddChild('cac:Country').AddChild('cbc:IdentificationCode').Text := _Invoice.DeliveryInformation.Address.CountryCode;
+        if _Invoice.DeliveryInformation.Address.CountryCode <> '' then
+          AddChild('cac:Country').AddChild('cbc:IdentificationCode').Text := _Invoice.DeliveryInformation.Address.CountryCode;
       end;
     end;
     if (_Invoice.DeliveryInformation.Name <> '') then
@@ -1969,29 +1996,47 @@ begin
     end;
     with AddChild('ram:ApplicableHeaderTradeDelivery') do
     begin
-      if (_Invoice.DeliveryInformation.Address.CountryCode <> '') or
-         (_Invoice.DeliveryInformation.Name <> '') then
+      if (_Invoice.DeliveryInformation.LocationIdentifier <> '') or
+         (_Invoice.DeliveryInformation.Name <> '') or
+         (_Invoice.DeliveryInformation.Address.StreetName <> '') or
+         (_Invoice.DeliveryInformation.Address.AdditionalStreetName <> '') or
+         (_Invoice.DeliveryInformation.Address.AddressLine <> '') or
+         (_Invoice.DeliveryInformation.Address.City <> '') or
+         (_Invoice.DeliveryInformation.Address.PostalZone <> '') or
+         (_Invoice.DeliveryInformation.Address.CountrySubentity <> '') or
+         (_Invoice.DeliveryInformation.Address.CountryCode <> '') then
       begin
         with AddChild('ram:ShipToTradeParty') do
         begin
           if _Invoice.DeliveryInformation.LocationIdentifier <> '' then
-          with AddChild('ram:GlobalID') do
+          with AddChild('ram:ID') do
           begin
-            Attributes['schemeID'] := '0088';
+            Attributes['schemeID'] := IfThen(_Invoice.DeliveryInformation.LocationIdentifierSchemeID = '','0088',_Invoice.DeliveryInformation.LocationIdentifierSchemeID);
             Text := _Invoice.DeliveryInformation.LocationIdentifier;
           end;
-          AddChild('ram:Name').Text := _Invoice.DeliveryInformation.Name;
+          if _Invoice.DeliveryInformation.Name <> '' then
+            AddChild('ram:Name').Text := _Invoice.DeliveryInformation.Name;
+          if (_Invoice.DeliveryInformation.Address.StreetName <> '') or
+             (_Invoice.DeliveryInformation.Address.AdditionalStreetName <> '') or
+             (_Invoice.DeliveryInformation.Address.AddressLine <> '') or
+             (_Invoice.DeliveryInformation.Address.City <> '') or
+             (_Invoice.DeliveryInformation.Address.PostalZone <> '') or
+             (_Invoice.DeliveryInformation.Address.CountrySubentity <> '') or
+             (_Invoice.DeliveryInformation.Address.CountryCode <> '') then
           with AddChild('ram:PostalTradeAddress') do
           begin
-            AddChild('ram:PostcodeCode').Text := _Invoice.DeliveryInformation.Address.PostalZone;
+            if _Invoice.DeliveryInformation.Address.PostalZone <> '' then
+              AddChild('ram:PostcodeCode').Text := _Invoice.DeliveryInformation.Address.PostalZone;
             if _Invoice.DeliveryInformation.Address.StreetName <> '' then
               AddChild('ram:LineOne').Text := _Invoice.DeliveryInformation.Address.StreetName;
             if _Invoice.DeliveryInformation.Address.AdditionalStreetName <> '' then
               AddChild('ram:LineTwo').Text := _Invoice.DeliveryInformation.Address.AdditionalStreetName;
             if _Invoice.DeliveryInformation.Address.AddressLine <> '' then
               AddChild('ram:LineThree').Text := _Invoice.DeliveryInformation.Address.AddressLine;
-            AddChild('ram:CityName').Text := _Invoice.DeliveryInformation.Address.City;
-            AddChild('ram:CountryID').Text := _Invoice.DeliveryInformation.Address.CountryCode;
+            if _Invoice.DeliveryInformation.Address.City <> '' then
+              AddChild('ram:CityName').Text := _Invoice.DeliveryInformation.Address.City;
+            if _Invoice.DeliveryInformation.Address.CountryCode <> '' then
+              AddChild('ram:CountryID').Text := _Invoice.DeliveryInformation.Address.CountryCode;
             if _Invoice.DeliveryInformation.Address.CountrySubentity <> '' then
               AddChild('ram:CountrySubDivisionName').Text := _Invoice.DeliveryInformation.Address.CountrySubentity;
           end;
@@ -2278,4 +2323,3 @@ begin
 end;
 
 end.
-

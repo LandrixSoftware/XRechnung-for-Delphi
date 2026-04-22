@@ -627,7 +627,9 @@ type
 
     Address : TInvoiceAddress;
 
-    IdentifierSellerBuyer : String; //BT-29 Kreditor-Nr AccountingSupplierParty / Debitor-Nr AccountingCustomerParty
+    IdentifierSellerBuyer : String; //BT-29 Kreditor-Nr AccountingSupplierParty / BT-46 Debitor-Nr AccountingCustomerParty
+    GlobalIdentifierSellerBuyer : String; //BT-29-0, BT-46-0, optional nur CII
+    GlobalIdentifierSellerBuyerSchemeID : String; //BT-29-1, BT-46-1, optional nur CII, Werte 0021 : SWIFT, 0088 : EAN, 0060 : DUNS, 0177 : ODETTE
     BankAssignedCreditorIdentifier : String; //Glaeubiger-ID (BT-90)
 
     VATCompanyID : String;   //BT-31 UStID
@@ -645,9 +647,9 @@ type
 
   TInvoiceDeliveryInformation = class(TObject)
   public
-    Name : String;
-    LocationIdentifier : String; //optional Ein Bezeichner fuer den Ort, an den die Waren geliefert oder an dem die Dienstleistungen erbracht werden.
-    LocationIdentifierSchemeID : String; //optional Schema des LocationIdentifier, Standard 0088 (GLN nach ISO/IEC 6523)
+    Name : String; //BT-70
+    LocationIdentifier : String; //BT-71-0 CII, BT-71 UBL, optional Ein Bezeichner fuer den Ort, an den die Waren geliefert oder an dem die Dienstleistungen erbracht werden.
+    LocationIdentifierSchemeID : String; //BT-71-0 CII, BT-71 UBL, optional Schema des LocationIdentifier, Standard 0088 (GLN nach ISO/IEC 6523), Werte 0021 : SWIFT, 0088 : EAN, 0060 : DUNS, 0177 : ODETTE
     Address : TInvoiceAddress;
     ActualDeliveryDate : TDate; //BT-72 Lieferdatum
   public

@@ -561,6 +561,11 @@ begin
       begin
         if TXRechnungXMLHelper.SelectNode(nodeApplicableHeaderTradeAgreement,'.//ram:SellerTradeParty/ram:ID',node) then
           _Invoice.AccountingSupplierParty.IdentifierSellerBuyer := node.text;
+        if TXRechnungXMLHelper.SelectNode(nodeApplicableHeaderTradeAgreement,'.//ram:SellerTradeParty/ram:GlobalID',node) then
+        begin
+          _Invoice.AccountingSupplierParty.GlobalIdentifierSellerBuyer := node.text;
+          _Invoice.AccountingSupplierParty.GlobalIdentifierSellerBuyerSchemeID := TXRechnungXMLHelper.SelectAttributeText(node,'schemeID');
+        end;
         if TXRechnungXMLHelper.SelectNode(node2,'.//ram:Name',node) then
           _Invoice.AccountingSupplierParty.RegistrationName := node.text;
         _Invoice.AccountingSupplierParty.AdditionalLegalInformationSeller := TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:Description');
@@ -618,6 +623,11 @@ begin
       begin
         if TXRechnungXMLHelper.SelectNode(nodeApplicableHeaderTradeAgreement,'.//ram:BuyerTradeParty/ram:ID',node) then
           _Invoice.AccountingCustomerParty.IdentifierSellerBuyer := node.text;
+        if TXRechnungXMLHelper.SelectNode(nodeApplicableHeaderTradeAgreement,'.//ram:BuyerTradeParty/ram:GlobalID',node) then
+        begin
+          _Invoice.AccountingCustomerParty.GlobalIdentifierSellerBuyer := node.text;
+          _Invoice.AccountingCustomerParty.GlobalIdentifierSellerBuyerSchemeID := TXRechnungXMLHelper.SelectAttributeText(node,'schemeID');
+        end;
         if TXRechnungXMLHelper.SelectNode(node2,'.//ram:Name',node) then
           _Invoice.AccountingCustomerParty.RegistrationName := node.text;
 
@@ -1849,6 +1859,12 @@ begin
       begin
         if _Invoice.AccountingSupplierParty.IdentifierSellerBuyer <> '' then
           AddChild('ram:ID').Text := _Invoice.AccountingSupplierParty.IdentifierSellerBuyer;
+        if _Invoice.AccountingSupplierParty.GlobalIdentifierSellerBuyer <> '' then
+        with AddChild('ram:GlobalID') do
+        begin
+          Text := _Invoice.AccountingSupplierParty.GlobalIdentifierSellerBuyer;
+          Attributes['schemeID'] := IfThen(_Invoice.AccountingSupplierParty.GlobalIdentifierSellerBuyerSchemeID = '','0088',_Invoice.AccountingSupplierParty.GlobalIdentifierSellerBuyerSchemeID);
+        end;
         AddChild('ram:Name').Text := _Invoice.AccountingSupplierParty.RegistrationName;
         if _Invoice.AccountingSupplierParty.AdditionalLegalInformationSeller <> '' then
           AddChild('ram:Description').Text := _Invoice.AccountingSupplierParty.AdditionalLegalInformationSeller;
@@ -1903,6 +1919,12 @@ begin
       begin
         if _Invoice.AccountingCustomerParty.IdentifierSellerBuyer <> '' then
           AddChild('ram:ID').Text := _Invoice.AccountingCustomerParty.IdentifierSellerBuyer;
+        if _Invoice.AccountingCustomerParty.GlobalIdentifierSellerBuyer <> '' then
+        with AddChild('ram:GlobalID') do
+        begin
+          Text := _Invoice.AccountingCustomerParty.GlobalIdentifierSellerBuyer;
+          Attributes['schemeID'] := IfThen(_Invoice.AccountingCustomerParty.GlobalIdentifierSellerBuyerSchemeID = '','0088',_Invoice.AccountingCustomerParty.GlobalIdentifierSellerBuyerSchemeID);
+        end;
         AddChild('ram:Name').Text := _Invoice.AccountingCustomerParty.RegistrationName;
 
         if (_Invoice.AccountingCustomerParty.Name <> '') or (_Invoice.AccountingCustomerParty.CompanyID <> '') then

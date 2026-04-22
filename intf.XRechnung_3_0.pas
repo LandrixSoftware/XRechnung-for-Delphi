@@ -113,6 +113,7 @@ var
       if (TXRechnungXMLHelper.SelectNode(node,'.//cac:StandardItemIdentification/cbc:ID',node2)) then
       if (TXRechnungXMLHelper.SelectAttributeText(node2,'schemeID') = '0160') then
         _Invoiceline.GlobalID_EAN_GTIN := node2.text;
+      _Invoiceline.OriginTradeCountry := TXRechnungXMLHelper.SelectNodeText(node,'.//cac:OriginCountry/cbc:IdentificationCode');
       _Invoiceline.TaxCategory := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeFromStr(TXRechnungXMLHelper.SelectNodeText(node,'.//cac:ClassifiedTaxCategory/cbc:ID'));
       _Invoiceline.TaxPercent := TXRechnungHelper.PercentageFromStr(TXRechnungXMLHelper.SelectNodeText(node,'.//cac:ClassifiedTaxCategory/cbc:Percent'));
       if TXRechnungXMLHelper.SelectNodes(node,'.//cac:AdditionalItemProperty',nodes) then
@@ -461,6 +462,8 @@ var
         Name := TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:Description');
         Value := TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:Value');
       end;
+      //DesignatedProductClassification
+      _Invoiceline.OriginTradeCountry := TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:OriginTradeCountry/ram:ID');
     end;
     if TXRechnungXMLHelper.SelectNode(_Node,'.//ram:SpecifiedLineTradeAgreement',node2) then
     begin
@@ -1078,6 +1081,8 @@ var
         Attributes['schemeID'] := '0160';
         Text := _Invoiceline.GlobalID_EAN_GTIN;
       end;
+      if _Invoiceline.OriginTradeCountry <> '' then
+        AddChild('cac:OriginCountry').AddChild('cbc:IdentificationCode').Text := _Invoiceline.OriginTradeCountry;
       with AddChild('cac:ClassifiedTaxCategory') do
       begin
         AddChild('cbc:ID').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(_Invoiceline.TaxCategory);
@@ -1701,6 +1706,8 @@ var
         if _Invoiceline.ItemAttributes[i].Value <> '' then
           AddChild('ram:Value').Text := _Invoiceline.ItemAttributes[i].Value;
       end;
+      if _Invoiceline.OriginTradeCountry <> '' then
+        AddChild('ram:OriginTradeCountry').AddChild('ram:ID').Text := _Invoiceline.OriginTradeCountry;
     end;
     with _Node.AddChild('ram:SpecifiedLineTradeAgreement') do
     begin

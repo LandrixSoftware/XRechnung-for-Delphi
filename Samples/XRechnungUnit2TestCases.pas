@@ -568,6 +568,7 @@ begin
       Name := 'Key2';
       Value := '123';
     end;
+    OriginTradeCountry := 'DE';
   end;
   with inv.InvoiceLines.AddInvoiceLine do
   begin
@@ -595,6 +596,7 @@ begin
     BaseQuantity := 0; //Preiseinheit 0 = wird nicht ausgegeben, entspricht default = 1
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
     LineAmount := 100;
+    OriginTradeCountry := 'DE';
 
     //Nachlass zur Position generieren
     if NachlaesseZuschlaegeVerwenden then

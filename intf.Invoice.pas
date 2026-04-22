@@ -559,8 +559,8 @@ type
     AllowanceCharges : TInvoiceAllowanceCharges; // BG-27 (BT-136..BT-140) und BG-28 (BT-141..BT-145)
     InvoiceLinePeriodStartDate : TDate; //BG-26, BT-134 Leistungszeitraum Beginn
     InvoiceLinePeriodEndDate : TDate; //BG-26, BT-135 Leistungszeitraum Ende
-    //BG-31, BT-158 fehlt , "Kennung der Artikelklassifizierung", (0..n)
-    //BG-31, BT-159 fehlt, "Artikelherkunftsland"
+    //BG-31, BT-158 fehlt , DesignatedProductClassification "Kennung der Artikelklassifizierung", (0..n)
+    OriginTradeCountry : String; //BG-31, BT-159 Artikelherkunftsland z.B. DE
     ItemAttributes : TInvoiceLineItemAttributes; //BG-31:BG-32 (BT-160..BT-161)
 
     // Extension XRechnung
@@ -1049,6 +1049,7 @@ begin
   ItemAttributes := TInvoiceLineItemAttributes.Create;
   InvoiceLinePeriodStartDate := 0;
   InvoiceLinePeriodEndDate := 0;
+  OriginTradeCountry := '';
 end;
 
 destructor TInvoiceLine.Destroy;

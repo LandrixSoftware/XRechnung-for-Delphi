@@ -190,6 +190,8 @@ begin
   _Error := '';
   try
     xml := TXRechnungXMLHelper.PrepareDocumentForXPathQuerys(_Xml);
+    if TXRechnungXMLHelper.SelectNode(xml,'//cbc:ProfileID',node) then
+      _Invoice.ProfileID := node.Text;
     if TXRechnungXMLHelper.SelectNode(xml,'//cbc:ID',node) then
       _Invoice.InvoiceNumber := node.Text;
     if TXRechnungXMLHelper.SelectNode(xml,'//cbc:IssueDate',node) then
@@ -535,6 +537,8 @@ begin
   _Error := '';
   try
     xml := TXRechnungXMLHelper.PrepareDocumentForXPathQuerys(_Xml);
+    if TXRechnungXMLHelper.SelectNode(xml,'//*[local-name()="ExchangedDocumentContext"]/ram:BusinessProcessSpecifiedDocumentContextParameter/ram:ID',node) then
+      _Invoice.ProfileID := node.Text;
     if TXRechnungXMLHelper.SelectNode(xml,'//*[local-name()="ExchangedDocument"]/ram:ID',node) then
       _Invoice.InvoiceNumber := node.Text;
     if TXRechnungXMLHelper.SelectNode(xml,'//*[local-name()="ExchangedDocument"]/ram:IssueDateTime/udt:DateTimeString',node) then
@@ -1151,7 +1155,7 @@ begin
 
   xRoot.AddChild('cbc:CustomizationID').Text := 'urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0'+
            IfThen(InternalExtensionEnabled,'#conformant#urn:xeinkauf.de:kosit:extension:xrechnung_3.0','');
-  xRoot.AddChild('cbc:ProfileID').Text := 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0';
+  xRoot.AddChild('cbc:ProfileID').Text := _Invoice.ProfileID;
 
   xRoot.AddChild('cbc:ID').Text := _Invoice.InvoiceNumber;
   xRoot.AddChild('cbc:IssueDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoiceIssueDate);
@@ -1823,7 +1827,7 @@ begin
   with xRoot.AddChild('rsm:ExchangedDocumentContext') do
   begin
     AddChild('ram:BusinessProcessSpecifiedDocumentContextParameter')
-      .AddChild('ram:ID').Text := 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0';
+      .AddChild('ram:ID').Text := _Invoice.ProfileID;
 
     if _ProfileXRechnung then
       AddChild('ram:GuidelineSpecifiedDocumentContextParameter')

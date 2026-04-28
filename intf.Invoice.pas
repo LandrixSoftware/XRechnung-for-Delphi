@@ -739,6 +739,7 @@ type
 
   TInvoice = class(TObject)
   public
+    ProfileID : String; //BT-23 //Identifiziert den Geschäftsprozesskontext, in dem die Transaktion erscheint, damit der Käufer die Rechnung angemessen bearbeiten kann.
     InvoiceNumber : String;  //BT-1 Rechnungsnummer
     InvoiceIssueDate : TDate; //BT-2 Rechnungsdatum
     InvoiceDueDate : TDate; //BT-9 Faelligkeitsdatum
@@ -847,6 +848,7 @@ end;
 
 procedure TInvoice.Clear;
 begin
+  ProfileID := 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0';
   InvoiceLines.Clear;
   AllowanceCharges.Clear;
   PrecedingInvoiceReferences.Clear;

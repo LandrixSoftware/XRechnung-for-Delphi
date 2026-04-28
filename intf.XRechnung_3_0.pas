@@ -763,6 +763,10 @@ begin
       if TXRechnungXMLHelper.SelectNode(nodeApplicableHeaderTradeAgreement,'.//ram:ReceivingAdviceReferencedDocument',node2) then
       if TXRechnungXMLHelper.SelectNode(node2,'.//ram:IssuerAssignedID',node3) then
         _Invoice.ReceiptDocumentReference := Node3.text;
+
+      if TXRechnungXMLHelper.SelectNode(nodeApplicableHeaderTradeAgreement,'.//ram:DeliveryNoteReferencedDocument',node2) then
+      if TXRechnungXMLHelper.SelectNode(node2,'.//ram:IssuerAssignedID',node3) then
+        _Invoice.DeliveryReceiptNumber := Node3.text;
     end;
     if TXRechnungXMLHelper.SelectNode(nodeSupplyChainTradeTransaction,'.//ram:ApplicableHeaderTradeSettlement',nodeApplicableHeaderTradeAgreement) then
     begin
@@ -2083,7 +2087,7 @@ begin
         Attributes['format'] := '102';
         Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.DeliveryInformation.ActualDeliveryDate);
       end;
-      if (_Invoice.DeliveryReceiptNumber <> '') then
+      if (_Invoice.DeliveryReceiptNumber <> '') and _ProfileXRechnung then //XRechnung Lieferscheinnummer
       with AddChild('ram:DespatchAdviceReferencedDocument')
            .AddChild('ram:IssuerAssignedID') do
       begin
@@ -2094,6 +2098,12 @@ begin
            .AddChild('ram:IssuerAssignedID') do
       begin
         Text := _Invoice.ReceiptDocumentReference;
+      end;
+      if (_Invoice.DeliveryReceiptNumber <> '') and (not _ProfileXRechnung) then //Extended Lieferscheinnummer
+      with AddChild('ram:DeliveryNoteReferencedDocument')
+           .AddChild('ram:IssuerAssignedID') do
+      begin
+        Text := _Invoice.DeliveryReceiptNumber;
       end;
     end;
     with AddChild('ram:ApplicableHeaderTradeSettlement') do

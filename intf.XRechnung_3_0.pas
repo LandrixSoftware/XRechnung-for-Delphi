@@ -757,16 +757,24 @@ begin
         _Invoice.DeliveryInformation.ActualDeliveryDate := TXRechnungHelper.DateFromStrUNCEFACTFormat(node.Text);
 
       if TXRechnungXMLHelper.SelectNode(nodeApplicableHeaderTradeAgreement,'.//ram:DespatchAdviceReferencedDocument',node2) then
-      if TXRechnungXMLHelper.SelectNode(node2,'.//ram:IssuerAssignedID',node3) then
-        _Invoice.DeliveryReceiptNumber := Node3.text;
+      begin
+        if TXRechnungXMLHelper.SelectNode(node2,'.//ram:IssuerAssignedID',node3) then
+          _Invoice.DeliveryReceiptNumber := Node3.text;
+        if TXRechnungXMLHelper.SelectNode(node2,'.//ram:FormattedIssueDateTime/qdt:DateTimeString',node3) then
+          _Invoice.DeliveryReceiptDate := TXRechnungHelper.DateFromStrUNCEFACTFormat(Node3.text);
+      end;
 
       if TXRechnungXMLHelper.SelectNode(nodeApplicableHeaderTradeAgreement,'.//ram:ReceivingAdviceReferencedDocument',node2) then
       if TXRechnungXMLHelper.SelectNode(node2,'.//ram:IssuerAssignedID',node3) then
         _Invoice.ReceiptDocumentReference := Node3.text;
 
       if TXRechnungXMLHelper.SelectNode(nodeApplicableHeaderTradeAgreement,'.//ram:DeliveryNoteReferencedDocument',node2) then
-      if TXRechnungXMLHelper.SelectNode(node2,'.//ram:IssuerAssignedID',node3) then
-        _Invoice.DeliveryReceiptNumber := Node3.text;
+      begin
+        if TXRechnungXMLHelper.SelectNode(node2,'.//ram:IssuerAssignedID',node3) then
+          _Invoice.DeliveryReceiptNumberExtended := Node3.text;
+        if TXRechnungXMLHelper.SelectNode(node2,'.//ram:FormattedIssueDateTime/qdt:DateTimeString',node3) then
+          _Invoice.DeliveryReceiptDateExtended := TXRechnungHelper.DateFromStrUNCEFACTFormat(Node3.text);
+      end;
     end;
     if TXRechnungXMLHelper.SelectNode(nodeSupplyChainTradeTransaction,'.//ram:ApplicableHeaderTradeSettlement',nodeApplicableHeaderTradeAgreement) then
     begin
@@ -2087,11 +2095,16 @@ begin
         Attributes['format'] := '102';
         Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.DeliveryInformation.ActualDeliveryDate);
       end;
-      if (_Invoice.DeliveryReceiptNumber <> '') and _ProfileXRechnung then //XRechnung Lieferscheinnummer
-      with AddChild('ram:DespatchAdviceReferencedDocument')
-           .AddChild('ram:IssuerAssignedID') do
+      if (_Invoice.DeliveryReceiptNumber <> '') then //Lieferscheinnummer
+      with AddChild('ram:DespatchAdviceReferencedDocument') do
       begin
-        Text := _Invoice.DeliveryReceiptNumber;
+        AddChild('ram:IssuerAssignedID').Text := _Invoice.DeliveryReceiptNumber;
+        if (_Invoice.DeliveryReceiptDate > 0) and (not _ProfileXRechnung) then
+        with AddChild('ram:FormattedIssueDateTime').AddChild('qdt:DateTimeString') do
+        begin
+          Attributes['format'] := '102';
+          Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.DeliveryReceiptDate);
+        end;
       end;
       if (_Invoice.ReceiptDocumentReference <> '') then
       with AddChild('ram:ReceivingAdviceReferencedDocument')
@@ -2099,11 +2112,16 @@ begin
       begin
         Text := _Invoice.ReceiptDocumentReference;
       end;
-      if (_Invoice.DeliveryReceiptNumber <> '') and (not _ProfileXRechnung) then //Extended Lieferscheinnummer
-      with AddChild('ram:DeliveryNoteReferencedDocument')
-           .AddChild('ram:IssuerAssignedID') do
+      if (_Invoice.DeliveryReceiptNumberExtended <> '') and (not _ProfileXRechnung) then //Extended Lieferscheinnummer
+      with AddChild('ram:DeliveryNoteReferencedDocument') do
       begin
-        Text := _Invoice.DeliveryReceiptNumber;
+        AddChild('ram:IssuerAssignedID').Text := _Invoice.DeliveryReceiptNumberExtended;
+        if (_Invoice.DeliveryReceiptDateExtended > 0) then
+        with AddChild('ram:FormattedIssueDateTime').AddChild('qdt:DateTimeString') do
+        begin
+          Attributes['format'] := '102';
+          Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.DeliveryReceiptDateExtended);
+        end;
       end;
     end;
     with AddChild('ram:ApplicableHeaderTradeSettlement') do

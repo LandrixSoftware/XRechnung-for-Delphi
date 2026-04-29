@@ -756,7 +756,10 @@ type
     ProjectReference : String; //BT-11
     ReceiptDocumentReference : String; //BT-15
     ContractDocumentReference : String; //BT-12
-    DeliveryReceiptNumber : String; //BT-16 Lieferscheinnummer (Lieferscheindatum fehlt und wuerde nur in ZUGFeRD unterstuetzt)
+    DeliveryReceiptNumber : String; //BT-16 Lieferscheinnummer XRechnung CII, UBL
+    DeliveryReceiptDate : TDate;    //BT-X-200 Lieferscheindatum ZUGFeRD-CII, XRechnung CII u UBL nicht unterstuetzt
+    DeliveryReceiptNumberExtended : String; //BT-X-202 Lieferscheinnummer ZUGFeRD-CII-Extended, Falls man es benötigt
+    DeliveryReceiptDateExtended : TDate;    //BT-X-203 Lieferscheindatum ZUGFeRD-CII-Extended, Falls man es benötigt
     BuyerAccountingReference : String; //BT-19 Buchungsreferenz des Kaeufers für die Rechnung UBL ein Wert, CII Liste
 
     AccountingSupplierParty : TInvoiceAccountingParty;

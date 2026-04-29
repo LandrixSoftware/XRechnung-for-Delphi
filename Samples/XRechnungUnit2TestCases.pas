@@ -367,6 +367,9 @@ begin
   inv.ReceiptDocumentReference := 'RDR456789';
   inv.ContractDocumentReference := 'V876543210';
   inv.DeliveryReceiptNumber := 'Lieferschein123';
+  inv.DeliveryReceiptDate := inv.InvoiceIssueDate-5;
+  inv.DeliveryReceiptNumberExtended := 'Lieferschein123'; //Falls man es benötigt unter ZUGFeRD-Extended
+  inv.DeliveryReceiptDateExtended := inv.InvoiceIssueDate-5; //Falls man es benötigt unter ZUGFeRD-Extended
   inv.BuyerAccountingReference := '1234';
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername'; //wenn von RegistrationName abweichend

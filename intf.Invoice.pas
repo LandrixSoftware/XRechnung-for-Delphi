@@ -1,4 +1,4 @@
-﻿{
+{
 License XRechnung-for-Delphi
 
 Copyright (C) 2026 Landrix Software GmbH & Co. KG
@@ -801,8 +801,8 @@ type
     LineAmount : Currency;            //BT-106
     TaxExclusiveAmount : Currency;    //BT-109
     TaxInclusiveAmount : Currency;    //BT-112
-    AllowanceTotalAmount : Currency;
-    ChargeTotalAmount : Currency;
+    AllowanceTotalAmount : Currency;  //BT-107
+    ChargeTotalAmount : Currency;     //BT-108
     PrepaidAmount : Currency;         //BT-113
     PayableRoundingAmount : Currency; //BT-114
     PayableAmount : Currency;         //BT-115 = BT-112 - BT-113 + BT-114 + Summe BT-DEX-002

@@ -44,6 +44,7 @@ type
     function MustangVisualizeFile(const _InvoiceXMLFilename : String; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
     function MustangVisualizeFileAsPdf(const _InvoiceXMLFilename : String; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function MustangCombinePdfAndXML(const _InvoicePDFFilename, _InvoiceXMLFilename : String; _Extended : Boolean; out _CmdOutput : String; out _CombinedPdf : TMemoryStream) : Boolean;
+    function MustangUpgradeToPDFA3Only(const _InvoicePDFFilename : String; out _CmdOutput : String; out _PdfA3 : TMemoryStream) : Boolean;
     function ValitoolValidate(const _InvoiceXMLData : String; out _CmdOutput,_ValidationResultAsXML : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function ValitoolValidateDirectory(const _Directory : String; out _CmdOutput : String) : Boolean;
   end;
@@ -96,6 +97,7 @@ type
     function MustangVisualizeFile(const _InvoiceXMLFilename : String; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
     function MustangVisualizeFileAsPdf(const _InvoiceXMLFilename : String; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function MustangCombinePdfAndXML(const _InvoicePDFFilename, _InvoiceXMLFilename : String; _Extended : Boolean; out _CmdOutput : String; out _CombinedPdf : TMemoryStream) : Boolean;
+    function MustangUpgradeToPDFA3Only(const _InvoicePDFFilename : String; out _CmdOutput : String; out _PdfA3 : TMemoryStream) : Boolean;
     function ValitoolValidate(const _InvoiceXMLData : String; out _CmdOutput,_ValidationResultAsXML : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function ValitoolValidateDirectory(const _Directory : String; out _CmdOutput : String) : Boolean;
   end;
@@ -299,6 +301,59 @@ begin
   end;
 end;
 
+function TXRechnungValidationHelperJava.MustangUpgradeToPDFA3Only(const _InvoicePDFFilename: String;
+  out _CmdOutput: String; out _PdfA3: TMemoryStream): Boolean;
+var
+  cmd: TStringList;
+  tmpFilename : String;
+begin
+  Result := false;
+  if not FileExists(_InvoicePDFFilename) then
+    exit;
+  if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
+    exit;
+  if not FileExists(MustangprojectPath+'Mustang-CLI.jar') then
+    exit;
+  if not DirectoryExists(TempPath) then
+    exit;
+
+  tmpFilename := GetNewTempFileName(TempPath);
+
+  cmd := TStringList.Create;
+  try
+    cmd.WriteBOM := False;
+    cmd.Add('chcp 65001 >nul');
+    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
+
+    //https://github.com/ZUGFeRD/mustangproject/blob/f9905d6fca18733b468541415b9750654045cc09/Mustang-CLI/src/main/java/org/mustangproject/commandline/Main.java#L45
+    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -Xmx1G '+
+            '-Dfile.encoding=UTF-8 -jar '+QuoteIfContainsSpace(MustangprojectPath+'Mustang-CLI.jar')+
+            ' --action a3only' +
+            ' --source '+ QuoteIfContainsSpace(_InvoicePDFFilename)+
+            ' --out '+tmpFilename+'.pdf');
+
+    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8);
+
+    Result := ExecAndWait(tmpFilename+'.bat','');
+
+    if Result and FileExists(tmpFilename+'.pdf') then
+    begin
+      _PdfA3 := TMemoryStream.Create;
+      _PdfA3.LoadFromFile(tmpFilename+'.pdf');
+      _PdfA3.Position := 0;
+    end else
+      _PdfA3 := nil;
+
+    _CmdOutput := CmdOutput.Text;
+
+    DeleteFile(tmpFilename+'.bat');
+    if FileExists(tmpFilename+'.pdf') then
+      DeleteFile(tmpFilename+'.pdf');
+  finally
+    cmd.Free;
+  end;
+end;
+
 function TXRechnungValidationHelperJava.MustangValidateFile(
   const _InvoiceXMLFilename: String; out _CmdOutput,
   _ValidationResultAsXML: String): Boolean;
@@ -324,6 +379,7 @@ begin
     cmd.Add('chcp 65001 >nul');
     cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
 
+    //https://github.com/ZUGFeRD/mustangproject/blob/f9905d6fca18733b468541415b9750654045cc09/Mustang-CLI/src/main/java/org/mustangproject/commandline/Main.java#L45
     cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -Xmx1G '+
             '-Dfile.encoding=UTF-8 -jar '+QuoteIfContainsSpace(MustangprojectPath+'Mustang-CLI.jar')+
             ' --action validate' +
@@ -375,6 +431,7 @@ begin
     cmd.Add('chcp 65001 >nul');
     cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
 
+    //https://github.com/ZUGFeRD/mustangproject/blob/f9905d6fca18733b468541415b9750654045cc09/Mustang-CLI/src/main/java/org/mustangproject/commandline/Main.java#L45
     cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -Xmx1G '+
             '-Dfile.encoding=UTF-8 -jar '+QuoteIfContainsSpace(MustangprojectPath+'Mustang-CLI.jar')+
             ' --action visualize' +
@@ -430,6 +487,7 @@ begin
     cmd.Add('chcp 65001 >nul');
     cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
 
+    //https://github.com/ZUGFeRD/mustangproject/blob/f9905d6fca18733b468541415b9750654045cc09/Mustang-CLI/src/main/java/org/mustangproject/commandline/Main.java#L45
     cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -Xmx1G '+
             '-Dfile.encoding=UTF-8 -jar '+QuoteIfContainsSpace(MustangprojectPath+'Mustang-CLI.jar')+
             ' --action pdf' +

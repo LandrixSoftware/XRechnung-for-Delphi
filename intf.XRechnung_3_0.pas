@@ -32,9 +32,11 @@ uses
   ;
 
 type
+  TInvoiceProfile = (ipXRechnung,ipZUGFeRDEN16931,ipZUGFeRDExtended);
+
   TXRechnungInvoiceAdapter301 = class
   public
-    class procedure SaveDocumentUNCEFACT(_Invoice: TInvoice;_Xml : IXMLDocument; _ProfileXRechnung : Boolean);
+    class procedure SaveDocumentUNCEFACT(_Invoice: TInvoice;_Xml : IXMLDocument; _Profile : TInvoiceProfile);
     class procedure SaveDocumentUBL(_Invoice: TInvoice;_Xml : IXMLDocument);
     class function LoadDocumentUNCEFACT(_Invoice: TInvoice;_Xml : IXMLDocument; out _Error : String) : Boolean;
     class function LoadDocumentUBL(_Invoice: TInvoice;_Xml : IXMLDocument; out _Error : String) : Boolean;
@@ -148,8 +150,10 @@ var
     i : Integer;
   begin
     if TXRechnungXMLHelper.SelectNode(_Node,'.//cbc:EndpointID',node) then
-    if (TXRechnungXMLHelper.SelectAttributeText(node,'schemeID') = 'EM') then
+    begin
       _Party.ElectronicAddressSellerBuyer := node.text;
+      _Party.ElectronicAddressSellerBuyerSchemeID := TXRechnungXMLHelper.SelectAttributeText(node,'schemeID');
+    end;
     if TXRechnungXMLHelper.SelectNodes(_Node,'.//cac:PartyIdentification',nodes) then
     for i := 0 to nodes.length-1 do
     if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//cbc:ID',node) then
@@ -614,7 +618,10 @@ begin
         end;
         if TXRechnungXMLHelper.SelectNode(node2,'.//ram:URIUniversalCommunication',node3) then
           if TXRechnungXMLHelper.SelectNode(node3,'.//ram:URIID',node) then
+          begin
             _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer := node.text;
+            _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := TXRechnungXMLHelper.SelectAttributeText(node,'schemeID');
+          end;
         if TXRechnungXMLHelper.SelectNodes(node2,'.//ram:SpecifiedTaxRegistration',nodes) then
         for i := 0 to nodes.length-1 do
         if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ID',node3) then
@@ -675,7 +682,10 @@ begin
         end;
         if TXRechnungXMLHelper.SelectNode(node2,'.//ram:URIUniversalCommunication',node3) then
           if TXRechnungXMLHelper.SelectNode(node3,'.//ram:URIID',node) then
+          begin
             _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer := node.text;
+            _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := TXRechnungXMLHelper.SelectAttributeText(node,'schemeID');
+          end;
 
         if TXRechnungXMLHelper.SelectNodes(node2,'.//ram:SpecifiedTaxRegistration',nodes) then
         for i := 0 to nodes.length-1 do
@@ -1262,7 +1272,7 @@ begin
     if _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer <> '' then
     with AddChild('cbc:EndpointID') do
     begin
-      Attributes['schemeID'] := 'EM';
+      Attributes['schemeID'] := ifthen(_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID='','EM',_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID);
       Text := _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer;
     end;
     if _Invoice.AccountingSupplierParty.IdentifierSellerBuyer <> '' then
@@ -1329,7 +1339,7 @@ begin
     if _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer <> '' then
     with AddChild('cbc:EndpointID') do
     begin
-      Attributes['schemeID'] := 'EM';
+      Attributes['schemeID'] := ifthen(_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID='','EM',_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID);
       Text := _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer;
     end;
     if _Invoice.AccountingCustomerParty.IdentifierSellerBuyer <> '' then
@@ -1678,7 +1688,7 @@ begin
 end;
 
 class procedure TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(
-  _Invoice: TInvoice; _Xml: IXMLDocument; _ProfileXRechnung : Boolean);
+  _Invoice: TInvoice; _Xml: IXMLDocument; _Profile : TInvoiceProfile);
 var
   xRoot : IXMLNode;
   i : Integer;
@@ -1728,10 +1738,10 @@ var
     with _Node.AddChild('ram:SpecifiedLineTradeAgreement') do
     begin
       if (_InvoiceLine.OrderLineReference <> '') or
-         ((_InvoiceLine.OrderNumber <> '') and (not _ProfileXRechnung)) then
+         ((_InvoiceLine.OrderNumber <> '') and (_Profile = ipZUGFeRDExtended)) then
       with AddChild('ram:BuyerOrderReferencedDocument') do
       begin
-        if (not _ProfileXRechnung) then
+        if (_Profile = ipZUGFeRDExtended) then
         if (_InvoiceLine.OrderNumber <> '') then
           AddChild('ram:IssuerAssignedID').Text := _InvoiceLine.OrderNumber;
         if (_InvoiceLine.OrderLineReference <> '') then
@@ -1841,10 +1851,15 @@ begin
     AddChild('ram:BusinessProcessSpecifiedDocumentContextParameter')
       .AddChild('ram:ID').Text := _Invoice.ProfileID;
 
-    if _ProfileXRechnung then
+    if (_Profile = ipXRechnung) then
       AddChild('ram:GuidelineSpecifiedDocumentContextParameter')
         .AddChild('ram:ID').Text := 'urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0'
     else
+    if (_Profile = ipZUGFeRDEN16931) then
+      AddChild('ram:GuidelineSpecifiedDocumentContextParameter')
+        .AddChild('ram:ID').Text := 'urn:cen.eu:en16931:2017'
+    else
+    if (_Profile = ipZUGFeRDExtended) then
       AddChild('ram:GuidelineSpecifiedDocumentContextParameter')
         .AddChild('ram:ID').Text := 'urn:cen.eu:en16931:2017#conformant#urn:factur-x.eu:1p0:extended';
   end;
@@ -1875,7 +1890,7 @@ begin
     with AddChild('ram:ApplicableHeaderTradeAgreement') do
     begin
       if (_Invoice.BuyerReference <> '') then
-      if not ((not _ProfileXRechnung) and SameText(_Invoice.BuyerReference,'non-existent')) then
+      if not ((not (_Profile = ipXRechnung)) and SameText(_Invoice.BuyerReference,'non-existent')) then
         AddChild('ram:BuyerReference').Text := _Invoice.BuyerReference;
 
       with AddChild('ram:SellerTradeParty') do
@@ -1922,7 +1937,7 @@ begin
         if _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer <> '' then
         with AddChild('ram:URIUniversalCommunication').AddChild('ram:URIID') do
         begin
-          Attributes['schemeID'] := 'EM';
+          Attributes['schemeID'] := ifthen(_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID='','EM',_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID);
           Text := _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer;
         end;
         if _Invoice.AccountingSupplierParty.VATCompanyID <> '' then
@@ -1987,7 +2002,7 @@ begin
         if _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer <> '' then
         with AddChild('ram:URIUniversalCommunication').AddChild('ram:URIID') do
         begin
-          Attributes['schemeID'] := 'EM';
+          Attributes['schemeID'] := ifthen(_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID='','EM',_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID);
           Text := _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer;
         end;
         //bei AccountingCustomerParty nur eine VAT von beiden
@@ -2099,7 +2114,7 @@ begin
       with AddChild('ram:DespatchAdviceReferencedDocument') do
       begin
         AddChild('ram:IssuerAssignedID').Text := _Invoice.DeliveryReceiptNumber;
-        if (_Invoice.DeliveryReceiptDate > 0) and (not _ProfileXRechnung) then
+        if (_Invoice.DeliveryReceiptDate > 0) and (_Profile = ipZUGFeRDExtended) then
         with AddChild('ram:FormattedIssueDateTime').AddChild('qdt:DateTimeString') do
         begin
           Attributes['format'] := '102';
@@ -2112,7 +2127,7 @@ begin
       begin
         Text := _Invoice.ReceiptDocumentReference;
       end;
-      if (_Invoice.DeliveryReceiptNumberExtended <> '') and (not _ProfileXRechnung) then //Extended Lieferscheinnummer
+      if (_Invoice.DeliveryReceiptNumberExtended <> '') and (_Profile = ipZUGFeRDExtended) then //Extended Lieferscheinnummer
       with AddChild('ram:DeliveryNoteReferencedDocument') do
       begin
         AddChild('ram:IssuerAssignedID').Text := _Invoice.DeliveryReceiptNumberExtended;
@@ -2217,7 +2232,7 @@ begin
             AddChild('ram:RateApplicablePercent').Text := TXRechnungHelper.PercentageToStr(_Invoice.AllowanceCharges[i].TaxPercent);
         end;
       end;
-      if _ProfileXRechnung then
+      if (_Profile = ipXRechnung) then
       with AddChild('ram:SpecifiedTradePaymentTerms') do
       begin
         case _Invoice.PaymentTermsType of
@@ -2373,7 +2388,7 @@ begin
           Attributes['format'] := '102';
           Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.PrecedingInvoiceReferences[i].IssueDate);
         end;
-        if _ProfileXRechnung then
+        if (_Profile = ipXRechnung) then
           break; //only one item allowed in xrechnung cii
       end;
       if _Invoice.BuyerAccountingReference <> '' then

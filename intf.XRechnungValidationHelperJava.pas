@@ -43,7 +43,7 @@ type
     function MustangValidateFile(const _InvoiceXMLFilename : String; out _CmdOutput,_ValidationResultAsXML : String) : Boolean;
     function MustangVisualizeFile(const _InvoiceXMLFilename : String; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
     function MustangVisualizeFileAsPdf(const _InvoiceXMLFilename : String; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
-    function MustangCombinePdfAndXML(const _InvoicePDFFilename, _InvoiceXMLFilename : String; out _CmdOutput : String; out _CombinedPdf : TMemoryStream) : Boolean;
+    function MustangCombinePdfAndXML(const _InvoicePDFFilename, _InvoiceXMLFilename : String; _Extended : Boolean; out _CmdOutput : String; out _CombinedPdf : TMemoryStream) : Boolean;
     function ValitoolValidate(const _InvoiceXMLData : String; out _CmdOutput,_ValidationResultAsXML : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function ValitoolValidateDirectory(const _Directory : String; out _CmdOutput : String) : Boolean;
   end;
@@ -95,7 +95,7 @@ type
     function MustangValidateFile(const _InvoiceXMLFilename : String; out _CmdOutput,_ValidationResultAsXML : String) : Boolean;
     function MustangVisualizeFile(const _InvoiceXMLFilename : String; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
     function MustangVisualizeFileAsPdf(const _InvoiceXMLFilename : String; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
-    function MustangCombinePdfAndXML(const _InvoicePDFFilename, _InvoiceXMLFilename : String; out _CmdOutput : String; out _CombinedPdf : TMemoryStream) : Boolean;
+    function MustangCombinePdfAndXML(const _InvoicePDFFilename, _InvoiceXMLFilename : String; _Extended : Boolean; out _CmdOutput : String; out _CombinedPdf : TMemoryStream) : Boolean;
     function ValitoolValidate(const _InvoiceXMLData : String; out _CmdOutput,_ValidationResultAsXML : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function ValitoolValidateDirectory(const _Directory : String; out _CmdOutput : String) : Boolean;
   end;
@@ -239,7 +239,7 @@ begin
 end;
 
 function TXRechnungValidationHelperJava.MustangCombinePdfAndXML(
-  const _InvoicePDFFilename, _InvoiceXMLFilename: String;
+  const _InvoicePDFFilename, _InvoiceXMLFilename: String; _Extended : Boolean;
   out _CmdOutput: String; out _CombinedPdf: TMemoryStream): Boolean;
 var
   cmd: TStringList;
@@ -274,7 +274,7 @@ begin
             ' --out '+tmpFilename+'.pdf'+
             ' --format zf'+
             ' --version 2'+
-            ' --profile T'+
+            ' --profile '+IfThen(_Extended,'T','E')+
             ' --no-additional-attachments');
 
     cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8);

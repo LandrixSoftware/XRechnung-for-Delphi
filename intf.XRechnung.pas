@@ -92,8 +92,8 @@ type
   TXRechnungVersion = (XRechnungVersion_Unknown,
                        XRechnungVersion_30x_UBL,
                        XRechnungVersion_30x_UNCEFACT,
+                       ZUGFeRDEN16931Version_232,
                        ZUGFeRDExtendedVersion_232,
-                       XRechnungVersion_ReadingSupport_ZUGFeRDFacturX,
                        ZUGFeRDExtendedVersion_1_NotSupported);
 
   TXRechnungValidationHelper = class(TObject)
@@ -298,7 +298,7 @@ begin
 
   //Mindestens eine Zahlungsanweisung notwendig (bei ZUGFeRD nur im Profil EXTENDED)
   if (_Invoice.PaymentTypes.Count = 0) and
-     (_Version <> TXRechnungVersion.XRechnungVersion_ReadingSupport_ZUGFeRDFacturX) then
+     (_Version <> TXRechnungVersion.ZUGFeRDEN16931Version_232) then
   begin
     _ErrorCode := ccNoPaymentsCount;
     Result := false;
@@ -469,10 +469,10 @@ begin
     XRechnungVersion_30x_UBL      : Result := TXRechnungInvoiceAdapter301.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
     XRechnungVersion_30x_UNCEFACT : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     {$IFNDEF ZUGFeRD_Support}
+    ZUGFeRDEN16931Version_232 : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     ZUGFeRDExtendedVersion_232 : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
-    XRechnungVersion_ReadingSupport_ZUGFeRDFacturX : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     {$ELSE}
-    XRechnungVersion_ReadingSupport_ZUGFeRDFacturX,
+    ZUGFeRDEN16931Version_232,
     ZUGFeRDExtendedVersion_232,
     ZUGFeRDExtendedVersion_1_NotSupported : Result := TZUGFeRDInvoiceAdapter.LoadFromXMLDocument(_Invoice,_XmlDocument,_Error,_AdditionalContent);
     {$ENDIF}
@@ -506,9 +506,10 @@ class procedure TXRechnungInvoiceAdapter.SaveDocument(_Invoice: TInvoice;
 begin
   case _Version of
     XRechnungVersion_30x_UBL : TXRechnungInvoiceAdapter301.SaveDocumentUBL(_Invoice,_Xml);
-    XRechnungVersion_30x_UNCEFACT : TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(_Invoice,_Xml,true);
-    ZUGFeRDExtendedVersion_232 : TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(_Invoice,_Xml,false);
-    else raise Exception.Create('XRechnung - wrong version');
+    XRechnungVersion_30x_UNCEFACT : TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(_Invoice,_Xml,ipXRechnung);
+    ZUGFeRDEN16931Version_232 : TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(_Invoice,_Xml,ipZUGFeRDEN16931);
+    ZUGFeRDExtendedVersion_232 : TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(_Invoice,_Xml,ipZUGFeRDExtended);
+    else raise Exception.Create('Unkown version');
   end;
 end;
 
@@ -1600,7 +1601,7 @@ begin
       Result := ZUGFeRDExtendedVersion_232
     else
     if Pos('urn:cen.eu:en16931:2017',AnsiLowerCase(node.Text))>0 then
-      Result := XRechnungVersion_ReadingSupport_ZUGFeRDFacturX;
+      Result := ZUGFeRDEN16931Version_232;
   end else
   if (SameText(_XML.DocumentElement.NodeName,'CrossIndustryDocument') or
       SameText(_XML.DocumentElement.NodeName,'rsm:CrossIndustryDocument')) then

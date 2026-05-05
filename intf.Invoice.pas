@@ -1,4 +1,4 @@
-{
+﻿{
 License XRechnung-for-Delphi
 
 Copyright (C) 2026 Landrix Software GmbH & Co. KG
@@ -640,6 +640,7 @@ type
     ContactElectronicMail : String;
     AdditionalLegalInformationSeller : String; //BT-33 Weitere rechtliche Informationen zum Verkaeufer
     ElectronicAddressSellerBuyer : String; //BT-34, BT-49 Pflicht
+    ElectronicAddressSellerBuyerSchemeID : String; //EM E-Mail, 9930 Peppol-ID, Pflicht
   public
     constructor Create;
     destructor Destroy; override;

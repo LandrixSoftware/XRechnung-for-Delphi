@@ -188,6 +188,7 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.Kleinunternehmerregelung(inv);//Kleinunternehmerregelung
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Kleinunternehmerregelung-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_232,ValidXMLExamplesPath+'Kleinunternehmerregelung-ciiEN16931-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'Kleinunternehmerregelung-ciiextended-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Kleinunternehmerregelung-cii-30x.xml');
   inv.Free;
@@ -195,6 +196,7 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.Paragr13b(inv);//Paragr13b UStG
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Paragr13b-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_232,ValidXMLExamplesPath+'Paragr13b-ciiEN16931-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'Paragr13b-ciiextended-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Paragr13b-cii-30x.xml');
   inv.Free;
@@ -202,6 +204,7 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.Austauschteilesteuer(inv);//Austauschteilesteuer
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Austauschteilesteuer-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_232,ValidXMLExamplesPath+'Austauschteilesteuer-ciiEN16931-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'Austauschteilesteuer-ciiextended-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Austauschteilesteuer-cii-30x.xml');
   inv.Free;
@@ -209,6 +212,7 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.Differenzbesteuerung(inv);//Differenzbesteuerung
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Differenzbesteuerung-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_232,ValidXMLExamplesPath+'Differenzbesteuerung-ciiEN16931-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'Differenzbesteuerung-ciiextended-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Differenzbesteuerung-cii-30x.xml');
   inv.Free;
@@ -223,6 +227,7 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.Gutschrift(inv);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gutschrift-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_232,ValidXMLExamplesPath+'Gutschrift-ciiEN16931-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'Gutschrift-ciiextended-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gutschrift-cii-30x.xml');
   inv.Free;
@@ -230,6 +235,7 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.Rechnungskorrektur(inv);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Rechnungskorrektur-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_232,ValidXMLExamplesPath+'Rechnungskorrektur-ciiEN16931-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'Rechnungskorrektur-ciiextended-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Rechnungskorrektur-cii-30x.xml');
   inv.Free;
@@ -237,6 +243,7 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.MinimalbeispielB2BOhneLeitwegID(inv);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'MinimalbeispielB2BOhneLeitwegID-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_232,ValidXMLExamplesPath+'MinimalbeispielB2BOhneLeitwegID-ciiEN16931-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'MinimalbeispielB2BOhneLeitwegID-ciiextended-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'MinimalbeispielB2BOhneLeitwegID-cii-30x.xml');
   inv.Free;
@@ -244,6 +251,7 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.PreiseinheitGroesser1(inv);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'PreiseinheitGroesser1-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_232,ValidXMLExamplesPath+'PreiseinheitGroesser1-ciiEN16931-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'PreiseinheitGroesser1-ciiextended-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'PreiseinheitGroesser1-cii-30x.xml');
   inv.Free;
@@ -251,6 +259,7 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.Lastschrift(inv);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Lastschrift-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_232,ValidXMLExamplesPath+'Lastschrift-ciiEN16931-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'Lastschrift-ciiextended-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Lastschrift-cii-30x.xml');
   inv.Free;
@@ -258,6 +267,7 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.InnergemeinschaftlicheLieferungEUohneMehrwertsteuer(inv);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'LieferungEUohneMehrwertsteuer-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_232,ValidXMLExamplesPath+'LieferungEUohneMehrwertsteuer-ciiEN16931-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'LieferungEUohneMehrwertsteuer-ciiextended-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'LieferungEUohneMehrwertsteuer-cii-30x.xml');
   inv.Free;
@@ -265,6 +275,7 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.PayPalOderAndereOnlinezahlungsdienstleister(inv);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'PayPal-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_232,ValidXMLExamplesPath+'PayPal-ciiEN16931-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'PayPal-ciiextended-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'PayPal-cii-30x.xml');
   inv.Free;
@@ -272,6 +283,7 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.Kreditkarte(inv);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Kreditkarte-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_232,ValidXMLExamplesPath+'Kreditkarte-ciiEN16931-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'Kreditkarte-ciiextended-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Kreditkarte-cii-30x.xml');
   inv.Free;
@@ -279,6 +291,7 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.LeistungszeitraumJePosition(inv);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'LeistungszeitraumJePosition-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_232,ValidXMLExamplesPath+'LeistungszeitraumJePosition-ciiEN16931-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'LeistungszeitraumJePosition-ciiextended-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'LeistungszeitraumJePosition-cii-30x.xml');
   inv.Free;
@@ -286,6 +299,7 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,0,false,false,false,false);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_232,ValidXMLExamplesPath+'Gesamtbeispiel-ciiEN16931-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'Gesamtbeispiel-ciiextended-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-cii-30x.xml');
   inv.Free;
@@ -293,6 +307,7 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,1,false,false,false,false);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-Nettoziel-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_232,ValidXMLExamplesPath+'Gesamtbeispiel-Nettoziel-ciiEN16931-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'Gesamtbeispiel-Nettoziel-ciiextended-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-Nettoziel-cii-30x.xml');
   inv.Free;
@@ -300,6 +315,7 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,2,false,false,false,false);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto1-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_232,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto1-ciiEN16931-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto1-ciiextended-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto1-cii-30x.xml');
   inv.Free;
@@ -307,6 +323,7 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,3,false,false,false,false);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto2-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_232,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto2-ciiEN16931-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto2-ciiextended-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto2-cii-30x.xml');
   inv.Free;
@@ -314,6 +331,7 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,0,true,true,true,true);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_232,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-ciiEN16931-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-ciiextended-232.xml');
   inv.Free;
   inv := TInvoice.Create;
@@ -324,6 +342,7 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,3,true,true,true,true);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-Skonto2-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_232,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-Skonto2-ciiEN16931-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-Skonto2-ciiextended-232.xml');
   inv.Free;
   inv := TInvoice.Create;
@@ -334,6 +353,7 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.VierNachkommastellen(inv);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Vier-Nachkommastellen-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_232,ValidXMLExamplesPath+'Vier-Nachkommastellen-ciiEN16931-232.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_232,ValidXMLExamplesPath+'Vier-Nachkommastellen-ciiextended-232.xml');
   inv.Free;
   inv := TInvoice.Create;
@@ -375,9 +395,6 @@ begin
     if (MessageDlg('Eingelesen'+#10+'Soll die Eingabedatei mit der Bibliothek-Ausgabedatei verglichen werden?', mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
     begin
       version := TXRechnungValidationHelper.GetXRechnungVersion(od.FileName);
-      if version = XRechnungVersion_ReadingSupport_ZUGFeRDFacturX then
-        version := XRechnungVersion_30x_UNCEFACT
-      else
       if version = XRechnungVersion_Unknown then
       begin
         MessageDlg('Unbekannte ZUGFeRD-Version', mtError, [mbOK], 0);
@@ -941,7 +958,7 @@ begin
 
     GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
         .SetMustangprojectLibPath(MustangLibPath)
-        .MustangCombinePdfAndXML(WebBrowserContentFilenamePdf,_Filename,cmdoutput,pdfresult);
+        .MustangCombinePdfAndXML(WebBrowserContentFilenamePdf,_Filename,true,cmdoutput,pdfresult);
 
     Memo3.Lines.Append(cmdoutput);
 

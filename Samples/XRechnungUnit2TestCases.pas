@@ -100,6 +100,7 @@ begin
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
@@ -116,6 +117,7 @@ begin
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   //Lieferdatum
   inv.DeliveryInformation.ActualDeliveryDate := TInvoiceTestCases.InvoicePeriodEndDate;
@@ -270,6 +272,7 @@ begin
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
@@ -286,6 +289,7 @@ begin
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   //Lieferdatum
   inv.DeliveryInformation.ActualDeliveryDate := TInvoiceTestCases.InvoicePeriodEndDate;
@@ -392,6 +396,7 @@ begin
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
@@ -408,6 +413,7 @@ begin
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   //Eine Gruppe von Informationselementen, die Informationen ueber die Anschrift liefern, an die
   //die Waren geliefert oder an der die Dienstleistungen erbracht werden. Die Gruppe ist nur zu
@@ -795,6 +801,7 @@ begin
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   //Pflichtangabe
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
@@ -811,6 +818,7 @@ begin
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   //Lieferdatum
   inv.DeliveryInformation.ActualDeliveryDate := TInvoiceTestCases.InvoicePeriodEndDate;
@@ -901,6 +909,7 @@ begin
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   //Pflichtangabe
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
@@ -914,6 +923,7 @@ begin
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.at';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.at'; //BT-49
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   inv.DeliveryInformation.Name := 'Firma die es bekommt';
   inv.DeliveryInformation.Address.StreetName := 'Lieferstrasse 1';
@@ -1011,6 +1021,7 @@ begin
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   //Pflichtangabe
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
@@ -1027,6 +1038,7 @@ begin
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   //Lieferdatum
   inv.DeliveryInformation.ActualDeliveryDate := TInvoiceTestCases.InvoicePeriodEndDate;
@@ -1114,6 +1126,7 @@ begin
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
@@ -1127,6 +1140,7 @@ begin
   inv.AccountingCustomerParty.VATCompanyID := 'DE123456788';
   //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   //Lieferdatum
   inv.DeliveryInformation.ActualDeliveryDate := TInvoiceTestCases.InvoicePeriodEndDate;
@@ -1218,6 +1232,7 @@ begin
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
@@ -1231,6 +1246,7 @@ begin
   inv.AccountingCustomerParty.VATCompanyID := 'DE123456788';
   //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   //Lieferdatum
   inv.DeliveryInformation.ActualDeliveryDate := TInvoiceTestCases.InvoicePeriodEndDate;
@@ -1318,6 +1334,7 @@ begin
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
@@ -1331,6 +1348,7 @@ begin
   inv.AccountingCustomerParty.VATCompanyID := 'DE123456788';
   //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   //Lieferdatum
   inv.DeliveryInformation.ActualDeliveryDate := inv.InvoicePeriodEndDate;
@@ -1431,6 +1449,7 @@ begin
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
   //Um valide Rechnung zu erzeugen, weil keine UStID vorhanden ist
   if (inv.AccountingSupplierParty.VATCompanyID = '') and
      (inv.AccountingSupplierParty.CompanyID = '') then
@@ -1449,6 +1468,7 @@ begin
   inv.AccountingCustomerParty.VATCompanyID := 'DE123456788';
   //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   //Lieferdatum
   inv.DeliveryInformation.ActualDeliveryDate := TInvoiceTestCases.InvoicePeriodEndDate;
@@ -1529,6 +1549,7 @@ begin
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   //Pflichtangabe
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
@@ -1547,6 +1568,7 @@ begin
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   //Lieferdatum
   inv.DeliveryInformation.ActualDeliveryDate := TInvoiceTestCases.InvoicePeriodEndDate;
@@ -1635,6 +1657,7 @@ begin
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
@@ -1648,6 +1671,7 @@ begin
   inv.AccountingCustomerParty.VATCompanyID := 'DE123456788';
   //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   //Lieferdatum
   inv.DeliveryInformation.ActualDeliveryDate := TInvoiceTestCases.InvoicePeriodEndDate;
@@ -1734,6 +1758,7 @@ begin
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
@@ -1747,6 +1772,7 @@ begin
   inv.AccountingCustomerParty.VATCompanyID := 'DE123456788';
   //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   //Lieferdatum
   inv.DeliveryInformation.ActualDeliveryDate := TInvoiceTestCases.InvoicePeriodEndDate;
@@ -1832,6 +1858,7 @@ begin
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
@@ -1845,6 +1872,7 @@ begin
   inv.AccountingCustomerParty.VATCompanyID := 'DE123456788';
   //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   //Lieferdatum
   inv.DeliveryInformation.ActualDeliveryDate := TInvoiceTestCases.InvoicePeriodEndDate;
@@ -1925,6 +1953,7 @@ begin
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
   //Um valide Rechnung zu erzeugen, weil keine UStID vorhanden ist
   if (inv.AccountingSupplierParty.VATCompanyID = '') and
      (inv.AccountingSupplierParty.CompanyID = '') then
@@ -1943,6 +1972,7 @@ begin
   inv.AccountingCustomerParty.VATCompanyID := 'DE123456788';
   //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   //Lieferdatum
   inv.DeliveryInformation.ActualDeliveryDate := TInvoiceTestCases.InvoicePeriodEndDate;
@@ -2061,6 +2091,7 @@ begin
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   inv.AccountingCustomerParty.Name := '';
   inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
@@ -2077,6 +2108,7 @@ begin
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   //Lieferdatum
   inv.DeliveryInformation.ActualDeliveryDate := TInvoiceTestCases.InvoicePeriodEndDate;
@@ -2208,6 +2240,7 @@ begin
   //Weitere Codes auf Anfrage
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
   //Um valide Rechnung zu erzeugen, weil keine UStID vorhanden ist
   if (inv.AccountingSupplierParty.VATCompanyID = '') and
      (inv.AccountingSupplierParty.CompanyID = '') then
@@ -2226,6 +2259,7 @@ begin
   inv.AccountingCustomerParty.VATCompanyID := 'DE123456788';
   //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   //Lieferdatum
   inv.DeliveryInformation.ActualDeliveryDate := TInvoiceTestCases.InvoicePeriodEndDate;
@@ -2271,8 +2305,8 @@ end;
 
 initialization
 
-  TInvoiceTestCases.InvoiceIssueDate := EncodeDate(2024,12,5);
-  TInvoiceTestCases.InvoiceDueDate := EncodeDate(2024,12,5)+30;
+  TInvoiceTestCases.InvoiceIssueDate := EncodeDate(2026,4,30);
+  TInvoiceTestCases.InvoiceDueDate := EncodeDate(2026,4,30)+30;
   TInvoiceTestCases.InvoicePeriodStartDate := TInvoiceTestCases.InvoiceIssueDate-30;
   TInvoiceTestCases.InvoicePeriodEndDate := TInvoiceTestCases.InvoiceIssueDate-1;
 end.

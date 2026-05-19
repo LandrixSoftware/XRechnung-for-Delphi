@@ -454,6 +454,7 @@ begin
         GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
             .SetValidatorLibPath(ValidatorLibPath)
             .SetValidatorConfigurationPath(ValidatorConfigurationPath)
+            .SetValidatorConfigurationPath(DistributionBasePath+'validator-configuration-bis'+PathDelim)
             .SetValidatorConfigurationPath(DistributionBasePath+'validator-configuration-zugferd232'+PathDelim)
             .ValidateFile(od.FileName,cmdoutput,xmlresult,htmlresult);
       else

@@ -1385,16 +1385,34 @@ begin
 end;
 
 procedure TInvoiceAttachment.EmbedDataFromFile(const _Filename: String);
+const
+  RETRY_COUNT = 5;
+  RETRY_DELAY_MS = 150;
 var
   str : TFileStream;
+  attempt : Integer;
 begin
   if not FileExists(_Filename) then
     exit;
-  str := TFileStream.Create(_Filename,fmOpenRead);
+  attempt := 0;
+  while true do
   try
-    EmbedDataFromStream(str);
-  finally
-    str.Free;
+    str := TFileStream.Create(_Filename, fmOpenRead or fmShareDenyNone);
+    try
+      EmbedDataFromStream(str);
+    finally
+      str.Free;
+    end;
+    break;
+  except
+    on E : EFOpenError do
+    begin
+      //Datei ist (noch) durch einen anderen Prozess gesperrt - kurz warten und erneut versuchen.
+      Inc(attempt);
+      if attempt >= RETRY_COUNT then
+        raise;
+      TThread.Sleep(RETRY_DELAY_MS);
+    end;
   end;
 end;
 

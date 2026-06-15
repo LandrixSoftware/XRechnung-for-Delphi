@@ -1,4 +1,4 @@
-<?xml version="1.0" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <rsm:CrossIndustryInvoice xmlns:rsm="urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100" xmlns:ram="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100" xmlns:udt="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100" xmlns:qdt="urn:un:unece:uncefact:data:standard:QualifiedDataType:100">
   <rsm:ExchangedDocumentContext>
     <ram:BusinessProcessSpecifiedDocumentContextParameter>
@@ -12,7 +12,7 @@
     <ram:ID>R2020-0815</ram:ID>
     <ram:TypeCode>381</ram:TypeCode>
     <ram:IssueDateTime>
-      <udt:DateTimeString format="102">20241205</udt:DateTimeString>
+      <udt:DateTimeString format="102">20260830</udt:DateTimeString>
     </ram:IssueDateTime>
     <ram:IncludedNote>
       <ram:Content>Notiz zur Gutschrift</ram:Content>
@@ -60,7 +60,7 @@
       </ram:SpecifiedLineTradeSettlement>
     </ram:IncludedSupplyChainTradeLineItem>
     <ram:ApplicableHeaderTradeAgreement>
-      <ram:BuyerReference>04011000-12345-34</ram:BuyerReference>
+      <ram:BuyerReference>991-01484-64</ram:BuyerReference>
       <ram:SellerTradeParty>
         <ram:Name>Verkaeufername</ram:Name>
         <ram:Description>Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemaess Paragraph 19 UStG</ram:Description>
@@ -120,7 +120,7 @@
     <ram:ApplicableHeaderTradeDelivery>
       <ram:ActualDeliverySupplyChainEvent>
         <ram:OccurrenceDateTime>
-          <udt:DateTimeString format="102">20241204</udt:DateTimeString>
+          <udt:DateTimeString format="102">20260829</udt:DateTimeString>
         </ram:OccurrenceDateTime>
       </ram:ActualDeliverySupplyChainEvent>
     </ram:ApplicableHeaderTradeDelivery>
@@ -144,10 +144,10 @@
       </ram:ApplicableTradeTax>
       <ram:BillingSpecifiedPeriod>
         <ram:StartDateTime>
-          <udt:DateTimeString format="102">20241105</udt:DateTimeString>
+          <udt:DateTimeString format="102">20260731</udt:DateTimeString>
         </ram:StartDateTime>
         <ram:EndDateTime>
-          <udt:DateTimeString format="102">20241204</udt:DateTimeString>
+          <udt:DateTimeString format="102">20260829</udt:DateTimeString>
         </ram:EndDateTime>
       </ram:BillingSpecifiedPeriod>
       <ram:SpecifiedTradePaymentTerms>

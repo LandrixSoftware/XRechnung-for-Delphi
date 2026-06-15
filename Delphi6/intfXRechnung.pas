@@ -47,7 +47,6 @@ uses
   ,intf.ZUGFeRDSubjectCodes
   ,intf.ZUGFeRDHelper
   {$ENDIF}
-  ,intfXRechnung_2_3
   ,intfXRechnung_3_0
   ,intfInvoice
   ;
@@ -95,8 +94,8 @@ type
   TXRechnungVersion = (XRechnungVersion_Unknown,
                        XRechnungVersion_30x_UBL,
                        XRechnungVersion_30x_UNCEFACT,
-                       ZUGFeRDExtendedVersion_232,
-                       XRechnungVersion_ReadingSupport_ZUGFeRDFacturX,
+                       ZUGFeRDEN16931Version_250,
+                       ZUGFeRDExtendedVersion_250,
                        ZUGFeRDExtendedVersion_1_NotSupported);
 
   TXRechnungValidationHelper = class(TObject)
@@ -130,7 +129,8 @@ type
     class procedure SaveDocument(_Invoice: TInvoice;_Version : TXRechnungVersion; _Xml : IXMLDocument);
     class function  LoadFromXMLDocument(_Invoice: TInvoice; _XmlDocument: IXMLDocument; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
   public
-    class function ConsistencyCheck(_Invoice : TInvoice; _Version : TXRechnungVersion) : Boolean;
+    class function ConsistencyCheck(_Invoice : TInvoice; _Version : TXRechnungVersion) : Boolean; overload;
+    class function ConsistencyCheck(_Invoice : TInvoice; _Version : TXRechnungVersion; out _ErrorCode : Integer) : Boolean; overload;
     class procedure CorrectDueDateIfNotDefined(_Invoice : TInvoice);
 
     class procedure SaveToStream(_Invoice : TInvoice; _Version : TXRechnungVersion; _Stream : TStream);
@@ -143,6 +143,16 @@ type
   end;
 
 const
+  ccOK                       = 0;
+  ccNoPaymentsCount          = 1;
+  ccInvoiceTypeNotSupported  = 2;
+  ccTooManyPrecedingInvoices = 3;
+  ccTooManySEPADirectDebit   = 4;
+  ccTooManyCreditCard        = 5;
+  ccNoBT31BT30               = 6;
+  ccNoBT31BT32               = 7;
+  ccPrepaidPaymentNotSupported = 8;
+
   ZUGFERD_INVOICE_PDF_FILENAME_FACTURX =
     'factur-x.xml';
 
@@ -241,8 +251,6 @@ end;
 
 class procedure TXRechnungInvoiceAdapter.SaveToFile(_Invoice: TInvoice;
   _Version : TXRechnungVersion;const _Filename: String);
-var
-  xml : IXMLDocument;
 begin
   if _Invoice = nil then
     exit;
@@ -262,14 +270,24 @@ end;
 class function TXRechnungInvoiceAdapter.ConsistencyCheck(_Invoice: TInvoice;
   _Version: TXRechnungVersion): Boolean;
 var
+  lErrorCode : Integer;
+begin
+  Result := TXRechnungInvoiceAdapter.ConsistencyCheck(_Invoice, _Version, lErrorCode);
+end;
+
+class function TXRechnungInvoiceAdapter.ConsistencyCheck(_Invoice: TInvoice;
+  _Version: TXRechnungVersion; out _ErrorCode: Integer): Boolean;
+var
   lCount,i : Integer;
 begin
   Result := true;
+  _ErrorCode := ccOK;
 
   //Mindestens eine Zahlungsanweisung notwendig (bei ZUGFeRD nur im Profil EXTENDED)
   if (_Invoice.PaymentTypes.Count = 0) and
-     (_Version <> XRechnungVersion_ReadingSupport_ZUGFeRDFacturX) then
+     (_Version <> ZUGFeRDEN16931Version_250) then
   begin
+    _ErrorCode := ccNoPaymentsCount;
     Result := false;
     exit;
   end;
@@ -284,6 +302,7 @@ begin
                                    itc_Cancellation
                                    ]) then
   begin
+    _ErrorCode := ccInvoiceTypeNotSupported;
     Result := false;
     exit;
   end;
@@ -292,6 +311,7 @@ begin
   if (_Version in [XRechnungVersion_30x_UNCEFACT]) then
   if _Invoice.PrecedingInvoiceReferences.Count > 1 then
   begin
+    _ErrorCode := ccTooManyPrecedingInvoices;
     Result := false;
     exit;
   end;
@@ -303,6 +323,7 @@ begin
     inc(lCount);
   if lCount > 1 then
   begin
+    _ErrorCode := ccTooManySEPADirectDebit;
     Result := false;
     exit;
   end;
@@ -314,6 +335,7 @@ begin
     inc(lCount);
   if lCount > 1 then
   begin
+    _ErrorCode := ccTooManyCreditCard;
     Result := false;
     exit;
   end;
@@ -323,6 +345,7 @@ begin
   if (_Invoice.AccountingSupplierParty.VATCompanyID = '') and
      (_Invoice.AccountingSupplierParty.CompanyID = '') then
   begin
+    _ErrorCode := ccNoBT31BT30;
     Result := false;
     exit;
   end;
@@ -331,6 +354,7 @@ begin
   if (_Invoice.AccountingSupplierParty.VATCompanyID = '') and
      (_Invoice.AccountingSupplierParty.VATCompanyNumber = '') then
   begin
+    _ErrorCode := ccNoBT31BT32;
     Result := false;
     exit;
   end;
@@ -340,6 +364,7 @@ begin
   if not (_Version in [//TXRechnungVersion.XRechnungVersion_230_UBL_Deprecated, Version 2.3 wird nicht mehr gepflegt
                    XRechnungVersion_30x_UBL]) then
   begin
+    _ErrorCode := ccPrepaidPaymentNotSupported;
     Result := false;
     exit;
   end;
@@ -431,11 +456,11 @@ begin
     XRechnungVersion_30x_UBL      : Result := TXRechnungInvoiceAdapter301.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
     XRechnungVersion_30x_UNCEFACT : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     {$IFNDEF ZUGFeRD_Support}
-    ZUGFeRDExtendedVersion_232 : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
-    XRechnungVersion_ReadingSupport_ZUGFeRDFacturX : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
+    ZUGFeRDEN16931Version_250 : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
+    ZUGFeRDExtendedVersion_250 : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     {$ELSE}
-    XRechnungVersion_ReadingSupport_ZUGFeRDFacturX,
-    ZUGFeRDExtendedVersion_232,
+    ZUGFeRDEN16931Version_250,
+    ZUGFeRDExtendedVersion_250,
     ZUGFeRDExtendedVersion_1_NotSupported : Result := TZUGFeRDInvoiceAdapter.LoadFromXMLDocument(_Invoice,_XmlDocument,_Error,_AdditionalContent);
     {$ENDIF}
     else exit;
@@ -468,9 +493,10 @@ class procedure TXRechnungInvoiceAdapter.SaveDocument(_Invoice: TInvoice;
 begin
   case _Version of
     XRechnungVersion_30x_UBL : TXRechnungInvoiceAdapter301.SaveDocumentUBL(_Invoice,_Xml);
-    XRechnungVersion_30x_UNCEFACT : TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(_Invoice,_Xml,true);
-    ZUGFeRDExtendedVersion_232 : TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(_Invoice,_Xml,false);
-    else raise Exception.Create('XRechnung - wrong version');
+    XRechnungVersion_30x_UNCEFACT : TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(_Invoice,_Xml,ipXRechnung);
+    ZUGFeRDEN16931Version_250 : TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(_Invoice,_Xml,ipZUGFeRDEN16931);
+    ZUGFeRDExtendedVersion_250 : TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(_Invoice,_Xml,ipZUGFeRDExtended);
+    else raise Exception.Create('Unkown version');
   end;
 end;
 
@@ -1527,7 +1553,8 @@ begin
       SameText(_XML.DocumentElement.NodeName,'ubl:CreditNote') or
       SameText(_XML.DocumentElement.NodeName,'ns0:CreditNote')) then
   begin
-    if not TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'cbc:CustomizationID',node) then
+    if not (TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'cbc:CustomizationID',node) or
+            TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'CustomizationID',node)) then
       exit;
     if Pos('xrechnung_3.0',AnsiLowerCase(node.Text))>0 then
       Result := XRechnungVersion_30x_UBL;
@@ -1546,10 +1573,10 @@ begin
       Result := XRechnungVersion_30x_UNCEFACT
     else
     if SameText(node.Text,'urn:cen.eu:en16931:2017#conformant#urn:factur-x.eu:1p0:extended') then
-      Result := ZUGFeRDExtendedVersion_232
+      Result := ZUGFeRDExtendedVersion_250
     else
     if Pos('urn:cen.eu:en16931:2017',AnsiLowerCase(node.Text))>0 then
-      Result := XRechnungVersion_ReadingSupport_ZUGFeRDFacturX;
+      Result := ZUGFeRDEN16931Version_250;
   end else
   if (SameText(_XML.DocumentElement.NodeName,'CrossIndustryDocument') or
       SameText(_XML.DocumentElement.NodeName,'rsm:CrossIndustryDocument')) then

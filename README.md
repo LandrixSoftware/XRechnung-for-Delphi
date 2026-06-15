@@ -13,7 +13,8 @@ Erstellen von Rechnungen im
 Aktuell unterstützte Versionen:
 
 - XRechnung 3.0.2 gültig ab 1.2.2024 - Übersicht der Pflichtfelder unter https://blog.seeburger.com/de/xrechnung-version-3-0-1-gueltig-ab-01-februar-2024/
-- ZUGFeRD 2.3.2 EXTENDED
+- ZUGFeRD 2.5.0 EXTENDED gültig ab 1.7.2026
+- ZUGFeRD 2.5.0 EN16931 gültig ab 1.7.2026
 
 ## Beispiele
 

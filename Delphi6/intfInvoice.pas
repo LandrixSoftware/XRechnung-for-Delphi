@@ -249,9 +249,9 @@ type
     class function GetTypeFromFilename(const _Filename : String): TInvoiceAttachmentType;
   end;
 
-  //Der Code  916 "Referenzpapier" wird benutzt, um die Kennung der rechnungsbegr�ndenden Unterlage zu referenzieren. (BT-122)
+  //Der Code  916 "Referenzpapier" wird benutzt, um die Kennung der rechnungsbegründenden Unterlage zu referenzieren. (BT-122)
   //Der Code 50 "Price/sales catalogue response" wird benutzt, um die Ausschreibung oder das Los zu referenzieren. (BT-17)
-  //Der Code 130 "Rechnungsdatenblatt" wird benutzt, um eine vom Verk�ufer angegebene Kennung f�r ein Objekt zu referenzieren. (BT-18)
+  //Der Code 130 "Rechnungsdatenblatt" wird benutzt, um eine vom Verkäufer angegebene Kennung für ein Objekt zu referenzieren. (BT-18)
   //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:untdid.1001_4#version
   TInvoiceAttachmentTypeCode = (iatc_None,
                       iatc_50,  //BT-17
@@ -474,7 +474,7 @@ type
           //idtfcc_H_HigherRate, //	Code specifying a higher rate of duty or tax or fee.
           //idtfcc_I_ValueAddedTaxVATMarginSchemeWorksOfArt, // Margin scheme - Works of art	Indication that the VAT margin scheme for works of art is applied.
           //idtfcc_J_ValueAddedTaxVATMarginSchemeCollectorsItemsAndAntiques, //	Indication that the VAT margin scheme for collector s items and antiques is applied.
-          idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices, //	A tax category code indicating the item is VAT exempt due to an intra-community supply in the European Economic Area. Der Code �K� steht in der Hashtag#XRechnung f�r �VAT exempt for EEA intra-community supply of goods and services� � also f�r die Umsatzsteuerbefreiung bei grenz�berschreitenden Lieferungen und Dienstleistungen innerhalb des Europ�ischen Wirtschaftsraums (Hashtag#EWR).
+          idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices, //	A tax category code indicating the item is VAT exempt due to an intra-community supply in the European Economic Area. Der Code „K“ steht in der Hashtag#XRechnung für „VAT exempt for EEA intra-community supply of goods and services“ – also für die Umsatzsteuerbefreiung bei grenzüberschreitenden Lieferungen und Dienstleistungen innerhalb des Europäischen Wirtschaftsraums (Hashtag#EWR).
           idtfcc_L_CanaryIslandsGeneralIndirectTax, //	Impuesto General Indirecto Canario (IGIC) is an indirect tax levied on goods and services supplied in the Canary Islands (Spain) by traders and professionals, as well as on import of goods.
           idtfcc_M_TaxForProductionServicesAndImportationInCeutaAndMelilla, //	Impuesto sobre la Produccion, los Servicios y la Importacion (IPSI) is an indirect municipal tax, levied on the production, processing and import of all kinds of movable tangible property, the supply of services and the transfer of immovable property located in the cities of Ceuta and Melilla.
           idtfcc_O_ServicesOutsideScopeOfTax, //	Code specifying that taxes are not applicable to the services.
@@ -542,9 +542,10 @@ type
     BuyersItemIdentification : String; //BG-31, BT-156 Artikelkennung, vom Kaeufer vergeben
     OrderNumber : String; //BT-X-21 Bestellnummer vom Kaeufer - Nur ZUGFeRD/Factur-X
     OrderLineReference : String; //BT-132 Referenz zur Bestellposition, vom Kaeufer vergeben
-    BuyerAccountingReference : String; //BT-133 Buchungsreferenz des Kaeufers f�r die Rechnungsposition, vom Kaeufer vergeben
+    BuyerAccountingReference : String; //BT-133 Buchungsreferenz des Kaeufers für die Rechnungsposition, vom Kaeufer vergeben
     TaxPercent : double; //BG-30, BT-152 MwSt
     TaxCategory : TInvoiceDutyTaxFeeCategoryCode; //BG-30, BT-151 MwSt-Einordnung
+    TaxExemptionReason : String;
     // BG-29 Detailinformationen zum (Artikel-)-Preis
     GrossPriceAmount : Currency; //BG-29, BT-148 Brutto-Einzelpreis
     DiscountOnTheGrossPrice : Currency; //BG-29, BT-147 Rabatt auf den Bruttopreis ergibt Nettopreis, nur ein Rabatt moeglich wegen UBL, obwohl CII mehrere erlaubt
@@ -555,8 +556,8 @@ type
     AllowanceCharges : TInvoiceAllowanceCharges; // BG-27 (BT-136..BT-140) und BG-28 (BT-141..BT-145)
     InvoiceLinePeriodStartDate : TDate; //BG-26, BT-134 Leistungszeitraum Beginn
     InvoiceLinePeriodEndDate : TDate; //BG-26, BT-135 Leistungszeitraum Ende
-    //BG-31, BT-158 fehlt , "Kennung der Artikelklassifizierung", (0..n)
-    //BG-31, BT-159 fehlt, "Artikelherkunftsland"
+    //BG-31, BT-158 fehlt , DesignatedProductClassification "Kennung der Artikelklassifizierung", (0..n)
+    OriginTradeCountry : String; //BG-31, BT-159 Artikelherkunftsland z.B. DE
     ItemAttributes : TInvoiceLineItemAttributes; //BG-31:BG-32 (BT-160..BT-161)
 
     // Extension XRechnung
@@ -617,13 +618,15 @@ type
 
   TInvoiceAccountingParty = class(TObject)
   public
-    Name : String; //BT-28 Handelsname des Verk�ufers wenn abweichend
-    RegistrationName : String; //BT-27 Vollst�ndiger Name der Verk�ufers/K�ufers (Firma)
+    Name : String; //BT-28 Handelsname des Verkäufers wenn abweichend
+    RegistrationName : String; //BT-27 Vollständiger Name der Verkäufers/Käufers (Firma)
     CompanyID : String; //BT-30 Handelsregisternummer
 
     Address : TInvoiceAddress;
 
-    IdentifierSellerBuyer : String; //BT-29 Kreditor-Nr AccountingSupplierParty / Debitor-Nr AccountingCustomerParty
+    IdentifierSellerBuyer : String; //BT-29 Kreditor-Nr AccountingSupplierParty / BT-46 Debitor-Nr AccountingCustomerParty
+    GlobalIdentifierSellerBuyer : String; //BT-29-0, BT-46-0, optional nur CII
+    GlobalIdentifierSellerBuyerSchemeID : String; //BT-29-1, BT-46-1, optional nur CII, Werte 0021 : SWIFT, 0088 : EAN, 0060 : DUNS, 0177 : ODETTE
     BankAssignedCreditorIdentifier : String; //Glaeubiger-ID (BT-90)
 
     VATCompanyID : String;   //BT-31 UStID
@@ -634,6 +637,7 @@ type
     ContactElectronicMail : String;
     AdditionalLegalInformationSeller : String; //BT-33 Weitere rechtliche Informationen zum Verkaeufer
     ElectronicAddressSellerBuyer : String; //BT-34, BT-49 Pflicht
+    ElectronicAddressSellerBuyerSchemeID : String; //EM E-Mail, 9930 Peppol-ID, Pflicht
   public
     constructor Create;
     destructor Destroy; override;
@@ -641,8 +645,9 @@ type
 
   TInvoiceDeliveryInformation = class(TObject)
   public
-    Name : String;
-    LocationIdentifier : String; //optional Ein Bezeichner fuer den Ort, an den die Waren geliefert oder an dem die Dienstleistungen erbracht werden.
+    Name : String; //BT-70
+    LocationIdentifier : String; //BT-71-0 CII, BT-71 UBL, optional Ein Bezeichner fuer den Ort, an den die Waren geliefert oder an dem die Dienstleistungen erbracht werden.
+    LocationIdentifierSchemeID : String; //BT-71-0 CII, BT-71 UBL, optional Schema des LocationIdentifier, Standard 0088 (GLN nach ISO/IEC 6523), Werte 0021 : SWIFT, 0088 : EAN, 0060 : DUNS, 0177 : ODETTE
     Address : TInvoiceAddress;
     ActualDeliveryDate : TDate; //BT-72 Lieferdatum
   public
@@ -681,7 +686,7 @@ type
     insc_ABL,  //Rechtliche Informationen
     insc_TXD,  //Informationen zur Steuer
     insc_CUS,  //Zollinformationen
-    insc_PMT   //Payment Information B�rgschaften oder Sicherheitseinbehalte
+    insc_PMT   //Payment Information Bürgschaften oder Sicherheitseinbehalte
     );
 
   TInvoiceNote = class(Tobject)
@@ -732,6 +737,7 @@ type
 
   TInvoice = class(TObject)
   public
+    ProfileID : String; //BT-23 //Identifiziert den Geschäftsprozesskontext, in dem die Transaktion erscheint, damit der Käufer die Rechnung angemessen bearbeiten kann.
     InvoiceNumber : String;  //BT-1 Rechnungsnummer
     InvoiceIssueDate : TDate; //BT-2 Rechnungsdatum
     InvoiceDueDate : TDate; //BT-9 Faelligkeitsdatum
@@ -748,8 +754,11 @@ type
     ProjectReference : String; //BT-11
     ReceiptDocumentReference : String; //BT-15
     ContractDocumentReference : String; //BT-12
-    DeliveryReceiptNumber : String; //BT-16 Lieferscheinnummer (Lieferscheindatum fehlt und wuerde nur in ZUGFeRD unterstuetzt)
-    BuyerAccountingReference : String; //BT-19 Buchungsreferenz des Kaeufers f�r die Rechnung UBL ein Wert, CII Liste
+    DeliveryReceiptNumber : String; //BT-16 Lieferscheinnummer XRechnung CII, UBL
+    DeliveryReceiptDate : TDate;    //BT-X-200 Lieferscheindatum ZUGFeRD-CII, XRechnung CII u UBL nicht unterstuetzt
+    DeliveryReceiptNumberExtended : String; //BT-X-202 Lieferscheinnummer ZUGFeRD-CII-Extended, Falls man es benötigt
+    DeliveryReceiptDateExtended : TDate;    //BT-X-203 Lieferscheindatum ZUGFeRD-CII-Extended, Falls man es benötigt
+    BuyerAccountingReference : String; //BT-19 Buchungsreferenz des Kaeufers für die Rechnung UBL ein Wert, CII Liste
 
     AccountingSupplierParty : TInvoiceAccountingParty;
     AccountingCustomerParty : TInvoiceAccountingParty;
@@ -787,11 +796,11 @@ type
     TaxAmountTotal : Currency;
     TaxAmountSubtotals : TInvoiceTaxAmounts;
 
-    LineAmount : Currency;
+    LineAmount : Currency;            //BT-106
     TaxExclusiveAmount : Currency;    //BT-109
     TaxInclusiveAmount : Currency;    //BT-112
-    AllowanceTotalAmount : Currency;
-    ChargeTotalAmount : Currency;
+    AllowanceTotalAmount : Currency;  //BT-107
+    ChargeTotalAmount : Currency;     //BT-108
     PrepaidAmount : Currency;         //BT-113
     PayableRoundingAmount : Currency; //BT-114
     PayableAmount : Currency;         //BT-115 = BT-112 - BT-113 + BT-114 + Summe BT-DEX-002
@@ -840,6 +849,7 @@ end;
 
 procedure TInvoice.Clear;
 begin
+  ProfileID := 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0';
   InvoiceLines.Clear;
   AllowanceCharges.Clear;
   PrecedingInvoiceReferences.Clear;
@@ -1042,6 +1052,7 @@ begin
   ItemAttributes := TInvoiceLineItemAttributes.Create;
   InvoiceLinePeriodStartDate := 0;
   InvoiceLinePeriodEndDate := 0;
+  OriginTradeCountry := '';
 end;
 
 destructor TInvoiceLine.Destroy;
@@ -1371,16 +1382,34 @@ begin
 end;
 
 procedure TInvoiceAttachment.EmbedDataFromFile(const _Filename: String);
+const
+  RETRY_COUNT = 5;
+  RETRY_DELAY_MS = 150;
 var
   str : TFileStream;
+  attempt : Integer;
 begin
   if not FileExists(_Filename) then
     exit;
-  str := TFileStream.Create(_Filename,fmOpenRead);
+  attempt := 0;
+  while true do
   try
-    EmbedDataFromStream(str);
-  finally
-    str.Free;
+    str := TFileStream.Create(_Filename, fmOpenRead or fmShareDenyNone);
+    try
+      EmbedDataFromStream(str);
+    finally
+      str.Free;
+    end;
+    break;
+  except
+    on E : EFOpenError do
+    begin
+      //Datei ist (noch) durch einen anderen Prozess gesperrt - kurz warten und erneut versuchen.
+      Inc(attempt);
+      if attempt >= RETRY_COUNT then
+        raise;
+      Sleep(RETRY_DELAY_MS);
+    end;
   end;
 end;
 
@@ -1574,6 +1603,7 @@ end;
 constructor TInvoiceDeliveryInformation.Create;
 begin
   Address := TInvoiceAddress.Create;
+  LocationIdentifierSchemeID := '0088';
 end;
 
 destructor TInvoiceDeliveryInformation.Destroy;
@@ -1640,4 +1670,3 @@ begin
 end;
 
 end.
-

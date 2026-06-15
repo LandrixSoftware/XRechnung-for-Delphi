@@ -226,8 +226,8 @@ begin
       _Invoice.BuyerReference := node.Text;
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:InvoicePeriod',node) then
     begin
-      _Invoice.InvoicePeriodStartDate := TXRechnungHelper.DateFromStrUBLFormat(TXRechnungXMLHelper.SelectNodeText(node,'//cbc:StartDate'));
-      _Invoice.InvoicePeriodEndDate := TXRechnungHelper.DateFromStrUBLFormat(TXRechnungXMLHelper.SelectNodeText(node,'//cbc:EndDate'));
+      _Invoice.InvoicePeriodStartDate := TXRechnungHelper.DateFromStrUBLFormat(TXRechnungXMLHelper.SelectNodeText(node,'.//cbc:StartDate'));
+      _Invoice.InvoicePeriodEndDate := TXRechnungHelper.DateFromStrUBLFormat(TXRechnungXMLHelper.SelectNodeText(node,'.//cbc:EndDate'));
     end;
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:OrderReference/cbc:ID',node) then
       _Invoice.PurchaseOrderReference := node.Text;
@@ -500,6 +500,7 @@ var
     begin
       if TXRechnungXMLHelper.SelectNode(node2,'.//ram:ApplicableTradeTax',node) then
       begin
+        _Invoiceline.TaxExemptionReason := TXRechnungXMLHelper.SelectNodeText(node,'.//ram:ExemptionReason');
         _Invoiceline.TaxCategory := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeFromStr(TXRechnungXMLHelper.SelectNodeText(node,'.//ram:CategoryCode'));
         _Invoiceline.TaxPercent := TXRechnungHelper.PercentageFromStr(TXRechnungXMLHelper.SelectNodeText(node,'.//ram:RateApplicablePercent'));
       end;
@@ -1786,6 +1787,9 @@ var
       with AddChild('ram:ApplicableTradeTax') do
       begin
         AddChild('ram:TypeCode').Text := 'VAT';
+        if _Invoiceline.TaxExemptionReason <> '' then
+        if (_Profile in [ipZUGFeRDExtended]) then
+          AddChild('ram:ExemptionReason').Text := _Invoiceline.TaxExemptionReason;
         AddChild('ram:CategoryCode').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(_Invoiceline.TaxCategory);
         if ( _Invoiceline.TaxCategory <> idtfcc_O_ServicesOutsideScopeOfTax) then
           AddChild('ram:RateApplicablePercent').Text := TXRechnungHelper.PercentageToStr(_Invoiceline.TaxPercent);

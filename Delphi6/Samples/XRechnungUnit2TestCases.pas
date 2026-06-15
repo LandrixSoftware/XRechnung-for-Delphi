@@ -134,7 +134,7 @@ begin
     Name := 'Austauschteil'; //Kurztext
     Description := 'Langtext Austauschteil'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
     Quantity := 1; //Menge
-    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc,iuc_piece); //Mengeneinheit
     SellersItemIdentification := 'A0815'; //Artikelnummer
     TaxPercent := 19.0; //MwSt
     TaxCategory := idtfcc_S_StandardRate;
@@ -152,7 +152,7 @@ begin
     Name := 'Bemessungsgrundlage und Umsatzsteuer auf Altteil'; //Kurztext
     Description := 'Bemessungsgrundlage und Umsatzsteuer auf Altteil'; //Laengere Beschreibung
     Quantity := 1; //Menge
-    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc,iuc_piece); //Mengeneinheit
     TaxPercent := 19.0; //MwSt
     TaxCategory := idtfcc_S_StandardRate;
     GrossPriceAmount := 100; //Brutto-Einzelpreis
@@ -168,7 +168,7 @@ begin
     Name := 'Korrektur/Stornierung Bemessungsgrundlage der Umsatzsteuer auf Altteil'; //Kurztext
     Description := 'Korrektur/Stornierung Bemessungsgrundlage der Umsatzsteuer auf Altteil'; //Laengere Beschreibung
     Quantity := -1; //Menge
-    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc,iuc_piece); //Mengeneinheit
     TaxPercent := 0.0; //MwSt
     TaxCategory := idtfcc_Z_ZeroRatedGoods;
     GrossPriceAmount := 100; //Brutto-Einzelpreis
@@ -184,7 +184,7 @@ begin
     Name := 'Montage'; //Kurztext
     Description := 'Montage'; //Laengere Beschreibung
     Quantity := 1; //Menge
-    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Std',suc); //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Std',suc,iuc_piece); //Mengeneinheit
     TaxPercent := 19.0; //MwSt
     TaxCategory := idtfcc_S_StandardRate;
     GrossPriceAmount := 500; //Brutto-Einzelpreis
@@ -306,7 +306,7 @@ begin
                    'Verkauf Brutto 5000,00 EUR'+#13#10+
                    'Enthaltene MwSt. 159,66'; //Laengere Beschreibung
     Quantity := 1; //Menge
-    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc,iuc_piece); //Mengeneinheit
     TaxPercent := 0.0; //MwSt
     TaxCategory := idtfcc_E_ExemptFromTax;
     GrossPriceAmount := 5000; //Brutto-Einzelpreis
@@ -528,7 +528,7 @@ begin
     Name := 'Kurzinfo Artikel 1'; //Kurztext
     Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
     Quantity := 2; //Menge
-    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc,iuc_piece); //Mengeneinheit
     SellersItemIdentification := 'A0815'; //Artikelnummer Verkaeufer
     BuyersItemIdentification := 'B0815'; //Artikelnummer Kaeufer
     BuyerAccountingReference := '6171175.1';
@@ -561,7 +561,7 @@ begin
     Name := 'Kurzinfo Artikel 2'; //Kurztext
     Description := 'Langtext Artikel 2'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
     Quantity := 1; //Menge
-    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc,iuc_piece); //Mengeneinheit
     //TODO Artikelnummer Kaeufer
     SellersItemIdentification := 'A0816'; //Artikelnummer
     TaxPercent := 19.0; //MwSt
@@ -815,7 +815,7 @@ begin
     Name := 'Provision'; //Kurztext
     Description := 'Provision'; //Laengere Beschreibung
     Quantity := 1; //Menge
-    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc,iuc_piece); //Mengeneinheit
     TaxPercent := 0.0; //MwSt
     TaxCategory := idtfcc_E_ExemptFromTax;
     GrossPriceAmount := 500; //Brutto-Einzelpreis
@@ -925,7 +925,7 @@ begin
     Name := 'Homepage erstellt'; //Kurztext
     Description := 'Homepage erstellt'; //Laengere Beschreibung
     Quantity := 1; //Menge
-    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc,iuc_piece); //Mengeneinheit
     TaxPercent := 0.0; //MwSt
     TaxCategory := idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices;
     GrossPriceAmount := 5000; //Brutto-Einzelpreis
@@ -1031,7 +1031,7 @@ begin
     Name := 'Homepage erstellt'; //Kurztext
     Description := 'Homepage erstellt'; //Laengere Beschreibung
     Quantity := 1; //Menge
-    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc,iuc_piece); //Mengeneinheit
     TaxPercent := 0.0; //MwSt
     TaxCategory := idtfcc_E_ExemptFromTax;
     GrossPriceAmount := 5000; //Brutto-Einzelpreis
@@ -1136,7 +1136,7 @@ begin
     Name := 'Kurzinfo Artikel 1'; //Kurztext
     Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
     Quantity := 1; //Menge
-    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc,iuc_piece); //Mengeneinheit
     TaxPercent := 19.0; //MwSt
     TaxCategory := idtfcc_S_StandardRate;
     GrossPriceAmount := 360; //Brutto-Einzelpreis
@@ -1235,7 +1235,7 @@ begin
     Name := 'Kurzinfo Artikel 1'; //Kurztext
     Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
     Quantity := 1; //Menge
-    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc,iuc_piece); //Mengeneinheit
     TaxPercent := 19.0; //MwSt
     TaxCategory := idtfcc_S_StandardRate;
     GrossPriceAmount := 360; //Brutto-Einzelpreis
@@ -1327,7 +1327,7 @@ begin
     ID := '01'; //Positionsnummer
     Name := 'Kurzinfo Artikel 1'; //Kurztext
     Quantity := 1; //Menge
-    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc,iuc_piece); //Mengeneinheit
     TaxPercent := 19.0; //MwSt
     TaxCategory := idtfcc_S_StandardRate;
     GrossPriceAmount := 360; //Brutto-Einzelpreis
@@ -1345,7 +1345,7 @@ begin
     ID := '02'; //Positionsnummer
     Name := 'Kurzinfo Artikel 2'; //Kurztext
     Quantity := 1; //Menge
-    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc,iuc_piece); //Mengeneinheit
     TaxPercent := 19.0; //MwSt
     TaxCategory := idtfcc_S_StandardRate;
     GrossPriceAmount := 360; //Brutto-Einzelpreis
@@ -1446,7 +1446,7 @@ begin
     Name := 'Kurzinfo Artikel 1'; //Kurztext
     Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
     Quantity := 1; //Menge
-    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc,iuc_piece); //Mengeneinheit
     TaxPercent := 19.0; //MwSt
     TaxCategory := idtfcc_S_StandardRate;
     GrossPriceAmount := 360; //Brutto-Einzelpreis
@@ -1551,7 +1551,7 @@ begin
     Name := 'Kurzinfo Artikel 1'; //Kurztext
     Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
     Quantity := 4.00; //Menge
-    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc,iuc_piece); //Mengeneinheit
     SellersItemIdentification := 'A0815'; //Artikelnummer
     TaxPercent := 0.0; //MwSt
     TaxCategory := idtfcc_AE_VATReverseCharge;
@@ -1652,7 +1652,7 @@ begin
     Name := 'Kurzinfo Artikel 1'; //Kurztext
     Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
     Quantity := 1; //Menge
-    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc,iuc_piece); //Mengeneinheit
     TaxPercent := 19.0; //MwSt
     TaxCategory := idtfcc_S_StandardRate;
     GrossPriceAmount := 360; //Brutto-Einzelpreis
@@ -1744,7 +1744,7 @@ begin
     Name := 'Kurzinfo Artikel 1'; //Kurztext
     Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
     Quantity := 1; //Menge
-    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc,iuc_piece); //Mengeneinheit
     TaxPercent := 19.0; //MwSt
     TaxCategory := idtfcc_S_StandardRate;
     GrossPriceAmount := 360; //Brutto-Einzelpreis
@@ -1842,7 +1842,7 @@ begin
     Name := 'Kurzinfo Artikel 1'; //Kurztext
     Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
     Quantity := -1; //Menge
-    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc,iuc_piece); //Mengeneinheit
     TaxPercent := 19.0; //MwSt
     TaxCategory := idtfcc_S_StandardRate;
     GrossPriceAmount := 360; //Brutto-Einzelpreis
@@ -1940,7 +1940,7 @@ begin
     Name := 'Kurzinfo Artikel 1'; //Kurztext
     Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
     Quantity := 1; //Menge
-    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc,iuc_piece); //Mengeneinheit
     TaxPercent := 19.0; //MwSt
     TaxCategory := idtfcc_S_StandardRate;
     GrossPriceAmount := 360; //Brutto-Einzelpreis
@@ -2081,7 +2081,7 @@ begin
     //Note : String; //Hinweis
     Name := 'Kurzinfo Titel'; //Kurztext
     Quantity := 1; //Menge
-    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc,iuc_piece); //Mengeneinheit
     TaxPercent := 19.0; //MwSt
     TaxCategory := idtfcc_S_StandardRate;
     GrossPriceAmount := 400; //Brutto-Einzelpreis
@@ -2097,7 +2097,7 @@ begin
       Name := 'Kurzinfo Artikel 1'; //Kurztext
       Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
       Quantity := 4; //Menge
-      UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+      UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc,iuc_piece); //Mengeneinheit
       SellersItemIdentification := 'A0815'; //Artikelnummer
       TaxPercent := 19.0; //MwSt
       TaxCategory := idtfcc_S_StandardRate;
@@ -2114,7 +2114,7 @@ begin
       Name := 'Kurzinfo Artikel 2'; //Kurztext
       Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
       Quantity := 4; //Menge
-      UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+      UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc,iuc_piece); //Mengeneinheit
       SellersItemIdentification := 'A0816'; //Artikelnummer
       TaxPercent := 19.0; //MwSt
       TaxCategory := idtfcc_S_StandardRate;

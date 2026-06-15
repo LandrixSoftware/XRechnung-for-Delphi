@@ -16,7 +16,7 @@ interface
 
 uses
   Windows, Messages
-  ,SysUtils, Variants, Classes
+  ,SysUtils, Variants, Classes, StrUtils
   ,COMObj
   ,xmldom,XMLDoc,XMLIntf,XMLSchema
   ;
@@ -43,7 +43,7 @@ type
     function MustangValidateFile(const _InvoiceXMLFilename : String; out _CmdOutput,_ValidationResultAsXML : String) : Boolean;
     function MustangVisualizeFile(const _InvoiceXMLFilename : String; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
     function MustangVisualizeFileAsPdf(const _InvoiceXMLFilename : String; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
-    function MustangCombinePdfAndXML(const _InvoicePDFFilename, _InvoiceXMLFilename : String; out _CmdOutput : String; out _CombinedPdf : TMemoryStream) : Boolean;
+    function MustangCombinePdfAndXML(const _InvoicePDFFilename, _InvoiceXMLFilename : String; _Extended : Boolean; out _CmdOutput : String; out _CombinedPdf : TMemoryStream) : Boolean;
     function ValitoolValidate(const _InvoiceXMLData : String; out _CmdOutput,_ValidationResultAsXML : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function ValitoolValidateDirectory(const _Directory : String; out _CmdOutput : String) : Boolean;
   end;
@@ -95,7 +95,7 @@ type
     function MustangValidateFile(const _InvoiceXMLFilename : String; out _CmdOutput,_ValidationResultAsXML : String) : Boolean;
     function MustangVisualizeFile(const _InvoiceXMLFilename : String; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
     function MustangVisualizeFileAsPdf(const _InvoiceXMLFilename : String; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
-    function MustangCombinePdfAndXML(const _InvoicePDFFilename, _InvoiceXMLFilename : String; out _CmdOutput : String; out _CombinedPdf : TMemoryStream) : Boolean;
+    function MustangCombinePdfAndXML(const _InvoicePDFFilename, _InvoiceXMLFilename : String; _Extended : Boolean; out _CmdOutput : String; out _CombinedPdf : TMemoryStream) : Boolean;
     function ValitoolValidate(const _InvoiceXMLData : String; out _CmdOutput,_ValidationResultAsXML : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function ValitoolValidateDirectory(const _Directory : String; out _CmdOutput : String) : Boolean;
   end;
@@ -239,7 +239,7 @@ begin
 end;
 
 function TXRechnungValidationHelperJava.MustangCombinePdfAndXML(
-  const _InvoicePDFFilename, _InvoiceXMLFilename: String;
+  const _InvoicePDFFilename, _InvoiceXMLFilename: String; _Extended : Boolean;
   out _CmdOutput: String; out _CombinedPdf: TMemoryStream): Boolean;
 var
   cmd: TStringList;
@@ -273,7 +273,7 @@ begin
             ' --out '+tmpFilename+'.pdf'+
             ' --format zf'+
             ' --version 2'+
-            ' --profile T'+
+            ' --profile '+IfThen(_Extended,'T','E')+
             ' --no-additional-attachments');
 
     cmd.SaveToFile(tmpFilename+'.bat');
@@ -675,7 +675,8 @@ function TXRechnungValidationHelperJava.ValitoolValidate(
   out _VisualizationAsPdf : TMemoryStream): Boolean;
 var
   hstrl,cmd: TStringList;
-  tmpFilename,cmdLine : String;
+  tmpFilename,cmdLine,lFile : String;
+  sr : TSearchRec;
 begin
   Result := false;
   if _InvoiceXMLData = '' then
@@ -720,21 +721,32 @@ begin
     DeleteFile(tmpFilename+'.bat');
     DeleteFile(tmpFilename);
 
-    if FileExists(tmpFilename+'.report.de.xml') then
-    begin
-      hstrl.LoadFromFile(tmpFilename+'.report.de.xml');
-      _ValidationResultAsXML := hstrl.Text;
-      DeleteFile(tmpFilename+'.report.de.xml');
-    end;
+    _VisualizationAsPdf := nil;
 
-    if FileExists(tmpFilename+'.report.de.pdf') then
-    begin
-      _VisualizationAsPdf := TMemoryStream.Create;
-      _VisualizationAsPdf.LoadFromFile(tmpFilename+'.report.de.pdf');
-      _VisualizationAsPdf.Position := 0;
-      DeleteFile(tmpFilename+'.report.de.pdf');
-    end else
-      _VisualizationAsPdf := nil;
+    if FindFirst(ExtractFilePath(tmpFilename)+ExtractFileName(tmpFilename)+'.*',faAnyFile,sr) = 0 then
+    try
+      repeat
+        if (sr.Attr and faDirectory) = faDirectory then
+          Continue;
+        lFile := ExtractFilePath(tmpFilename)+sr.Name;
+        if AnsiEndsText('report.de.xml',sr.Name) then
+        begin
+          hstrl.LoadFromFile(lFile);
+          _ValidationResultAsXML := hstrl.Text;
+          DeleteFile(lFile);
+        end else
+        if AnsiEndsText('report.de.pdf',sr.Name) then
+        if _VisualizationAsPdf = nil then
+        begin
+          _VisualizationAsPdf := TMemoryStream.Create;
+          _VisualizationAsPdf.LoadFromFile(lFile);
+          _VisualizationAsPdf.Position := 0;
+          DeleteFile(lFile);
+        end;
+      until FindNext(sr) <> 0;
+    finally
+      FindClose(sr);
+    end;
   finally
     cmd.Free;
     hstrl.Free;

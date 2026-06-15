@@ -549,6 +549,7 @@ type
     BuyerAccountingReference : String; //BT-133 Buchungsreferenz des Kaeufers für die Rechnungsposition, vom Kaeufer vergeben
     TaxPercent : double; //BG-30, BT-152 MwSt
     TaxCategory : TInvoiceDutyTaxFeeCategoryCode; //BG-30, BT-151 MwSt-Einordnung
+    TaxExemptionReason : String;
     // BG-29 Detailinformationen zum (Artikel-)-Preis
     GrossPriceAmount : Currency; //BG-29, BT-148 Brutto-Einzelpreis
     DiscountOnTheGrossPrice : Currency; //BG-29, BT-147 Rabatt auf den Bruttopreis ergibt Nettopreis, nur ein Rabatt moeglich wegen UBL, obwohl CII mehrere erlaubt

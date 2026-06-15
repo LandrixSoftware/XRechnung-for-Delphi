@@ -137,8 +137,8 @@ begin
     if (MessageDlg('Eingelesen'+#10+'Soll die Eingabedatei mit der Bibliothek-Ausgabedatei verglichen werden?', mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
     begin
       version := TXRechnungValidationHelper.GetXRechnungVersion(od.FileName);
-      if version = XRechnungVersion_ReadingSupport_ZUGFeRDFacturX then
-        version := XRechnungVersion_30x_UNCEFACT;
+      //if version = XRechnungVersion_ReadingSupport_ZUGFeRDFacturX then
+      //  version := XRechnungVersion_30x_UNCEFACT;
 
       xml := ReadAllText(od.FileName);
       TXRechnungInvoiceAdapter.SaveToXMLStr(inv,version,xmltest);

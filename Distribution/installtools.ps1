@@ -137,7 +137,7 @@ function Install-Zugferd {
   Write-Host 'Installing: validator-configuration-zugferd'
   Remove-Dir (Join-Path $Root 'validator-configuration-zugferd')
   $zip = Join-Path $Root 'validator-configuration-zugferd.zip'
-  Invoke-Download -Uri "https://github.com/LandrixSoftware/validator-configuration-zugferd/releases/download/validation-configuration-zugferd-2.3.3-20251208/validation-configuration-zugferd-2.3.3-2025-12-08.zip" -Destination $zip -Label 'zugferd download'
+  Invoke-Download -Uri "https://github.com/LandrixSoftware/validator-configuration-zugferd/releases/download/validation-configuration-zugferd-2.5/validation-configuration-zugferd-2.5-2026-07-01.zip" -Destination $zip -Label 'zugferd download'
   Expand-Archive $zip -DestinationPath (Join-Path $Root 'validator-configuration-zugferd') -Force
   Remove-File $zip
 }

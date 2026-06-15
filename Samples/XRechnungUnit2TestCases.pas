@@ -15,7 +15,7 @@ unit XRechnungUnit2TestCases;
 interface
 
 //skonto zugferd
-//[BR-CO-25]-Im Falle eines positiven Zahlbetrags �Amount due for payment� (BT-115) muss entweder das Element F�lligkeitsdatum �Payment due date� (BT-9) oder das Element Zahlungsbedingungen �Payment terms� (BT-20) vorhanden sein.
+//[BR-CO-25]-Im Falle eines positiven Zahlbetrags Amount due for payment (BT-115) muss entweder das Element F�lligkeitsdatum �Payment due date� (BT-9) oder das Element Zahlungsbedingungen �Payment terms� (BT-20) vorhanden sein.
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
@@ -71,7 +71,7 @@ begin
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
-  inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
+  inv.BuyerReference := '991-01484-64'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
   with inv.Notes.AddNote do //Sollte ausgefuellt werden
   begin
     Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
@@ -243,7 +243,7 @@ begin
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
-  inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
+  inv.BuyerReference := '991-01484-64'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
   with inv.Notes.AddNote do //Sollte ausgefuellt werden
   begin
     Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
@@ -317,6 +317,7 @@ begin
     UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
     TaxPercent := 0.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
+    TaxExemptionReason := 'Differenzbesteuerung'; //!! Muss gleich TaxExemptionReason unten sein in ZUGFeRD Extented
     GrossPriceAmount := 5000; //Brutto-Einzelpreis
     DiscountOnTheGrossPrice := 0;
     NetPriceAmount := 5000; //Netto-Einzelpreis
@@ -359,7 +360,7 @@ begin
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
-  inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
+  inv.BuyerReference := '991-01484-64'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
   with inv.Notes.AddNote do //Sollte ausgefuellt werden
   begin
     Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
@@ -423,7 +424,7 @@ begin
   if LieferanschriftAusgeben then
   begin
     inv.DeliveryInformation.Name := 'Firma die es bekommt';
-    inv.DeliveryInformation.LocationIdentifier := '83745498753497';
+    inv.DeliveryInformation.LocationIdentifier := '4005998000007';
     inv.DeliveryInformation.Address.StreetName := 'Lieferstrasse 1';
     inv.DeliveryInformation.Address.City := 'Lieferstadt';
     inv.DeliveryInformation.Address.PostalZone := '05678';
@@ -547,7 +548,7 @@ begin
   with inv.InvoiceLines.AddInvoiceLine do
   begin
     ID := '001'; //Positionsnummer
-    GlobalID_EAN_GTIN := '978381582086'; //EAN
+    GlobalID_EAN_GTIN := '4006381333931'; //EAN
     //Note : String; //Hinweis
     Name := 'Kurzinfo Artikel 1'; //Kurztext
     Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
@@ -775,7 +776,7 @@ begin
   inv.InvoiceCurrencyCode := 'EUR';
   inv.Notes.AddNote.Content := 'Notiz zur Gutschrift';
   inv.TaxCurrencyCode := 'EUR';
-  inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
+  inv.BuyerReference := '991-01484-64'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
   with inv.Notes.AddNote do //Sollte ausgefuellt werden
   begin
     Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
@@ -843,6 +844,7 @@ begin
     UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
     TaxPercent := 0.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
+    TaxExemptionReason := 'Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemaess Paragraph 19 UStG';
     GrossPriceAmount := 500; //Brutto-Einzelpreis
     DiscountOnTheGrossPrice := 0;
     NetPriceAmount := 500; //Netto-Einzelpreis
@@ -955,6 +957,7 @@ begin
     UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
     TaxPercent := 0.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices;
+    TaxExemptionReason := 'Keine Ausweisung der Umsatzsteuer - innergemeinschaftliche Lieferung EU';
     GrossPriceAmount := 5000; //Brutto-Einzelpreis
     DiscountOnTheGrossPrice := 0;
     NetPriceAmount := 5000; //Netto-Einzelpreis
@@ -995,7 +998,7 @@ begin
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
-  inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
+  inv.BuyerReference := '991-01484-64'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
   with inv.Notes.AddNote do //Sollte ausgefuellt werden
   begin
     Content := 'Kleinunternehmer Herr Meier';
@@ -1063,6 +1066,7 @@ begin
     UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
     TaxPercent := 0.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_E_ExemptFromTax;
+    TaxExemptionReason := 'Keine Ausweisung der Umsatzsteuer, da Kleinunternehmer gemaess Paragraph 19 UStG'; //!! Muss gleich TaxExemptionReason unten sein in ZUGFeRD Extented
     GrossPriceAmount := 5000; //Brutto-Einzelpreis
     DiscountOnTheGrossPrice := 0;
     NetPriceAmount := 5000; //Netto-Einzelpreis
@@ -1150,8 +1154,8 @@ begin
   begin
     PaymentMeansCode := ipmc_CreditCard; //Kreditkarte
     //HINWEIS
-    //In �bereinstimmung mit den Sicherheitsstandards f�r Kartenzahlungen
-    //sollte eine Rechnung niemals eine vollst�ndige Hauptkontonummer der
+    //In Uebereinstimmung mit den Sicherheitsstandards f�r Kartenzahlungen
+    //sollte eine Rechnung niemals eine vollstaendige Hauptkontonummer der
     //Karte (BT-87) enthalten. Im Moment hat ist festgelegt, dass die
     //letzten 6 Ziffern die maximale Anzahl der Ziffern sind, die angezeigt
     //werden sollen.
@@ -1594,6 +1598,7 @@ begin
     SellersItemIdentification := 'A0815'; //Artikelnummer
     TaxPercent := 0.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_AE_VATReverseCharge;
+    TaxExemptionReason := 'Hiermit erlaube ich mir folgende Rechnung fuer Bauleistungen zu stellen. Die Umsatzsteuer fuer diese Leistung schuldet nach Paragraph 13b UStG der Leistungsempfaenger.'; //!! Muss gleich TaxExemptionReason unten sein in ZUGFeRD Extented
     GrossPriceAmount := 50; //Brutto-Einzelpreis
     DiscountOnTheGrossPrice := 0;
     NetPriceAmount := 50; //Netto-Einzelpreis
@@ -2067,7 +2072,7 @@ begin
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
   inv.InvoiceCurrencyCode := 'EUR';
   inv.TaxCurrencyCode := 'EUR';
-  inv.BuyerReference := '04011000-12345-34'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
+  inv.BuyerReference := '991-01484-64'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
   with inv.Notes.AddNote do //Sollte ausgefuellt werden
   begin
     Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
@@ -2305,8 +2310,8 @@ end;
 
 initialization
 
-  TInvoiceTestCases.InvoiceIssueDate := EncodeDate(2026,4,30);
-  TInvoiceTestCases.InvoiceDueDate := EncodeDate(2026,4,30)+30;
+  TInvoiceTestCases.InvoiceIssueDate := EncodeDate(2026,8,30);
+  TInvoiceTestCases.InvoiceDueDate := EncodeDate(2026,8,30)+30;
   TInvoiceTestCases.InvoicePeriodStartDate := TInvoiceTestCases.InvoiceIssueDate-30;
   TInvoiceTestCases.InvoicePeriodEndDate := TInvoiceTestCases.InvoiceIssueDate-1;
 end.

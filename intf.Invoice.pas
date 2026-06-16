@@ -641,7 +641,7 @@ type
     ContactElectronicMail : String;
     AdditionalLegalInformationSeller : String; //BT-33 Weitere rechtliche Informationen zum Verkaeufer
     ElectronicAddressSellerBuyer : String; //BT-34, BT-49 Pflicht
-    ElectronicAddressSellerBuyerSchemeID : String; //EM E-Mail, 9930 Peppol-ID, Pflicht
+    ElectronicAddressSellerBuyerSchemeID : String; //EM E-Mail (nicht bei Peppol https://docs.peppol.eu/poacc/billing/3.0/codelist/eas/), 9930 Peppol-ID, Pflicht
   public
     constructor Create;
     destructor Destroy; override;

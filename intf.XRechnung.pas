@@ -137,6 +137,7 @@ type
     ccNoBT31BT30               = 6;
     ccNoBT31BT32               = 7;
     ccPrepaidPaymentNotSupported = 8;
+    ccNoEMUnderPeppol          = 9;
   public
     class function ConsistencyCheck(_Invoice : TInvoice; _Version : TXRechnungVersion) : Boolean; overload;
     class function ConsistencyCheck(_Invoice : TInvoice; _Version : TXRechnungVersion; out _ErrorCode : Integer) : Boolean; overload;
@@ -379,6 +380,17 @@ begin
                    TXRechnungVersion.XRechnungVersion_30x_UBL]) then
   begin
     _ErrorCode := ccPrepaidPaymentNotSupported;
+    Result := false;
+    exit;
+  end;
+
+  if (_Version = PeppolBillingVersion_30) then
+  if ((_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer <> '') and
+      (_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID = 'EM') or
+      (_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer <> '') and
+      (_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID = 'EM')) then
+  begin
+    _ErrorCode := ccNoEMUnderPeppol;
     Result := false;
     exit;
   end;

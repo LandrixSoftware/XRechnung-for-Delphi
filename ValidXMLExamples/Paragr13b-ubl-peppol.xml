@@ -15,7 +15,7 @@
   </cac:InvoicePeriod>
   <cac:AccountingSupplierParty>
     <cac:Party>
-      <cbc:EndpointID schemeID="EM">antwortaufrechnung@company.com</cbc:EndpointID>
+      <cbc:EndpointID schemeID="0088">9482348239847239874</cbc:EndpointID>
       <cac:PostalAddress>
         <cbc:StreetName>Verkaeuferstrasse 1</cbc:StreetName>
         <cbc:CityName>Verkaeuferstadt</cbc:CityName>
@@ -43,7 +43,7 @@
   </cac:AccountingSupplierParty>
   <cac:AccountingCustomerParty>
     <cac:Party>
-      <cbc:EndpointID schemeID="EM">antwortaufrechnung@kunde.de</cbc:EndpointID>
+      <cbc:EndpointID schemeID="0002">FR23342</cbc:EndpointID>
       <cac:PostalAddress>
         <cbc:StreetName>Kaeuferstrasse 1</cbc:StreetName>
         <cbc:CityName>Kaeuferstadt</cbc:CityName>

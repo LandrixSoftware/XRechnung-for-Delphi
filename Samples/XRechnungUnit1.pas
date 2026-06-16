@@ -116,6 +116,7 @@ type
     JavaRuntimeEnvironmentPath : String;
     ValidatorLibPath : String;
     ValidatorConfigurationPath : String;
+    ValidatorPeppolConfigurationPath : String;
     VisualizationLibPath : String;
     SaxonLibPath : String;
     FopLibPath : String;
@@ -139,6 +140,7 @@ begin
   JavaRuntimeEnvironmentPath := DistributionBasePath +'java'+PathDelim;
   ValidatorLibPath := DistributionBasePath +'validator'+PathDelim;
   ValidatorConfigurationPath := DistributionBasePath +'validator-configuration30x'+PathDelim;
+  ValidatorPeppolConfigurationPath := DistributionBasePath +'validator-configuration-bis'+PathDelim;
   VisualizationLibPath := DistributionBasePath +'visualization30x'+PathDelim;
   SaxonLibPath := DistributionBasePath + 'saxon'+PathDelim;
   FopLibPath := DistributionBasePath + 'apache-fop'+PathDelim;
@@ -205,171 +207,247 @@ var
 begin
   inv := TInvoice.Create;
   TInvoiceTestCases.Kleinunternehmerregelung(inv);//Kleinunternehmerregelung
-  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Kleinunternehmerregelung-ubl-peppol.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Kleinunternehmerregelung-ubl-30x.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Kleinunternehmerregelung-ciiEN16931-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Kleinunternehmerregelung-ciiextended-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Kleinunternehmerregelung-cii-30x.xml');
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Kleinunternehmerregelung-ubl-peppol.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Paragr13b(inv);//Paragr13b UStG
-  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Paragr13b-ubl-peppol.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Paragr13b-ubl-30x.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Paragr13b-ciiEN16931-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Paragr13b-ciiextended-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Paragr13b-cii-30x.xml');
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Paragr13b-ubl-peppol.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Austauschteilesteuer(inv);//Austauschteilesteuer
-  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Austauschteilesteuer-ubl-peppol.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Austauschteilesteuer-ubl-30x.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Austauschteilesteuer-ciiEN16931-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Austauschteilesteuer-ciiextended-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Austauschteilesteuer-cii-30x.xml');
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Austauschteilesteuer-ubl-peppol.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Differenzbesteuerung(inv);//Differenzbesteuerung
-  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Differenzbesteuerung-ubl-peppol.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Differenzbesteuerung-ubl-30x.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Differenzbesteuerung-ciiEN16931-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Differenzbesteuerung-ciiextended-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Differenzbesteuerung-cii-30x.xml');
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Differenzbesteuerung-ubl-peppol.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.TitelPositionsgruppen(inv);//Titel/Positionsgruppen
-  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'TitelPositionsgruppen-ubl-peppol.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'TitelPositionsgruppen-ubl-30x.xml');
   //TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'TitelPositionsgruppen-ciiextended-25.xml');
   //TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'TitelPositionsgruppen-cii-30x.xml');
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'TitelPositionsgruppen-ubl-peppol.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Gutschrift(inv);
-  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Gutschrift-ubl-peppol.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gutschrift-ubl-30x.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Gutschrift-ciiEN16931-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Gutschrift-ciiextended-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gutschrift-cii-30x.xml');
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Gutschrift-ubl-peppol.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Rechnungskorrektur(inv);
-  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Rechnungskorrektur-ubl-peppol.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Rechnungskorrektur-ubl-30x.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Rechnungskorrektur-ciiEN16931-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Rechnungskorrektur-ciiextended-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Rechnungskorrektur-cii-30x.xml');
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Rechnungskorrektur-ubl-peppol.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.MinimalbeispielB2BOhneLeitwegID(inv);
-  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'MinimalbeispielB2BOhneLeitwegID-ubl-peppol.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'MinimalbeispielB2BOhneLeitwegID-ubl-30x.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'MinimalbeispielB2BOhneLeitwegID-ciiEN16931-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'MinimalbeispielB2BOhneLeitwegID-ciiextended-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'MinimalbeispielB2BOhneLeitwegID-cii-30x.xml');
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'MinimalbeispielB2BOhneLeitwegID-ubl-peppol.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.PreiseinheitGroesser1(inv);
-  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'PreiseinheitGroesser1-ubl-peppol.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'PreiseinheitGroesser1-ubl-30x.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'PreiseinheitGroesser1-ciiEN16931-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'PreiseinheitGroesser1-ciiextended-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'PreiseinheitGroesser1-cii-30x.xml');
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'PreiseinheitGroesser1-ubl-peppol.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Lastschrift(inv);
-  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Lastschrift-ubl-peppol.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Lastschrift-ubl-30x.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Lastschrift-ciiEN16931-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Lastschrift-ciiextended-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Lastschrift-cii-30x.xml');
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Lastschrift-ubl-peppol.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.InnergemeinschaftlicheLieferungEUohneMehrwertsteuer(inv);
-  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'LieferungEUohneMehrwertsteuer-ubl-peppol.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'LieferungEUohneMehrwertsteuer-ubl-30x.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'LieferungEUohneMehrwertsteuer-ciiEN16931-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'LieferungEUohneMehrwertsteuer-ciiextended-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'LieferungEUohneMehrwertsteuer-cii-30x.xml');
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'LieferungEUohneMehrwertsteuer-ubl-peppol.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.PayPalOderAndereOnlinezahlungsdienstleister(inv);
-  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'PayPal-ubl-peppol.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'PayPal-ubl-30x.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'PayPal-ciiEN16931-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'PayPal-ciiextended-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'PayPal-cii-30x.xml');
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'PayPal-ubl-peppol.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Kreditkarte(inv);
-  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Kreditkarte-ubl-peppol.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Kreditkarte-ubl-30x.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Kreditkarte-ciiEN16931-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Kreditkarte-ciiextended-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Kreditkarte-cii-30x.xml');
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Kreditkarte-ubl-peppol.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.LeistungszeitraumJePosition(inv);
-  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'LeistungszeitraumJePosition-ubl-peppol.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'LeistungszeitraumJePosition-ubl-30x.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'LeistungszeitraumJePosition-ciiEN16931-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'LeistungszeitraumJePosition-ciiextended-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'LeistungszeitraumJePosition-cii-30x.xml');
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'LeistungszeitraumJePosition-ubl-peppol.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,0,false,false,false,false);
-  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Gesamtbeispiel-ubl-peppol.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-ubl-30x.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Gesamtbeispiel-ciiEN16931-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Gesamtbeispiel-ciiextended-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-cii-30x.xml');
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Gesamtbeispiel-ubl-peppol.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,1,false,false,false,false);
-  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Gesamtbeispiel-Nettoziel-ubl-peppol.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-Nettoziel-ubl-30x.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Gesamtbeispiel-Nettoziel-ciiEN16931-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Gesamtbeispiel-Nettoziel-ciiextended-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-Nettoziel-cii-30x.xml');
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Gesamtbeispiel-Nettoziel-ubl-peppol.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,2,false,false,false,false);
-  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto1-ubl-peppol.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto1-ubl-30x.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto1-ciiEN16931-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto1-ciiextended-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto1-cii-30x.xml');
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto1-ubl-peppol.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,3,false,false,false,false);
-  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto2-ubl-peppol.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto2-ubl-30x.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto2-ciiEN16931-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto2-ciiextended-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto2-cii-30x.xml');
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto2-ubl-peppol.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,0,true,true,true,true);
-  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-ubl-peppol.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-ubl-30x.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-ciiEN16931-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-ciiextended-25.xml');
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-ubl-peppol.xml');
   inv.Free;
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,0,true,true,true,true,true);
@@ -378,10 +456,14 @@ begin
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,3,true,true,true,true);
-  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-Skonto2-ubl-peppol.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-Skonto2-ubl-30x.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-Skonto2-ciiEN16931-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-Skonto2-ciiextended-25.xml');
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-Skonto2-ubl-peppol.xml');
   inv.Free;
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,3,true,true,true,true,true);
@@ -390,10 +472,14 @@ begin
 
   inv := TInvoice.Create;
   TInvoiceTestCases.VierNachkommastellen(inv);
-  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Vier-Nachkommastellen-ubl-peppol.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Vier-Nachkommastellen-ubl-30x.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Vier-Nachkommastellen-ciiEN16931-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Vier-Nachkommastellen-ciiextended-25.xml');
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Vier-Nachkommastellen-ubl-peppol.xml');
   inv.Free;
   inv := TInvoice.Create;
   TInvoiceTestCases.VierNachkommastellen(inv);
@@ -708,9 +794,17 @@ begin
       else version := XRechnungVersion_30x_UNCEFACT;
     end;
 
+    if version = PeppolBillingVersion_30 then
+    begin
+      inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+      inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+      inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+      inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+    end;
+
     if not TXRechnungInvoiceAdapter.ConsistencyCheck(inv,version) then
     begin
-      MessageDlg('Die Rechnung enthaelt fuer das XRechnung-Format ungueltige Werte', mtError, [mbOK], 0);
+      MessageDlg('Die Rechnung enthaelt fuer das gewaehlte Format ungueltige Werte', mtError, [mbOK], 0);
       exit;
     end;
 
@@ -921,6 +1015,28 @@ begin
       TXRechnungInvoiceAdapter.SaveToXMLStr(inv,version,xml);
 
       Memo2.Lines.Text := xml;
+
+      if cbValidateWithJava.Checked then
+      begin
+        GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+            .SetValidatorLibPath(ValidatorLibPath)
+            .SetValidatorConfigurationPath(ValidatorPeppolConfigurationPath)
+            .Validate(xml,cmdoutput,xmlresult,htmlresult);
+
+        Memo3.Lines.Append(cmdoutput);
+
+        if htmlresult <> '' then
+        begin
+          //if cbVisualizeWithJava.Checked then
+          //begin
+          //  ShowXMLAsHtml(xml);
+          //  ShowXMLAsPdf(xml);
+          //end;
+        end else
+          htmlresult := '<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
+        TFile.WriteAllText(WebBrowserContentFilename,htmlresult,TEncoding.UTF8);
+        ShowFileInBrowser(WebBrowserContentFilename,1);
+      end;
 
       invtest := TInvoice.Create;
       try

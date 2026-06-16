@@ -32,12 +32,12 @@ uses
   ;
 
 type
-  TInvoiceProfile = (ipXRechnung,ipZUGFeRDEN16931,ipZUGFeRDExtended);
+  TInvoiceProfile = (ipXRechnung,ipZUGFeRDEN16931,ipZUGFeRDExtended,ipPeppol);
 
   TXRechnungInvoiceAdapter301 = class
   public
     class procedure SaveDocumentUNCEFACT(_Invoice: TInvoice;_Xml : IXMLDocument; _Profile : TInvoiceProfile);
-    class procedure SaveDocumentUBL(_Invoice: TInvoice;_Xml : IXMLDocument);
+    class procedure SaveDocumentUBL(_Invoice: TInvoice;_Xml : IXMLDocument; _Profile : TInvoiceProfile);
     class function LoadDocumentUNCEFACT(_Invoice: TInvoice;_Xml : IXMLDocument; out _Error : String) : Boolean;
     class function LoadDocumentUBL(_Invoice: TInvoice;_Xml : IXMLDocument; out _Error : String) : Boolean;
   end;
@@ -1020,7 +1020,7 @@ begin
 end;
 
 class procedure TXRechnungInvoiceAdapter301.SaveDocumentUBL(_Invoice: TInvoice;
-  _Xml: IXMLDocument);
+  _Xml: IXMLDocument; _Profile : TInvoiceProfile);
 var
   xRoot : IXMLNode;
   i : Integer;
@@ -1177,8 +1177,14 @@ begin
   xRoot.DeclareNamespace('cac','urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
   xRoot.DeclareNamespace('cbc','urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
 
-  xRoot.AddChild('cbc:CustomizationID').Text := 'urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0'+
-           IfThen(InternalExtensionEnabled,'#conformant#urn:xeinkauf.de:kosit:extension:xrechnung_3.0','');
+  if _Profile = ipXRechnung then
+  begin
+    xRoot.AddChild('cbc:CustomizationID').Text := 'urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0'+
+             IfThen(InternalExtensionEnabled,'#conformant#urn:xeinkauf.de:kosit:extension:xrechnung_3.0','');
+  end else
+  begin
+    xRoot.AddChild('cbc:CustomizationID').Text := 'urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0';
+  end;
   xRoot.AddChild('cbc:ProfileID').Text := _Invoice.ProfileID;
 
   xRoot.AddChild('cbc:ID').Text := _Invoice.InvoiceNumber;

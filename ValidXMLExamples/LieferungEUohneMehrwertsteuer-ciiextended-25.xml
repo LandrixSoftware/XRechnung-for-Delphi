@@ -48,6 +48,7 @@
       <ram:SpecifiedLineTradeSettlement>
         <ram:ApplicableTradeTax>
           <ram:TypeCode>VAT</ram:TypeCode>
+          <ram:ExemptionReason>Keine Ausweisung der Umsatzsteuer - innergemeinschaftliche Lieferung EU</ram:ExemptionReason>
           <ram:CategoryCode>K</ram:CategoryCode>
           <ram:RateApplicablePercent>0.00</ram:RateApplicablePercent>
         </ram:ApplicableTradeTax>

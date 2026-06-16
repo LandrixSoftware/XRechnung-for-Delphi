@@ -455,6 +455,7 @@ begin
   case TXRechnungValidationHelper.GetXRechnungVersion(_XmlDocument) of
     XRechnungVersion_30x_UBL      : Result := TXRechnungInvoiceAdapter301.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
     XRechnungVersion_30x_UNCEFACT : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
+    PeppolBillingVersion_30       : Result := TXRechnungInvoiceAdapter301.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
     {$IFNDEF ZUGFeRD_Support}
     ZUGFeRDEN16931Version_250 : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     ZUGFeRDExtendedVersion_250 : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
@@ -496,6 +497,7 @@ begin
     XRechnungVersion_30x_UNCEFACT : TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(_Invoice,_Xml,ipXRechnung);
     ZUGFeRDEN16931Version_250 : TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(_Invoice,_Xml,ipZUGFeRDEN16931);
     ZUGFeRDExtendedVersion_250 : TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(_Invoice,_Xml,ipZUGFeRDExtended);
+    PeppolBillingVersion_30 : TXRechnungInvoiceAdapter301.SaveDocumentUBL(_Invoice,_Xml,ipPeppol);
     else raise Exception.Create('Unkown version');
   end;
 end;
@@ -1557,7 +1559,10 @@ begin
             TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'CustomizationID',node)) then
       exit;
     if Pos('xrechnung_3.0',AnsiLowerCase(node.Text))>0 then
-      Result := XRechnungVersion_30x_UBL;
+      Result := XRechnungVersion_30x_UBL
+    else
+    if Pos('billing:3.0',AnsiLowerCase(node.Text))>0 then
+      Result := PeppolBillingVersion_30;
   end else
   if (SameText(_XML.DocumentElement.NodeName,'CrossIndustryInvoice') or
       SameText(_XML.DocumentElement.NodeName,'rsm:CrossIndustryInvoice')) then

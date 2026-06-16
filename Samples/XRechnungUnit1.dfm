@@ -2,7 +2,7 @@ object Form1: TForm1
   Left = 0
   Top = 0
   Caption = 'XRechnung for Delphi v3.0.x'
-  ClientHeight = 793
+  ClientHeight = 810
   ClientWidth = 1605
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -14,17 +14,17 @@ object Form1: TForm1
   OnCreate = FormCreate
   DesignSize = (
     1605
-    793)
+    810)
   object Label3: TLabel
     Left = 8
-    Top = 383
+    Top = 399
     Width = 82
     Height = 13
     Caption = 'Weitere Beispiele'
   end
   object btCreateInvoice: TButton
     Left = 8
-    Top = 352
+    Top = 368
     Width = 162
     Height = 25
     Caption = 'Erzeugen'
@@ -35,7 +35,7 @@ object Form1: TForm1
     Left = 176
     Top = 8
     Width = 617
-    Height = 595
+    Height = 612
     Anchors = [akLeft, akTop, akBottom]
     ReadOnly = True
     ScrollBars = ssBoth
@@ -43,7 +43,7 @@ object Form1: TForm1
   end
   object Memo3: TMemo
     Left = 176
-    Top = 609
+    Top = 626
     Width = 1421
     Height = 169
     Anchors = [akLeft, akRight, akBottom]
@@ -52,7 +52,7 @@ object Form1: TForm1
   end
   object rbPaymentTerms: TRadioGroup
     Left = 8
-    Top = 163
+    Top = 179
     Width = 162
     Height = 99
     Caption = 'Zahlungsbedingungen'
@@ -67,7 +67,7 @@ object Form1: TForm1
   end
   object cbAllowanceCharges: TCheckBox
     Left = 8
-    Top = 268
+    Top = 284
     Width = 138
     Height = 17
     Caption = 'Nachlaesse/Zuschlaege'
@@ -75,7 +75,7 @@ object Form1: TForm1
   end
   object cbPrepaidAmount: TCheckBox
     Left = 8
-    Top = 288
+    Top = 304
     Width = 129
     Height = 17
     Caption = 'Abschlagsrechnungen'
@@ -83,7 +83,7 @@ object Form1: TForm1
   end
   object cbAttachments: TCheckBox
     Left = 8
-    Top = 308
+    Top = 324
     Width = 97
     Height = 17
     Caption = 'Mit Anhaengen'
@@ -91,7 +91,7 @@ object Form1: TForm1
   end
   object cbDeliveriyInf: TCheckBox
     Left = 8
-    Top = 329
+    Top = 345
     Width = 97
     Height = 17
     Caption = 'Lieferanschrift'
@@ -101,19 +101,20 @@ object Form1: TForm1
     Left = 8
     Top = 68
     Width = 162
-    Height = 89
+    Height = 105
     Caption = 'Ausgabeformat'
     ItemIndex = 0
     Items.Strings = (
       'XRechnung 3.0.2 UBL'
       'XRechnung 3.0.2 ZUGFeRD'
       'Extended 2.5 ZUGFeRD'
-      'EN16931 2.5 ZUGFeRD')
+      'EN16931 2.5 ZUGFeRD'
+      'Peppol BIS Billing 3.0')
     TabOrder = 8
   end
   object Button2: TButton
     Left = 8
-    Top = 649
+    Top = 666
     Width = 162
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -123,7 +124,7 @@ object Form1: TForm1
   end
   object Button3: TButton
     Left = 8
-    Top = 677
+    Top = 694
     Width = 162
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -133,7 +134,7 @@ object Form1: TForm1
   end
   object Button5: TButton
     Left = 8
-    Top = 706
+    Top = 723
     Width = 162
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -143,7 +144,7 @@ object Form1: TForm1
   end
   object Button6: TButton
     Left = 8
-    Top = 734
+    Top = 751
     Width = 162
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -155,7 +156,7 @@ object Form1: TForm1
     Left = 799
     Top = 8
     Width = 798
-    Height = 595
+    Height = 612
     ActivePage = TabSheet1
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 13
@@ -171,7 +172,7 @@ object Form1: TForm1
       ImageIndex = 2
       object Panel1: TPanel
         Left = 0
-        Top = 540
+        Top = 557
         Width = 790
         Height = 27
         Align = alBottom
@@ -204,7 +205,7 @@ object Form1: TForm1
   end
   object Button9: TButton
     Left = 8
-    Top = 621
+    Top = 638
     Width = 162
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -214,9 +215,9 @@ object Form1: TForm1
   end
   object ListBox1: TListBox
     Left = 8
-    Top = 400
+    Top = 416
     Width = 162
-    Height = 215
+    Height = 216
     Anchors = [akLeft, akTop, akBottom]
     ItemHeight = 13
     Items.Strings = (
@@ -250,7 +251,7 @@ object Form1: TForm1
   end
   object Button1: TButton
     Left = 8
-    Top = 760
+    Top = 777
     Width = 162
     Height = 25
     Anchors = [akLeft, akBottom]

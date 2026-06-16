@@ -56,6 +56,7 @@ Enthaltene MwSt. 159,66</ram:Description>
       <ram:SpecifiedLineTradeSettlement>
         <ram:ApplicableTradeTax>
           <ram:TypeCode>VAT</ram:TypeCode>
+          <ram:ExemptionReason>Differenzbesteuerung</ram:ExemptionReason>
           <ram:CategoryCode>E</ram:CategoryCode>
           <ram:RateApplicablePercent>0.00</ram:RateApplicablePercent>
         </ram:ApplicableTradeTax>

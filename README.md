@@ -15,6 +15,7 @@ Aktuell unterstützte Versionen:
 - XRechnung 3.0.2 gültig ab 1.2.2024 - Übersicht der Pflichtfelder unter https://blog.seeburger.com/de/xrechnung-version-3-0-1-gueltig-ab-01-februar-2024/
 - ZUGFeRD 2.5.0 EXTENDED gültig ab 1.7.2026
 - ZUGFeRD 2.5.0 EN16931 gültig ab 1.7.2026
+- Peppol BIS Billing 3.0
 
 ## Beispiele
 
@@ -24,7 +25,7 @@ Alle Beispiele als erzeugte ERechnung sind im Ordner ValidXMLExamples zu finden.
 
 ## ZUGFeRD Support
 
-Um den Import von ZUGFeRD-Rechnungen anderer Versionen als 2.3.2 zu ermöglichen, 
+Um den Import von ZUGFeRD-Rechnungen anderer Versionen als > 2.3.2 zu ermöglichen, 
 wurde die Bibliothek ZUGFeRD-for-Delphi integriert. Die Quellen hier zu finden:
 
 https://github.com/LandrixSoftware/ZUGFeRD-for-Delphi

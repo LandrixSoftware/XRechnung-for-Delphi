@@ -53,6 +53,11 @@ Distribution/mustangproject
 Schema
 Testdata
 Res
+GPATH
+GTAGS
+GRTAGS
+Samples/landrix-valitool.inc
+.vscode/
 
 xrechnung-3.0.0-testsuite-2023-07-31
 Webservice via Peppol

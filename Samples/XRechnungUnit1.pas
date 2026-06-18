@@ -573,14 +573,25 @@ begin
       exit;
 
     case TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) of
+
       XRechnungVersion_30x_UBL,
-      XRechnungVersion_30x_UNCEFACT,
-      ZUGFeRDExtendedVersion_250 :
+      XRechnungVersion_30x_UNCEFACT :
         GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
             .SetValidatorLibPath(ValidatorLibPath)
             .SetValidatorConfigurationPath(ValidatorConfigurationPath)
-            .SetValidatorConfigurationPath(DistributionBasePath+'validator-configuration-bis'+PathDelim)
-            .SetValidatorConfigurationPath(DistributionBasePath+'validator-configuration-zugferd232'+PathDelim)
+            .ValidateFile(od.FileName,cmdoutput,xmlresult,htmlresult);
+
+      ZUGFeRDExtendedVersion_250,
+      ZUGFeRDEN16931Version_250 :
+        GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+            .SetValidatorLibPath(ValidatorLibPath)
+            .SetValidatorConfigurationPath(DistributionBasePath+'validator-configuration-zugferd'+PathDelim)
+            .ValidateFile(od.FileName,cmdoutput,xmlresult,htmlresult);
+
+      PeppolBillingVersion_30 :
+        GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+            .SetValidatorLibPath(ValidatorLibPath)
+            .SetValidatorConfigurationPath(ValidatorPeppolConfigurationPath)
             .ValidateFile(od.FileName,cmdoutput,xmlresult,htmlresult);
       else
       begin

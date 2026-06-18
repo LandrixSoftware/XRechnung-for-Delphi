@@ -12,16 +12,27 @@ You use it at your own risc.
 
 unit XRechnungUnit2TestCases;
 
+{$IFDEF FPC}
+  {$MODE DELPHIUNICODE}
+  {$H+}
+  {$codepage utf8}
+{$ENDIF}
+
 interface
 
 //skonto zugferd
 //[BR-CO-25]-Im Falle eines positiven Zahlbetrags Amount due for payment (BT-115) muss entweder das Element F�lligkeitsdatum �Payment due date� (BT-9) oder das Element Zahlungsbedingungen �Payment terms� (BT-20) vorhanden sein.
 
 uses
+  {$IFDEF FPC}
+  SysUtils, Classes, StrUtils, Math,
+  intf.Invoice;
+  {$ELSE}
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes,System.IOUtils,System.Win.COMObj,System.UITypes,
   System.StrUtils,Vcl.Forms,
   intf.Invoice, System.Math;
+  {$ENDIF}
 
 type
   TInvoiceTestCases = class(TObject)
@@ -30,6 +41,11 @@ type
     InvoiceDueDate : TDate;
     InvoicePeriodStartDate : TDate;
     InvoicePeriodEndDate : TDate;
+  public
+    // Basisverzeichnis fuer die Beispiel-Anhaenge (attachment.pdf etc.).
+    // Leer => Delphi nutzt Application.ExeName, FPC nutzt ParamStr(0).
+    class var AttachmentBasePath : String;
+    class function AttachmentDir : String;
   public
     class procedure Gesamtbeispiel(inv : TInvoice; Zahlungsbedingung : Integer;
                        NachlaesseZuschlaegeVerwenden, AbschlagsrechnungAbziehen,
@@ -57,6 +73,18 @@ type
 implementation
 
 { TInvoiceTestCases }
+
+class function TInvoiceTestCases.AttachmentDir : String;
+begin
+  if AttachmentBasePath <> '' then
+    Result := IncludeTrailingPathDelimiter(AttachmentBasePath)
+  else
+    {$IFDEF FPC}
+    Result := ExtractFilePath(ExtractFileDir(ExtractFileDir(ParamStr(0))));
+    {$ELSE}
+    Result := ExtractFilePath(ExtractFileDir(ExtractFileDir(Application.ExeName)));
+    {$ENDIF}
+end;
 
 class procedure TInvoiceTestCases.Austauschteilesteuer(inv: TInvoice);
 var
@@ -523,25 +551,25 @@ begin
       ID := 'attachment.pdf';
       DocumentDescription := 'Eine PDF';
       Filename := 'attachment.pdf';
-      EmbedDataFromFile(ExtractFilePath(ExtractFileDir(ExtractFileDir(Application.ExeName))) +'attachment.pdf');
+      EmbedDataFromFile(AttachmentDir +'attachment.pdf');
     end;
     with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_image_png) do
     begin
       ID := 'attachment.png';
       Filename := 'attachment.png';
-      EmbedDataFromFile(ExtractFilePath(ExtractFileDir(ExtractFileDir(Application.ExeName))) +'attachment.png');
+      EmbedDataFromFile(AttachmentDir +'attachment.png');
     end;
     with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_image_jpeg) do
     begin
       ID := 'attachment.jpg';
       Filename := 'attachment.jpg';
-      EmbedDataFromFile(ExtractFilePath(ExtractFileDir(ExtractFileDir(Application.ExeName))) +'attachment.jpg');
+      EmbedDataFromFile(AttachmentDir +'attachment.jpg');
     end;
     with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_text_csv) do
     begin
       ID := 'attachment.csv';
       Filename := 'attachment.csv';
-      EmbedDataFromFile(ExtractFilePath(ExtractFileDir(ExtractFileDir(Application.ExeName))) +'attachment.csv');
+      EmbedDataFromFile(AttachmentDir +'attachment.csv');
     end;
   end;
 

@@ -21,11 +21,21 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 unit intf.Invoice;
 
+{$IFDEF FPC}
+  {$MODE DELPHIUNICODE}
+  {$H+}
+  {$codepage utf8}
+{$ENDIF}
+
 interface
 
 uses
+  {$IFDEF FPC}
+  SysUtils,Classes,Types,Contnrs,base64
+  {$ELSE}
   System.SysUtils,System.Classes,System.Types,System.Contnrs
   ,System.NetEncoding
+  {$ENDIF}
   ;
 
 type
@@ -34,11 +44,15 @@ type
     NON_EXISTENT = 'non-existent';
   end;
 
+  {$IFDEF FPC}
+  TInvoiceListItemType = NativeInt;
+  {$ELSE}
   {$IF CompilerVersion >= 36.0}
   TInvoiceListItemType = NativeInt;
   {$ELSE}
   TInvoiceListItemType = Integer;
   {$IFEND}
+  {$ENDIF}
   TInvoiceTypeCode = (
     itc_None,
 
@@ -1434,6 +1448,33 @@ begin
 end;
 
 function TInvoiceAttachment.GetDataAsBase64: String;
+{$IFDEF FPC}
+var
+  ms : TMemoryStream;
+  enc : TBase64EncodingStream;
+  raw : RawByteString;
+begin
+  Result := '';
+  Data.Seek(0,soFromBeginning);
+  if Data.Size = 0 then
+    exit;
+  ms := TMemoryStream.Create;
+  try
+    enc := TBase64EncodingStream.Create(ms);
+    try
+      enc.CopyFrom(Data,Data.Size);
+    finally
+      enc.Free; // schreibt das letzte Quartett (Flush/Finalize)
+    end;
+    SetLength(raw,ms.Size);
+    if ms.Size > 0 then
+      Move(ms.Memory^,raw[1],ms.Size);
+    Result := String(raw); // Base64 ist reines ASCII
+  finally
+    ms.Free;
+  end;
+end;
+{$ELSE}
 var
   str : TMemoryStream;
   base64 : System.NetEncoding.TBase64Encoding;
@@ -1458,8 +1499,28 @@ begin
     str.Free;
   end;
 end;
+{$ENDIF}
 
 procedure TInvoiceAttachment.SetDataFromBase64(const _Val: String);
+{$IFDEF FPC}
+var
+  ss : TStringStream;
+  dec : TBase64DecodingStream;
+begin
+  Data.Clear;
+  if _Val = '' then
+    exit;
+  ss := TStringStream.Create(AnsiString(_Val));
+  dec := TBase64DecodingStream.Create(ss);
+  try
+    Data.CopyFrom(dec,0); // 0 = gesamten Quellstrom kopieren
+    Data.Seek(0,soFromBeginning);
+  finally
+    dec.Free;
+    ss.Free;
+  end;
+end;
+{$ELSE}
 var
   str : TMemoryStream;
   internalValue : AnsiString;
@@ -1478,6 +1539,7 @@ begin
     str.Free;
   end;
 end;
+{$ENDIF}
 
 { TInvoiceAttachmentList }
 

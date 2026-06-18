@@ -21,14 +21,26 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 unit intf.XRechnung_3_0;
 
+{$IFDEF FPC}
+  {$MODE DELPHIUNICODE}
+  {$H+}
+  {$codepage utf8}
+{$ENDIF}
+
 interface
 
 uses
+  {$IFDEF FPC}
+  SysUtils,Classes,Types,StrUtils,DateUtils
+  ,intf.XRechnungXmlShim
+  ,intf.Invoice
+  {$ELSE}
   System.SysUtils,System.Classes,System.Types,System.StrUtils,System.DateUtils
   ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema
   ,Xml.Win.msxmldom, Winapi.MSXMLIntf
   ,intf.Invoice
   ,intf.XRechnungHelper
+  {$ENDIF}
   ;
 
 type
@@ -38,8 +50,10 @@ type
   public
     class procedure SaveDocumentUNCEFACT(_Invoice: TInvoice;_Xml : IXMLDocument; _Profile : TInvoiceProfile);
     class procedure SaveDocumentUBL(_Invoice: TInvoice;_Xml : IXMLDocument; _Profile : TInvoiceProfile);
+    {$IFNDEF FPC}
     class function LoadDocumentUNCEFACT(_Invoice: TInvoice;_Xml : IXMLDocument; out _Error : String) : Boolean;
     class function LoadDocumentUBL(_Invoice: TInvoice;_Xml : IXMLDocument; out _Error : String) : Boolean;
+    {$ENDIF}
   end;
 
 implementation
@@ -49,6 +63,7 @@ uses
 
 { TXRechnungInvoiceAdapter301 }
 
+{$IFNDEF FPC}
 class function TXRechnungInvoiceAdapter301.LoadDocumentUBL(_Invoice: TInvoice;
   _Xml: IXMLDocument; out _Error : String) : Boolean;
 var
@@ -1018,6 +1033,7 @@ begin
     on E:Exception do _Error := E.ClassName+' '+E.Message;
   end;
 end;
+{$ENDIF}
 
 class procedure TXRechnungInvoiceAdapter301.SaveDocumentUBL(_Invoice: TInvoice;
   _Xml: IXMLDocument; _Profile : TInvoiceProfile);
@@ -1517,7 +1533,7 @@ begin
       if _Invoice.PaymentTermNetNote <> '' then
       with xRoot.AddChild('cac:PaymentTerms') do
       begin
-        AddChild('cbc:Note').Text := System.StrUtils.ReplaceText(_Invoice.PaymentTermNetNote,'#',' ');
+        AddChild('cbc:Note').Text := ReplaceText(_Invoice.PaymentTermNetNote,'#',' ');
       end;
     iptt_CashDiscount1:
       with xRoot.AddChild('cac:PaymentTerms') do
@@ -2247,7 +2263,7 @@ begin
       begin
         case _Invoice.PaymentTermsType of
           iptt_Net: if _Invoice.PaymentTermNetNote <> '' then
-            AddChild('ram:Description').Text := System.StrUtils.ReplaceText(_Invoice.PaymentTermNetNote,'#',' ');
+            AddChild('ram:Description').Text := ReplaceText(_Invoice.PaymentTermNetNote,'#',' ');
           iptt_CashDiscount1:
             AddChild('ram:Description').Text := Format('#SKONTO#TAGE=%d#PROZENT=%s#',
                 [_Invoice.PaymentTermCashDiscount1Days,

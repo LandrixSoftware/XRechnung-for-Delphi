@@ -21,7 +21,17 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 unit intf.XRechnungHelper;
 
+{$IFDEF FPC}
+  {$MODE DELPHIUNICODE}
+  {$H+}
+{$ENDIF}
+
 interface
+
+{$IFNDEF FPC}
+// MSXML/XPath-basierter Lese-Helfer: ausschliesslich Windows/Delphi.
+// Im FreePascal-Schreib-Scope wird dieser Helfer nicht benoetigt; die Unit
+// bleibt unter FPC bewusst leer (siehe Portierungsdoku).
 
 uses
   System.SysUtils, System.Classes,System.StrUtils
@@ -166,5 +176,9 @@ var
 begin
   Result := TXRechnungXMLHelper.SelectNode(_XnRoot,_NodePath,Node);
 end;
+
+{$ELSE}
+implementation
+{$ENDIF}
 
 end.

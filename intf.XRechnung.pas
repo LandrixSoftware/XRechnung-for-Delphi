@@ -21,6 +21,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 unit intf.XRechnung;
 
+{$IFDEF FPC}
+  {$MODE DELPHIUNICODE}
+  {$H+}
+  {$codepage utf8}
+{$ENDIF}
+
 interface
 
 //setzt ZUGFeRD-for-Delphi voraus
@@ -28,9 +34,15 @@ interface
 {.$DEFINE ZUGFeRD_Support}
 
 uses
+  {$IFDEF FPC}
+  SysUtils,Classes,Types,Math
+  ,StrUtils,DateUtils,Contnrs
+  ,intf.XRechnungXmlShim
+  {$ELSE}
   System.SysUtils,System.Classes,System.Types,System.Math
   ,System.StrUtils,System.DateUtils,System.Contnrs
   ,Xml.XMLDoc,Xml.XMLIntf
+  {$ENDIF}
   {$IFDEF ZUGFeRD_Support}
   ,intf.ZUGFeRDInvoiceDescriptor
   ,intf.ZUGFeRDCurrencyCodes
@@ -97,6 +109,7 @@ type
                        PeppolBillingVersion_30,
                        ZUGFeRDExtendedVersion_1_NotSupported);
 
+  {$IFNDEF FPC}
   TXRechnungValidationHelper = class(TObject)
   public
     class function GetXRechnungVersion(const _Filename : String) : TXRechnungVersion; overload;
@@ -107,6 +120,7 @@ type
     //First thoughts on the topic
     //class function Validate(_XSDFilename, _XmlFilename: String) : Boolean;
   end;
+  {$ENDIF}
 
   {$IFDEF ZUGFeRD_Support}
   TZUGFeRDAdditionalContent = class
@@ -126,7 +140,9 @@ type
   TXRechnungInvoiceAdapter = class
   private
     class procedure SaveDocument(_Invoice: TInvoice;_Version : TXRechnungVersion; _Xml : IXMLDocument);
+    {$IFNDEF FPC}
     class function  LoadFromXMLDocument(_Invoice: TInvoice; _XmlDocument: IXMLDocument; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
+    {$ENDIF}
   public const
     ccOK                       = 0;
     ccNoPaymentsCount          = 1;
@@ -147,9 +163,11 @@ type
     class procedure SaveToFile(_Invoice : TInvoice; _Version : TXRechnungVersion; const _Filename : String);
     class procedure SaveToXMLStr(_Invoice : TInvoice; _Version : TXRechnungVersion; out _XML : String);
 
+    {$IFNDEF FPC}
     class function  LoadFromStream(_Invoice : TInvoice; _Stream : TStream; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
     class function  LoadFromFile(_Invoice : TInvoice; const _Filename : String; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
     class function  LoadFromXMLStr(_Invoice : TInvoice; const _XML : String; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
+    {$ENDIF}
   end;
 
 const
@@ -262,7 +280,7 @@ begin
     exit;
   if _Filename = '' then
     exit;
-  if not System.SysUtils.DirectoryExists(ExtractFilePath(_Filename)) then
+  if not DirectoryExists(ExtractFilePath(_Filename)) then
     exit;
 
   xml := NewXMLDocument;
@@ -423,6 +441,7 @@ begin
   end;
 end;
 
+{$IFNDEF FPC}
 class function TXRechnungInvoiceAdapter.LoadFromFile(_Invoice: TInvoice;
   const _Filename: String; out _Error : String
   {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
@@ -434,7 +453,7 @@ begin
     exit;
   if _Filename = '' then
     exit;
-  if not System.SysUtils.FileExists(_Filename) then
+  if not FileExists(_Filename) then
     exit;
 
   xml := TXMLDocument.Create(nil);
@@ -514,6 +533,7 @@ begin
     xml := nil;
   end;
 end;
+{$ENDIF}
 
 class procedure TXRechnungInvoiceAdapter.SaveDocument(_Invoice: TInvoice;
   _Version : TXRechnungVersion; _Xml: IXMLDocument);
@@ -542,7 +562,7 @@ end;
 class function TXRechnungHelper.AmountToStr(
   _Val: Currency): String;
 begin
-  Result := System.StrUtils.ReplaceText(Format('%.2f',[_Val]),',','.');
+  Result := ReplaceText(Format('%.2f',[_Val]),',','.');
 end;
 
 class function TXRechnungHelper.UnitPriceAmountFromStr(
@@ -565,9 +585,9 @@ var
 begin
   lRounded := RoundTo(_Val,-2);
   if _Val = lRounded then
-    Result := System.StrUtils.ReplaceText(Format('%.2f',[_Val]),',','.')
+    Result := ReplaceText(Format('%.2f',[_Val]),',','.')
   else
-    Result := System.StrUtils.ReplaceText(Format('%.4f',[_Val]),',','.');
+    Result := ReplaceText(Format('%.4f',[_Val]),',','.');
 end;
 
 class function TXRechnungHelper.DateFromStrUBLFormat(const _Val : String) : TDateTime;
@@ -612,7 +632,7 @@ class function TXRechnungHelper.FloatToStr(
 begin
   if _DecimalPlaces < 0 then
     _DecimalPlaces := 0;
-  Result := System.StrUtils.ReplaceText(Format('%.'+IntToStr(_DecimalPlaces)+'f',[_Val]),',','.');
+  Result := ReplaceText(Format('%.'+IntToStr(_DecimalPlaces)+'f',[_Val]),',','.');
 end;
 
 class function TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeFromStr(
@@ -1475,7 +1495,7 @@ end;
 
 class function TXRechnungHelper.PercentageToStr(_Val: double): String;
 begin
-  Result := System.StrUtils.ReplaceText(Format('%.2f',[_Val]),',','.');
+  Result := ReplaceText(Format('%.2f',[_Val]),',','.');
 end;
 
 class function TXRechnungHelper.QuantityFromStr(_Val: String): double;
@@ -1489,7 +1509,7 @@ end;
 
 class function TXRechnungHelper.QuantityToStr(_Val: double): String;
 begin
-  Result := System.StrUtils.ReplaceText(Format('%.4f',[_Val]),',','.');
+  Result := ReplaceText(Format('%.4f',[_Val]),',','.');
 end;
 
 class procedure TXRechnungHelper.ReadPaymentTerms(_Invoice: TInvoice;
@@ -1576,6 +1596,7 @@ begin
   end;
 end;
 
+{$IFNDEF FPC}
 { TXRechnungValidationHelper }
 
 class function TXRechnungValidationHelper.GetXRechnungVersion(
@@ -1741,6 +1762,7 @@ end;
 //    FXMLDocument:= nil;
 //  end;
 //end;
+{$ENDIF}
 
 {$IFDEF ZUGFeRD_Support}
 class function TZUGFeRDInvoiceAdapter.LoadFromStream(_Invoice : TInvoice;
@@ -1772,7 +1794,7 @@ begin
     exit;
   if _Filename = '' then
     exit;
-  if not System.SysUtils.FileExists(_Filename) then
+  if not FileExists(_Filename) then
     exit;
 
   stream := TFileStream.Create(_Filename,fmOpenRead or fmShareDenyNone);

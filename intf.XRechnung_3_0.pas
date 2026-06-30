@@ -1836,7 +1836,7 @@ var
         AddChild('ram:ChargeIndicator').AddChild('udt:Indicator').Text := LowerCase(BoolToStr(_Invoiceline.AllowanceCharges[i].ChargeIndicator,true));
         if _Invoiceline.AllowanceCharges[i].MultiplierFactorNumeric <> 0 then
         begin
-          AddChild('ram:CalculationPercent').Text := TXRechnungHelper.FloatToStr(_Invoiceline.AllowanceCharges[i].MultiplierFactorNumeric);
+          AddChild('ram:CalculationPercent').Text := TXRechnungHelper.FloatToStr(_Invoiceline.AllowanceCharges[i].MultiplierFactorNumeric,4);
           AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(_Invoiceline.AllowanceCharges[i].BaseAmount);
         end;
         AddChild('ram:ActualAmount').Text := TXRechnungHelper.AmountToStr(_Invoiceline.AllowanceCharges[i].Amount);

@@ -22,6 +22,8 @@ uses
   ;
 
 type
+  TValidationErrorHandler = reference to procedure(const _ErrMessage : String);
+
   IXRechnungValidationHelperJava = interface
     ['{6DCEC6AF-1B1B-4C65-B004-B335397CF10D}']
     function SetTempPath(const _Path : String) : IXRechnungValidationHelperJava;
@@ -47,6 +49,7 @@ type
     function MustangUpgradeToPDFA3Only(const _InvoicePDFFilename : String; out _CmdOutput : String; out _PdfA3 : TMemoryStream) : Boolean;
     function ValitoolValidate(const _InvoiceXMLData : String; out _CmdOutput,_ValidationResultAsXML : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function ValitoolValidateDirectory(const _Directory : String; out _CmdOutput : String) : Boolean;
+    function SetValidationErrorHandler(const _Value : TValidationErrorHandler) : IXRechnungValidationHelperJava;
   end;
 
   function GetXRechnungValidationHelperJava : IXRechnungValidationHelperJava;
@@ -67,6 +70,10 @@ type
     ValitoolPath : String;
     ValitoolLicense : String;
     CmdOutput : TStringList;
+    FValidationErrorHandler : TValidationErrorHandler;
+    procedure HandleValidationError(const _ErrMessage : String);
+    function RequireFile(const _Filename : String) : Boolean;
+    function RequireDir(const _Dirname : String) : Boolean;
     function ExecAndWait(_Filename, _Params: string): Boolean;
     function QuoteIfContainsSpace(const _Value : String) : String;
     function GetVersionFromStr(const _Xml : String) : Integer;
@@ -100,6 +107,7 @@ type
     function MustangUpgradeToPDFA3Only(const _InvoicePDFFilename : String; out _CmdOutput : String; out _PdfA3 : TMemoryStream) : Boolean;
     function ValitoolValidate(const _InvoiceXMLData : String; out _CmdOutput,_ValidationResultAsXML : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function ValitoolValidateDirectory(const _Directory : String; out _CmdOutput : String) : Boolean;
+    function SetValidationErrorHandler(const _Value : TValidationErrorHandler) : IXRechnungValidationHelperJava;
   end;
 
 function GetXRechnungValidationHelperJava : IXRechnungValidationHelperJava;
@@ -121,6 +129,26 @@ begin
   if Assigned(CmdOutput) then begin CmdOutput.Free; CmdOutput := nil; end;
   if Assigned(ValidatorConfigurationPath) then begin ValidatorConfigurationPath.Free; ValidatorConfigurationPath := nil; end;
   inherited;
+end;
+
+procedure TXRechnungValidationHelperJava.HandleValidationError(const _ErrMessage: String);
+begin
+  if Assigned(FValidationErrorHandler) then
+    FValidationErrorHandler(_ErrMessage);
+end;
+
+function TXRechnungValidationHelperJava.RequireFile(const _Filename: String): Boolean;
+begin
+  Result := FileExists(_Filename);
+  if not Result then
+    HandleValidationError(Format('Datei nicht gefunden: %s',[_Filename]));
+end;
+
+function TXRechnungValidationHelperJava.RequireDir(const _Dirname: String): Boolean;
+begin
+  Result := DirectoryExists(_Dirname);
+  if not Result then
+    HandleValidationError(Format('Verzeichnis nicht gefunden: %s',[_Dirname]));
 end;
 
 function TXRechnungValidationHelperJava.ExecAndWait(_Filename, _Params: string): Boolean;
@@ -210,7 +238,7 @@ var
   hstrl : TStringList;
 begin
   Result := 0;
-  if not FileExists(_Filename) then
+  if not RequireFile(_Filename) then
     exit;
   hstrl := TStringList.Create;
   try
@@ -248,15 +276,15 @@ var
   tmpFilename : String;
 begin
   Result := false;
-  if not FileExists(_InvoiceXMLFilename) then
+  if not RequireFile(_InvoiceXMLFilename) then
     exit;
-  if not FileExists(_InvoicePDFFilename) then
+  if not RequireFile(_InvoicePDFFilename) then
     exit;
-  if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
+  if not RequireFile(JavaRuntimeEnvironmentPath+'bin\java.exe') then
     exit;
-  if not FileExists(MustangprojectPath+'Mustang-CLI.jar') then
+  if not RequireFile(MustangprojectPath+'Mustang-CLI.jar') then
     exit;
-  if not DirectoryExists(TempPath) then
+  if not RequireDir(TempPath) then
     exit;
 
   tmpFilename := GetNewTempFileName(TempPath);
@@ -308,13 +336,13 @@ var
   tmpFilename : String;
 begin
   Result := false;
-  if not FileExists(_InvoicePDFFilename) then
+  if not RequireFile(_InvoicePDFFilename) then
     exit;
-  if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
+  if not RequireFile(JavaRuntimeEnvironmentPath+'bin\java.exe') then
     exit;
-  if not FileExists(MustangprojectPath+'Mustang-CLI.jar') then
+  if not RequireFile(MustangprojectPath+'Mustang-CLI.jar') then
     exit;
-  if not DirectoryExists(TempPath) then
+  if not RequireDir(TempPath) then
     exit;
 
   tmpFilename := GetNewTempFileName(TempPath);
@@ -362,13 +390,13 @@ var
   tmpFilename : String;
 begin
   Result := false;
-  if not FileExists(_InvoiceXMLFilename) then
+  if not RequireFile(_InvoiceXMLFilename) then
     exit;
-  if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
+  if not RequireFile(JavaRuntimeEnvironmentPath+'bin\java.exe') then
     exit;
-  if not FileExists(MustangprojectPath+'Mustang-CLI.jar') then
+  if not RequireFile(MustangprojectPath+'Mustang-CLI.jar') then
     exit;
-  if not DirectoryExists(TempPath) then
+  if not RequireDir(TempPath) then
     exit;
 
   tmpFilename := GetNewTempFileName(TempPath);
@@ -414,13 +442,13 @@ var
   tmpFilename : String;
 begin
   Result := false;
-  if not FileExists(_InvoiceXMLFilename) then
+  if not RequireFile(_InvoiceXMLFilename) then
     exit;
-  if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
+  if not RequireFile(JavaRuntimeEnvironmentPath+'bin\java.exe') then
     exit;
-  if not FileExists(MustangprojectPath+'Mustang-CLI.jar') then
+  if not RequireFile(MustangprojectPath+'Mustang-CLI.jar') then
     exit;
-  if not DirectoryExists(TempPath) then
+  if not RequireDir(TempPath) then
     exit;
 
   tmpFilename := GetNewTempFileName(TempPath);
@@ -470,13 +498,13 @@ var
   tmpFilename : String;
 begin
   Result := false;
-  if not FileExists(_InvoiceXMLFilename) then
+  if not RequireFile(_InvoiceXMLFilename) then
     exit;
-  if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
+  if not RequireFile(JavaRuntimeEnvironmentPath+'bin\java.exe') then
     exit;
-  if not FileExists(MustangprojectPath+'Mustang-CLI.jar') then
+  if not RequireFile(MustangprojectPath+'Mustang-CLI.jar') then
     exit;
-  if not DirectoryExists(TempPath) then
+  if not RequireDir(TempPath) then
     exit;
 
   tmpFilename := GetNewTempFileName(TempPath);
@@ -579,6 +607,13 @@ begin
   Result := self;
 end;
 
+function TXRechnungValidationHelperJava.SetValidationErrorHandler(
+  const _Value: TValidationErrorHandler): IXRechnungValidationHelperJava;
+begin
+  FValidationErrorHandler := _Value;
+  Result := self;
+end;
+
 function TXRechnungValidationHelperJava.SetVisualizationLibPath(const _Path: String): IXRechnungValidationHelperJava;
 begin
   VisualizationLibPath := IncludeTrailingPathDelimiter(_Path);
@@ -595,16 +630,16 @@ begin
   Result := false;
   if _InvoiceXMLData = '' then
     exit;
-  if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
+  if not RequireFile(JavaRuntimeEnvironmentPath+'bin\java.exe') then
     exit;
-  if not FileExists(ValidatorLibPath+'validator-1.6.2-standalone.jar') then
+  if not RequireFile(ValidatorLibPath+'validator-1.6.2-standalone.jar') then
     exit;
   if ValidatorConfigurationPath.Count=0 then
     exit;
   for i := 0 to ValidatorConfigurationPath.Count-1 do
-  if not FileExists(ValidatorConfigurationPath[i]+'scenarios.xml') then
+  if not RequireFile(ValidatorConfigurationPath[i]+'scenarios.xml') then
     exit;
-  if not DirectoryExists(TempPath) then
+  if not RequireDir(TempPath) then
     exit;
 
   tmpFilename := GetNewTempFileName(TempPath);
@@ -670,16 +705,16 @@ begin
   Result := false;
   if _InvoiceXMLFilename = '' then
     exit;
-  if not FileExists(_InvoiceXMLFilename) then
+  if not RequireFile(_InvoiceXMLFilename) then
     exit;
-  if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
+  if not RequireFile(JavaRuntimeEnvironmentPath+'bin\java.exe') then
     exit;
-  if not FileExists(ValidatorLibPath+'validator-1.6.2-standalone.jar') then
+  if not RequireFile(ValidatorLibPath+'validator-1.6.2-standalone.jar') then
     exit;
   if ValidatorConfigurationPath.Count=0 then
     exit;
   for i := 0 to ValidatorConfigurationPath.Count-1 do
-  if not FileExists(ValidatorConfigurationPath[i]+'scenarios.xml') then
+  if not RequireFile(ValidatorConfigurationPath[i]+'scenarios.xml') then
     exit;
 
   hstrl := TStringList.Create;
@@ -738,13 +773,13 @@ begin
   Result := false;
   if _InvoiceXMLData = '' then
     exit;
-  if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
+  if not RequireFile(JavaRuntimeEnvironmentPath+'bin\java.exe') then
     exit;
   if ValitoolLicense = '' then
     exit;
-  if not FileExists(ValitoolPath+'valitool.exe') then
+  if not RequireFile(ValitoolPath+'valitool.exe') then
     exit;
-  if not DirectoryExists(TempPath) then
+  if not RequireDir(TempPath) then
     exit;
 
   tmpFilename := GetNewTempFileName(TempPath);
@@ -814,13 +849,13 @@ begin
   Result := false;
   if _Directory = '' then
     exit;
-  if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
+  if not RequireFile(JavaRuntimeEnvironmentPath+'bin\java.exe') then
     exit;
   if ValitoolLicense = '' then
     exit;
-  if not DirectoryExists(_Directory) then
+  if not RequireDir(_Directory) then
     exit;
-  if not FileExists(ValitoolPath+'valitool.exe') then
+  if not RequireFile(ValitoolPath+'valitool.exe') then
     exit;
 
   tmpFilename := GetNewTempFileName(TempPath);
@@ -865,24 +900,24 @@ begin
   Result := false;
   if _InvoiceXMLData = '' then
     exit;
-  if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
+  if not RequireFile(JavaRuntimeEnvironmentPath+'bin\java.exe') then
     exit;
-  if not FileExists(SaxonLibPath+'saxon-he-12.9.jar') then
+  if not RequireFile(SaxonLibPath+'saxon-he-12.9.jar') then
     exit;
-  if not FileExists(SaxonLibPath+'lib\xmlresolver-5.3.3.jar') then
+  if not RequireFile(SaxonLibPath+'lib\xmlresolver-5.3.3.jar') then
     exit;
-  if not FileExists(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl') then
+  if not RequireFile(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl') then
     exit;
-  if not FileExists(VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl') then
+  if not RequireFile(VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl') then
     exit;
-  if not FileExists(VisualizationLibPath+'xsl\cii-xr.xsl') then
+  if not RequireFile(VisualizationLibPath+'xsl\cii-xr.xsl') then
     exit;
-  if not FileExists(VisualizationLibPath+'xsl\xrechnung-html.xsl') then
+  if not RequireFile(VisualizationLibPath+'xsl\xrechnung-html.xsl') then
     exit;
   version := GetVersionFromStr(_InvoiceXMLData);
   if version = 0 then
     exit;
-  if not DirectoryExists(TempPath) then
+  if not RequireDir(TempPath) then
     exit;
 
   tmpFilename := GetNewTempFileName(TempPath);
@@ -957,26 +992,26 @@ begin
   Result := false;
   if _InvoiceXMLData = '' then
     exit;
-  if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
+  if not RequireFile(JavaRuntimeEnvironmentPath+'bin\java.exe') then
     exit;
-  if not FileExists(SaxonLibPath+'saxon-he-12.9.jar') then
+  if not RequireFile(SaxonLibPath+'saxon-he-12.9.jar') then
     exit;
-  if not FileExists(SaxonLibPath+'lib\xmlresolver-5.3.3.jar') then
+  if not RequireFile(SaxonLibPath+'lib\xmlresolver-5.3.3.jar') then
     exit;
-  if not FileExists(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl') then
+  if not RequireFile(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl') then
     exit;
-  if not FileExists(VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl') then
+  if not RequireFile(VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl') then
     exit;
-  if not FileExists(VisualizationLibPath+'xsl\cii-xr.xsl') then
+  if not RequireFile(VisualizationLibPath+'xsl\cii-xr.xsl') then
     exit;
-  if not FileExists(VisualizationLibPath+'xsl\xrechnung-html.xsl') then
+  if not RequireFile(VisualizationLibPath+'xsl\xrechnung-html.xsl') then
     exit;
-  if not FileExists(FopLibPath+'fop\build\fop.jar') then
+  if not RequireFile(FopLibPath+'fop\build\fop.jar') then
     exit;
   version := GetVersionFromStr(_InvoiceXMLData);
   if version = 0 then
     exit;
-  if not DirectoryExists(TempPath) then
+  if not RequireDir(TempPath) then
     exit;
 
   tmpFilename := GetNewTempFileName(TempPath);
@@ -1084,21 +1119,21 @@ begin
   Result := false;
   if _InvoiceXMLFilename = '' then
     exit;
-  if not FileExists(_InvoiceXMLFilename) then
+  if not RequireFile(_InvoiceXMLFilename) then
     exit;
-  if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
+  if not RequireFile(JavaRuntimeEnvironmentPath+'bin\java.exe') then
     exit;
-  if not FileExists(SaxonLibPath+'saxon-he-12.9.jar') then
+  if not RequireFile(SaxonLibPath+'saxon-he-12.9.jar') then
     exit;
-  if not FileExists(SaxonLibPath+'lib\xmlresolver-5.3.3.jar') then
+  if not RequireFile(SaxonLibPath+'lib\xmlresolver-5.3.3.jar') then
     exit;
-  if not FileExists(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl') then
+  if not RequireFile(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl') then
     exit;
-  if not FileExists(VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl') then
+  if not RequireFile(VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl') then
     exit;
-  if not FileExists(VisualizationLibPath+'xsl\cii-xr.xsl') then
+  if not RequireFile(VisualizationLibPath+'xsl\cii-xr.xsl') then
     exit;
-  if not FileExists(VisualizationLibPath+'xsl\xrechnung-html.xsl') then
+  if not RequireFile(VisualizationLibPath+'xsl\xrechnung-html.xsl') then
     exit;
   version := GetVersionFromFile(_InvoiceXMLFilename);
   if version = 0 then
@@ -1170,23 +1205,23 @@ begin
   Result := false;
   if _InvoiceXMLFilename = '' then
     exit;
-  if not FileExists(_InvoiceXMLFilename) then
+  if not RequireFile(_InvoiceXMLFilename) then
     exit;
-  if not FileExists(JavaRuntimeEnvironmentPath+'bin\java.exe') then
+  if not RequireFile(JavaRuntimeEnvironmentPath+'bin\java.exe') then
     exit;
-  if not FileExists(SaxonLibPath+'saxon-he-12.9.jar') then
+  if not RequireFile(SaxonLibPath+'saxon-he-12.9.jar') then
     exit;
-  if not FileExists(SaxonLibPath+'lib\xmlresolver-5.3.3.jar') then
+  if not RequireFile(SaxonLibPath+'lib\xmlresolver-5.3.3.jar') then
     exit;
-  if not FileExists(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl') then
+  if not RequireFile(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl') then
     exit;
-  if not FileExists(VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl') then
+  if not RequireFile(VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl') then
     exit;
-  if not FileExists(VisualizationLibPath+'xsl\cii-xr.xsl') then
+  if not RequireFile(VisualizationLibPath+'xsl\cii-xr.xsl') then
     exit;
-  if not FileExists(VisualizationLibPath+'xsl\xrechnung-html.xsl') then
+  if not RequireFile(VisualizationLibPath+'xsl\xrechnung-html.xsl') then
     exit;
-  if not FileExists(FopLibPath+'fop\build\fop.jar') then
+  if not RequireFile(FopLibPath+'fop\build\fop.jar') then
     exit;
   version := GetVersionFromFile(_InvoiceXMLFilename);
   if version = 0 then

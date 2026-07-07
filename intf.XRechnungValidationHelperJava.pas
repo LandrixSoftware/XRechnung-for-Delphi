@@ -22,7 +22,8 @@ uses
   ;
 
 type
-  TValidationErrorHandler = reference to procedure(const _ErrMessage : String);
+  TValidationErrorHandler = procedure (const ErrMessage: string) of object;
+  //TValidationErrorHandler = reference to procedure (const _ErrMessage : String); Bei neueren Delphi-Versionen ist auch das moeglich
 
   IXRechnungValidationHelperJava = interface
     ['{6DCEC6AF-1B1B-4C65-B004-B335397CF10D}']

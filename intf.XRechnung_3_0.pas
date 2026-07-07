@@ -1223,11 +1223,19 @@ begin
   if _Invoice.BuyerAccountingReference <> '' then
     xRoot.AddChild('cbc:AccountingCost').Text := _Invoice.BuyerAccountingReference;
   xRoot.AddChild('cbc:BuyerReference').Text := _Invoice.BuyerReference;
-  if (_Invoice.InvoicePeriodStartDate > 100) and (_Invoice.InvoicePeriodEndDate >= _Invoice.InvoicePeriodStartDate) then
+  if ((_Invoice.InvoicePeriodStartDate > 100) or
+     (_Invoice.InvoicePeriodEndDate > 100)) and
+     (
+       (_Invoice.InvoicePeriodStartDate <= 100) or
+       (_Invoice.InvoicePeriodEndDate <= 100) or
+       (_Invoice.InvoicePeriodEndDate >= _Invoice.InvoicePeriodStartDate)
+     ) then
   with xRoot.AddChild('cac:InvoicePeriod') do
   begin
-    AddChild('cbc:StartDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoicePeriodStartDate);
-    AddChild('cbc:EndDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoicePeriodEndDate);
+    if (_Invoice.InvoicePeriodStartDate > 100) then
+      AddChild('cbc:StartDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoicePeriodStartDate);
+    if (_Invoice.InvoicePeriodEndDate > 100) then
+      AddChild('cbc:EndDate').Text := TXRechnungHelper.DateToStrUBLFormat(_Invoice.InvoicePeriodEndDate);
   end;
   if (_Invoice.PurchaseOrderReference <> '') or
      (_Invoice.SellerOrderReference <> '') then
@@ -2221,14 +2229,22 @@ begin
         if (_Invoice.TaxAmountSubtotals[i].TaxCategory <> idtfcc_O_ServicesOutsideScopeOfTax) then
           AddChild('ram:RateApplicablePercent').Text := TXRechnungHelper.PercentageToStr(_Invoice.TaxAmountSubtotals[i].TaxPercent);
       end;
-      if (_Invoice.InvoicePeriodStartDate > 100) and (_Invoice.InvoicePeriodEndDate >= _Invoice.InvoicePeriodStartDate) then
+      if ((_Invoice.InvoicePeriodStartDate > 100) or
+         (_Invoice.InvoicePeriodEndDate > 100)) and
+         (
+           (_Invoice.InvoicePeriodStartDate <= 100) or
+           (_Invoice.InvoicePeriodEndDate <= 100) or
+           (_Invoice.InvoicePeriodEndDate >= _Invoice.InvoicePeriodStartDate)
+         ) then
       with AddChild('ram:BillingSpecifiedPeriod') do
       begin
+        if (_Invoice.InvoicePeriodStartDate > 100) then
         with AddChild('ram:StartDateTime').AddChild('udt:DateTimeString') do
         begin
           Attributes['format'] := '102';
           Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.InvoicePeriodStartDate);
         end;
+        if (_Invoice.InvoicePeriodEndDate > 100) then
         with AddChild('ram:EndDateTime').AddChild('udt:DateTimeString') do
         begin
           Attributes['format'] := '102';

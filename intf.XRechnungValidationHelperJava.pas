@@ -154,7 +154,7 @@ end;
 function TXRechnungValidationHelperJava.ExecAndWait(_Filename, _Params: string): Boolean;
 var
   SA: TSecurityAttributes;
-  SI: TStartupInfoA;
+  SI: TStartupInfo;
   PI: TProcessInformation;
   StdOutPipeRead, StdOutPipeWrite: THandle;
   WasOK: Boolean;
@@ -163,6 +163,7 @@ var
   Handle:Boolean;
   ProcessExitCode : DWORD;
   ReadLine : AnsiString;
+  ComSpec, CmdLine, WorkDir : String;
 begin
   Result := false;
   CmdOutput.Clear;
@@ -185,9 +186,21 @@ begin
     SI.hStdOutput := StdOutPipeWrite;
     SI.hStdError := StdOutPipeWrite;
 
-    Handle := CreateProcessA(nil, PAnsiChar(AnsiString(_Filename+ ' ' + _Params)),
+    // Aufruf ueber cmd.exe, weil CreateProcess eine .bat-Datei nicht direkt starten kann
+    // (ERROR_PATH_NOT_FOUND), und via CreateProcessW (Unicode), damit Umlaute/Nicht-ANSI-
+    // Zeichen sowie Leerzeichen im Pfad funktionieren (Issue #39).
+    // /S + genau ein aeusseres Anfuehrungszeichenpaar: cmd entfernt nur dieses Paar und
+    // laesst die inneren Quotes (QuoteIfContainsSpace) unveraendert.
+    ComSpec := System.SysUtils.GetEnvironmentVariable('ComSpec');
+    if ComSpec = '' then
+      ComSpec := 'cmd.exe';
+    CmdLine := '"' + ComSpec + '" /S /C "' + _Filename + ' ' + _Params + '"';
+    WorkDir := ExtractFileDir(ParamStr(0));
+    UniqueString(CmdLine); // CreateProcessW darf den Kommandozeilen-Puffer veraendern
+
+    Handle := CreateProcess(PChar(ComSpec), PChar(CmdLine),
                             nil, nil, True, 0, nil,
-                            PAnsiChar(AnsiString(ExtractFileDir(ParamStr(0)))), SI, PI);
+                            PChar(WorkDir), SI, PI);
     CloseHandle(StdOutPipeWrite);
     if Handle then
       try

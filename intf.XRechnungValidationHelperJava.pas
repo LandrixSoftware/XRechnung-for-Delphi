@@ -716,6 +716,8 @@ begin
   for i := 0 to ValidatorConfigurationPath.Count-1 do
   if not RequireFile(ValidatorConfigurationPath[i]+'scenarios.xml') then
     exit;
+  if not RequireDir(TempPath) then
+    exit;
 
   hstrl := TStringList.Create;
   try
@@ -730,7 +732,7 @@ begin
          ' -r '+QuoteIfContainsSpace(ExcludeTrailingPathDelimiter(ValidatorConfigurationPath[i]))
     end;
     params := params
-             + ' -o ' + QuoteIfContainsSpace(ExcludeTrailingPathDelimiter(ExtractFilePath(_InvoiceXMLFilename))) // \" am Ende wird von KOSIT fehlinterpretiert !!!
+             + ' -o ' + QuoteIfContainsSpace(ExcludeTrailingPathDelimiter(TempPath)) // \" am Ende wird von KOSIT fehlinterpretiert !!!
              + ' -h '
              + QuoteIfContainsSpace(_InvoiceXMLFilename);
 
@@ -740,7 +742,7 @@ begin
 
     lInvoiceXMLFilename := ExtractFileName(_InvoiceXMLFilename);
     lInvoiceXMLFilename := StringReplace(lInvoiceXMLFilename,' ','%20',[rfReplaceAll]);
-    lInvoiceXMLFilename := ExtractFilePath(_InvoiceXMLFilename)+lInvoiceXMLFilename;
+    lInvoiceXMLFilename := IncludeTrailingPathDelimiter(TempPath)+lInvoiceXMLFilename;
 
     if FileExists(ChangeFileExt(lInvoiceXMLFilename,'-report.xml')) then
     begin
@@ -1114,6 +1116,7 @@ function TXRechnungValidationHelperJava.VisualizeFile(
   out _CmdOutput, _VisualizationAsHTML: String): Boolean;
 var
   hstrl,cmd: TStringList;
+  tmpFilename : String;
   version : Integer;
 begin
   Result := false;
@@ -1138,53 +1141,57 @@ begin
   version := GetVersionFromFile(_InvoiceXMLFilename);
   if version = 0 then
     exit;
+  if not RequireDir(TempPath) then
+    exit;
+
+  tmpFilename := GetNewTempFileName(TempPath);
 
   hstrl := TStringList.Create;
   cmd := TStringList.Create;
   try
     cmd.WriteBOM := False;
     cmd.Add('chcp 65001 >nul');
-    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(_InvoiceXMLFilename)));
+    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
     if version = 1 then
       cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
              QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
              ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(_InvoiceXMLFilename)+
              ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-xr.xml')))
+             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')))
     else
     if version = 2 then
       cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
              QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
              ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(_InvoiceXMLFilename)+
              ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-xr.xml')))
+             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')))
     else
     if version = 3 then
       cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
              QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
              ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(_InvoiceXMLFilename)+
              ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\cii-xr.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-xr.xml')));
+             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')));
     cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
              QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
-             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-xr.xml'))+
+             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml'))+
              ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\xrechnung-html.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-.html')));
+             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-.html')));
 
-    cmd.SaveToFile(_InvoiceXMLFilename+'.bat',TEncoding.UTF8);
+    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8);
 
-    Result := ExecAndWait(_InvoiceXMLFilename+'.bat','');
+    Result := ExecAndWait(tmpFilename+'.bat','');
 
     _CmdOutput := CmdOutput.Text;
 
-    DeleteFile(_InvoiceXMLFilename+'.bat');
-    DeleteFile(ChangeFileExt(_InvoiceXMLFilename,'-xr.xml'));
+    DeleteFile(tmpFilename+'.bat');
+    DeleteFile(ChangeFileExt(tmpFilename,'-xr.xml'));
 
-    if FileExists(ChangeFileExt(_InvoiceXMLFilename,'-.html')) then
+    if FileExists(ChangeFileExt(tmpFilename,'-.html')) then
     begin
-      hstrl.LoadFromFile(ChangeFileExt(_InvoiceXMLFilename,'-.html'),TEncoding.UTF8);
+      hstrl.LoadFromFile(ChangeFileExt(tmpFilename,'-.html'),TEncoding.UTF8);
       _VisualizationAsHTML := hstrl.Text;
-      DeleteFile(ChangeFileExt(_InvoiceXMLFilename,'-.html'));
+      DeleteFile(ChangeFileExt(tmpFilename,'-.html'));
     end else
       Result := false;
 
@@ -1199,6 +1206,7 @@ function TXRechnungValidationHelperJava.VisualizeFileAsPdf(
   out _CmdOutput: String; out _VisualizationAsPdf: TMemoryStream): Boolean;
 var
   cmd: TStringList;
+  tmpFilename : String;
   version : Integer;
 begin
   //Experimental - it does not work
@@ -1226,46 +1234,49 @@ begin
   version := GetVersionFromFile(_InvoiceXMLFilename);
   if version = 0 then
     exit;
+  if not RequireDir(TempPath) then
+    exit;
+
+  tmpFilename := GetNewTempFileName(TempPath);
 
   cmd := TStringList.Create;
   try
     cmd.WriteBOM := False;
     cmd.Add('chcp 65001 >nul');
-    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(_InvoiceXMLFilename)));
+    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
     if version = 1 then
       cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
              QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
              ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(_InvoiceXMLFilename)+
              ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-xr.xml')))
+             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')))
     else
     if version = 2 then
       cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
              QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
              ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(_InvoiceXMLFilename)+
              ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-xr.xml')))
+             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')))
     else
     if version = 3 then
       cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
              QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
              ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(_InvoiceXMLFilename)+
              ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\cii-xr.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-xr.xml')));
+             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')));
     cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
              QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
-             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-xr.xml'))+
+             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml'))+
              ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\xr-pdf.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-.fo'))); // geaendert von pdf auf fo
+             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-.fo'))); // geaendert von pdf auf fo
 
-    cmd.SaveToFile(_InvoiceXMLFilename+'.bat',TEncoding.UTF8); //ToDo
-    //cmd.SaveToFile(_InvoiceXMLFilename+'.bat');
+    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8); //ToDo
 
-    Result := ExecAndWait(_InvoiceXMLFilename+'.bat','');
+    Result := ExecAndWait(tmpFilename+'.bat','');
 
     _CmdOutput := CmdOutput.Text;
 
-    DeleteFile(_InvoiceXMLFilename+'.bat');
+    DeleteFile(tmpFilename+'.bat');
 
     if not Result then
       exit;
@@ -1273,12 +1284,12 @@ begin
     ////////////////////////////////////////////////////////////////////////////
     // Fopper aufrufen. Datei ist eine fo Datei. Saxon HE gibt eine fo-Datei zurueck!
     // cmd Inhalt aus der apache-fop\foop\fop.bat ausgelesen mit echo "%JAVACMD%" %JAVAOPTS% %LOGCHOICE% %LOGLEVEL% -cp "%LOCALCLASSPATH%" %FOP_OPTS% org.apache.fop.cli.Main %FOP_CMD_LINE_ARGS%
-    if FileExists(ChangeFileExt(_InvoiceXMLFilename,'-.fo')) then
+    if FileExists(ChangeFileExt(tmpFilename,'-.fo')) then
     begin
       cmd.Clear;
       cmd.WriteBOM := False;
       cmd.Add('chcp 65001 >nul');
-      cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(_InvoiceXMLFilename)));
+      cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
       cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
       QuoteIfContainsSpace(FopLibPath+'fop\build\fop.jar;'+FopLibPath+'fop\lib\batik-all-1.16.jar;' +
                            FopLibPath+'fop\lib\commons-io-2.11.0.jar;'+FopLibPath+'fop\lib\commons-logging-1.0.4.jar;' +
@@ -1286,28 +1297,28 @@ begin
                            FopLibPath+'fop\lib\xml-apis-1.4.01.jar;'+FopLibPath+'fop\lib\xml-apis-ext-1.3.04.jar;' +
                            FopLibPath+'fop\lib\xmlgraphics-commons-2.8.jar;') +
         ' org.apache.fop.cli.Main ' +
-        QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-.fo')) + ' ' +
-        QuoteIfContainsSpace(ChangeFileExt(_InvoiceXMLFilename,'-.pdf') ));
+        QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-.fo')) + ' ' +
+        QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-.pdf') ));
 
-      cmd.SaveToFile(_InvoiceXMLFilename+'.bat', TEncoding.UTF8);
+      cmd.SaveToFile(tmpFilename+'.bat', TEncoding.UTF8);
 
-      Result := ExecAndWait(_InvoiceXMLFilename+'.bat','');
+      Result := ExecAndWait(tmpFilename+'.bat','');
 
      _CmdOutput := _CmdOutput + #13#10 + CmdOutput.Text;
 
-     DeleteFile(_InvoiceXMLFilename+'.bat');
-     DeleteFile(ChangeFileExt(_InvoiceXMLFilename,'-.fo'));
+     DeleteFile(tmpFilename+'.bat');
+     DeleteFile(ChangeFileExt(tmpFilename,'-.fo'));
     end else
       Result := false;
 
-    DeleteFile(ChangeFileExt(_InvoiceXMLFilename,'-xr.xml'));
+    DeleteFile(ChangeFileExt(tmpFilename,'-xr.xml'));
     ////////////////////////////////////////////////////////////////////////////
-    if FileExists(ChangeFileExt(_InvoiceXMLFilename,'-.pdf')) then
+    if FileExists(ChangeFileExt(tmpFilename,'-.pdf')) then
     begin
       _VisualizationAsPdf := TMemoryStream.Create;
-      _VisualizationAsPdf.LoadFromFile(ChangeFileExt(_InvoiceXMLFilename,'-.pdf'));
+      _VisualizationAsPdf.LoadFromFile(ChangeFileExt(tmpFilename,'-.pdf'));
       _VisualizationAsPdf.Position := 0;
-      DeleteFile(ChangeFileExt(_InvoiceXMLFilename,'-.pdf'));
+      DeleteFile(ChangeFileExt(tmpFilename,'-.pdf'));
     end else
       Result := false;
   finally

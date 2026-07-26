@@ -402,11 +402,15 @@ begin
     exit;
   end;
 
+  //Ein leeres Schema wird beim Schreiben durch 'EM' ersetzt, unter Peppol ist beides unzulaessig,
+  //dort muss eine adressierbare Kennung aus der EAS-Codeliste angegeben werden
   if (_Version = PeppolBillingVersion_30) then
   if ((_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer <> '') and
-      (_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID = 'EM') or
-      (_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer <> '') and
-      (_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID = 'EM')) then
+      ((_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID = 'EM') or
+       (_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID = ''))) or
+     ((_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer <> '') and
+      ((_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID = 'EM') or
+       (_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID = ''))) then
   begin
     _ErrorCode := ccNoEMUnderPeppol;
     Result := false;

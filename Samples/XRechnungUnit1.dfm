@@ -236,7 +236,10 @@ object Form1: TForm1
       'Kreditkarte'
       'Leistungszeitraum je Pos.'
       'Third Party Payment BG-DEX-09'
-      '4 Nachkommastellen')
+      '4 Nachkommastellen'
+      'Endpoint-Schema 0088/0002'
+      'Endpoint-Schema EM'
+      'Endpoint-Schema leer')
     TabOrder = 15
   end
   object cbValidateWithJava: TCheckBox

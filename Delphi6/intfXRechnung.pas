@@ -152,6 +152,7 @@ const
   ccNoBT31BT30               = 6;
   ccNoBT31BT32               = 7;
   ccPrepaidPaymentNotSupported = 8;
+  ccNoEMUnderPeppol          = 9;
 
   ZUGFERD_INVOICE_PDF_FILENAME_FACTURX =
     'factur-x.xml';
@@ -365,6 +366,21 @@ begin
                    XRechnungVersion_30x_UBL]) then
   begin
     _ErrorCode := ccPrepaidPaymentNotSupported;
+    Result := false;
+    exit;
+  end;
+
+  //Ein leeres Schema wird beim Schreiben durch 'EM' ersetzt, unter Peppol ist beides unzulaessig,
+  //dort muss eine adressierbare Kennung aus der EAS-Codeliste angegeben werden
+  if (_Version = PeppolBillingVersion_30) then
+  if ((_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer <> '') and
+      ((_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID = 'EM') or
+       (_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID = ''))) or
+     ((_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer <> '') and
+      ((_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID = 'EM') or
+       (_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID = ''))) then
+  begin
+    _ErrorCode := ccNoEMUnderPeppol;
     Result := false;
     exit;
   end;

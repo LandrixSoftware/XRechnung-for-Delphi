@@ -70,6 +70,11 @@ type
     class procedure ThirdPartyPaymentBGDEX09(inv : TInvoice; //Durchlaufender Posten
                        NachlaesseZuschlaegeVerwenden : Boolean);
     class procedure VierNachkommastellen(inv : TInvoice);
+    //Elektronische Adressen BT-34/BT-49 mit frei waehlbarem Schema: unter Peppol ist
+    //weder 'EM' noch ein leeres Schema zulaessig, die XRechnung-Profile ersetzen ein
+    //leeres Schema dagegen weiterhin durch 'EM'
+    class procedure PeppolEndpointSchemeID(inv : TInvoice;
+                       const SchemeIDVerkaeufer, SchemeIDKaeufer : String);
   end;
 
 implementation
@@ -2363,6 +2368,26 @@ begin
   inv.ChargeTotalAmount := 0; //Zuschlaege
   inv.PrepaidAmount := 0; //Anzahlungen
   inv.PayableAmount := 9.82;      //Summe Zahlbar MwSt
+end;
+
+class procedure TInvoiceTestCases.PeppolEndpointSchemeID(inv: TInvoice;
+  const SchemeIDVerkaeufer, SchemeIDKaeufer: String);
+begin
+  MinimalbeispielB2BOhneLeitwegID(inv);
+
+  //BT-34 elektronische Adresse des Verkaeufers
+  //https://docs.peppol.eu/poacc/billing/3.0/codelist/eas/
+  if SchemeIDVerkaeufer = '0088' then
+    inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874'
+  else
+    inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'rechnung@example.org';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := SchemeIDVerkaeufer;
+  //BT-49 elektronische Adresse des Kaeufers
+  if SchemeIDKaeufer = '0002' then
+    inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342'
+  else
+    inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'einkauf@example.org';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := SchemeIDKaeufer;
 end;
 
 initialization

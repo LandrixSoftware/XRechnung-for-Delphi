@@ -94,7 +94,7 @@ type
     WebBrowserContentFilenameHtml : String;
     WebBrowserContentFilenamePdf : String;
     WebBrowserContentFilenameValitoolPdf : String;
-    procedure Generate(inv : TInvoice);
+    procedure Generate(inv : TInvoice; _EndpointTestfall : Boolean = false);
   private
     {$IFNDEF USE_EDGE_BROWSER}
     WebBrowser2: TWebBrowser;
@@ -753,6 +753,7 @@ end;
 procedure TForm1.Button9Click(Sender: TObject);
 var
   inv : TInvoice;
+  endpointtestfall : Boolean;
 begin
   if ListBox1.ItemIndex < 0 then
     exit;
@@ -762,6 +763,7 @@ begin
   Memo3.Clear;
 
   inv := TInvoice.Create;
+  endpointtestfall := false;
 
   try
     case ListBox1.ItemIndex of
@@ -781,21 +783,36 @@ begin
       13: TInvoiceTestCases.LeistungszeitraumJePosition(inv);
       14: TInvoiceTestCases.ThirdPartyPaymentBGDEX09(inv,cbAllowanceCharges.Checked);
       15: TInvoiceTestCases.VierNachkommastellen(inv);
+      //Die Endpoint-Testfaelle setzen die elektronischen Adressen selbst,
+      //Generate darf sie fuer Peppol nicht ueberschreiben
+      16: begin
+            TInvoiceTestCases.PeppolEndpointSchemeID(inv,'0088','0002');
+            endpointtestfall := true;
+          end;
+      17: begin
+            TInvoiceTestCases.PeppolEndpointSchemeID(inv,'EM','EM');
+            endpointtestfall := true;
+          end;
+      18: begin
+            TInvoiceTestCases.PeppolEndpointSchemeID(inv,'','');
+            endpointtestfall := true;
+          end;
       else ShowMessage('Hat einer was vergessen!');
     end;
 
-    Generate(inv);
+    Generate(inv,endpointtestfall);
 
   finally
     inv.Free;
   end;
 end;
 
-procedure TForm1.Generate(inv: TInvoice);
+procedure TForm1.Generate(inv: TInvoice; _EndpointTestfall : Boolean = false);
 var
   xml,xmltest,cmdoutput,xmlresult,htmlresult,error : String;
   invtest : TInvoice;
   version : TXRechnungVersion;
+  ec : Integer;
   {$IFDEF USE_Valitool}
   pdfresult : TMemoryStream;
   {$ENDIF}
@@ -817,7 +834,8 @@ begin
       else version := XRechnungVersion_30x_UNCEFACT;
     end;
 
-    if version = PeppolBillingVersion_30 then
+    //die Endpoint-Testfaelle bringen ihre eigenen elektronischen Adressen mit
+    if (version = PeppolBillingVersion_30) and (not _EndpointTestfall) then
     begin
       inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
       inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
@@ -825,10 +843,19 @@ begin
       inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
     end;
 
-    if not TXRechnungInvoiceAdapter.ConsistencyCheck(inv,version) then
+    if not TXRechnungInvoiceAdapter.ConsistencyCheck(inv,version,ec) then
     begin
-      MessageDlg('Die Rechnung enthaelt fuer das gewaehlte Format ungueltige Werte', mtError, [mbOK], 0);
-      exit;
+      //bei den Endpoint-Testfaellen ist die Ablehnung Teil des erwarteten Ergebnisses,
+      //das Dokument wird zur Kontrolle der Ausgabe auf Wunsch trotzdem erzeugt
+      if not _EndpointTestfall then
+      begin
+        MessageDlg('Die Rechnung enthaelt fuer das gewaehlte Format ungueltige Werte (ErrorCode '+
+                   IntToStr(ec)+')', mtError, [mbOK], 0);
+        exit;
+      end;
+      if MessageDlg('ConsistencyCheck abgelehnt (ErrorCode '+IntToStr(ec)+
+                    '). Dokument trotzdem erzeugen?', mtConfirmation, [mbYes,mbNo], 0) <> mrYes then
+        exit;
     end;
 
     case version of

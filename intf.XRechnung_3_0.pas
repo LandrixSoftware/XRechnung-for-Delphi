@@ -1351,6 +1351,8 @@ begin
     if _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer <> '' then
     with AddChild('cbc:EndpointID') do
     begin
+      //unter Peppol kein 'EM'-Default, dort ist eine Kennung aus der EAS-Codeliste Pflicht
+      if (_Profile <> ipPeppol) or (_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID <> '') then
       Attributes['schemeID'] := ifthen(_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID='','EM',_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID);
       Text := _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer;
     end;
@@ -1418,6 +1420,8 @@ begin
     if _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer <> '' then
     with AddChild('cbc:EndpointID') do
     begin
+      //unter Peppol kein 'EM'-Default, dort ist eine Kennung aus der EAS-Codeliste Pflicht
+      if (_Profile <> ipPeppol) or (_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID <> '') then
       Attributes['schemeID'] := ifthen(_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID='','EM',_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID);
       Text := _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer;
     end;
@@ -2028,6 +2032,8 @@ begin
         if _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer <> '' then
         with AddChild('ram:URIUniversalCommunication').AddChild('ram:URIID') do
         begin
+          //unter Peppol kein 'EM'-Default, dort ist eine Kennung aus der EAS-Codeliste Pflicht
+          if (_Profile <> ipPeppol) or (_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID <> '') then
           Attributes['schemeID'] := ifthen(_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID='','EM',_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID);
           Text := _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer;
         end;
@@ -2093,6 +2099,8 @@ begin
         if _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer <> '' then
         with AddChild('ram:URIUniversalCommunication').AddChild('ram:URIID') do
         begin
+          //unter Peppol kein 'EM'-Default, dort ist eine Kennung aus der EAS-Codeliste Pflicht
+          if (_Profile <> ipPeppol) or (_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID <> '') then
           Attributes['schemeID'] := ifthen(_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID='','EM',_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID);
           Text := _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer;
         end;

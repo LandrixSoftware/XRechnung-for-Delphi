@@ -178,60 +178,72 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,0,false,false,false,false);
   Sv(XRechnungVersion_30x_UBL,'Gesamtbeispiel-ubl-30x.xml');
+  EA; Sv(PeppolBillingVersion_30,'Gesamtbeispiel-ubl-peppol.xml');
+  inv.Free;
+  inv := TInvoice.Create; //CII-Varianten mit den Einschraenkungen der CII-Syntaxbindung
+  TInvoiceTestCases.Gesamtbeispiel(inv,0,false,false,false,false,true);
   Sv(ZUGFeRDEN16931Version_250,'Gesamtbeispiel-ciiEN16931-25.xml');
   Sv(ZUGFeRDExtendedVersion_250,'Gesamtbeispiel-ciiextended-25.xml');
   Sv(XRechnungVersion_30x_UNCEFACT,'Gesamtbeispiel-cii-30x.xml');
-  EA; Sv(PeppolBillingVersion_30,'Gesamtbeispiel-ubl-peppol.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,1,false,false,false,false);
   Sv(XRechnungVersion_30x_UBL,'Gesamtbeispiel-Nettoziel-ubl-30x.xml');
+  EA; Sv(PeppolBillingVersion_30,'Gesamtbeispiel-Nettoziel-ubl-peppol.xml');
+  inv.Free;
+  inv := TInvoice.Create; //CII-Varianten mit den Einschraenkungen der CII-Syntaxbindung
+  TInvoiceTestCases.Gesamtbeispiel(inv,1,false,false,false,false,true);
   Sv(ZUGFeRDEN16931Version_250,'Gesamtbeispiel-Nettoziel-ciiEN16931-25.xml');
   Sv(ZUGFeRDExtendedVersion_250,'Gesamtbeispiel-Nettoziel-ciiextended-25.xml');
   Sv(XRechnungVersion_30x_UNCEFACT,'Gesamtbeispiel-Nettoziel-cii-30x.xml');
-  EA; Sv(PeppolBillingVersion_30,'Gesamtbeispiel-Nettoziel-ubl-peppol.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,2,false,false,false,false);
   Sv(XRechnungVersion_30x_UBL,'Gesamtbeispiel-Skonto1-ubl-30x.xml');
+  EA; Sv(PeppolBillingVersion_30,'Gesamtbeispiel-Skonto1-ubl-peppol.xml');
+  inv.Free;
+  inv := TInvoice.Create; //CII-Varianten mit den Einschraenkungen der CII-Syntaxbindung
+  TInvoiceTestCases.Gesamtbeispiel(inv,2,false,false,false,false,true);
   Sv(ZUGFeRDEN16931Version_250,'Gesamtbeispiel-Skonto1-ciiEN16931-25.xml');
   Sv(ZUGFeRDExtendedVersion_250,'Gesamtbeispiel-Skonto1-ciiextended-25.xml');
   Sv(XRechnungVersion_30x_UNCEFACT,'Gesamtbeispiel-Skonto1-cii-30x.xml');
-  EA; Sv(PeppolBillingVersion_30,'Gesamtbeispiel-Skonto1-ubl-peppol.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,3,false,false,false,false);
   Sv(XRechnungVersion_30x_UBL,'Gesamtbeispiel-Skonto2-ubl-30x.xml');
+  EA; Sv(PeppolBillingVersion_30,'Gesamtbeispiel-Skonto2-ubl-peppol.xml');
+  inv.Free;
+  inv := TInvoice.Create; //CII-Varianten mit den Einschraenkungen der CII-Syntaxbindung
+  TInvoiceTestCases.Gesamtbeispiel(inv,3,false,false,false,false,true);
   Sv(ZUGFeRDEN16931Version_250,'Gesamtbeispiel-Skonto2-ciiEN16931-25.xml');
   Sv(ZUGFeRDExtendedVersion_250,'Gesamtbeispiel-Skonto2-ciiextended-25.xml');
   Sv(XRechnungVersion_30x_UNCEFACT,'Gesamtbeispiel-Skonto2-cii-30x.xml');
-  EA; Sv(PeppolBillingVersion_30,'Gesamtbeispiel-Skonto2-ubl-peppol.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,0,true,true,true,true);
   Sv(XRechnungVersion_30x_UBL,'Gesamtbeispiel-Alles-ubl-30x.xml');
-  Sv(ZUGFeRDEN16931Version_250,'Gesamtbeispiel-Alles-ciiEN16931-25.xml');
-  Sv(ZUGFeRDExtendedVersion_250,'Gesamtbeispiel-Alles-ciiextended-25.xml');
   EA; Sv(PeppolBillingVersion_30,'Gesamtbeispiel-Alles-ubl-peppol.xml');
   inv.Free;
-  inv := TInvoice.Create;
+  inv := TInvoice.Create; //CII-Varianten mit den Einschraenkungen der CII-Syntaxbindung
   TInvoiceTestCases.Gesamtbeispiel(inv,0,true,true,true,true,true);
+  Sv(ZUGFeRDEN16931Version_250,'Gesamtbeispiel-Alles-ciiEN16931-25.xml');
+  Sv(ZUGFeRDExtendedVersion_250,'Gesamtbeispiel-Alles-ciiextended-25.xml');
   Sv(XRechnungVersion_30x_UNCEFACT,'Gesamtbeispiel-Alles-cii-30x.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,3,true,true,true,true);
   Sv(XRechnungVersion_30x_UBL,'Gesamtbeispiel-Alles-Skonto2-ubl-30x.xml');
-  Sv(ZUGFeRDEN16931Version_250,'Gesamtbeispiel-Alles-Skonto2-ciiEN16931-25.xml');
-  Sv(ZUGFeRDExtendedVersion_250,'Gesamtbeispiel-Alles-Skonto2-ciiextended-25.xml');
   EA; Sv(PeppolBillingVersion_30,'Gesamtbeispiel-Alles-Skonto2-ubl-peppol.xml');
   inv.Free;
-  inv := TInvoice.Create;
+  inv := TInvoice.Create; //CII-Varianten mit den Einschraenkungen der CII-Syntaxbindung
   TInvoiceTestCases.Gesamtbeispiel(inv,3,true,true,true,true,true);
+  Sv(ZUGFeRDEN16931Version_250,'Gesamtbeispiel-Alles-Skonto2-ciiEN16931-25.xml');
+  Sv(ZUGFeRDExtendedVersion_250,'Gesamtbeispiel-Alles-Skonto2-ciiextended-25.xml');
   Sv(XRechnungVersion_30x_UNCEFACT,'Gesamtbeispiel-Alles-Skonto2-cii-30x.xml');
   inv.Free;
 

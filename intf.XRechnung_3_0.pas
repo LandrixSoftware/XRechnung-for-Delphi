@@ -2347,7 +2347,15 @@ begin
             AddChild('ram:RateApplicablePercent').Text := TXRechnungHelper.PercentageToStr(_Invoice.AllowanceCharges[i].TaxPercent);
         end;
       end;
-      if (_Profile = ipXRechnung) then
+      //Nur ZUGFeRD EXTENDED kennt mehrere ram:SpecifiedTradePaymentTerms und die
+      //Detailinformationen zu Zahlungsabschlaegen (ram:ApplicableTradePaymentDiscountTerms, BG-X-44).
+      //EN16931 erlaubt nur eine Zahlungsbedingung, der Skonto wird dort als Text abgebildet.
+      if (_Profile = ipXRechnung) or
+         ((_Profile <> ipZUGFeRDExtended) and
+          (((_Invoice.PaymentTermsType = iptt_Net) and (_Invoice.PaymentTermNetNote <> '')) or
+           (_Invoice.PaymentTermsType in [iptt_CashDiscount1,iptt_CashDiscount2,iptt_CashDiscount3]) or
+           (_Invoice.InvoiceDueDate > 100) or
+           (_Invoice.PaymentMandateID <> ''))) then
       with AddChild('ram:SpecifiedTradePaymentTerms') do
       begin
         case _Invoice.PaymentTermsType of
@@ -2397,7 +2405,7 @@ begin
                 #13#10;
           end;
         end;
-        if _Invoice.InvoiceTypeCode <> itc_CreditNote then
+        if (_Profile <> ipXRechnung) or (_Invoice.InvoiceTypeCode <> itc_CreditNote) then
         if _Invoice.InvoiceDueDate > 100 then
         with AddChild('ram:DueDateDateTime').AddChild('udt:DateTimeString') do
         begin
@@ -2406,7 +2414,8 @@ begin
         end;
         if _Invoice.PaymentMandateID <> '' then
           AddChild('ram:DirectDebitMandateID').Text := _Invoice.PaymentMandateID;
-      end else //if _ProfileZUGFeRDExtended then
+      end else
+      if (_Profile = ipZUGFeRDExtended) then
       begin
         if (_Invoice.InvoiceDueDate > 100) or
            (_Invoice.PaymentMandateID <> '') or

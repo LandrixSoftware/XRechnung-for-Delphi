@@ -212,7 +212,7 @@ Zeile 3</ram:Description>
         </ram:OccurrenceDateTime>
       </ram:ActualDeliverySupplyChainEvent>
       <ram:DespatchAdviceReferencedDocument>
-        <ram:IssuerAssignedID>Lieferschein123</ram:IssuerAssignedID>
+        <ram:IssuerAssignedID>Versandanzeige123</ram:IssuerAssignedID>
         <ram:FormattedIssueDateTime>
           <qdt:DateTimeString format="102">20260825</qdt:DateTimeString>
         </ram:FormattedIssueDateTime>

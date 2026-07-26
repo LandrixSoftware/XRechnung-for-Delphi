@@ -31,7 +31,7 @@
     </cac:InvoiceDocumentReference>
   </cac:BillingReference>
   <cac:DespatchDocumentReference>
-    <cbc:ID>Lieferschein123</cbc:ID>
+    <cbc:ID>Versandanzeige123</cbc:ID>
   </cac:DespatchDocumentReference>
   <cac:ReceiptDocumentReference>
     <cbc:ID>RDR456789</cbc:ID>

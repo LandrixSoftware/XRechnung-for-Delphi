@@ -406,7 +406,7 @@ begin
   inv.ProjectReference := 'PR456789';
   inv.ReceiptDocumentReference := 'RDR456789';
   inv.ContractDocumentReference := 'V876543210';
-  inv.DeliveryReceiptNumber := 'Lieferschein123';
+  inv.DeliveryReceiptNumber := 'Versandanzeige123'; //BT-16 ist die Versandanzeige, nicht der Lieferschein
   inv.DeliveryReceiptDate := inv.InvoiceIssueDate-5;
   inv.DeliveryReceiptNumberExtended := 'Lieferschein123'; //Falls man es benötigt unter ZUGFeRD-Extended
   inv.DeliveryReceiptDateExtended := inv.InvoiceIssueDate-5; //Falls man es benötigt unter ZUGFeRD-Extended

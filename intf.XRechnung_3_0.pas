@@ -2225,7 +2225,7 @@ begin
         Attributes['format'] := '102';
         Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoice.DeliveryInformation.ActualDeliveryDate);
       end;
-      if (_Invoice.DeliveryReceiptNumber <> '') then //Lieferscheinnummer
+      if (_Invoice.DeliveryReceiptNumber <> '') then //BT-16 Versandanzeigereferenz
       with AddChild('ram:DespatchAdviceReferencedDocument') do
       begin
         AddChild('ram:IssuerAssignedID').Text := _Invoice.DeliveryReceiptNumber;

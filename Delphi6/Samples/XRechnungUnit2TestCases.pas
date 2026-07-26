@@ -362,7 +362,7 @@ begin
   inv.ProjectReference := 'PR456789';
   inv.ReceiptDocumentReference := 'RDR456789';
   inv.ContractDocumentReference := 'V876543210';
-  inv.DeliveryReceiptNumber := 'Lieferschein123';
+  inv.DeliveryReceiptNumber := 'Versandanzeige123'; //BT-16 ist die Versandanzeige, nicht der Lieferschein
   inv.BuyerAccountingReference := '1234';
 
   inv.AccountingSupplierParty.Name := 'Verkaeufername'; //wenn von RegistrationName abweichend

@@ -389,84 +389,96 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,0,false,false,false,false);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-ubl-30x.xml');
-  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Gesamtbeispiel-ciiEN16931-25.xml');
-  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Gesamtbeispiel-ciiextended-25.xml');
-  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-cii-30x.xml');
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
   TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Gesamtbeispiel-ubl-peppol.xml');
   inv.Free;
+  inv := TInvoice.Create; //CII-Varianten mit den Einschraenkungen der CII-Syntaxbindung
+  TInvoiceTestCases.Gesamtbeispiel(inv,0,false,false,false,false,true);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Gesamtbeispiel-ciiEN16931-25.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Gesamtbeispiel-ciiextended-25.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-cii-30x.xml');
+  inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,1,false,false,false,false);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-Nettoziel-ubl-30x.xml');
-  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Gesamtbeispiel-Nettoziel-ciiEN16931-25.xml');
-  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Gesamtbeispiel-Nettoziel-ciiextended-25.xml');
-  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-Nettoziel-cii-30x.xml');
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
   TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Gesamtbeispiel-Nettoziel-ubl-peppol.xml');
   inv.Free;
+  inv := TInvoice.Create; //CII-Varianten mit den Einschraenkungen der CII-Syntaxbindung
+  TInvoiceTestCases.Gesamtbeispiel(inv,1,false,false,false,false,true);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Gesamtbeispiel-Nettoziel-ciiEN16931-25.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Gesamtbeispiel-Nettoziel-ciiextended-25.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-Nettoziel-cii-30x.xml');
+  inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,2,false,false,false,false);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto1-ubl-30x.xml');
-  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto1-ciiEN16931-25.xml');
-  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto1-ciiextended-25.xml');
-  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto1-cii-30x.xml');
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
   TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto1-ubl-peppol.xml');
   inv.Free;
+  inv := TInvoice.Create; //CII-Varianten mit den Einschraenkungen der CII-Syntaxbindung
+  TInvoiceTestCases.Gesamtbeispiel(inv,2,false,false,false,false,true);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto1-ciiEN16931-25.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto1-ciiextended-25.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto1-cii-30x.xml');
+  inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,3,false,false,false,false);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto2-ubl-30x.xml');
-  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto2-ciiEN16931-25.xml');
-  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto2-ciiextended-25.xml');
-  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto2-cii-30x.xml');
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
   TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto2-ubl-peppol.xml');
   inv.Free;
+  inv := TInvoice.Create; //CII-Varianten mit den Einschraenkungen der CII-Syntaxbindung
+  TInvoiceTestCases.Gesamtbeispiel(inv,3,false,false,false,false,true);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto2-ciiEN16931-25.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto2-ciiextended-25.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-Skonto2-cii-30x.xml');
+  inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,0,true,true,true,true);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-ubl-30x.xml');
-  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-ciiEN16931-25.xml');
-  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-ciiextended-25.xml');
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
   TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-ubl-peppol.xml');
   inv.Free;
-  inv := TInvoice.Create;
+  inv := TInvoice.Create; //CII-Varianten mit den Einschraenkungen der CII-Syntaxbindung
   TInvoiceTestCases.Gesamtbeispiel(inv,0,true,true,true,true,true);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-ciiEN16931-25.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-ciiextended-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-cii-30x.xml');
   inv.Free;
 
   inv := TInvoice.Create;
   TInvoiceTestCases.Gesamtbeispiel(inv,3,true,true,true,true);
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-Skonto2-ubl-30x.xml');
-  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-Skonto2-ciiEN16931-25.xml');
-  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-Skonto2-ciiextended-25.xml');
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
   TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-Skonto2-ubl-peppol.xml');
   inv.Free;
-  inv := TInvoice.Create;
+  inv := TInvoice.Create; //CII-Varianten mit den Einschraenkungen der CII-Syntaxbindung
   TInvoiceTestCases.Gesamtbeispiel(inv,3,true,true,true,true,true);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-Skonto2-ciiEN16931-25.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-Skonto2-ciiextended-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Gesamtbeispiel-Alles-Skonto2-cii-30x.xml');
   inv.Free;
 

@@ -50,6 +50,8 @@ type
     class procedure Gesamtbeispiel(inv : TInvoice; Zahlungsbedingung : Integer;
                        NachlaesseZuschlaegeVerwenden, AbschlagsrechnungAbziehen,
                        AnhaengeVerwenden, LieferanschriftAusgeben : Boolean;
+                       //true fuer alle CII-Ausgaben (XRechnung CII und ZUGFeRD): die
+                       //EN16931-Syntaxbindung an CII D16B kennt Einschraenkungen, die es in UBL nicht gibt
                        XRechnungCII : Boolean = false);
     class procedure Kleinunternehmerregelung(inv : TInvoice);
     class procedure Paragr13b(inv : TInvoice);

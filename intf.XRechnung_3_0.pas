@@ -273,6 +273,14 @@ begin
 
     if TXRechnungXMLHelper.SelectNodes(xml,'//cac:AdditionalDocumentReference',nodes) then
     for i := 0  to nodes.length-1 do
+    //BT-11 : in der Gutschrift wird die Projektreferenz als cac:AdditionalDocumentReference mit
+    //DocumentTypeCode 50 abgebildet, ein echter Anhang liegt dort nie vor
+    if (_Invoice.InvoiceTypeCode = itc_CreditNote) and
+       SameText(TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//cbc:DocumentTypeCode'),'50') and
+       (not TXRechnungXMLHelper.FindNode(nodes.item[i],'.//cac:Attachment')) then
+    begin
+      _Invoice.ProjectReference := TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//cbc:ID');
+    end else
     with _Invoice.Attachments.AddAttachment(iat_application_None) do
     begin
       ID := TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//cbc:ID');
@@ -291,6 +299,7 @@ begin
         end;
       end;
     end;
+    if (_Invoice.InvoiceTypeCode <> itc_CreditNote) then
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:ProjectReference/cbc:ID',node) then
       _Invoice.ProjectReference := node.Text;
     if TXRechnungXMLHelper.SelectNode(xml,'//cac:AccountingSupplierParty/cac:Party',node) then
@@ -1040,6 +1049,7 @@ class procedure TXRechnungInvoiceAdapter301.SaveDocumentUBL(_Invoice: TInvoice;
 var
   xRoot : IXMLNode;
   i : Integer;
+  bBT18Written : Boolean;
 
   function InternalExtensionEnabled : Boolean;
   begin
@@ -1267,17 +1277,38 @@ begin
   if _Invoice.ReceiptDocumentReference <> '' then
     xRoot.AddChild('cac:ReceiptDocumentReference').AddChild('cbc:ID').Text := _Invoice.ReceiptDocumentReference;
 
+  //BT-17 steht in der Rechnung vor cac:ContractDocumentReference,
+  //in der Gutschrift dagegen erst hinter cac:AdditionalDocumentReference (siehe UBL-CreditNote-2.1.xsd)
+  if (_Invoice.InvoiceTypeCode <> itc_CreditNote) then
   for i := 0 to _Invoice.Attachments.Count -1 do
   if (_Invoice.Attachments[i].TypeCode = iatc_50) then //BT-17
   if (_Invoice.Attachments[i].ID <> '') then
+  begin
     xRoot.AddChild('cac:OriginatorDocumentReference').AddChild('cbc:ID').Text := _Invoice.Attachments[i].ID;
+    break; //BT-17 ist nur einmal zulaessig, weitere Attachments mit iatc_50 werden verworfen
+  end;
 
   if _Invoice.ContractDocumentReference <> '' then
     xRoot.AddChild('cac:ContractDocumentReference').AddChild('cbc:ID').Text := _Invoice.ContractDocumentReference;
 
+  if (_Invoice.ProjectReference <> '') and (_Invoice.InvoiceTypeCode = itc_CreditNote) then
+  with xRoot.AddChild('cac:AdditionalDocumentReference') do
+  begin
+    AddChild('cbc:ID').Text := _Invoice.ProjectReference;
+    AddChild('cbc:DocumentTypeCode').Text := TXRechnungHelper.InvoiceAttachmentTypeCodeToStr(iatc_50);
+  end;
+
+  bBT18Written := false;
   for i := 0 to _Invoice.Attachments.Count -1 do
   if (_Invoice.Attachments[i].TypeCode <> iatc_50) then //BT-17 extra
   begin
+    //BT-18 ist nur einmal zulaessig (UBL-SR-04), weitere Attachments mit iatc_130 werden verworfen
+    if (_Invoice.Attachments[i].TypeCode = iatc_130) then
+    begin
+      if bBT18Written or (_Invoice.Attachments[i].ID = '') then
+        Continue;
+      bBT18Written := true;
+    end;
     with xRoot.AddChild('cac:AdditionalDocumentReference') do
     begin
       AddChild('cbc:ID').Text := _Invoice.Attachments[i].ID;
@@ -1302,7 +1333,17 @@ begin
     end;
   end;
 
-  if _Invoice.ProjectReference <> '' then
+  if (_Invoice.InvoiceTypeCode = itc_CreditNote) then
+  for i := 0 to _Invoice.Attachments.Count -1 do
+  if (_Invoice.Attachments[i].TypeCode = iatc_50) then //BT-17
+  if (_Invoice.Attachments[i].ID <> '') then
+  begin
+    xRoot.AddChild('cac:OriginatorDocumentReference').AddChild('cbc:ID').Text := _Invoice.Attachments[i].ID;
+    break; //BT-17 ist nur einmal zulaessig, weitere Attachments mit iatc_50 werden verworfen
+  end;
+
+  //BT-11 : die Gutschrift kennt kein cac:ProjectReference, dort oben als cac:AdditionalDocumentReference ausgegeben
+  if (_Invoice.ProjectReference <> '') and (_Invoice.InvoiceTypeCode <> itc_CreditNote) then
     xRoot.AddChild('cac:ProjectReference').AddChild('cbc:ID').Text := _Invoice.ProjectReference;
 
   with xRoot.AddChild('cac:AccountingSupplierParty').AddChild('cac:Party') do
@@ -1734,6 +1775,7 @@ var
   lDays : Integer;
   lSkonto : double;
   lBasisAmount,lActualDiscountAmount : Currency;
+  bBT17Written,bBT18Written : Boolean;
 
   procedure InternalAddInvoiceLine(_Invoiceline : TInvoiceLine; _Node : IXMLNode);
   var
@@ -2076,8 +2118,24 @@ begin
         AddChild('ram:BuyerOrderReferencedDocument').AddChild('ram:IssuerAssignedID').Text := _Invoice.PurchaseOrderReference;
       if _Invoice.ContractDocumentReference <> '' then
         AddChild('ram:ContractReferencedDocument').AddChild('ram:IssuerAssignedID').Text := _Invoice.ContractDocumentReference;
+      bBT17Written := false;
+      bBT18Written := false;
       for i := 0 to _Invoice.Attachments.Count -1 do
       begin
+        //BT-17 ist nur einmal zulaessig (CII-SR-457), weitere Attachments mit iatc_50 werden verworfen
+        if (_Invoice.Attachments[i].TypeCode = iatc_50) then
+        begin
+          if bBT17Written or (_Invoice.Attachments[i].ID = '') then
+            Continue;
+          bBT17Written := true;
+        end;
+        //BT-18 ist nur einmal zulaessig (CII-SR-458), weitere Attachments mit iatc_130 werden verworfen
+        if (_Invoice.Attachments[i].TypeCode = iatc_130) then
+        begin
+          if bBT18Written or (_Invoice.Attachments[i].ID = '') then
+            Continue;
+          bBT18Written := true;
+        end;
         with AddChild('ram:AdditionalReferencedDocument') do
         begin
           AddChild('ram:IssuerAssignedID').Text := _Invoice.Attachments[i].ID;

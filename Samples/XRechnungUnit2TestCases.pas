@@ -519,6 +519,14 @@ begin
       inv.PaymentTermsType := iptt_None;
   end;
 
+  //Gegenbeispiel zu BT-17: ein Eintrag ohne Kennung wird beim Schreiben uebersprungen,
+  //der erste Eintrag mit Kennung wird ausgegeben, jeder weitere wird verworfen -
+  //BT-17 ist nur einmal zulaessig (UBL cac:OriginatorDocumentReference 0..1, CII-SR-457)
+  with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_application_None) do
+  begin
+    ID := ''; //ohne Kennung
+    TypeCode := iatc_50;
+  end;
   with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_application_None) do
   begin
     ID := 'BT-17 12345';
@@ -526,8 +534,20 @@ begin
   end;
   with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_application_None) do
   begin
+    ID := 'BT-17 67890'; //zweite Ausschreibungs-/Losreferenz
+    TypeCode := iatc_50;
+  end;
+  //Gegenbeispiel zu BT-18 analog BT-17: nur der erste Eintrag mit Kennung wird ausgegeben
+  //(UBL-SR-04, CII-SR-458)
+  with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_application_None) do
+  begin
     ID := 'BT-18 12345';
     TypeCode := iatc_130; //BT-18 "Rechnungsdatenblatt" wird benutzt, um eine vom Verkäufer angegebene Kennung für ein Objekt zu referenzieren.
+  end;
+  with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_application_None) do
+  begin
+    ID := 'BT-18 67890'; //zweite Objektkennung
+    TypeCode := iatc_130;
   end;
   //Validator für XRechnung UBL meckert BT-122 an, aber eigentlich ist es korrekt
   //Validator validool.org validiert korrekt
@@ -801,6 +821,13 @@ begin
   inv.InvoicePeriodStartDate := TInvoiceTestCases.InvoicePeriodStartDate;
   inv.InvoicePeriodEndDate := TInvoiceTestCases.InvoicePeriodEndDate;
   inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CreditNote; //Gutschrift
+  //BT-11 wird in der Gutschrift als cac:AdditionalDocumentReference mit DocumentTypeCode 50 ausgegeben
+  inv.ProjectReference := 'PR-123';
+  with inv.Attachments.AddAttachment(TInvoiceAttachmentType.iat_application_None) do
+  begin
+    ID := 'BT-17 12345';
+    TypeCode := iatc_50; //BT-17 steht in der Gutschrift hinter cac:AdditionalDocumentReference
+  end;
   inv.InvoiceCurrencyCode := 'EUR';
   inv.Notes.AddNote.Content := 'Notiz zur Gutschrift';
   inv.TaxCurrencyCode := 'EUR';

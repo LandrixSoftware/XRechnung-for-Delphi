@@ -120,7 +120,7 @@ Zeile 3</ram:Description>
           <ram:ChargeIndicator>
             <udt:Indicator>false</udt:Indicator>
           </ram:ChargeIndicator>
-          <ram:CalculationPercent>5.00</ram:CalculationPercent>
+          <ram:CalculationPercent>5.0000</ram:CalculationPercent>
           <ram:BasisAmount>50.00</ram:BasisAmount>
           <ram:ActualAmount>2.50</ram:ActualAmount>
           <ram:ReasonCode>95</ram:ReasonCode>
@@ -390,12 +390,6 @@ Zeile 3</ram:Description>
         <ram:IssuerAssignedID>R2020-0001</ram:IssuerAssignedID>
         <ram:FormattedIssueDateTime>
           <qdt:DateTimeString format="102">20240827</qdt:DateTimeString>
-        </ram:FormattedIssueDateTime>
-      </ram:InvoiceReferencedDocument>
-      <ram:InvoiceReferencedDocument>
-        <ram:IssuerAssignedID>R2020-0002</ram:IssuerAssignedID>
-        <ram:FormattedIssueDateTime>
-          <qdt:DateTimeString format="102">20241016</qdt:DateTimeString>
         </ram:FormattedIssueDateTime>
       </ram:InvoiceReferencedDocument>
       <ram:ReceivableSpecifiedTradeAccountingAccount>

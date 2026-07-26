@@ -116,6 +116,14 @@
           <ram:ID schemeID="VA">DE123456788</ram:ID>
         </ram:SpecifiedTaxRegistration>
       </ram:BuyerTradeParty>
+      <ram:AdditionalReferencedDocument>
+        <ram:IssuerAssignedID>BT-17 12345</ram:IssuerAssignedID>
+        <ram:TypeCode>50</ram:TypeCode>
+      </ram:AdditionalReferencedDocument>
+      <ram:SpecifiedProcuringProject>
+        <ram:ID>PR-123</ram:ID>
+        <ram:Name>Project reference</ram:Name>
+      </ram:SpecifiedProcuringProject>
     </ram:ApplicableHeaderTradeAgreement>
     <ram:ApplicableHeaderTradeDelivery>
       <ram:ActualDeliverySupplyChainEvent>

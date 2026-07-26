@@ -257,33 +257,12 @@ Zeile 3</ram:Description>
         </ram:EndDateTime>
       </ram:BillingSpecifiedPeriod>
       <ram:SpecifiedTradePaymentTerms>
+        <ram:Description>#SKONTO#TAGE=7#PROZENT=4.25#
+#SKONTO#TAGE=14#PROZENT=3.00#
+</ram:Description>
         <ram:DueDateDateTime>
           <udt:DateTimeString format="102">20260929</udt:DateTimeString>
         </ram:DueDateDateTime>
-      </ram:SpecifiedTradePaymentTerms>
-      <ram:SpecifiedTradePaymentTerms>
-        <ram:DueDateDateTime>
-          <udt:DateTimeString format="102">20260906</udt:DateTimeString>
-        </ram:DueDateDateTime>
-        <ram:ApplicableTradePaymentDiscountTerms>
-          <ram:BasisDateTime>
-            <udt:DateTimeString format="102">20260830</udt:DateTimeString>
-          </ram:BasisDateTime>
-          <ram:BasisPeriodMeasure unitCode="DAY">7</ram:BasisPeriodMeasure>
-          <ram:CalculationPercent>4.25</ram:CalculationPercent>
-        </ram:ApplicableTradePaymentDiscountTerms>
-      </ram:SpecifiedTradePaymentTerms>
-      <ram:SpecifiedTradePaymentTerms>
-        <ram:DueDateDateTime>
-          <udt:DateTimeString format="102">20260913</udt:DateTimeString>
-        </ram:DueDateDateTime>
-        <ram:ApplicableTradePaymentDiscountTerms>
-          <ram:BasisDateTime>
-            <udt:DateTimeString format="102">20260830</udt:DateTimeString>
-          </ram:BasisDateTime>
-          <ram:BasisPeriodMeasure unitCode="DAY">14</ram:BasisPeriodMeasure>
-          <ram:CalculationPercent>3.00</ram:CalculationPercent>
-        </ram:ApplicableTradePaymentDiscountTerms>
       </ram:SpecifiedTradePaymentTerms>
       <ram:SpecifiedTradeSettlementHeaderMonetarySummation>
         <ram:LineTotalAmount>200.00</ram:LineTotalAmount>

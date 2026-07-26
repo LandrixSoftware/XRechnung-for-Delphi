@@ -13,6 +13,13 @@
     <cbc:StartDate>2026-07-31</cbc:StartDate>
     <cbc:EndDate>2026-08-29</cbc:EndDate>
   </cac:InvoicePeriod>
+  <cac:AdditionalDocumentReference>
+    <cbc:ID>PR-123</cbc:ID>
+    <cbc:DocumentTypeCode>50</cbc:DocumentTypeCode>
+  </cac:AdditionalDocumentReference>
+  <cac:OriginatorDocumentReference>
+    <cbc:ID>BT-17 12345</cbc:ID>
+  </cac:OriginatorDocumentReference>
   <cac:AccountingSupplierParty>
     <cac:Party>
       <cbc:EndpointID schemeID="0088">9482348239847239874</cbc:EndpointID>

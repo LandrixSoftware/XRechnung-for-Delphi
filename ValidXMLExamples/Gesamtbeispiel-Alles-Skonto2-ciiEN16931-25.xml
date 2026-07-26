@@ -119,7 +119,7 @@ Zeile 3</ram:Description>
           <ram:ChargeIndicator>
             <udt:Indicator>false</udt:Indicator>
           </ram:ChargeIndicator>
-          <ram:CalculationPercent>5.00</ram:CalculationPercent>
+          <ram:CalculationPercent>5.0000</ram:CalculationPercent>
           <ram:BasisAmount>50.00</ram:BasisAmount>
           <ram:ActualAmount>2.50</ram:ActualAmount>
           <ram:ReasonCode>95</ram:ReasonCode>
@@ -362,33 +362,12 @@ Zeile 3</ram:Description>
         </ram:CategoryTradeTax>
       </ram:SpecifiedTradeAllowanceCharge>
       <ram:SpecifiedTradePaymentTerms>
+        <ram:Description>#SKONTO#TAGE=7#PROZENT=4.25#
+#SKONTO#TAGE=14#PROZENT=3.00#
+</ram:Description>
         <ram:DueDateDateTime>
           <udt:DateTimeString format="102">20260929</udt:DateTimeString>
         </ram:DueDateDateTime>
-      </ram:SpecifiedTradePaymentTerms>
-      <ram:SpecifiedTradePaymentTerms>
-        <ram:DueDateDateTime>
-          <udt:DateTimeString format="102">20260906</udt:DateTimeString>
-        </ram:DueDateDateTime>
-        <ram:ApplicableTradePaymentDiscountTerms>
-          <ram:BasisDateTime>
-            <udt:DateTimeString format="102">20260830</udt:DateTimeString>
-          </ram:BasisDateTime>
-          <ram:BasisPeriodMeasure unitCode="DAY">7</ram:BasisPeriodMeasure>
-          <ram:CalculationPercent>4.25</ram:CalculationPercent>
-        </ram:ApplicableTradePaymentDiscountTerms>
-      </ram:SpecifiedTradePaymentTerms>
-      <ram:SpecifiedTradePaymentTerms>
-        <ram:DueDateDateTime>
-          <udt:DateTimeString format="102">20260913</udt:DateTimeString>
-        </ram:DueDateDateTime>
-        <ram:ApplicableTradePaymentDiscountTerms>
-          <ram:BasisDateTime>
-            <udt:DateTimeString format="102">20260830</udt:DateTimeString>
-          </ram:BasisDateTime>
-          <ram:BasisPeriodMeasure unitCode="DAY">14</ram:BasisPeriodMeasure>
-          <ram:CalculationPercent>3.00</ram:CalculationPercent>
-        </ram:ApplicableTradePaymentDiscountTerms>
       </ram:SpecifiedTradePaymentTerms>
       <ram:SpecifiedTradeSettlementHeaderMonetarySummation>
         <ram:LineTotalAmount>195.00</ram:LineTotalAmount>
@@ -404,12 +383,6 @@ Zeile 3</ram:Description>
         <ram:IssuerAssignedID>R2020-0001</ram:IssuerAssignedID>
         <ram:FormattedIssueDateTime>
           <qdt:DateTimeString format="102">20240827</qdt:DateTimeString>
-        </ram:FormattedIssueDateTime>
-      </ram:InvoiceReferencedDocument>
-      <ram:InvoiceReferencedDocument>
-        <ram:IssuerAssignedID>R2020-0002</ram:IssuerAssignedID>
-        <ram:FormattedIssueDateTime>
-          <qdt:DateTimeString format="102">20241016</qdt:DateTimeString>
         </ram:FormattedIssueDateTime>
       </ram:InvoiceReferencedDocument>
       <ram:ReceivableSpecifiedTradeAccountingAccount>

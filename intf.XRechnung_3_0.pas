@@ -169,15 +169,21 @@ var
       _Party.ElectronicAddressSellerBuyer := node.text;
       _Party.ElectronicAddressSellerBuyerSchemeID := TXRechnungXMLHelper.SelectAttributeText(node,'schemeID');
     end;
+    //IDs mit schemeID (z.B. 0088 GLN) gehoeren zur GlobalID (BT-29-0/BT-46-0), IDs ohne schemeID zur Kennung (BT-29/BT-46)
     if TXRechnungXMLHelper.SelectNodes(_Node,'.//cac:PartyIdentification',nodes) then
     for i := 0 to nodes.length-1 do
     if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//cbc:ID',node) then
     begin
-      if SameText(TXRechnungXMLHelper.SelectAttributeText(node,'schemeID'),'0088') then
-        _Party.IdentifierSellerBuyer := node.text
-      else
       if SameText(TXRechnungXMLHelper.SelectAttributeText(node,'schemeID'),'SEPA') then
-        _Party.BankAssignedCreditorIdentifier := node.text;
+        _Party.BankAssignedCreditorIdentifier := node.text
+      else
+      if TXRechnungXMLHelper.SelectAttributeText(node,'schemeID') <> '' then
+      begin
+        _Party.GlobalIdentifierSellerBuyer := node.text;
+        _Party.GlobalIdentifierSellerBuyerSchemeID := TXRechnungXMLHelper.SelectAttributeText(node,'schemeID');
+      end
+      else
+        _Party.IdentifierSellerBuyer := node.text;
     end;
     _Party.Name := TXRechnungXMLHelper.SelectNodeText(_Node,'.//cac:PartyName/cbc:Name');
     _Party.Address.StreetName := TXRechnungXMLHelper.SelectNodeText(_Node,'.//cac:PostalAddress/cbc:StreetName');
@@ -1356,12 +1362,16 @@ begin
       Attributes['schemeID'] := ifthen(_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID='','EM',_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID);
       Text := _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer;
     end;
-    if _Invoice.AccountingSupplierParty.IdentifierSellerBuyer <> '' then
+    //GlobalID (z.B. GLN) als eigene PartyIdentification mit schemeID,
+    //Verkaeuferkennung (BT-29) ohne schemeID - die Kennung ist keine GLN
+    if _Invoice.AccountingSupplierParty.GlobalIdentifierSellerBuyer <> '' then
     with AddChild('cac:PartyIdentification').AddChild('cbc:ID') do
     begin
-      Attributes['schemeID'] := '0088';
-      Text := _Invoice.AccountingSupplierParty.IdentifierSellerBuyer;
+      Attributes['schemeID'] := IfThen(_Invoice.AccountingSupplierParty.GlobalIdentifierSellerBuyerSchemeID = '','0088',_Invoice.AccountingSupplierParty.GlobalIdentifierSellerBuyerSchemeID);
+      Text := _Invoice.AccountingSupplierParty.GlobalIdentifierSellerBuyer;
     end;
+    if _Invoice.AccountingSupplierParty.IdentifierSellerBuyer <> '' then
+      AddChild('cac:PartyIdentification').AddChild('cbc:ID').Text := _Invoice.AccountingSupplierParty.IdentifierSellerBuyer;
     if _Invoice.AccountingSupplierParty.BankAssignedCreditorIdentifier <> '' then
     with AddChild('cac:PartyIdentification').AddChild('cbc:ID') do
     begin
@@ -1425,12 +1435,17 @@ begin
       Attributes['schemeID'] := ifthen(_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID='','EM',_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID);
       Text := _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer;
     end;
-    if _Invoice.AccountingCustomerParty.IdentifierSellerBuyer <> '' then
+    //BT-46 ist in UBL max. einmal erlaubt (UBL-SR-16) - GlobalID (z.B. GLN) hat Vorrang
+    //vor der Kaeuferkennung; Kennung ohne GlobalID ohne schemeID (die Kennung ist keine GLN)
+    if _Invoice.AccountingCustomerParty.GlobalIdentifierSellerBuyer <> '' then
     with AddChild('cac:PartyIdentification').AddChild('cbc:ID') do
     begin
-      Attributes['schemeID'] := '0088';
-      Text := _Invoice.AccountingCustomerParty.IdentifierSellerBuyer;
-    end;
+      Attributes['schemeID'] := IfThen(_Invoice.AccountingCustomerParty.GlobalIdentifierSellerBuyerSchemeID = '','0088',_Invoice.AccountingCustomerParty.GlobalIdentifierSellerBuyerSchemeID);
+      Text := _Invoice.AccountingCustomerParty.GlobalIdentifierSellerBuyer;
+    end
+    else
+    if _Invoice.AccountingCustomerParty.IdentifierSellerBuyer <> '' then
+      AddChild('cac:PartyIdentification').AddChild('cbc:ID').Text := _Invoice.AccountingCustomerParty.IdentifierSellerBuyer;
     if _Invoice.AccountingCustomerParty.Name <> '' then
     with AddChild('cac:PartyName') do
     begin
@@ -2052,7 +2067,10 @@ begin
       end;
       with AddChild('ram:BuyerTradeParty') do
       begin
-        if _Invoice.AccountingCustomerParty.IdentifierSellerBuyer <> '' then
+        //BT-46 nur einmal belegen (CII-SR-450) - GlobalID hat Vorrang vor ram:ID,
+        //nur im Extended-Profil sind beide zusammen erlaubt (keine EN16931-CIUS)
+        if (_Invoice.AccountingCustomerParty.IdentifierSellerBuyer <> '') and
+           ((_Invoice.AccountingCustomerParty.GlobalIdentifierSellerBuyer = '') or (_Profile = ipZUGFeRDExtended)) then
           AddChild('ram:ID').Text := _Invoice.AccountingCustomerParty.IdentifierSellerBuyer;
         if _Invoice.AccountingCustomerParty.GlobalIdentifierSellerBuyer <> '' then
         with AddChild('ram:GlobalID') do

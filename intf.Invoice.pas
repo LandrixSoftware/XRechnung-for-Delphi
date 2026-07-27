@@ -643,8 +643,8 @@ type
     Address : TInvoiceAddress;
 
     IdentifierSellerBuyer : String; //BT-29 Kreditor-Nr AccountingSupplierParty / BT-46 Debitor-Nr AccountingCustomerParty
-    GlobalIdentifierSellerBuyer : String; //BT-29-0, BT-46-0, optional nur CII
-    GlobalIdentifierSellerBuyerSchemeID : String; //BT-29-1, BT-46-1, optional nur CII, Werte 0021 : SWIFT, 0088 : EAN, 0060 : DUNS, 0177 : ODETTE
+    GlobalIdentifierSellerBuyer : String; //BT-29-0, BT-46-0, optional, CII: ram:GlobalID, UBL: cac:PartyIdentification/cbc:ID mit schemeID
+    GlobalIdentifierSellerBuyerSchemeID : String; //BT-29-1, BT-46-1, Default 0088 (GLN), Werte 0021 : SWIFT, 0088 : EAN/GLN, 0060 : DUNS, 0177 : ODETTE
     BankAssignedCreditorIdentifier : String; //Glaeubiger-ID (BT-90)
 
     VATCompanyID : String;   //BT-31 UStID

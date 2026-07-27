@@ -75,7 +75,16 @@ type
     procedure HandleValidationError(const _ErrMessage : String);
     function RequireFile(const _Filename : String) : Boolean;
     function RequireDir(const _Dirname : String) : Boolean;
-    function ExecAndWait(_Filename, _Params: string): Boolean;
+    function ExecAndWait(const _Filename, _Params : String; const _WorkDir : String = '';
+      const _StdOutFilename : String = ''; const _EnvOverrides : TStrings = nil) : Boolean;
+    function BuildEnvironmentBlock(const _Overrides : TStrings) : String;
+    function DecodeOutput(const _Bytes : TBytes) : String;
+    function JavaExe : String;
+    function SaxonClassPath : String;
+    function SaxonXslForVersion(_Version : Integer) : String;
+    function SaxonTransform(const _Source,_Xsl,_Out,_WorkDir : String) : Boolean;
+    function FopTransform(const _FoFilename,_PdfFilename,_WorkDir : String) : Boolean;
+    function MustangCliParams(const _Params : String) : String;
     function QuoteIfContainsSpace(const _Value : String) : String;
     function GetVersionFromStr(const _Xml : String) : Integer;
     function GetVersionFromFile(const _Filename : String) : Integer;
@@ -152,78 +161,213 @@ begin
     HandleValidationError(Format('Verzeichnis nicht gefunden: %s',[_Dirname]));
 end;
 
-function TXRechnungValidationHelperJava.ExecAndWait(_Filename, _Params: string): Boolean;
+// Startet das Programm direkt via CreateProcessW (Unicode, damit Umlaute/Nicht-ANSI-Zeichen
+// und Leerzeichen im Pfad funktionieren, Issue #39). Der frueher noetige Umweg ueber cmd.exe
+// entfaellt, weil keine .bat-Datei mehr erzeugt wird.
+// _WorkDir ersetzt das "pushd" der Batchdatei, _StdOutFilename das ">datei",
+// _EnvOverrides das "SET name=wert".
+function TXRechnungValidationHelperJava.ExecAndWait(const _Filename, _Params : String;
+  const _WorkDir : String = ''; const _StdOutFilename : String = '';
+  const _EnvOverrides : TStrings = nil) : Boolean;
 var
   SA: TSecurityAttributes;
   SI: TStartupInfo;
   PI: TProcessInformation;
-  StdOutPipeRead, StdOutPipeWrite: THandle;
+  StdOutPipeRead, StdOutPipeWrite, StdOutFile: THandle;
   WasOK: Boolean;
-  Buffer: array[0..255] of AnsiChar;
+  Buffer: array[0..4095] of Byte;
   BytesRead: Cardinal;
-  Handle:Boolean;
   ProcessExitCode : DWORD;
-  ReadLine : AnsiString;
-  ComSpec, CmdLine, WorkDir : String;
+  Output : TBytesStream;
+  CmdLine, WorkDir, EnvBlock : String;
+  EnvPtr : Pointer;
+  Flags : DWORD;
 begin
   Result := false;
   CmdOutput.Clear;
-
-  if (Length(_FileName)>1) and (_FileName[1]<>'"') then // quote only if not already quoted
-   _Filename := QuoteIfContainsSpace(_Filename);
 
   SA.nLength := SizeOf(SA);
   SA.bInheritHandle := True;
   SA.lpSecurityDescriptor := nil;
 
-  CreatePipe(StdOutPipeRead, StdOutPipeWrite, @SA, 0);
+  StdOutFile := INVALID_HANDLE_VALUE;
+  if not CreatePipe(StdOutPipeRead, StdOutPipeWrite, @SA, 0) then
+    exit;
   try
+    if _StdOutFilename <> '' then
+    begin
+      StdOutFile := CreateFile(PChar(_StdOutFilename),GENERIC_WRITE,FILE_SHARE_READ,
+                               @SA,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,0);
+      if StdOutFile = INVALID_HANDLE_VALUE then
+        exit;
+    end;
 
     FillChar(SI, SizeOf(SI), 0);
     SI.cb := SizeOf(SI);
     SI.dwFlags := STARTF_USESHOWWINDOW or STARTF_USESTDHANDLES;
     SI.wShowWindow := SW_HIDE;
     SI.hStdInput := GetStdHandle(STD_INPUT_HANDLE); // don't redirect stdin
-    SI.hStdOutput := StdOutPipeWrite;
+    if StdOutFile <> INVALID_HANDLE_VALUE then
+      SI.hStdOutput := StdOutFile
+    else
+      SI.hStdOutput := StdOutPipeWrite;
     SI.hStdError := StdOutPipeWrite;
 
-    // Aufruf ueber cmd.exe, weil CreateProcess eine .bat-Datei nicht direkt starten kann
-    // (ERROR_PATH_NOT_FOUND), und via CreateProcessW (Unicode), damit Umlaute/Nicht-ANSI-
-    // Zeichen sowie Leerzeichen im Pfad funktionieren (Issue #39).
-    // /S + genau ein aeusseres Anfuehrungszeichenpaar: cmd entfernt nur dieses Paar und
-    // laesst die inneren Quotes (QuoteIfContainsSpace) unveraendert.
-    ComSpec := System.SysUtils.GetEnvironmentVariable('ComSpec');
-    if ComSpec = '' then
-      ComSpec := 'cmd.exe';
-    CmdLine := '"' + ComSpec + '" /S /C "' + _Filename + ' ' + _Params + '"';
-    WorkDir := ExtractFileDir(ParamStr(0));
+    CmdLine := QuoteIfContainsSpace(_Filename)+' '+_Params;
     UniqueString(CmdLine); // CreateProcessW darf den Kommandozeilen-Puffer veraendern
 
-    Handle := CreateProcess(PChar(ComSpec), PChar(CmdLine),
-                            nil, nil, True, 0, nil,
-                            PChar(WorkDir), SI, PI);
+    WorkDir := _WorkDir;
+    if WorkDir = '' then
+      WorkDir := ExtractFileDir(ParamStr(0));
+
+    Flags := CREATE_NO_WINDOW;
+    EnvPtr := nil;
+    if (_EnvOverrides <> nil) and (_EnvOverrides.Count > 0) then
+    begin
+      EnvBlock := BuildEnvironmentBlock(_EnvOverrides);
+      EnvPtr := PChar(EnvBlock);
+      Flags := Flags or CREATE_UNICODE_ENVIRONMENT;
+    end;
+
+    if not CreateProcess(PChar(_Filename), PChar(CmdLine),
+                         nil, nil, True, Flags, EnvPtr,
+                         PChar(WorkDir), SI, PI) then
+      exit;
+
     CloseHandle(StdOutPipeWrite);
-    if Handle then
+    StdOutPipeWrite := 0;
+    try
+      Output := TBytesStream.Create;
       try
         repeat
-          WasOK := ReadFile(StdOutPipeRead, Buffer, 255, BytesRead, nil);
+          WasOK := ReadFile(StdOutPipeRead, Buffer, SizeOf(Buffer), BytesRead, nil);
           if BytesRead > 0 then
-          begin
-            ReadLine := Copy(Buffer,0,BytesRead);
-            CmdOutput.add(Trim(String(ReadLine)));
-          end;
+            Output.Write(Buffer,BytesRead);
         until not WasOK or (BytesRead = 0);
-        WaitForSingleObject(PI.hProcess, INFINITE);
-        Result := GetExitCodeProcess(pi.hProcess, ProcessExitCode);
-        if Result then
-          Result := ProcessExitCode = 0;
+        CmdOutput.Text := DecodeOutput(Copy(Output.Bytes,0,Integer(Output.Size)));
       finally
-        CloseHandle(PI.hThread);
-        CloseHandle(PI.hProcess);
+        Output.Free;
       end;
+      WaitForSingleObject(PI.hProcess, INFINITE);
+      Result := GetExitCodeProcess(PI.hProcess, ProcessExitCode) and (ProcessExitCode = 0);
+    finally
+      CloseHandle(PI.hThread);
+      CloseHandle(PI.hProcess);
+    end;
   finally
+    if StdOutPipeWrite <> 0 then
+      CloseHandle(StdOutPipeWrite);
     CloseHandle(StdOutPipeRead);
+    if StdOutFile <> INVALID_HANDLE_VALUE then
+      CloseHandle(StdOutFile);
   end;
+end;
+
+// Ohne Batchdatei gibt es kein "chcp 65001" mehr, das die Ausgabecodepage festlegt.
+// Java schreibt je nach Version und Aufrufparametern UTF-8 oder ANSI.
+function TXRechnungValidationHelperJava.DecodeOutput(const _Bytes : TBytes) : String;
+var
+  lRoundTrip : TBytes;
+begin
+  Result := '';
+  if Length(_Bytes) = 0 then
+    exit;
+  Result := TEncoding.UTF8.GetString(_Bytes);
+  lRoundTrip := TEncoding.UTF8.GetBytes(Result);
+  if (Length(lRoundTrip) <> Length(_Bytes)) or
+     not CompareMem(@lRoundTrip[0],@_Bytes[0],Length(_Bytes)) then
+    Result := TEncoding.ANSI.GetString(_Bytes);
+end;
+
+function TXRechnungValidationHelperJava.BuildEnvironmentBlock(const _Overrides : TStrings) : String;
+var
+  lEnv : TStringList;
+  lBlock : TStringBuilder;
+  lEntry, lStart : PChar;
+  i : Integer;
+begin
+  lEnv := TStringList.Create;
+  try
+    lEnv.CaseSensitive := false;
+    lStart := Winapi.Windows.GetEnvironmentStrings;
+    try
+      lEntry := lStart;
+      while (lEntry <> nil) and (lEntry^ <> #0) do
+      begin
+        if lEntry^ <> '=' then // "=C:=..." der Laufwerks-Arbeitsverzeichnisse ueberspringen
+          lEnv.Add(lEntry);
+        Inc(lEntry,StrLen(lEntry)+1);
+      end;
+    finally
+      Winapi.Windows.FreeEnvironmentStrings(lStart);
+    end;
+
+    for i := 0 to _Overrides.Count-1 do
+      lEnv.Values[_Overrides.Names[i]] := _Overrides.ValueFromIndex[i];
+
+    lBlock := TStringBuilder.Create;
+    try
+      for i := 0 to lEnv.Count-1 do
+        lBlock.Append(lEnv[i]+#0);
+      lBlock.Append(#0);
+      Result := lBlock.ToString;
+    finally
+      lBlock.Free;
+    end;
+  finally
+    lEnv.Free;
+  end;
+end;
+
+function TXRechnungValidationHelperJava.JavaExe : String;
+begin
+  Result := JavaRuntimeEnvironmentPath+'bin\java.exe';
+end;
+
+function TXRechnungValidationHelperJava.SaxonClassPath : String;
+begin
+  Result := QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar');
+end;
+
+function TXRechnungValidationHelperJava.SaxonXslForVersion(_Version : Integer) : String;
+begin
+  case _Version of
+    1 : Result := VisualizationLibPath+'xsl\ubl-invoice-xr.xsl';
+    2 : Result := VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl';
+    3 : Result := VisualizationLibPath+'xsl\cii-xr.xsl';
+    else Result := '';
+  end;
+end;
+
+function TXRechnungValidationHelperJava.SaxonTransform(const _Source,_Xsl,_Out,_WorkDir : String) : Boolean;
+begin
+  Result := ExecAndWait(JavaExe,
+    '-cp '+SaxonClassPath+' net.sf.saxon.Transform'+
+    ' -s:'+QuoteIfContainsSpace(_Source)+
+    ' -xsl:'+QuoteIfContainsSpace(_Xsl)+
+    ' -o:'+QuoteIfContainsSpace(_Out),_WorkDir);
+end;
+
+// Klassenpfad aus apache-fop\fop\fop.bat ausgelesen mit
+// echo "%JAVACMD%" %JAVAOPTS% %LOGCHOICE% %LOGLEVEL% -cp "%LOCALCLASSPATH%" %FOP_OPTS% org.apache.fop.cli.Main %FOP_CMD_LINE_ARGS%
+function TXRechnungValidationHelperJava.FopTransform(const _FoFilename,_PdfFilename,_WorkDir : String) : Boolean;
+begin
+  Result := ExecAndWait(JavaExe,
+    '-cp '+QuoteIfContainsSpace(FopLibPath+'fop\build\fop.jar;'+FopLibPath+'fop\lib\batik-all-1.16.jar;' +
+                                FopLibPath+'fop\lib\commons-io-2.11.0.jar;'+FopLibPath+'fop\lib\commons-logging-1.0.4.jar;' +
+                                FopLibPath+'fop\lib\fontbox-2.0.24.jar;'+FopLibPath+'fop\lib\serializer-2.7.2.jar;' +
+                                FopLibPath+'fop\lib\xml-apis-1.4.01.jar;'+FopLibPath+'fop\lib\xml-apis-ext-1.3.04.jar;' +
+                                FopLibPath+'fop\lib\xmlgraphics-commons-2.8.jar;')+
+    ' org.apache.fop.cli.Main '+
+    QuoteIfContainsSpace(_FoFilename)+' '+
+    QuoteIfContainsSpace(_PdfFilename),_WorkDir);
+end;
+
+//https://github.com/ZUGFeRD/mustangproject/blob/f9905d6fca18733b468541415b9750654045cc09/Mustang-CLI/src/main/java/org/mustangproject/commandline/Main.java#L45
+function TXRechnungValidationHelperJava.MustangCliParams(const _Params : String) : String;
+begin
+  Result := '-Xmx1G -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8 -jar '+
+            QuoteIfContainsSpace(MustangprojectPath+'Mustang-CLI.jar')+' '+_Params;
 end;
 
 function TXRechnungValidationHelperJava.GetNewTempFileName(
@@ -286,7 +430,6 @@ function TXRechnungValidationHelperJava.MustangCombinePdfAndXML(
   const _InvoicePDFFilename, _InvoiceXMLFilename: String; _Extended : Boolean;
   out _CmdOutput: String; out _CombinedPdf: TMemoryStream): Boolean;
 var
-  cmd: TStringList;
   tmpFilename : String;
 begin
   Result := false;
@@ -303,50 +446,33 @@ begin
 
   tmpFilename := GetNewTempFileName(TempPath);
 
-  cmd := TStringList.Create;
-  try
-    cmd.WriteBOM := False;
-    cmd.Add('chcp 65001 >nul');
-    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
+  Result := ExecAndWait(JavaExe,MustangCliParams(
+              '--action combine' +
+              ' --source '+ QuoteIfContainsSpace(_InvoicePDFFilename)+
+              ' --source-xml '+ QuoteIfContainsSpace(_InvoiceXMLFilename)+
+              ' --out '+QuoteIfContainsSpace(tmpFilename+'.pdf')+
+              ' --format zf'+
+              ' --version 2'+
+              ' --profile '+IfThen(_Extended,'T','E')+
+              ' --no-additional-attachments'),ExtractFilePath(tmpFilename));
 
-    //https://github.com/ZUGFeRD/mustangproject/blob/f9905d6fca18733b468541415b9750654045cc09/Mustang-CLI/src/main/java/org/mustangproject/commandline/Main.java#L45
-    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -Xmx1G '+
-            '-Dfile.encoding=UTF-8 -jar '+QuoteIfContainsSpace(MustangprojectPath+'Mustang-CLI.jar')+
-            ' --action combine' +
-            ' --source '+ QuoteIfContainsSpace(_InvoicePDFFilename)+
-            ' --source-xml '+ QuoteIfContainsSpace(_InvoiceXMLFilename)+
-            ' --out '+tmpFilename+'.pdf'+
-            ' --format zf'+
-            ' --version 2'+
-            ' --profile '+IfThen(_Extended,'T','E')+
-            ' --no-additional-attachments');
+  if Result and FileExists(tmpFilename+'.pdf') then
+  begin
+    _CombinedPdf := TMemoryStream.Create;
+    _CombinedPdf.LoadFromFile(tmpFilename+'.pdf');
+    _CombinedPdf.Position := 0;
+  end else
+    _CombinedPdf := nil;
 
-    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8);
+  _CmdOutput := CmdOutput.Text;
 
-    Result := ExecAndWait(tmpFilename+'.bat','');
-
-    if Result and FileExists(tmpFilename+'.pdf') then
-    begin
-      _CombinedPdf := TMemoryStream.Create;
-      _CombinedPdf.LoadFromFile(tmpFilename+'.pdf');
-      _CombinedPdf.Position := 0;
-    end else
-      _CombinedPdf := nil;
-
-    _CmdOutput := CmdOutput.Text;
-
-    DeleteFile(tmpFilename+'.bat');
-    if FileExists(tmpFilename+'.pdf') then
-      DeleteFile(tmpFilename+'.pdf');
-  finally
-    cmd.Free;
-  end;
+  if FileExists(tmpFilename+'.pdf') then
+    DeleteFile(tmpFilename+'.pdf');
 end;
 
 function TXRechnungValidationHelperJava.MustangUpgradeToPDFA3Only(const _InvoicePDFFilename: String;
   out _CmdOutput: String; out _PdfA3: TMemoryStream): Boolean;
 var
-  cmd: TStringList;
   tmpFilename : String;
 begin
   Result := false;
@@ -361,46 +487,29 @@ begin
 
   tmpFilename := GetNewTempFileName(TempPath);
 
-  cmd := TStringList.Create;
-  try
-    cmd.WriteBOM := False;
-    cmd.Add('chcp 65001 >nul');
-    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
+  Result := ExecAndWait(JavaExe,MustangCliParams(
+              '--action a3only' +
+              ' --source '+ QuoteIfContainsSpace(_InvoicePDFFilename)+
+              ' --out '+QuoteIfContainsSpace(tmpFilename+'.pdf')),ExtractFilePath(tmpFilename));
 
-    //https://github.com/ZUGFeRD/mustangproject/blob/f9905d6fca18733b468541415b9750654045cc09/Mustang-CLI/src/main/java/org/mustangproject/commandline/Main.java#L45
-    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -Xmx1G '+
-            '-Dfile.encoding=UTF-8 -jar '+QuoteIfContainsSpace(MustangprojectPath+'Mustang-CLI.jar')+
-            ' --action a3only' +
-            ' --source '+ QuoteIfContainsSpace(_InvoicePDFFilename)+
-            ' --out '+tmpFilename+'.pdf');
+  if Result and FileExists(tmpFilename+'.pdf') then
+  begin
+    _PdfA3 := TMemoryStream.Create;
+    _PdfA3.LoadFromFile(tmpFilename+'.pdf');
+    _PdfA3.Position := 0;
+  end else
+    _PdfA3 := nil;
 
-    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8);
+  _CmdOutput := CmdOutput.Text;
 
-    Result := ExecAndWait(tmpFilename+'.bat','');
-
-    if Result and FileExists(tmpFilename+'.pdf') then
-    begin
-      _PdfA3 := TMemoryStream.Create;
-      _PdfA3.LoadFromFile(tmpFilename+'.pdf');
-      _PdfA3.Position := 0;
-    end else
-      _PdfA3 := nil;
-
-    _CmdOutput := CmdOutput.Text;
-
-    DeleteFile(tmpFilename+'.bat');
-    if FileExists(tmpFilename+'.pdf') then
-      DeleteFile(tmpFilename+'.pdf');
-  finally
-    cmd.Free;
-  end;
+  if FileExists(tmpFilename+'.pdf') then
+    DeleteFile(tmpFilename+'.pdf');
 end;
 
 function TXRechnungValidationHelperJava.MustangValidateFile(
   const _InvoiceXMLFilename: String; out _CmdOutput,
   _ValidationResultAsXML: String): Boolean;
 var
-  cmd: TStringList;
   tmpFilename : String;
 begin
   Result := false;
@@ -415,44 +524,27 @@ begin
 
   tmpFilename := GetNewTempFileName(TempPath);
 
-  cmd := TStringList.Create;
-  try
-    cmd.WriteBOM := False;
-    cmd.Add('chcp 65001 >nul');
-    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
+  Result := ExecAndWait(JavaExe,MustangCliParams(
+              '--action validate' +
+              ' --source '+ QuoteIfContainsSpace(_InvoiceXMLFilename)),
+              ExtractFilePath(tmpFilename),tmpFilename+'.xml');
 
-    //https://github.com/ZUGFeRD/mustangproject/blob/f9905d6fca18733b468541415b9750654045cc09/Mustang-CLI/src/main/java/org/mustangproject/commandline/Main.java#L45
-    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -Xmx1G '+
-            '-Dfile.encoding=UTF-8 -jar '+QuoteIfContainsSpace(MustangprojectPath+'Mustang-CLI.jar')+
-            ' --action validate' +
-            ' --source '+ QuoteIfContainsSpace(_InvoiceXMLFilename)+
-            ' >'+tmpFilename+'.xml');
-
-    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8);
-
-    Result := ExecAndWait(tmpFilename+'.bat','');
-
-    if FileExists(tmpFilename+'.xml') then
-    begin
-      _ValidationResultAsXML := TFile.ReadAllText(tmpFilename+'.xml',TEncoding.UTF8);
-      Result := true;
-    end;
-
-    _CmdOutput := CmdOutput.Text;
-
-    DeleteFile(tmpFilename+'.bat');
-    if FileExists(tmpFilename+'.xml') then
-      DeleteFile(tmpFilename+'.xml');
-  finally
-    cmd.Free;
+  if FileExists(tmpFilename+'.xml') then
+  begin
+    _ValidationResultAsXML := TFile.ReadAllText(tmpFilename+'.xml',TEncoding.UTF8);
+    Result := true;
   end;
+
+  _CmdOutput := CmdOutput.Text;
+
+  if FileExists(tmpFilename+'.xml') then
+    DeleteFile(tmpFilename+'.xml');
 end;
 
 function TXRechnungValidationHelperJava.MustangVisualizeFile(
   const _InvoiceXMLFilename: String; out _CmdOutput,
   _VisualizationAsHTML: String): Boolean;
 var
-  cmd: TStringList;
   tmpFilename : String;
 begin
   Result := false;
@@ -467,48 +559,31 @@ begin
 
   tmpFilename := GetNewTempFileName(TempPath);
 
-  cmd := TStringList.Create;
-  try
-    cmd.WriteBOM := False;
-    cmd.Add('chcp 65001 >nul');
-    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
+  Result := ExecAndWait(JavaExe,MustangCliParams(
+              '--action visualize' +
+              ' --source '+ QuoteIfContainsSpace(_InvoiceXMLFilename)+
+              ' --out '+QuoteIfContainsSpace(tmpFilename+'.html')+
+              ' --language de'),ExtractFilePath(tmpFilename));
 
-    //https://github.com/ZUGFeRD/mustangproject/blob/f9905d6fca18733b468541415b9750654045cc09/Mustang-CLI/src/main/java/org/mustangproject/commandline/Main.java#L45
-    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -Xmx1G '+
-            '-Dfile.encoding=UTF-8 -jar '+QuoteIfContainsSpace(MustangprojectPath+'Mustang-CLI.jar')+
-            ' --action visualize' +
-            ' --source '+ QuoteIfContainsSpace(_InvoiceXMLFilename)+
-            ' --out '+tmpFilename+'.html'+
-            ' --language de');
-
-    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8);
-
-    Result := ExecAndWait(tmpFilename+'.bat','');
-
-    if Result and FileExists(tmpFilename+'.html') then
-    begin
-      _VisualizationAsHTML := TFile.ReadAllText(tmpFilename+'.html',TEncoding.UTF8);
-    end;
-
-    _CmdOutput := CmdOutput.Text;
-
-    DeleteFile(tmpFilename+'.bat');
-    if FileExists(tmpFilename+'.html') then
-      DeleteFile(tmpFilename+'.html');
-    if FileExists(ExtractFilePath(tmpFilename)+'xrechnung-viewer.css') then
-      DeleteFile(ExtractFilePath(tmpFilename)+'xrechnung-viewer.css');
-    if FileExists(ExtractFilePath(tmpFilename)+'xrechnung-viewer.js') then
-      DeleteFile(ExtractFilePath(tmpFilename)+'xrechnung-viewer.js');
-  finally
-    cmd.Free;
+  if Result and FileExists(tmpFilename+'.html') then
+  begin
+    _VisualizationAsHTML := TFile.ReadAllText(tmpFilename+'.html',TEncoding.UTF8);
   end;
+
+  _CmdOutput := CmdOutput.Text;
+
+  if FileExists(tmpFilename+'.html') then
+    DeleteFile(tmpFilename+'.html');
+  if FileExists(ExtractFilePath(tmpFilename)+'xrechnung-viewer.css') then
+    DeleteFile(ExtractFilePath(tmpFilename)+'xrechnung-viewer.css');
+  if FileExists(ExtractFilePath(tmpFilename)+'xrechnung-viewer.js') then
+    DeleteFile(ExtractFilePath(tmpFilename)+'xrechnung-viewer.js');
 end;
 
 function TXRechnungValidationHelperJava.MustangVisualizeFileAsPdf(
   const _InvoiceXMLFilename: String; out _CmdOutput: String;
   out _VisualizationAsPdf: TMemoryStream): Boolean;
 var
-  cmd: TStringList;
   tmpFilename : String;
 begin
   Result := false;
@@ -523,40 +598,24 @@ begin
 
   tmpFilename := GetNewTempFileName(TempPath);
 
-  cmd := TStringList.Create;
-  try
-    cmd.WriteBOM := False;
-    cmd.Add('chcp 65001 >nul');
-    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
+  Result := ExecAndWait(JavaExe,MustangCliParams(
+              '--action pdf' +
+              ' --source '+ QuoteIfContainsSpace(_InvoiceXMLFilename)+
+              ' --out '+QuoteIfContainsSpace(tmpFilename+'.pdf')+
+              ' --language de'),ExtractFilePath(tmpFilename));
 
-    //https://github.com/ZUGFeRD/mustangproject/blob/f9905d6fca18733b468541415b9750654045cc09/Mustang-CLI/src/main/java/org/mustangproject/commandline/Main.java#L45
-    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -Xmx1G '+
-            '-Dfile.encoding=UTF-8 -jar '+QuoteIfContainsSpace(MustangprojectPath+'Mustang-CLI.jar')+
-            ' --action pdf' +
-            ' --source '+ QuoteIfContainsSpace(_InvoiceXMLFilename)+
-            ' --out '+tmpFilename+'.pdf'+
-            ' --language de');
+  if Result and FileExists(tmpFilename+'.pdf') then
+  begin
+    _VisualizationAsPdf := TMemoryStream.Create;
+    _VisualizationAsPdf.LoadFromFile(tmpFilename+'.pdf');
+    _VisualizationAsPdf.Position := 0;
+  end else
+    _VisualizationAsPdf := nil;
 
-    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8);
+  _CmdOutput := CmdOutput.Text;
 
-    Result := ExecAndWait(tmpFilename+'.bat','');
-
-    if Result and FileExists(tmpFilename+'.pdf') then
-    begin
-      _VisualizationAsPdf := TMemoryStream.Create;
-      _VisualizationAsPdf.LoadFromFile(tmpFilename+'.pdf');
-      _VisualizationAsPdf.Position := 0;
-    end else
-      _VisualizationAsPdf := nil;
-
-    _CmdOutput := CmdOutput.Text;
-
-    DeleteFile(tmpFilename+'.bat');
-    if FileExists(tmpFilename+'.pdf') then
-      DeleteFile(tmpFilename+'.pdf');
-  finally
-    cmd.Free;
-  end;
+  if FileExists(tmpFilename+'.pdf') then
+    DeleteFile(tmpFilename+'.pdf');
 end;
 
 function TXRechnungValidationHelperJava.SetSaxonLibPath(
@@ -637,8 +696,8 @@ end;
 function TXRechnungValidationHelperJava.Validate(const _InvoiceXMLData: String; out _CmdOutput,
   _ValidationResultAsXML, _ValidationResultAsHTML: String): Boolean;
 var
-  hstrl,cmd: TStringList;
-  tmpFilename,cmdLine : String;
+  hstrl: TStringList;
+  tmpFilename,params : String;
   i : Integer;
 begin
   Result := false;
@@ -659,33 +718,26 @@ begin
   tmpFilename := GetNewTempFileName(TempPath);
 
   hstrl := TStringList.Create;
-  cmd := TStringList.Create;
   try
-    cmd.WriteBOM := False;
-    cmd.Add('chcp 65001 >nul');
     hstrl.Text := _InvoiceXMLData;
     hstrl.SaveToFile(tmpFilename,TEncoding.UTF8);
 
-    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
-    cmdLine := QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -Xmx1024m -classpath '+
+    params := '-Xmx1024m -classpath '+
              QuoteIfContainsSpace(ValidatorLibPath+'libs')+' -jar '+
              QuoteIfContainsSpace(ValidatorLibPath+'validator-1.6.2-standalone.jar');
     for i := 0 to ValidatorConfigurationPath.Count-1 do
     begin
-      cmdLine := cmdLine +
+      params := params +
          ' -s '+QuoteIfContainsSpace(ValidatorConfigurationPath[i]+'scenarios.xml')+
          ' -r '+QuoteIfContainsSpace(ExcludeTrailingPathDelimiter(ValidatorConfigurationPath[i]))
     end;
-    cmdLine := cmdLine + ' -h '+QuoteIfContainsSpace(tmpFilename);
-    cmd.Add(cmdLine);
+    params := params + ' -h '+QuoteIfContainsSpace(tmpFilename);
 
-    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8);
-
-    Result := ExecAndWait(tmpFilename+'.bat','');
+    // KOSIT legt den Report im Arbeitsverzeichnis ab
+    Result := ExecAndWait(JavaExe,params,ExtractFilePath(tmpFilename));
 
     _CmdOutput := CmdOutput.Text;
 
-    DeleteFile(tmpFilename+'.bat');
     DeleteFile(tmpFilename);
 
     if FileExists(ChangeFileExt(tmpFilename,'-report.xml')) then
@@ -704,7 +756,6 @@ begin
 
   finally
     hstrl.Free;
-    cmd.Free;
   end;
 end;
 
@@ -735,8 +786,8 @@ begin
 
   hstrl := TStringList.Create;
   try
-    cmd := QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe');
-    params:= ' -Xmx1024m -classpath '+
+    cmd := JavaExe;
+    params:= '-Xmx1024m -classpath '+
              QuoteIfContainsSpace(ValidatorLibPath+'libs')+' -jar '+
              QuoteIfContainsSpace(ValidatorLibPath+'validator-1.6.2-standalone.jar');
     for i := 0 to ValidatorConfigurationPath.Count-1 do
@@ -781,8 +832,8 @@ function TXRechnungValidationHelperJava.ValitoolValidate(
   out _CmdOutput, _ValidationResultAsXML: String;
   out _VisualizationAsPdf : TMemoryStream): Boolean;
 var
-  hstrl,cmd: TStringList;
-  tmpFilename,cmdLine : String;
+  hstrl,lEnv: TStringList;
+  tmpFilename : String;
   lResults : TStringDynArray;
   i : Integer;
 begin
@@ -801,34 +852,24 @@ begin
   tmpFilename := GetNewTempFileName(TempPath);
 
   hstrl := TStringList.Create;
-  cmd := TStringList.Create;
+  lEnv := TStringList.Create;
   try
-    cmd.WriteBOM := False;
-    cmd.Add('chcp 65001 >nul');
-
     hstrl.Text := _InvoiceXMLData;
     hstrl.WriteBOM := false;
     hstrl.SaveToFile(tmpFilename,TEncoding.UTF8);
 
-    cmdLine := QuoteIfContainsSpace(ValitoolPath+'valitool.exe')+
-             ' --license '+ValitoolLicense+
+    lEnv.Add('JAVA_HOME='+ExcludeTrailingPathDelimiter(JavaRuntimeEnvironmentPath));
+    lEnv.Add('PATH='+JavaRuntimeEnvironmentPath+'bin;'+System.SysUtils.GetEnvironmentVariable('PATH'));
+
+    Result := ExecAndWait(ValitoolPath+'valitool.exe',
+             '--license '+ValitoolLicense+
              ' --lang de'+
              ' --file '+QuoteIfContainsSpace(tmpFilename)+
              ' --mode validate'+
-             ' --pdfReport';
-
-    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
-    cmd.Add('SET JAVA_HOME='+QuoteIfContainsSpace(JavaRuntimeEnvironmentPath));
-    cmd.Add('SET PATH=%JAVA_HOME%\bin;%PATH%');
-    cmd.Add(cmdLine);
-
-    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8);
-
-    Result := ExecAndWait(tmpFilename+'.bat','');
+             ' --pdfReport',ExtractFilePath(tmpFilename),'',lEnv);
 
     _CmdOutput := CmdOutput.Text;
 
-    DeleteFile(tmpFilename+'.bat');
     DeleteFile(tmpFilename);
 
     _VisualizationAsPdf := nil;
@@ -851,7 +892,7 @@ begin
     end;
 
   finally
-    cmd.Free;
+    lEnv.Free;
     hstrl.Free;
   end;
 end;
@@ -859,8 +900,7 @@ end;
 function TXRechnungValidationHelperJava.ValitoolValidateDirectory(
   const _Directory: String; out _CmdOutput : String): Boolean;
 var
-  cmd: TStringList;
-  tmpFilename,cmdLine : String;
+  lEnv: TStringList;
 begin
   Result := false;
   if _Directory = '' then
@@ -874,42 +914,29 @@ begin
   if not RequireFile(ValitoolPath+'valitool.exe') then
     exit;
 
-  tmpFilename := GetNewTempFileName(TempPath);
-
-  cmd := TStringList.Create;
+  lEnv := TStringList.Create;
   try
-    cmd.WriteBOM := False;
-    cmd.Add('chcp 65001 >nul');
+    lEnv.Add('JAVA_HOME='+ExcludeTrailingPathDelimiter(JavaRuntimeEnvironmentPath));
+    lEnv.Add('PATH='+JavaRuntimeEnvironmentPath+'bin;'+System.SysUtils.GetEnvironmentVariable('PATH'));
 
-    cmdLine := QuoteIfContainsSpace(ValitoolPath+'valitool.exe')+
-           ' --license '+ValitoolLicense+
+    Result := ExecAndWait(ValitoolPath+'valitool.exe',
+           '--license '+ValitoolLicense+
            ' --lang de'+
            ' --dir '+QuoteIfContainsSpace(_Directory)+
            ' --mode validate'+
            ' --pdfReport'+
-           ' --noXMLReport';
-
-    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
-    cmd.Add('SET JAVA_HOME='+QuoteIfContainsSpace(JavaRuntimeEnvironmentPath));
-    cmd.Add('SET PATH=%JAVA_HOME%\bin;%PATH%');
-    cmd.Add(cmdLine);
-
-    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8);
-
-    Result := ExecAndWait(tmpFilename+'.bat','');
+           ' --noXMLReport',TempPath,'',lEnv);
 
     _CmdOutput := CmdOutput.Text;
-
-    DeleteFile(tmpFilename+'.bat');
   finally
-    cmd.Free;
+    lEnv.Free;
   end;
 end;
 
 function TXRechnungValidationHelperJava.Visualize(const _InvoiceXMLData: String;
   out _CmdOutput, _VisualizationAsHTML: String): Boolean;
 var
-  hstrl,cmd: TStringList;
+  hstrl: TStringList;
   tmpFilename : String;
   version : Integer;
 begin
@@ -939,47 +966,22 @@ begin
   tmpFilename := GetNewTempFileName(TempPath);
 
   hstrl := TStringList.Create;
-  cmd := TStringList.Create;
   try
-    cmd.WriteBOM := False;
-    cmd.Add('chcp 65001 >nul');
     hstrl.Text := _InvoiceXMLData;
     hstrl.SaveToFile(tmpFilename,TEncoding.UTF8);
 
-    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
-    if version = 1 then
-      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
-             QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
-             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(tmpFilename)+
-             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')))
-    else
-    if version = 2 then
-      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
-             QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
-             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(tmpFilename)+
-             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')))
-    else
-    if version = 3 then
-      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
-             QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
-             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(tmpFilename)+
-             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\cii-xr.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')));
-    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
-             QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
-             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml'))+
-             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\xrechnung-html.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-.html')));
-
-    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8);
-
-    Result := ExecAndWait(tmpFilename+'.bat','');
-
+    Result := SaxonTransform(tmpFilename,SaxonXslForVersion(version),
+                ChangeFileExt(tmpFilename,'-xr.xml'),ExtractFilePath(tmpFilename));
     _CmdOutput := CmdOutput.Text;
 
-    DeleteFile(tmpFilename+'.bat');
+    if Result then
+    begin
+      Result := SaxonTransform(ChangeFileExt(tmpFilename,'-xr.xml'),
+                  VisualizationLibPath+'xsl\xrechnung-html.xsl',
+                  ChangeFileExt(tmpFilename,'-.html'),ExtractFilePath(tmpFilename));
+      _CmdOutput := _CmdOutput+CmdOutput.Text;
+    end;
+
     DeleteFile(tmpFilename);
     DeleteFile(ChangeFileExt(tmpFilename,'-xr.xml'));
 
@@ -992,7 +994,6 @@ begin
 
   finally
     hstrl.Free;
-    cmd.Free;
   end;
 end;
 
@@ -1001,7 +1002,7 @@ function TXRechnungValidationHelperJava.VisualizeAsPdf(
   out _CmdOutput: String; out _VisualizationAsPdf: TMemoryStream): Boolean;
 var
   tmpFilename : String;
-  hstrl,cmd: TStringList;
+  hstrl: TStringList;
   version : Integer;
 begin
   //Experimental - it does not work
@@ -1033,78 +1034,34 @@ begin
   tmpFilename := GetNewTempFileName(TempPath);
 
   hstrl := TStringList.Create;
-  cmd := TStringList.Create;
   try
-    cmd.WriteBOM := False;
-    cmd.Add('chcp 65001 >nul');
     hstrl.Text := _InvoiceXMLData;
     hstrl.SaveToFile(tmpFilename,TEncoding.UTF8);
 
-    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
-    if version = 1 then
-      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
-             QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
-             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(tmpFilename)+
-             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')))
-    else
-    if version = 2 then
-      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
-             QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
-             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(tmpFilename)+
-             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')))
-    else
-    if version = 3 then
-      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
-             QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
-             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(tmpFilename)+
-             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\cii-xr.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')));
-    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
-             QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
-             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml'))+
-             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\xr-pdf.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-.fo'))); // geaendert von pdf auf fo
-
-    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8); //ToDo
-    //cmd.SaveToFile(_InvoiceXMLFilename+'.bat');
-
-    Result := ExecAndWait(tmpFilename+'.bat','');
-
+    Result := SaxonTransform(tmpFilename,SaxonXslForVersion(version),
+                ChangeFileExt(tmpFilename,'-xr.xml'),ExtractFilePath(tmpFilename));
     _CmdOutput := CmdOutput.Text;
 
-    DeleteFile(tmpFilename+'.bat');
+    if Result then
+    begin
+      Result := SaxonTransform(ChangeFileExt(tmpFilename,'-xr.xml'),
+                  VisualizationLibPath+'xsl\xr-pdf.xsl',
+                  ChangeFileExt(tmpFilename,'-.fo'),ExtractFilePath(tmpFilename)); // geaendert von pdf auf fo
+      _CmdOutput := _CmdOutput+CmdOutput.Text;
+    end;
 
     if not Result then
       exit;
 
     ////////////////////////////////////////////////////////////////////////////
     // Fopper aufrufen. Datei ist eine fo Datei. Saxon HE gibt eine fo-Datei zurueck!
-    // cmd Inhalt aus der apache-fop\foop\fop.bat ausgelesen mit echo "%JAVACMD%" %JAVAOPTS% %LOGCHOICE% %LOGLEVEL% -cp "%LOCALCLASSPATH%" %FOP_OPTS% org.apache.fop.cli.Main %FOP_CMD_LINE_ARGS%
     if FileExists(ChangeFileExt(tmpFilename,'-.fo')) then
     begin
-      cmd.Clear;
-      cmd.WriteBOM := False;
-      cmd.Add('chcp 65001 >nul');
-      cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
-      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
-      QuoteIfContainsSpace(FopLibPath+'fop\build\fop.jar;'+FopLibPath+'fop\lib\batik-all-1.16.jar;' +
-                           FopLibPath+'fop\lib\commons-io-2.11.0.jar;'+FopLibPath+'fop\lib\commons-logging-1.0.4.jar;' +
-                           FopLibPath+'fop\lib\fontbox-2.0.24.jar;'+FopLibPath+'fop\lib\serializer-2.7.2.jar;' +
-                           FopLibPath+'fop\lib\xml-apis-1.4.01.jar;'+FopLibPath+'fop\lib\xml-apis-ext-1.3.04.jar;' +
-                           FopLibPath+'fop\lib\xmlgraphics-commons-2.8.jar;') +
-        ' org.apache.fop.cli.Main ' +
-        QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-.fo')) + ' ' +
-        QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-.pdf') ));
-
-      cmd.SaveToFile(tmpFilename+'.bat', TEncoding.UTF8);
-
-      Result := ExecAndWait(tmpFilename+'.bat','');
+      Result := FopTransform(ChangeFileExt(tmpFilename,'-.fo'),
+                  ChangeFileExt(tmpFilename,'-.pdf'),ExtractFilePath(tmpFilename));
 
      _CmdOutput := _CmdOutput + #13#10 + CmdOutput.Text;
 
-     DeleteFile(tmpFilename+'.bat');
      DeleteFile(ChangeFileExt(tmpFilename,'-.fo'));
     end else
       Result := false;
@@ -1121,7 +1078,6 @@ begin
       Result := false;
   finally
     hstrl.Free;
-    cmd.Free;
   end;
 end;
 
@@ -1129,7 +1085,7 @@ function TXRechnungValidationHelperJava.VisualizeFile(
   const _InvoiceXMLFilename: String;
   out _CmdOutput, _VisualizationAsHTML: String): Boolean;
 var
-  hstrl,cmd: TStringList;
+  hstrl: TStringList;
   tmpFilename : String;
   version : Integer;
 begin
@@ -1161,44 +1117,19 @@ begin
   tmpFilename := GetNewTempFileName(TempPath);
 
   hstrl := TStringList.Create;
-  cmd := TStringList.Create;
   try
-    cmd.WriteBOM := False;
-    cmd.Add('chcp 65001 >nul');
-    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
-    if version = 1 then
-      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
-             QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
-             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(_InvoiceXMLFilename)+
-             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')))
-    else
-    if version = 2 then
-      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
-             QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
-             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(_InvoiceXMLFilename)+
-             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')))
-    else
-    if version = 3 then
-      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
-             QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
-             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(_InvoiceXMLFilename)+
-             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\cii-xr.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')));
-    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
-             QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
-             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml'))+
-             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\xrechnung-html.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-.html')));
-
-    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8);
-
-    Result := ExecAndWait(tmpFilename+'.bat','');
-
+    Result := SaxonTransform(_InvoiceXMLFilename,SaxonXslForVersion(version),
+                ChangeFileExt(tmpFilename,'-xr.xml'),ExtractFilePath(tmpFilename));
     _CmdOutput := CmdOutput.Text;
 
-    DeleteFile(tmpFilename+'.bat');
+    if Result then
+    begin
+      Result := SaxonTransform(ChangeFileExt(tmpFilename,'-xr.xml'),
+                  VisualizationLibPath+'xsl\xrechnung-html.xsl',
+                  ChangeFileExt(tmpFilename,'-.html'),ExtractFilePath(tmpFilename));
+      _CmdOutput := _CmdOutput+CmdOutput.Text;
+    end;
+
     DeleteFile(ChangeFileExt(tmpFilename,'-xr.xml'));
 
     if FileExists(ChangeFileExt(tmpFilename,'-.html')) then
@@ -1211,7 +1142,6 @@ begin
 
   finally
     hstrl.Free;
-    cmd.Free;
   end;
 end;
 
@@ -1219,7 +1149,6 @@ function TXRechnungValidationHelperJava.VisualizeFileAsPdf(
   const _InvoiceXMLFilename: String;
   out _CmdOutput: String; out _VisualizationAsPdf: TMemoryStream): Boolean;
 var
-  cmd: TStringList;
   tmpFilename : String;
   version : Integer;
 begin
@@ -1253,91 +1182,44 @@ begin
 
   tmpFilename := GetNewTempFileName(TempPath);
 
-  cmd := TStringList.Create;
-  try
-    cmd.WriteBOM := False;
-    cmd.Add('chcp 65001 >nul');
-    cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
-    if version = 1 then
-      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
-             QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
-             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(_InvoiceXMLFilename)+
-             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-invoice-xr.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')))
-    else
-    if version = 2 then
-      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
-             QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
-             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(_InvoiceXMLFilename)+
-             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\ubl-creditnote-xr.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')))
-    else
-    if version = 3 then
-      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
-             QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
-             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(_InvoiceXMLFilename)+
-             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\cii-xr.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml')));
-    cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
-             QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar')+
-             ' net.sf.saxon.Transform'+' -s:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-xr.xml'))+
-             ' -xsl:'+QuoteIfContainsSpace(VisualizationLibPath+'xsl\xr-pdf.xsl')+
-             ' -o:'+QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-.fo'))); // geaendert von pdf auf fo
+  Result := SaxonTransform(_InvoiceXMLFilename,SaxonXslForVersion(version),
+              ChangeFileExt(tmpFilename,'-xr.xml'),ExtractFilePath(tmpFilename));
+  _CmdOutput := CmdOutput.Text;
 
-    cmd.SaveToFile(tmpFilename+'.bat',TEncoding.UTF8); //ToDo
-
-    Result := ExecAndWait(tmpFilename+'.bat','');
-
-    _CmdOutput := CmdOutput.Text;
-
-    DeleteFile(tmpFilename+'.bat');
-
-    if not Result then
-      exit;
-
-    ////////////////////////////////////////////////////////////////////////////
-    // Fopper aufrufen. Datei ist eine fo Datei. Saxon HE gibt eine fo-Datei zurueck!
-    // cmd Inhalt aus der apache-fop\foop\fop.bat ausgelesen mit echo "%JAVACMD%" %JAVAOPTS% %LOGCHOICE% %LOGLEVEL% -cp "%LOCALCLASSPATH%" %FOP_OPTS% org.apache.fop.cli.Main %FOP_CMD_LINE_ARGS%
-    if FileExists(ChangeFileExt(tmpFilename,'-.fo')) then
-    begin
-      cmd.Clear;
-      cmd.WriteBOM := False;
-      cmd.Add('chcp 65001 >nul');
-      cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
-      cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -cp '+
-      QuoteIfContainsSpace(FopLibPath+'fop\build\fop.jar;'+FopLibPath+'fop\lib\batik-all-1.16.jar;' +
-                           FopLibPath+'fop\lib\commons-io-2.11.0.jar;'+FopLibPath+'fop\lib\commons-logging-1.0.4.jar;' +
-                           FopLibPath+'fop\lib\fontbox-2.0.24.jar;'+FopLibPath+'fop\lib\serializer-2.7.2.jar;' +
-                           FopLibPath+'fop\lib\xml-apis-1.4.01.jar;'+FopLibPath+'fop\lib\xml-apis-ext-1.3.04.jar;' +
-                           FopLibPath+'fop\lib\xmlgraphics-commons-2.8.jar;') +
-        ' org.apache.fop.cli.Main ' +
-        QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-.fo')) + ' ' +
-        QuoteIfContainsSpace(ChangeFileExt(tmpFilename,'-.pdf') ));
-
-      cmd.SaveToFile(tmpFilename+'.bat', TEncoding.UTF8);
-
-      Result := ExecAndWait(tmpFilename+'.bat','');
-
-     _CmdOutput := _CmdOutput + #13#10 + CmdOutput.Text;
-
-     DeleteFile(tmpFilename+'.bat');
-     DeleteFile(ChangeFileExt(tmpFilename,'-.fo'));
-    end else
-      Result := false;
-
-    DeleteFile(ChangeFileExt(tmpFilename,'-xr.xml'));
-    ////////////////////////////////////////////////////////////////////////////
-    if FileExists(ChangeFileExt(tmpFilename,'-.pdf')) then
-    begin
-      _VisualizationAsPdf := TMemoryStream.Create;
-      _VisualizationAsPdf.LoadFromFile(ChangeFileExt(tmpFilename,'-.pdf'));
-      _VisualizationAsPdf.Position := 0;
-      DeleteFile(ChangeFileExt(tmpFilename,'-.pdf'));
-    end else
-      Result := false;
-  finally
-    cmd.Free;
+  if Result then
+  begin
+    Result := SaxonTransform(ChangeFileExt(tmpFilename,'-xr.xml'),
+                VisualizationLibPath+'xsl\xr-pdf.xsl',
+                ChangeFileExt(tmpFilename,'-.fo'),ExtractFilePath(tmpFilename)); // geaendert von pdf auf fo
+    _CmdOutput := _CmdOutput+CmdOutput.Text;
   end;
+
+  if not Result then
+    exit;
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Fopper aufrufen. Datei ist eine fo Datei. Saxon HE gibt eine fo-Datei zurueck!
+  if FileExists(ChangeFileExt(tmpFilename,'-.fo')) then
+  begin
+    Result := FopTransform(ChangeFileExt(tmpFilename,'-.fo'),
+                ChangeFileExt(tmpFilename,'-.pdf'),ExtractFilePath(tmpFilename));
+
+    _CmdOutput := _CmdOutput + #13#10 + CmdOutput.Text;
+
+    DeleteFile(ChangeFileExt(tmpFilename,'-.fo'));
+  end else
+    Result := false;
+
+  DeleteFile(ChangeFileExt(tmpFilename,'-xr.xml'));
+  //////////////////////////////////////////////////////////////////////////////
+  if FileExists(ChangeFileExt(tmpFilename,'-.pdf')) then
+  begin
+    _VisualizationAsPdf := TMemoryStream.Create;
+    _VisualizationAsPdf.LoadFromFile(ChangeFileExt(tmpFilename,'-.pdf'));
+    _VisualizationAsPdf.Position := 0;
+    DeleteFile(ChangeFileExt(tmpFilename,'-.pdf'));
+  end else
+    Result := false;
 end;
 
 function TXRechnungValidationHelperJava.QuoteIfContainsSpace(const _Value: String): String;
@@ -1347,5 +1229,7 @@ begin
   else
     Result := _Value;
 end;
+
+
 
 end.

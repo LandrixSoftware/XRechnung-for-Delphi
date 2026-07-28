@@ -107,7 +107,11 @@ type
                        ZUGFeRDEN16931Version_250,
                        ZUGFeRDExtendedVersion_250,
                        PeppolBillingVersion_30,
-                       ZUGFeRDExtendedVersion_1_NotSupported);
+                       ZUGFeRDExtendedVersion_1_NotSupported,
+                       //aeltere XRechnung-Versionen und fremde EN16931-CIUS in UBL, z.B. xrechnung_1.2 oder 2.3.
+                       //Schreiben ist seit 01.02.2024 nur noch als 3.0.x zulaessig, gelesen werden koennen sie
+                       //weiterhin, die Feldstruktur ist identisch
+                       XRechnungVersion_2x_ReadingOnly);
 
   {$IFNDEF FPC}
   TXRechnungValidationHelper = class(TObject)
@@ -505,6 +509,8 @@ begin
     XRechnungVersion_30x_UBL      : Result := TXRechnungInvoiceAdapter301.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
     XRechnungVersion_30x_UNCEFACT : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     PeppolBillingVersion_30       : Result := TXRechnungInvoiceAdapter301.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
+    //nur Lesen, geschrieben wird ausschliesslich 3.0.x
+    XRechnungVersion_2x_ReadingOnly : Result := TXRechnungInvoiceAdapter301.LoadDocumentUBL(_Invoice,_XmlDocument,_Error);
     {$IFNDEF ZUGFeRD_Support}
     ZUGFeRDEN16931Version_250 : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
     ZUGFeRDExtendedVersion_250 : Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error);
@@ -513,7 +519,25 @@ begin
     ZUGFeRDExtendedVersion_250,
     ZUGFeRDExtendedVersion_1_NotSupported : Result := TZUGFeRDInvoiceAdapter.LoadFromXMLDocument(_Invoice,_XmlDocument,_Error,_AdditionalContent);
     {$ENDIF}
-    else exit;
+    else
+    begin
+      //Fallback fuer Rechnungen ohne oder mit unbekannter CustomizationID. Die Feldstruktur
+      //entspricht EN16931, daher wird strukturbasiert nach dem Wurzelelement eingelesen,
+      //andernfalls gibt es wenigstens einen Fehlertext.
+      if (SameText(_XmlDocument.DocumentElement.NodeName,'Invoice') or
+          SameText(_XmlDocument.DocumentElement.NodeName,'ubl:Invoice') or
+          SameText(_XmlDocument.DocumentElement.NodeName,'ns0:Invoice') or
+          SameText(_XmlDocument.DocumentElement.NodeName,'CreditNote') or
+          SameText(_XmlDocument.DocumentElement.NodeName,'ubl:CreditNote') or
+          SameText(_XmlDocument.DocumentElement.NodeName,'ns0:CreditNote')) then
+        Result := TXRechnungInvoiceAdapter301.LoadDocumentUBL(_Invoice,_XmlDocument,_Error)
+      else
+      if (SameText(_XmlDocument.DocumentElement.NodeName,'CrossIndustryInvoice') or
+          SameText(_XmlDocument.DocumentElement.NodeName,'rsm:CrossIndustryInvoice')) then
+        Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error)
+      else
+        _Error := 'Nicht unterstuetztes Rechnungsformat (Wurzelelement '+_XmlDocument.DocumentElement.NodeName+')';
+    end;
   end;
 end;
 
@@ -1625,7 +1649,12 @@ begin
       Result := XRechnungVersion_30x_UBL
     else
     if Pos('billing:3.0',AnsiLowerCase(node.Text))>0 then
-      Result := PeppolBillingVersion_30;
+      Result := PeppolBillingVersion_30
+    else
+    //aeltere XRechnung-Versionen und fremde EN16931-CIUS, z.B.
+    //urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.3
+    if Pos('urn:cen.eu:en16931:2017',AnsiLowerCase(node.Text))>0 then
+      Result := XRechnungVersion_2x_ReadingOnly;
   end else
   if (SameText(_XML.DocumentElement.NodeName,'CrossIndustryInvoice') or
       SameText(_XML.DocumentElement.NodeName,'rsm:CrossIndustryInvoice')) then

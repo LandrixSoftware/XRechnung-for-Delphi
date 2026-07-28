@@ -537,6 +537,13 @@ begin
         MessageDlg('Unbekannte ZUGFeRD-Version', mtError, [mbOK], 0);
         exit;
       end;
+      if version = XRechnungVersion_2x_ReadingOnly then
+      begin
+        //aeltere Versionen koennen gelesen, aber nicht mehr geschrieben werden,
+        //ein Vergleich mit der Ausgabedatei ist daher nicht moeglich
+        MessageDlg('Eingelesen als aeltere EN16931-Version, ein Vergleich ist nicht moeglich', mtInformation, [mbOK], 0);
+        exit;
+      end;
 
       xml := TFile.ReadAllText(od.FileName,TEncoding.UTF8);
       TXRechnungInvoiceAdapter.SaveToXMLStr(inv,version,xmltest);

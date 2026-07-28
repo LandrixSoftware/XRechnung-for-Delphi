@@ -26,6 +26,8 @@
 #*.obj
 #
 
+AddOns
+einheiten.csv
 Documentation/*/*.zip
 Documentation/*/*.xml
 Documentation/*.txt

@@ -51,6 +51,7 @@ type
     function ValitoolValidate(const _InvoiceXMLData : String; out _CmdOutput,_ValidationResultAsXML : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function ValitoolValidateDirectory(const _Directory : String; out _CmdOutput : String) : Boolean;
     function SetValidationErrorHandler(const _Value : TValidationErrorHandler) : IXRechnungValidationHelperJava;
+    function SetExecTimeout(const _Seconds : Integer) : IXRechnungValidationHelperJava;
   end;
 
   function GetXRechnungValidationHelperJava : IXRechnungValidationHelperJava;
@@ -71,6 +72,7 @@ type
     ValitoolPath : String;
     ValitoolLicense : String;
     CmdOutput : TStringList;
+    ExecTimeoutSeconds : Integer; //0 = kein Timeout (Standard, Verhalten wie bisher)
     FValidationErrorHandler : TValidationErrorHandler;
     procedure HandleValidationError(const _ErrMessage : String);
     function RequireFile(const _Filename : String) : Boolean;
@@ -118,6 +120,7 @@ type
     function ValitoolValidate(const _InvoiceXMLData : String; out _CmdOutput,_ValidationResultAsXML : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function ValitoolValidateDirectory(const _Directory : String; out _CmdOutput : String) : Boolean;
     function SetValidationErrorHandler(const _Value : TValidationErrorHandler) : IXRechnungValidationHelperJava;
+    function SetExecTimeout(const _Seconds : Integer) : IXRechnungValidationHelperJava;
   end;
 
 function GetXRechnungValidationHelperJava : IXRechnungValidationHelperJava;
@@ -174,9 +177,10 @@ var
   SI: TStartupInfo;
   PI: TProcessInformation;
   StdOutPipeRead, StdOutPipeWrite, StdOutFile: THandle;
-  WasOK: Boolean;
   Buffer: array[0..4095] of Byte;
-  BytesRead: Cardinal;
+  BytesRead, BytesAvail: Cardinal;
+  StartTick : UInt64;
+  TimedOut : Boolean;
   ProcessExitCode : DWORD;
   Output : TBytesStream;
   CmdLine, WorkDir, EnvBlock : String;
@@ -239,17 +243,49 @@ begin
     try
       Output := TBytesStream.Create;
       try
+        //Timeout statt endlosem Warten, wenn Java/Valitool haengt.
+        //Gelesen wird nur nach PeekNamedPipe-Abfrage, weil ReadFile auf einer anonymen
+        //Pipe sonst genauso endlos blockiert wie WaitForSingleObject(...,INFINITE).
+        //Erst lesen, dann auf Prozessende pruefen - sonst Deadlock, wenn der volle
+        //Pipe-Puffer den Kindprozess blockiert.
+        StartTick := GetTickCount64;
+        TimedOut := false;
         repeat
-          WasOK := ReadFile(StdOutPipeRead, Buffer, SizeOf(Buffer), BytesRead, nil);
-          if BytesRead > 0 then
+          while PeekNamedPipe(StdOutPipeRead,nil,0,nil,@BytesAvail,nil) and (BytesAvail > 0) do
+          begin
+            if not ReadFile(StdOutPipeRead, Buffer, SizeOf(Buffer), BytesRead, nil) or (BytesRead = 0) then
+              Break;
             Output.Write(Buffer,BytesRead);
-        until not WasOK or (BytesRead = 0);
+          end;
+          if WaitForSingleObject(PI.hProcess, 100) = WAIT_OBJECT_0 then
+            Break;
+          if (ExecTimeoutSeconds > 0) and
+             (GetTickCount64 - StartTick >= UInt64(ExecTimeoutSeconds) * 1000) then
+          begin
+            TimedOut := true;
+            TerminateProcess(PI.hProcess, 1);
+            WaitForSingleObject(PI.hProcess, 5000); // sonst sind Tempdateien beim Loeschen evtl. noch gesperrt
+            Break;
+          end;
+        until false;
+        while PeekNamedPipe(StdOutPipeRead,nil,0,nil,@BytesAvail,nil) and (BytesAvail > 0) do
+        begin
+          if not ReadFile(StdOutPipeRead, Buffer, SizeOf(Buffer), BytesRead, nil) or (BytesRead = 0) then
+            Break;
+          Output.Write(Buffer,BytesRead);
+        end;
         CmdOutput.Text := DecodeOutput(Copy(Output.Bytes,0,Integer(Output.Size)));
       finally
         Output.Free;
       end;
-      WaitForSingleObject(PI.hProcess, INFINITE);
-      Result := GetExitCodeProcess(PI.hProcess, ProcessExitCode) and (ProcessExitCode = 0);
+      if TimedOut then
+      begin
+        CmdOutput.Add(Format('Abbruch durch Zeitueberschreitung nach %d Sekunden',[ExecTimeoutSeconds]));
+        HandleValidationError(Format('Zeitueberschreitung: %s wurde nach %d Sekunden abgebrochen',
+          [_Filename,ExecTimeoutSeconds]));
+      end
+      else
+        Result := GetExitCodeProcess(PI.hProcess, ProcessExitCode) and (ProcessExitCode = 0);
     finally
       CloseHandle(PI.hThread);
       CloseHandle(PI.hProcess);
@@ -684,6 +720,13 @@ function TXRechnungValidationHelperJava.SetValidationErrorHandler(
   const _Value: TValidationErrorHandler): IXRechnungValidationHelperJava;
 begin
   FValidationErrorHandler := _Value;
+  Result := self;
+end;
+
+function TXRechnungValidationHelperJava.SetExecTimeout(
+  const _Seconds: Integer): IXRechnungValidationHelperJava;
+begin
+  ExecTimeoutSeconds := _Seconds;
   Result := self;
 end;
 

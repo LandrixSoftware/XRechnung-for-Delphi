@@ -624,9 +624,19 @@ type
 
     Address : TInvoiceAddress;
 
+    //Die Kennung wird ohne schemeID ausgegeben, eine GLN oder eine andere Kennung aus der ICD-Liste
+    //gehoert in GlobalIdentifierSellerBuyer. Unter Peppol wird eine ID mit schemeID 0088 auf eine
+    //gueltige GLN-Pruefziffer geprueft (PEPPOL-COMMON-R040), eine Kreditor-Nr. scheitert dort.
+    //In UBL ist je Partei nur eine Kennung zulaessig (Kaeufer UBL-SR-16, Verkaeufer VD-Valitool-23),
+    //in CII gilt das fuer den Kaeufer (CII-SR-450) - dort hat jeweils die GlobalID Vorrang.
+    //Die Glaeubiger-ID (BT-90) belegt beim Verkaeufer ebenfalls eine cac:PartyIdentification,
+    //unterschieden ueber schemeID SEPA. KoSIT prueft beide Arten getrennt, valitool.org zaehlt sie
+    //zusammen und meldet dann VD-Valitool-23. Beide werden trotzdem geschrieben, BT-90 hat in UBL
+    //keine andere Abbildung.
+    //Beim Lesen landet jede ID mit schemeID ausser SEPA in GlobalIdentifierSellerBuyer.
     IdentifierSellerBuyer : String; //BT-29 Kreditor-Nr AccountingSupplierParty / BT-46 Debitor-Nr AccountingCustomerParty
-    GlobalIdentifierSellerBuyer : String; //BT-29-0, BT-46-0, optional nur CII
-    GlobalIdentifierSellerBuyerSchemeID : String; //BT-29-1, BT-46-1, optional nur CII, Werte 0021 : SWIFT, 0088 : EAN, 0060 : DUNS, 0177 : ODETTE
+    GlobalIdentifierSellerBuyer : String; //BT-29-0, BT-46-0, optional, CII: ram:GlobalID, UBL: cac:PartyIdentification/cbc:ID mit schemeID
+    GlobalIdentifierSellerBuyerSchemeID : String; //BT-29-1, BT-46-1, Default 0088 (GLN), Werte 0021 : SWIFT, 0088 : EAN/GLN, 0060 : DUNS, 0177 : ODETTE
     BankAssignedCreditorIdentifier : String; //Glaeubiger-ID (BT-90)
 
     VATCompanyID : String;   //BT-31 UStID

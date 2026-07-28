@@ -804,6 +804,10 @@ begin
             TInvoiceTestCases.PeppolEndpointSchemeID(inv,'','');
             endpointtestfall := true;
           end;
+      //Kennungen BT-29/BT-46, siehe UBL-SR-16, VD-Valitool-23 und CII-SR-450
+      19: TInvoiceTestCases.PartyIdentifierGLN(inv,true,false,false); //nur Kreditor-/Debitor-Nr.
+      20: TInvoiceTestCases.PartyIdentifierGLN(inv,false,true,true);  //GLN und Glaeubiger-ID (BT-90)
+      21: TInvoiceTestCases.PartyIdentifierGLN(inv,true,true,false);  //Kennung und GLN
       else ShowMessage('Hat einer was vergessen!');
     end;
 

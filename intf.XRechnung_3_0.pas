@@ -1362,14 +1362,19 @@ begin
       Attributes['schemeID'] := ifthen(_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID='','EM',_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID);
       Text := _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer;
     end;
-    //GlobalID (z.B. GLN) als eigene PartyIdentification mit schemeID,
-    //Verkaeuferkennung (BT-29) ohne schemeID - die Kennung ist keine GLN
+    //BT-29 ist semantisch zwar 0..n, das UBL-Syntaxbinding sieht unter BG-4-0 aber nur eine
+    //cac:PartyIdentification vor (VD-Valitool-23) - die GlobalID (z.B. GLN) hat daher Vorrang
+    //vor der Verkaeuferkennung, die Kennung selbst wird ohne schemeID ausgegeben, sie ist keine GLN.
+    //Die Glaeubiger-ID (BT-90) wird zusaetzlich geschrieben, sie hat in UBL keine andere Abbildung.
+    //KoSIT prueft sie ueber schemeID SEPA getrennt, valitool.org zaehlt sie dagegen mit und
+    //meldet in dieser Kombination VD-Valitool-23 - das ist so hingenommen.
     if _Invoice.AccountingSupplierParty.GlobalIdentifierSellerBuyer <> '' then
     with AddChild('cac:PartyIdentification').AddChild('cbc:ID') do
     begin
       Attributes['schemeID'] := IfThen(_Invoice.AccountingSupplierParty.GlobalIdentifierSellerBuyerSchemeID = '','0088',_Invoice.AccountingSupplierParty.GlobalIdentifierSellerBuyerSchemeID);
       Text := _Invoice.AccountingSupplierParty.GlobalIdentifierSellerBuyer;
-    end;
+    end
+    else
     if _Invoice.AccountingSupplierParty.IdentifierSellerBuyer <> '' then
       AddChild('cac:PartyIdentification').AddChild('cbc:ID').Text := _Invoice.AccountingSupplierParty.IdentifierSellerBuyer;
     if _Invoice.AccountingSupplierParty.BankAssignedCreditorIdentifier <> '' then

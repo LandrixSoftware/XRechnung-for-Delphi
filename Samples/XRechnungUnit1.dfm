@@ -239,7 +239,10 @@ object Form1: TForm1
       '4 Nachkommastellen'
       'Endpoint-Schema 0088/0002'
       'Endpoint-Schema EM'
-      'Endpoint-Schema leer')
+      'Endpoint-Schema leer'
+      'BT-29/46 nur Kennung'
+      'BT-29/46 GLN + BT-90'
+      'BT-29/46 Kennung+GLN')
     TabOrder = 15
   end
   object cbValidateWithJava: TCheckBox

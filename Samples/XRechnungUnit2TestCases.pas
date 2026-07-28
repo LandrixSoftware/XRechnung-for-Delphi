@@ -75,6 +75,12 @@ type
     //leeres Schema dagegen weiterhin durch 'EM'
     class procedure PeppolEndpointSchemeID(inv : TInvoice;
                        const SchemeIDVerkaeufer, SchemeIDKaeufer : String);
+    //Kennungen BT-29/BT-46: die Kennung wird in UBL ohne schemeID ausgegeben, eine GLN
+    //gehoert in GlobalIdentifierSellerBuyer. In UBL ist je Partei nur eine Kennung zulaessig
+    //(UBL-SR-16, VD-Valitool-23), in CII beim Kaeufer (CII-SR-450) - dort hat die GLN Vorrang,
+    //ausser unter ZUGFeRD-Extended
+    class procedure PartyIdentifierGLN(inv : TInvoice;
+                       KennungVerwenden, GLNVerwenden, GlaeubigerIDVerwenden : Boolean);
   end;
 
 implementation
@@ -2388,6 +2394,35 @@ begin
   else
     inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'einkauf@example.org';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := SchemeIDKaeufer;
+end;
+
+class procedure TInvoiceTestCases.PartyIdentifierGLN(inv: TInvoice;
+  KennungVerwenden, GLNVerwenden, GlaeubigerIDVerwenden: Boolean);
+begin
+  //Die Glaeubiger-ID (BT-90) belegt in UBL ebenfalls eine cac:PartyIdentification beim
+  //Verkaeufer, unterschieden nur ueber schemeID SEPA. Basis ist die Lastschrift, damit BG-19
+  //vollstaendig ist. Ergebnis: der KoSIT-Validator akzeptiert die Kombination, valitool.org
+  //meldet dagegen VD-Valitool-23, weil es alle cac:PartyIdentification zusammenzaehlt.
+  if GlaeubigerIDVerwenden then
+    Lastschrift(inv)
+  else
+    MinimalbeispielB2BOhneLeitwegID(inv);
+
+  if KennungVerwenden then
+  begin
+    //BT-29 Kreditor-Nr. und BT-46 Debitor-Nr., das sind keine GLN und daher ohne schemeID
+    inv.AccountingSupplierParty.IdentifierSellerBuyer := 'KRED-10001';
+    inv.AccountingCustomerParty.IdentifierSellerBuyer := '20003';
+  end;
+  if GLNVerwenden then
+  begin
+    //BT-29-0/BT-46-0 mit Schema BT-29-1/BT-46-1, unter Peppol wird die Pruefziffer
+    //der GLN geprueft (PEPPOL-COMMON-R040)
+    inv.AccountingSupplierParty.GlobalIdentifierSellerBuyer := '4123450000027';
+    inv.AccountingSupplierParty.GlobalIdentifierSellerBuyerSchemeID := '0088';
+    inv.AccountingCustomerParty.GlobalIdentifierSellerBuyer := '4260000000004';
+    inv.AccountingCustomerParty.GlobalIdentifierSellerBuyerSchemeID := '0088';
+  end;
 end;
 
 initialization

@@ -57,6 +57,7 @@ uses
   ,intf.ZUGFeRDQuantityCodes
   ,intf.ZUGFeRDGlobalIDSchemeIdentifiers
   ,intf.ZUGFeRDSubjectCodes
+  ,intf.ZUGFeRDDesignatedProductClassificationClassCodes
   ,intf.ZUGFeRDHelper
   {$ENDIF}
   ,intf.XRechnung_3_0
@@ -2352,6 +2353,20 @@ begin
     begin
       Name := _InvoiceDescriptor.TradeLineItems[i].ApplicableProductCharacteristics[j].Description;
       Value := _InvoiceDescriptor.TradeLineItems[i].ApplicableProductCharacteristics[j].Value;
+    end;
+
+    for j := 0 to _InvoiceDescriptor.TradeLineItems[i].DesignedProductClassifications.Count-1 do
+    with lInvoiceLine.ItemClassifications.AddItemClassification do
+    begin
+      ClassCode := _InvoiceDescriptor.TradeLineItems[i].DesignedProductClassifications[j].ClassCode;
+      //Unbekannte listIDs liefert die ZUGFeRD-Bibliothek als Unknown, sie werden hier
+      //nicht uebernommen, statt sie faelschlich als gueltigen Code auszugeben.
+      if _InvoiceDescriptor.TradeLineItems[i].DesignedProductClassifications[j].ListID.HasValue then
+      if _InvoiceDescriptor.TradeLineItems[i].DesignedProductClassifications[j].ListID.Value <> TZUGFeRDDesignatedProductClassificationClassCodes.Unknown then
+        ListID := TEnumExtensions<TZUGFeRDDesignatedProductClassificationClassCodes>.EnumToString(
+                    _InvoiceDescriptor.TradeLineItems[i].DesignedProductClassifications[j].ListID.Value);
+      ListVersionID := _InvoiceDescriptor.TradeLineItems[i].DesignedProductClassifications[j].ListVersionID;
+      ClassificationName := _InvoiceDescriptor.TradeLineItems[i].DesignedProductClassifications[j].ClassName_;
     end;
   end;
 

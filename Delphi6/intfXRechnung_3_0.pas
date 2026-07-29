@@ -116,6 +116,14 @@ var
       if (TXRechnungXMLHelper.SelectAttributeText(node2,'schemeID') = '0160') then
         _Invoiceline.GlobalID_EAN_GTIN := node2.text;
       _Invoiceline.OriginTradeCountry := TXRechnungXMLHelper.SelectNodeText(node,'.//cac:OriginCountry/cbc:IdentificationCode');
+      if TXRechnungXMLHelper.SelectNodes(node,'.//cac:CommodityClassification/cbc:ItemClassificationCode',nodes) then
+      for i := 0 to nodes.length-1 do
+      with _Invoiceline.ItemClassifications.AddItemClassification do
+      begin
+        ClassCode := nodes[i].text;
+        ListID := TXRechnungXMLHelper.SelectAttributeText(nodes[i],'listID');
+        ListVersionID := TXRechnungXMLHelper.SelectAttributeText(nodes[i],'listVersionID');
+      end;
       _Invoiceline.TaxCategory := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeFromStr(TXRechnungXMLHelper.SelectNodeText(node,'.//cac:ClassifiedTaxCategory/cbc:ID'));
       _Invoiceline.TaxPercent := TXRechnungHelper.PercentageFromStr(TXRechnungXMLHelper.SelectNodeText(node,'.//cac:ClassifiedTaxCategory/cbc:Percent'));
       if TXRechnungXMLHelper.SelectNodes(node,'.//cac:AdditionalItemProperty',nodes) then
@@ -483,7 +491,18 @@ var
         Name := TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:Description');
         Value := TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:Value');
       end;
-      //DesignatedProductClassification
+      if TXRechnungXMLHelper.SelectNodes(node2,'.//ram:DesignatedProductClassification',nodes) then
+      for i := 0 to nodes.length-1 do
+      with _Invoiceline.ItemClassifications.AddItemClassification do
+      begin
+        if TXRechnungXMLHelper.SelectNode(nodes[i],'.//ram:ClassCode',node3) then
+        begin
+          ClassCode := node3.text;
+          ListID := TXRechnungXMLHelper.SelectAttributeText(node3,'listID');
+          ListVersionID := TXRechnungXMLHelper.SelectAttributeText(node3,'listVersionID');
+        end;
+        ClassificationName := TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:ClassName');
+      end;
       _Invoiceline.OriginTradeCountry := TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:OriginTradeCountry/ram:ID');
     end;
     if TXRechnungXMLHelper.SelectNode(_Node,'.//ram:SpecifiedLineTradeAgreement',node2) then
@@ -1133,6 +1152,16 @@ var
       end;
       if _Invoiceline.OriginTradeCountry <> '' then
         AddChild('cac:OriginCountry').AddChild('cbc:IdentificationCode').Text := _Invoiceline.OriginTradeCountry;
+      for i := 0 to _Invoiceline.ItemClassifications.Count-1 do
+      if (_Invoiceline.ItemClassifications[i].ClassCode <> '') and
+         (_Invoiceline.ItemClassifications[i].ListID <> '') then //BR-65 listID ist Pflicht
+      with AddChild('cac:CommodityClassification').AddChild('cbc:ItemClassificationCode') do
+      begin
+        Attributes['listID'] := _Invoiceline.ItemClassifications[i].ListID;
+        if _Invoiceline.ItemClassifications[i].ListVersionID <> '' then
+          Attributes['listVersionID'] := _Invoiceline.ItemClassifications[i].ListVersionID;
+        Text := _Invoiceline.ItemClassifications[i].ClassCode;
+      end;
       with AddChild('cac:ClassifiedTaxCategory') do
       begin
         AddChild('cbc:ID').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(_Invoiceline.TaxCategory);
@@ -1820,6 +1849,22 @@ var
           AddChild('ram:Description').Text := _Invoiceline.ItemAttributes[i].Name;
         if _Invoiceline.ItemAttributes[i].Value <> '' then
           AddChild('ram:Value').Text := _Invoiceline.ItemAttributes[i].Value;
+      end;
+      for i := 0 to _Invoiceline.ItemClassifications.Count-1 do
+      if (_Invoiceline.ItemClassifications[i].ClassCode <> '') and
+         (_Invoiceline.ItemClassifications[i].ListID <> '') then //BR-65 listID ist Pflicht
+      with AddChild('ram:DesignatedProductClassification') do
+      begin
+        with AddChild('ram:ClassCode') do
+        begin
+          Attributes['listID'] := _Invoiceline.ItemClassifications[i].ListID;
+          if _Invoiceline.ItemClassifications[i].ListVersionID <> '' then
+            Attributes['listVersionID'] := _Invoiceline.ItemClassifications[i].ListVersionID;
+          Text := _Invoiceline.ItemClassifications[i].ClassCode;
+        end;
+        //ram:ClassName ist nur im Profil EXTENDED zulaessig
+        if (_Profile = ipZUGFeRDExtended) and (_Invoiceline.ItemClassifications[i].ClassificationName <> '') then
+          AddChild('ram:ClassName').Text := _Invoiceline.ItemClassifications[i].ClassificationName;
       end;
       if _Invoiceline.OriginTradeCountry <> '' then
         AddChild('ram:OriginTradeCountry').AddChild('ram:ID').Text := _Invoiceline.OriginTradeCountry;

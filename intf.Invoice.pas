@@ -546,6 +546,27 @@ type
     function  AddItemAttribute : TInvoiceLineItemAttribute;
   end;
 
+  TInvoiceLineItemClassification = class(TObject)
+  public
+    ClassCode : String;      //BT-158 Kennung der Artikelklassifizierung, z.B. FRACHT
+    ListID : String;         //BT-158-1 Pflicht wenn ClassCode gesetzt (UNTDID 7143), z.B. GB
+    ListVersionID : String;  //BT-158-2 optional, Version des Schemas
+    ClassificationName : String; //nur ZUGFeRD/Factur-X EXTENDED (ram:ClassName), sonst unzulaessig
+  end;
+
+  TInvoiceLineItemClassifications = class(TObjectList)
+  protected
+    function GetItem(Index: TInvoiceListItemType): TInvoiceLineItemClassification;
+    procedure SetItem(Index: TInvoiceListItemType; AItem: TInvoiceLineItemClassification);
+  public
+	  function  Extract(Item: TObject): TInvoiceLineItemClassification;
+	  function  First: TInvoiceLineItemClassification;
+	  function  Last: TInvoiceLineItemClassification;
+	  property  Items[Index: TInvoiceListItemType]: TInvoiceLineItemClassification read GetItem write SetItem; default;
+  public
+    function  AddItemClassification : TInvoiceLineItemClassification;
+  end;
+
   TInvoiceLine = class(TObject) // insgesamt BG-25
   public
     ID : String; //BT-126 Positionsnummer
@@ -574,7 +595,7 @@ type
     AllowanceCharges : TInvoiceAllowanceCharges; // BG-27 (BT-136..BT-140) und BG-28 (BT-141..BT-145)
     InvoiceLinePeriodStartDate : TDate; //BG-26, BT-134 Leistungszeitraum Beginn
     InvoiceLinePeriodEndDate : TDate; //BG-26, BT-135 Leistungszeitraum Ende
-    //BG-31, BT-158 fehlt , DesignatedProductClassification "Kennung der Artikelklassifizierung", (0..n)
+    ItemClassifications : TInvoiceLineItemClassifications; //BG-31, BT-158 "Kennung der Artikelklassifizierung", (0..n)
     OriginTradeCountry : String; //BG-31, BT-159 Artikelherkunftsland z.B. DE
     ItemAttributes : TInvoiceLineItemAttributes; //BG-31:BG-32 (BT-160..BT-161)
 
@@ -1080,6 +1101,7 @@ begin
   AllowanceCharges := TInvoiceAllowanceCharges.Create;
   SubInvoiceLines := TInvoiceLines.Create;
   ItemAttributes := TInvoiceLineItemAttributes.Create;
+  ItemClassifications := TInvoiceLineItemClassifications.Create;
   InvoiceLinePeriodStartDate := 0;
   InvoiceLinePeriodEndDate := 0;
   OriginTradeCountry := '';
@@ -1090,6 +1112,7 @@ begin
   if Assigned(AllowanceCharges) then begin AllowanceCharges.Free; AllowanceCharges := nil; end;
   if Assigned(SubInvoiceLines) then begin SubInvoiceLines.Free; SubInvoiceLines := nil; end;
   if Assigned(ItemAttributes) then begin ItemAttributes.Free; ItemAttributes := nil; end;
+  if Assigned(ItemClassifications) then begin ItemClassifications.Free; ItemClassifications := nil; end;
   inherited;
 end;
 
@@ -1725,6 +1748,29 @@ function TInvoiceLineItemAttributes.Last: TInvoiceLineItemAttribute;
 begin if Count = 0 then Result := nil else Result := TInvoiceLineItemAttribute(inherited Last); end;
 
 procedure TInvoiceLineItemAttributes.SetItem(Index: TInvoiceListItemType; AItem: TInvoiceLineItemAttribute);
+begin inherited Items[Index] := AItem; end;
+
+{ TInvoiceLineItemClassifications }
+
+function TInvoiceLineItemClassifications.AddItemClassification: TInvoiceLineItemClassification;
+begin
+  Result := TInvoiceLineItemClassification.Create;
+  Add(Result);
+end;
+
+function TInvoiceLineItemClassifications.Extract(Item: TObject): TInvoiceLineItemClassification;
+begin Result := TInvoiceLineItemClassification(inherited Extract(Item)); end;
+
+function TInvoiceLineItemClassifications.First: TInvoiceLineItemClassification;
+begin if Count = 0 then Result := nil else Result := TInvoiceLineItemClassification(inherited First); end;
+
+function TInvoiceLineItemClassifications.GetItem(Index: TInvoiceListItemType): TInvoiceLineItemClassification;
+begin Result := TInvoiceLineItemClassification(inherited Items[Index]); end;
+
+function TInvoiceLineItemClassifications.Last: TInvoiceLineItemClassification;
+begin if Count = 0 then Result := nil else Result := TInvoiceLineItemClassification(inherited Last); end;
+
+procedure TInvoiceLineItemClassifications.SetItem(Index: TInvoiceListItemType; AItem: TInvoiceLineItemClassification);
 begin inherited Items[Index] := AItem; end;
 
 { TInvoicePaymentType }

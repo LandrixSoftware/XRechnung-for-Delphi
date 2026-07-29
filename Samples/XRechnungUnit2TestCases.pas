@@ -639,6 +639,12 @@ begin
       Name := 'Key2';
       Value := '123';
     end;
+    //BT-158 Kennung der Artikelklassifizierung, z.B. Kennzeichnung als Frachtartikel
+    with ItemClassifications.AddItemClassification do
+    begin
+      ClassCode := 'FRACHT'; //BT-158
+      ListID := 'GB'; //BT-158-1 Pflichtangabe
+    end;
     OriginTradeCountry := 'DE';
   end;
   with inv.InvoiceLines.AddInvoiceLine do
@@ -667,6 +673,15 @@ begin
     BaseQuantity := 0; //Preiseinheit 0 = wird nicht ausgegeben, entspricht default = 1
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
     LineAmount := 100;
+    //BT-158 mit Version des Klassifizierungsschemas,
+    //ClassificationName wird nur im Profil ZUGFeRD/Factur-X EXTENDED ausgegeben
+    with ItemClassifications.AddItemClassification do
+    begin
+      ClassCode := '23456789123'; //BT-158
+      ListID := 'HS'; //BT-158-1 Harmonisiertes System
+      ListVersionID := '2022'; //BT-158-2
+      ClassificationName := 'Zolltarifnummer';
+    end;
     OriginTradeCountry := 'DE';
 
     //Nachlass zur Position generieren

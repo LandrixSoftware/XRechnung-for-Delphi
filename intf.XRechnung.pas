@@ -1,4 +1,4 @@
-{
+﻿{
 License XRechnung-for-Delphi
 
 Copyright (C) 2026 Landrix Software GmbH & Co. KG
@@ -59,6 +59,14 @@ uses
   ,intf.ZUGFeRDSubjectCodes
   ,intf.ZUGFeRDDesignatedProductClassificationClassCodes
   ,intf.ZUGFeRDHelper
+  ,intf.ZUGFeRDParty
+  ,intf.ZUGFeRDContact
+  ,intf.ZUGFeRDTaxRegistration
+  ,intf.ZUGFeRDElectronicAddress
+  ,intf.ZUGFeRDElectronicAddressSchemeIdentifiers
+  ,intf.ZUGFeRDAdditionalReferencedDocumentTypeCodes
+  ,intf.ZUGFeRDTradeLineItem
+  ,System.Generics.Collections
   {$ENDIF}
   ,intf.XRechnung_3_0
   ,intf.Invoice
@@ -229,6 +237,21 @@ uses intf.XRechnungHelper;
 type
   TZUGFeRDInvoiceAdapter = class
   private
+    //Codewert eines Enums der ZUGFeRD-Bibliothek. Nicht gesetzte Werte und Codes, die die
+    //Bibliothek nicht kennt (Unknown), ergeben einen Leerstring - so laesst sich eine
+    //fehlende Angabe nicht mehr mit dem ersten Enum-Wert verwechseln.
+    class function CodeFromEnum<TEnum>(const _Value : ZUGFeRDNullable<TEnum>) : String;
+    class function UnitCodeFrom(const _Value : ZUGFeRDNullable<TZUGFeRDQuantityCodes>) : TInvoiceUnitCode;
+    class function TaxCategoryFrom(const _Value : ZUGFeRDNullable<TZUGFeRDTaxCategoryCodes>) : TInvoiceDutyTaxFeeCategoryCode;
+    class procedure TransferAddress(_Target : TInvoiceAddress; _Source : TZUGFeRDParty);
+    class procedure TransferParty(_Target : TInvoiceAccountingParty; _Source : TZUGFeRDParty;
+      _Contact : TZUGFeRDContact; _TaxRegistrations : TObjectList<TZUGFeRDTaxRegistration>;
+      _ElectronicAddress : TZUGFeRDElectronicAddress);
+    class procedure TransferAllowanceCharge(_Target : TInvoiceAllowanceCharge;
+      _Source : TZUGFeRDAbstractTradeAllowanceCharge);
+    class procedure TransferPaymentTerms(_Invoice : TInvoice; _InvoiceDescriptor: TZUGFeRDInvoiceDescriptor);
+    class procedure TransferPaymentMeans(_Invoice : TInvoice; _InvoiceDescriptor: TZUGFeRDInvoiceDescriptor);
+    class procedure TransferInvoiceLine(_InvoiceLine : TInvoiceLine; _TradeLineItem : TZUGFeRDTradeLineItem);
     class function LoadFromInvoiceDescriptor(_Invoice: TInvoice; _InvoiceDescriptor: TZUGFeRDInvoiceDescriptor; out _Error : String) : Boolean;
     class function LoadAdditionalContentFromXMLDocument(_AdditionalContent : TZUGFeRDAdditionalContent; _InvoiceDescriptor: TZUGFeRDInvoiceDescriptor) : Boolean;
   public
@@ -1403,6 +1426,22 @@ begin
   if SameText(_Val,'877') then
     Result := itc_FinalConstructionInvoice
   else
+  //Nicht in XRechnung zugelassen, in ZUGFeRD/Factur-X aber moeglich
+  if SameText(_Val,'84') then
+    Result := itc_DebitnoteRelatedToFinancialAdjustments
+  else
+  if SameText(_Val,'261') then
+    Result := itc_SelfBilledCreditNote
+  else
+  if SameText(_Val,'383') then
+    Result := itc_DebitNote
+  else
+  if SameText(_Val,'386') then
+    Result := itc_PrepaymentInvoice
+  else
+  if SameText(_Val,'457') then
+    Result := itc_Cancellation
+  else
     Result := itc_None;
 end;
 
@@ -1417,6 +1456,13 @@ begin
     itc_PartialConstructionInvoice: Result := '875';
     itc_PartialFinalConstructionInvoice: Result := '876';
     itc_FinalConstructionInvoice: Result := '877';
+    //Die folgenden Typen sind in XRechnung nicht zugelassen, kommen aber in
+    //ZUGFeRD/Factur-X vor und gehen sonst beim Wiederschreiben verloren.
+    itc_DebitnoteRelatedToFinancialAdjustments: Result := '84';
+    itc_SelfBilledCreditNote: Result := '261';
+    itc_DebitNote: Result := '383';
+    itc_PrepaymentInvoice: Result := '386';
+    itc_Cancellation: Result := '457';
     else Result := '';
   end;
 end;
@@ -1805,17 +1851,25 @@ var
   desc : TZUGFeRDInvoiceDescriptor;
 begin
   Result := false;
+  _Error := '';
   if _Invoice = nil then
     exit;
   if _Stream = nil then
     exit;
 
-  desc := TZUGFeRDInvoiceDescriptor.Load(_Stream);
+  desc := nil;
   try
+    desc := TZUGFeRDInvoiceDescriptor.Load(_Stream);
     Result := TZUGFeRDInvoiceAdapter.LoadFromInvoiceDescriptor(_Invoice,desc,_Error);
-  finally
-    desc.Free;
+  except
+    on E:Exception do
+    begin
+      _Error := E.Message;
+      Result := false;
+    end;
   end;
+  if desc <> nil then
+    desc.Free;
 end;
 
 class function TZUGFeRDInvoiceAdapter.LoadFromFile(_Invoice : TInvoice;
@@ -1833,7 +1887,7 @@ begin
 
   stream := TFileStream.Create(_Filename,fmOpenRead or fmShareDenyNone);
   try
-    TZUGFeRDInvoiceAdapter.LoadFromStream(_Invoice,stream,_Error);
+    Result := TZUGFeRDInvoiceAdapter.LoadFromStream(_Invoice,stream,_Error);
   finally
     stream.Free;
   end;
@@ -1846,24 +1900,32 @@ var
   desc : TZUGFeRDInvoiceDescriptor;
 begin
   Result := false;
+  _Error := '';
   if _Invoice = nil then
     exit;
   if _XmlDocument = nil then
     exit;
 
-  desc := TZUGFeRDInvoiceDescriptor.Load(_XmlDocument);
+  desc := nil;
   try
+    desc := TZUGFeRDInvoiceDescriptor.Load(_XmlDocument);
     Result := TZUGFeRDInvoiceAdapter.LoadFromInvoiceDescriptor(_Invoice,desc,_Error);
     if _AdditionalContent <> nil then
     begin
       TZUGFeRDInvoiceAdapter.LoadAdditionalContentFromXMLDocument(_AdditionalContent,desc);
+      //Der Descriptor geht in den Besitz von _AdditionalContent ueber
       _AdditionalContent.ZUGFeRDInvoice := desc;
       desc := nil;
     end;
-  finally
-    if desc <> nil then
-      desc.Free;
+  except
+    on E:Exception do
+    begin
+      _Error := E.Message;
+      Result := false;
+    end;
   end;
+  if desc <> nil then
+    desc.Free;
 end;
 
 class function TZUGFeRDInvoiceAdapter.LoadFromXMLStr(_Invoice : TInvoice;
@@ -1879,239 +1941,239 @@ begin
 
   stream := TStringStream.Create(_XML,TEncoding.UTF8);
   try
-    TZUGFeRDInvoiceAdapter.LoadFromStream(_Invoice,stream,_Error);
+    Result := TZUGFeRDInvoiceAdapter.LoadFromStream(_Invoice,stream,_Error);
   finally
     stream.Free;
   end;
 end;
 
-class function TZUGFeRDInvoiceAdapter.LoadFromInvoiceDescriptor(
-  _Invoice: TInvoice; _InvoiceDescriptor: TZUGFeRDInvoiceDescriptor;
-  out _Error : String) : Boolean;
-var
-  i,j : Integer;
-  firstDiscount : Boolean;
+class function TZUGFeRDInvoiceAdapter.CodeFromEnum<TEnum>(
+  const _Value : ZUGFeRDNullable<TEnum>) : String;
 begin
-  Result := false;
-  if _Invoice = nil then
+  Result := TEnumExtensions<TEnum>.EnumToString(_Value);
+  //Codes ausserhalb der jeweiligen Codeliste liefert die ZUGFeRD-Bibliothek als
+  //'Unknown'. Sie duerfen nicht als echter Code weitergereicht werden.
+  if SameText(Result,'Unknown') then
+    Result := '';
+end;
+
+class function TZUGFeRDInvoiceAdapter.UnitCodeFrom(
+  const _Value : ZUGFeRDNullable<TZUGFeRDQuantityCodes>) : TInvoiceUnitCode;
+begin
+  Result := TXRechnungHelper.InvoiceUnitCodeFromStr(CodeFromEnum<TZUGFeRDQuantityCodes>(_Value));
+end;
+
+class function TZUGFeRDInvoiceAdapter.TaxCategoryFrom(
+  const _Value : ZUGFeRDNullable<TZUGFeRDTaxCategoryCodes>) : TInvoiceDutyTaxFeeCategoryCode;
+begin
+  Result := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeFromStr(CodeFromEnum<TZUGFeRDTaxCategoryCodes>(_Value));
+end;
+
+class procedure TZUGFeRDInvoiceAdapter.TransferAddress(_Target : TInvoiceAddress;
+  _Source : TZUGFeRDParty);
+begin
+  if (_Target = nil) or (_Source = nil) then
     exit;
-  if _InvoiceDescriptor = nil then
+
+  //Die ZUGFeRD-Bibliothek legt ram:LineOne in ContactName ab und ram:LineTwo in Street,
+  //aber nur dann, wenn beide Zeilen belegt sind - sonst steht LineOne in Street.
+  if _Source.ContactName = '' then
+  begin
+    _Target.StreetName := _Source.Street;
+    _Target.AdditionalStreetName := '';
+  end else
+  begin
+    _Target.StreetName := _Source.ContactName;
+    _Target.AdditionalStreetName := _Source.Street;
+  end;
+  _Target.City := _Source.City;
+  _Target.PostalZone := _Source.Postcode;
+  _Target.CountrySubentity := _Source.CountrySubdivisionName;
+  _Target.AddressLine := _Source.AddressLine3;
+  _Target.CountryCode := CodeFromEnum<TZUGFeRDCountryCodes>(_Source.Country);
+end;
+
+class procedure TZUGFeRDInvoiceAdapter.TransferParty(_Target : TInvoiceAccountingParty;
+  _Source : TZUGFeRDParty; _Contact : TZUGFeRDContact;
+  _TaxRegistrations : TObjectList<TZUGFeRDTaxRegistration>;
+  _ElectronicAddress : TZUGFeRDElectronicAddress);
+var
+  i : Integer;
+begin
+  if _Target = nil then
     exit;
 
-  firstDiscount := true;
+  if _Source <> nil then
+  begin
+    if _Source.SpecifiedLegalOrganization <> nil then
+    begin
+      _Target.Name := _Source.SpecifiedLegalOrganization.TradingBusinessName; //BT-28, BT-45
+      _Target.CompanyID := _Source.SpecifiedLegalOrganization.ID.ID; //BT-30, BT-47
+    end;
+    _Target.RegistrationName := _Source.Name; //BT-27, BT-44
+    TransferAddress(_Target.Address,_Source);
+    _Target.IdentifierSellerBuyer := _Source.ID.ID; //BT-29, BT-46
+    //BT-29-0/BT-46-0 mit Schema BT-29-1/BT-46-1, in CII ram:GlobalID
+    _Target.GlobalIdentifierSellerBuyer := _Source.GlobalID.ID;
+    _Target.GlobalIdentifierSellerBuyerSchemeID :=
+      CodeFromEnum<TZUGFeRDGlobalIDSchemeIdentifiers>(_Source.GlobalID.SchemeID);
+    _Target.AdditionalLegalInformationSeller := _Source.Description; //BT-33, nur Verkaeufer
+  end;
 
-  _Invoice.InvoiceNumber := _InvoiceDescriptor.InvoiceNo;
-  _Invoice.InvoiceIssueDate := _InvoiceDescriptor.InvoiceDate;
-  _Invoice.InvoiceDueDate := 0;
-  for i := 0 to _InvoiceDescriptor.PaymentTermsList.Count-1 do
-  if (_InvoiceDescriptor.PaymentTermsList[i].Percentage.Value = 0.0) then
-  begin
-    _Invoice.InvoiceDueDate := _InvoiceDescriptor.PaymentTermsList[i].DueDate.Value;
-    break;
-  end;
-  _Invoice.InvoicePeriodStartDate := _InvoiceDescriptor.BillingPeriodStart;
-  _Invoice.InvoicePeriodEndDate := _InvoiceDescriptor.BillingPeriodEnd;
-  case _InvoiceDescriptor.Type_ of
-    DebitnoteRelatedToFinancialAdjustments: _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_DebitnoteRelatedToFinancialAdjustments;
-    SelfBilledCreditNote: _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_SelfBilledCreditNote;
-    PartialInvoice: _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_PartialInvoice;
-    Invoice: _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice;
-    CreditNote: _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_CreditNote;
-    DebitNote: _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_DebitNote;
-    Correction: _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_CorrectedInvoice;
-    PrepaymentInvoice: _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_PrepaymentInvoice;
-    SelfBilledInvoice: _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_SelfbilledInvoice;
-    //InvoiceInformation: ;
-    //CorrectionOld: ;
-    ReversalOfDebit: _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_Cancellation;
-    PartialConstructionInvoice: _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_PartialConstructionInvoice;
-    PartialFinalConstructionInvoice: _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_PartialFinalConstructionInvoice;
-    FinalConstructionInvoice: _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_FinalConstructionInvoice;
-    else _Invoice.InvoiceTypeCode := TInvoiceTypeCode.itc_None;
-  end;
-  _Invoice.InvoiceCurrencyCode := TEnumExtensions<TZUGFeRDCurrencyCodes>.EnumToString(_InvoiceDescriptor.Currency);
-  _Invoice.TaxCurrencyCode := _Invoice.InvoiceCurrencyCode; //TODO fehlt in ZUGFeRD-Lib
-  _Invoice.BuyerReference := _InvoiceDescriptor.ReferenceOrderNo;
-  for i := 0 to _InvoiceDescriptor.Notes.Count-1 do
-  begin
-    _Invoice.Notes.AddNote.Content := _InvoiceDescriptor.Notes[i].Content;
-    if _InvoiceDescriptor.Notes[i].SubjectCode.HasValue then
-    case _InvoiceDescriptor.Notes[i].SubjectCode.Value of
-      //TZUGFeRDSubjectCodes.AAC :_Invoice.Notes.Last.SubjectCode :=
-      TZUGFeRDSubjectCodes.AAI :_Invoice.Notes.Last.SubjectCode := insc_AAI;
-      TZUGFeRDSubjectCodes.AAJ :_Invoice.Notes.Last.SubjectCode := insc_AAJ;
-      //TZUGFeRDSubjectCodes.ABN :_Invoice.Notes.Last.SubjectCode :=
-      TZUGFeRDSubjectCodes.AAK :_Invoice.Notes.Last.SubjectCode := insc_AAK;
-      //TZUGFeRDSubjectCodes.ACB :_Invoice.Notes.Last.SubjectCode :=
-      //TZUGFeRDSubjectCodes.ADU :_Invoice.Notes.Last.SubjectCode :=
-      TZUGFeRDSubjectCodes.PMT :_Invoice.Notes.Last.SubjectCode := insc_PMT;
-      //TZUGFeRDSubjectCodes.PRF :_Invoice.Notes.Last.SubjectCode :=
-      TZUGFeRDSubjectCodes.REG :_Invoice.Notes.Last.SubjectCode := insc_REG;
-      TZUGFeRDSubjectCodes.SUR :_Invoice.Notes.Last.SubjectCode := insc_SUR;
-      TZUGFeRDSubjectCodes.TXD :_Invoice.Notes.Last.SubjectCode := insc_TXD;
-    end; //TODO insc_ABL, insc_CUS
-  end;
-  if _InvoiceDescriptor.SellerOrderReferencedDocument <> nil then
-    _Invoice.SellerOrderReference := _InvoiceDescriptor.SellerOrderReferencedDocument.ID;
-  _Invoice.PurchaseOrderReference := _InvoiceDescriptor.OrderNo;
-  if _InvoiceDescriptor.SpecifiedProcuringProject <> nil then
-    _Invoice.ProjectReference := _InvoiceDescriptor.SpecifiedProcuringProject.ID;
-  //noch nicht unterstuetzt  _Invoice.ReceiptDocumentReference
-  if _InvoiceDescriptor.ContractReferencedDocument <> nil then
-    _Invoice.ContractDocumentReference := _InvoiceDescriptor.ContractReferencedDocument.ID;
-  if _InvoiceDescriptor.DespatchAdviceReferencedDocument <> nil then
-    _Invoice.DeliveryReceiptNumber := _InvoiceDescriptor.DespatchAdviceReferencedDocument.ID;
-  if _InvoiceDescriptor.ReceivableSpecifiedTradeAccountingAccounts.Count > 0 then
-    _Invoice.BuyerAccountingReference := _InvoiceDescriptor.ReceivableSpecifiedTradeAccountingAccounts[0].TradeAccountID;
-  //Seller
-  if _InvoiceDescriptor.Seller <> nil then
-  begin
-    if _InvoiceDescriptor.Seller.SpecifiedLegalOrganization <> nil then
-    begin
-      _Invoice.AccountingSupplierParty.Name := _InvoiceDescriptor.Seller.SpecifiedLegalOrganization.TradingBusinessName;
-      _Invoice.AccountingSupplierParty.CompanyID := _InvoiceDescriptor.Seller.SpecifiedLegalOrganization.ID.ID;
-    end;
-    _Invoice.AccountingSupplierParty.RegistrationName := _InvoiceDescriptor.Seller.Name;
-    if _InvoiceDescriptor.Seller.ContactName = '' then
-    begin
-      _Invoice.AccountingSupplierParty.Address.StreetName := _InvoiceDescriptor.Seller.Street;
-      _Invoice.AccountingSupplierParty.Address.AdditionalStreetName := '';
-    end else
-    begin
-      _Invoice.AccountingSupplierParty.Address.StreetName := _InvoiceDescriptor.Seller.ContactName;
-      _Invoice.AccountingSupplierParty.Address.AdditionalStreetName := _InvoiceDescriptor.Seller.Street;
-    end;
-    _Invoice.AccountingSupplierParty.Address.City := _InvoiceDescriptor.Seller.City;
-    _Invoice.AccountingSupplierParty.Address.PostalZone := _InvoiceDescriptor.Seller.Postcode;
-    _Invoice.AccountingSupplierParty.Address.CountrySubentity := _InvoiceDescriptor.Seller.CountrySubdivisionName;
-    _Invoice.AccountingSupplierParty.Address.AddressLine := _InvoiceDescriptor.Seller.AddressLine3;
-    _Invoice.AccountingSupplierParty.Address.CountryCode := TEnumExtensions<TZUGFeRDCountryCodes>.EnumToString(_InvoiceDescriptor.Seller.Country);
-    _Invoice.AccountingSupplierParty.IdentifierSellerBuyer := _InvoiceDescriptor.Seller.ID.ID;
-  end;
-  for i := 0 to _InvoiceDescriptor.SellerTaxRegistration.Count-1 do
-  if _InvoiceDescriptor.SellerTaxRegistration[i].SchemeID = TZUGFeRDTaxRegistrationSchemeID.VA then
-    _Invoice.AccountingSupplierParty.VATCompanyID := _InvoiceDescriptor.SellerTaxRegistration[i].No
+  if _TaxRegistrations <> nil then
+  for i := 0 to _TaxRegistrations.Count-1 do
+  if _TaxRegistrations[i].SchemeID = TZUGFeRDTaxRegistrationSchemeID.VA then
+    _Target.VATCompanyID := _TaxRegistrations[i].No //BT-31, BT-48
   else
-  if _InvoiceDescriptor.SellerTaxRegistration[i].SchemeID = TZUGFeRDTaxRegistrationSchemeID.FC then
-    _Invoice.AccountingSupplierParty.VATCompanyNumber := _InvoiceDescriptor.SellerTaxRegistration[i].No;
-  if _InvoiceDescriptor.SellerContact <> nil then
+  if _TaxRegistrations[i].SchemeID = TZUGFeRDTaxRegistrationSchemeID.FC then
+    _Target.VATCompanyNumber := _TaxRegistrations[i].No; //BT-32
+
+  if _Contact <> nil then
   begin
-    _Invoice.AccountingSupplierParty.ContactName := _InvoiceDescriptor.SellerContact.Name;
-    _Invoice.AccountingSupplierParty.ContactTelephone := _InvoiceDescriptor.SellerContact.PhoneNo;
-    _Invoice.AccountingSupplierParty.ContactElectronicMail := _InvoiceDescriptor.SellerContact.EmailAddress;
+    _Target.ContactName := _Contact.Name; //BT-41, BT-56
+    _Target.ContactTelephone := _Contact.PhoneNo; //BT-42, BT-57
+    _Target.ContactElectronicMail := _Contact.EmailAddress; //BT-43, BT-58
   end;
-  _Invoice.AccountingSupplierParty.AdditionalLegalInformationSeller := _InvoiceDescriptor.Seller.Description;
-  _Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer := _InvoiceDescriptor.SellerElectronicAddress.Address;
-  //Buyer
-  if _InvoiceDescriptor.Buyer <> nil then
+
+  if _ElectronicAddress <> nil then
   begin
-    if _InvoiceDescriptor.Buyer.SpecifiedLegalOrganization <> nil then
-    begin
-      _Invoice.AccountingCustomerParty.Name := _InvoiceDescriptor.Buyer.SpecifiedLegalOrganization.TradingBusinessName;
-      _Invoice.AccountingCustomerParty.CompanyID := _InvoiceDescriptor.Buyer.SpecifiedLegalOrganization.ID.ID;
-    end;
-    _Invoice.AccountingCustomerParty.RegistrationName := _InvoiceDescriptor.Buyer.Name;
-    if _InvoiceDescriptor.Buyer.ContactName = '' then
-    begin
-      _Invoice.AccountingCustomerParty.Address.StreetName := _InvoiceDescriptor.Buyer.Street;
-      _Invoice.AccountingCustomerParty.Address.AdditionalStreetName := '';
-    end else
-    begin
-      _Invoice.AccountingCustomerParty.Address.StreetName := _InvoiceDescriptor.Buyer.ContactName;
-      _Invoice.AccountingCustomerParty.Address.AdditionalStreetName := _InvoiceDescriptor.Buyer.Street;
-    end;
-    _Invoice.AccountingCustomerParty.Address.City := _InvoiceDescriptor.Buyer.City;
-    _Invoice.AccountingCustomerParty.Address.PostalZone := _InvoiceDescriptor.Buyer.Postcode;
-    _Invoice.AccountingCustomerParty.Address.CountrySubentity := _InvoiceDescriptor.Buyer.CountrySubdivisionName;
-    _Invoice.AccountingCustomerParty.Address.AddressLine := _InvoiceDescriptor.Buyer.AddressLine3;
-    _Invoice.AccountingCustomerParty.Address.CountryCode := TEnumExtensions<TZUGFeRDCountryCodes>.EnumToString(_InvoiceDescriptor.Buyer.Country);
-    _Invoice.AccountingCustomerParty.IdentifierSellerBuyer := _InvoiceDescriptor.Buyer.ID.ID;
+    _Target.ElectronicAddressSellerBuyer := _ElectronicAddress.Address; //BT-34, BT-49
+    //Das Schema ist in der ZUGFeRD-Bibliothek nicht optional und steht ohne
+    //gelesene Adresse auf dem ersten Enum-Wert - dann darf es nicht uebernommen werden.
+    if _ElectronicAddress.Address <> '' then
+      _Target.ElectronicAddressSellerBuyerSchemeID := //BT-34-1, BT-49-1
+        CodeFromEnum<TZUGFeRDElectronicAddressSchemeIdentifiers>(
+          ZUGFeRDNullable<TZUGFeRDElectronicAddressSchemeIdentifiers>.Create(_ElectronicAddress.ElectronicAddressSchemeID));
   end;
-  for i := 0 to _InvoiceDescriptor.BuyerTaxRegistration.Count-1 do
-  if _InvoiceDescriptor.BuyerTaxRegistration[i].SchemeID = TZUGFeRDTaxRegistrationSchemeID.VA then
-    _Invoice.AccountingCustomerParty.VATCompanyID := _InvoiceDescriptor.BuyerTaxRegistration[i].No
+end;
+
+class procedure TZUGFeRDInvoiceAdapter.TransferAllowanceCharge(
+  _Target : TInvoiceAllowanceCharge; _Source : TZUGFeRDAbstractTradeAllowanceCharge);
+begin
+  if (_Target = nil) or (_Source = nil) then
+    exit;
+
+  _Target.ChargeIndicator := _Source.ChargeIndicator;
+  _Target.ReasonCodeAllowance := iacic_None;
+  _Target.ReasonCodeCharge := issdc_None;
+  //Unterschieden wird ueber die tatsaechliche Klasse und nicht ueber ChargeIndicator -
+  //ein harter Cast auf die falsche Klasse waere sonst moeglich. Fehlt der Grundcode,
+  //liefert CodeFromEnum einen Leerstring und daraus wird iacic_None/issdc_None.
+  if _Source is TZUGFeRDTradeCharge then
+    _Target.ReasonCodeCharge := TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeFromStr(
+      CodeFromEnum<TZUGFeRDChargeReasonCodes>(TZUGFeRDTradeCharge(_Source).ReasonCode))
   else
-  if _InvoiceDescriptor.BuyerTaxRegistration[i].SchemeID = TZUGFeRDTaxRegistrationSchemeID.FC then
-    _Invoice.AccountingCustomerParty.VATCompanyNumber := _InvoiceDescriptor.BuyerTaxRegistration[i].No;
-  if _InvoiceDescriptor.BuyerContact <> nil then
+  if _Source is TZUGFeRDTradeAllowance then
+    _Target.ReasonCodeAllowance := TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeFromStr(
+      CodeFromEnum<TZUGFeRDAllowanceReasonCodes>(TZUGFeRDTradeAllowance(_Source).ReasonCode));
+  _Target.Reason := _Source.Reason;
+  _Target.BaseAmount := _Source.BasisAmount.GetValueOrDefault(0);
+  _Target.MultiplierFactorNumeric := _Source.ChargePercentage.GetValueOrDefault(0);
+  _Target.Amount := _Source.ActualAmount;
+  //Auf Positionsebene (BG-27/BG-28) gibt es keine eigene Umsatzsteuerangabe, die
+  //CategoryTradeTax bleibt dort leer und liefert 0 bzw. idtfcc_None.
+  if _Source.Tax <> nil then
   begin
-    _Invoice.AccountingCustomerParty.ContactName := _InvoiceDescriptor.BuyerContact.Name;
-    _Invoice.AccountingCustomerParty.ContactTelephone := _InvoiceDescriptor.BuyerContact.PhoneNo;
-    _Invoice.AccountingCustomerParty.ContactElectronicMail := _InvoiceDescriptor.BuyerContact.EmailAddress;
-    _Invoice.AccountingCustomerParty.AdditionalLegalInformationSeller := ''; //TODO fehlt in ZUGFeRD-Lib
-  end;
-  _Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer := _InvoiceDescriptor.BuyerElectronicAddress.Address;
-
-  if _InvoiceDescriptor.ShipTo <> nil then
+    _Target.TaxPercent := _Source.Tax.Percent;
+    _Target.TaxCategory := TaxCategoryFrom(_Source.Tax.CategoryCode);
+  end else
   begin
-    _Invoice.DeliveryInformation.Name := _InvoiceDescriptor.ShipTo.Name;
-    if _InvoiceDescriptor.ShipTo.ContactName = '' then
-    begin
-      _Invoice.DeliveryInformation.Address.StreetName := _InvoiceDescriptor.ShipTo.Street;
-      _Invoice.DeliveryInformation.Address.AdditionalStreetName := '';
-    end else
-    begin
-      _Invoice.DeliveryInformation.Address.StreetName := _InvoiceDescriptor.ShipTo.ContactName;
-      _Invoice.DeliveryInformation.Address.AdditionalStreetName := _InvoiceDescriptor.ShipTo.Street;
-    end;
-    _Invoice.DeliveryInformation.Address.City := _InvoiceDescriptor.ShipTo.City;
-    _Invoice.DeliveryInformation.Address.PostalZone := _InvoiceDescriptor.ShipTo.Postcode;
-    _Invoice.DeliveryInformation.Address.CountrySubentity := _InvoiceDescriptor.ShipTo.CountrySubdivisionName;
-    _Invoice.DeliveryInformation.Address.AddressLine := _InvoiceDescriptor.ShipTo.AddressLine3;
-    _Invoice.DeliveryInformation.Address.CountryCode := TEnumExtensions<TZUGFeRDCountryCodes>.EnumToString(_InvoiceDescriptor.ShipTo.Country);
+    _Target.TaxPercent := 0;
+    _Target.TaxCategory := idtfcc_None;
   end;
-  _Invoice.DeliveryInformation.ActualDeliveryDate := _InvoiceDescriptor.ActualDeliveryDate.GetValueOrDefault(0);
+end;
 
-  var lPaymentMeansCode : TInvoicePaymentMeansCode := ipmc_NotImplemented;
-  if (_InvoiceDescriptor.PaymentMeans <> nil) and _InvoiceDescriptor.PaymentMeans.TypeCode.HasValue then
-  case _InvoiceDescriptor.PaymentMeans.TypeCode.Value of
-    InCash: lPaymentMeansCode := ipmc_InCash;
-    Cheque: lPaymentMeansCode := ipmc_Cheque;
-    CreditTransferNonSEPA: lPaymentMeansCode := ipmc_CreditTransfer;
-    //TODO Fehlt : _Invoice.PaymentMeansCode := ipmc_CreditCard; 54
-    SEPACreditTransfer: lPaymentMeansCode := ipmc_SEPACreditTransfer;
-    SEPADirectDebit: lPaymentMeansCode := ipmc_SEPADirectDebit;
-    InstrumentNotDefined: lPaymentMeansCode := ipmc_InstrumentNotDefined;
-    //TODO Fehlt 68
-    //    AutomatedClearingHouseDebit: ;
-    //    DebitTransfer: ;
-    //    PaymentToBankAccount: ;
-    //    BankCard: 48
-    //    StandingAgreement: ;
-    //    ClearingBetweenPartners: ;
-  end;
-  _Invoice.PaymentID := _InvoiceDescriptor.PaymentReference;
-  if _InvoiceDescriptor.PaymentMeans <> nil then
-    _Invoice.AccountingSupplierParty.BankAssignedCreditorIdentifier := _InvoiceDescriptor.PaymentMeans.SEPACreditorIdentifier;
-  if lPaymentMeansCode = ipmc_SEPADirectDebit then
+class procedure TZUGFeRDInvoiceAdapter.TransferPaymentMeans(_Invoice : TInvoice;
+  _InvoiceDescriptor: TZUGFeRDInvoiceDescriptor);
+var
+  i : Integer;
+  lPaymentMeansCode : TInvoicePaymentMeansCode;
+  lPaymentMeansInformation : String;
+begin
+  _Invoice.PaymentID := _InvoiceDescriptor.PaymentReference; //BT-83
+
+  if _InvoiceDescriptor.PaymentMeans = nil then
+    exit;
+
+  _Invoice.AccountingSupplierParty.BankAssignedCreditorIdentifier :=
+    _InvoiceDescriptor.PaymentMeans.SEPACreditorIdentifier; //BT-90
+  _Invoice.PaymentMandateID := _InvoiceDescriptor.PaymentMeans.SEPAMandateReference; //BT-89
+
+  //Der Zahlungsweg wird ueber die UNTDID-4461-Kennung uebernommen, damit alle Codes
+  //ankommen, die das Datenmodell kennt - nicht nur eine handverlesene Auswahl.
+  lPaymentMeansCode := TXRechnungHelper.InvoicePaymentMeansCodeFromStr(
+    CodeFromEnum<TZUGFeRDPaymentMeansTypeCodes>(_InvoiceDescriptor.PaymentMeans.TypeCode));
+  if lPaymentMeansCode = ipmc_NotImplemented then
+    exit;
+
+  lPaymentMeansInformation := _InvoiceDescriptor.PaymentMeans.Information; //BT-82
+
+  //Lastschrift (BG-19): das belastete Konto ist das des Kaeufers
+  if lPaymentMeansCode in [ipmc_SEPADirectDebit,ipmc_DirectDebit] then
   begin
     for i := 0 to _InvoiceDescriptor.DebitorBankAccounts.Count-1 do
     with _Invoice.PaymentTypes.AddPaymentType do
     begin
       PaymentMeansCode := lPaymentMeansCode;
-      FinancialAccount := _InvoiceDescriptor.DebitorBankAccounts[i].IBAN;
+      PaymentMeansInformation := lPaymentMeansInformation;
+      FinancialAccount := _InvoiceDescriptor.DebitorBankAccounts[i].IBAN; //BT-91
       FinancialAccountName := _InvoiceDescriptor.DebitorBankAccounts[i].Name;
       FinancialInstitutionBranch := _InvoiceDescriptor.DebitorBankAccounts[i].BIC;
     end;
+    if _InvoiceDescriptor.DebitorBankAccounts.Count > 0 then
+      exit;
   end else
-  if lPaymentMeansCode = ipmc_InstrumentNotDefined then
-    _Invoice.PaymentTypes.AddPaymentType.PaymentMeansCode := ipmc_InstrumentNotDefined
-  else
-  if lPaymentMeansCode <> ipmc_NotImplemented then
+  //Kartenzahlung (BG-18): Kartennummer und Karteninhaber statt Bankverbindung
+  if (lPaymentMeansCode in [ipmc_BankCard,ipmc_CreditCard,ipmc_DebitCard]) and
+     (_InvoiceDescriptor.PaymentMeans.FinancialCard <> nil) then
   begin
+    with _Invoice.PaymentTypes.AddPaymentType do
+    begin
+      PaymentMeansCode := lPaymentMeansCode;
+      PaymentMeansInformation := lPaymentMeansInformation;
+      FinancialAccount := _InvoiceDescriptor.PaymentMeans.FinancialCard.Id; //BT-87
+      FinancialAccountName := _InvoiceDescriptor.PaymentMeans.FinancialCard.CardholderName; //BT-88
+    end;
+    exit;
+  end else
+  begin
+    //Ueberweisung (BG-17) und alles Weitere: das begueenstigte Konto ist das des Verkaeufers
     for i := 0 to _InvoiceDescriptor.CreditorBankAccounts.Count-1 do
     with _Invoice.PaymentTypes.AddPaymentType do
     begin
       PaymentMeansCode := lPaymentMeansCode;
-      FinancialAccount := _InvoiceDescriptor.CreditorBankAccounts[i].IBAN;
-      FinancialAccountName := _InvoiceDescriptor.CreditorBankAccounts[i].Name;
-      FinancialInstitutionBranch := _InvoiceDescriptor.CreditorBankAccounts[i].BIC;
+      PaymentMeansInformation := lPaymentMeansInformation;
+      FinancialAccount := _InvoiceDescriptor.CreditorBankAccounts[i].IBAN; //BT-84
+      FinancialAccountName := _InvoiceDescriptor.CreditorBankAccounts[i].Name; //BT-85
+      FinancialInstitutionBranch := _InvoiceDescriptor.CreditorBankAccounts[i].BIC; //BT-86
     end;
+    if _InvoiceDescriptor.CreditorBankAccounts.Count > 0 then
+      exit;
   end;
 
-  _Invoice.PaymentMandateID := _InvoiceDescriptor.PaymentMeans.SEPAMandateReference;
+  //Zahlungswege ohne Kontoangabe (z.B. 1 = keine Angabe, 10 = Bar, 68 = Online)
+  with _Invoice.PaymentTypes.AddPaymentType do
+  begin
+    PaymentMeansCode := lPaymentMeansCode;
+    PaymentMeansInformation := lPaymentMeansInformation;
+  end;
+end;
 
+class procedure TZUGFeRDInvoiceAdapter.TransferPaymentTerms(_Invoice : TInvoice;
+  _InvoiceDescriptor: TZUGFeRDInvoiceDescriptor);
+var
+  i : Integer;
+begin
   _Invoice.PaymentTermsType := iptt_None;
+
+  //Faelligkeitsdatum BT-9 aus der ersten Zahlungsbedingung ohne Skontosatz
+  _Invoice.InvoiceDueDate := 0;
+  for i := 0 to _InvoiceDescriptor.PaymentTermsList.Count-1 do
+  if _InvoiceDescriptor.PaymentTermsList[i].Percentage.GetValueOrDefault(0) = 0.0 then
+  begin
+    _Invoice.InvoiceDueDate := _InvoiceDescriptor.PaymentTermsList[i].DueDate.GetValueOrDefault(0);
+    break;
+  end;
 
   for i := 0 to _InvoiceDescriptor.PaymentTermsList.Count-1 do
   begin
@@ -2179,322 +2241,257 @@ begin
       _Invoice.PaymentTermCashDiscount3ActualAmount := _InvoiceDescriptor.PaymentTermsList[i].ActualAmount;
     end;
   end;
+end;
 
-  for i := 0 to _InvoiceDescriptor.TradeLineItems.Count-1 do
+class procedure TZUGFeRDInvoiceAdapter.TransferInvoiceLine(_InvoiceLine : TInvoiceLine;
+  _TradeLineItem : TZUGFeRDTradeLineItem);
+var
+  j : Integer;
+  firstDiscount : Boolean;
+begin
+  if (_InvoiceLine = nil) or (_TradeLineItem = nil) then
+    exit;
+
+  //Nur der erste Rabatt einer Position passt in BT-147, alle weiteren werden zu BG-27.
+  //Der Zaehler gehoert je Position zurueckgesetzt, sonst erhaelt nur die erste Position
+  //der Rechnung ihren Bruttopreis-Rabatt.
+  firstDiscount := true;
+
+  if _TradeLineItem.AssociatedDocument <> nil then
   begin
-    var lInvoiceLine : TInvoiceLine := _Invoice.InvoiceLines.AddInvoiceLine;
-    if _InvoiceDescriptor.TradeLineItems[i].AssociatedDocument <> nil then
+    _InvoiceLine.ID := _TradeLineItem.AssociatedDocument.LineID; //BT-126
+    for j := 0 to _TradeLineItem.AssociatedDocument.Notes.Count-1 do
     begin
-      lInvoiceLine.ID := _InvoiceDescriptor.TradeLineItems[i].AssociatedDocument.LineID;
-      for j := 0 to _InvoiceDescriptor.TradeLineItems[i].AssociatedDocument.Notes.Count-1 do
+      if _InvoiceLine.Note <> '' then
+        _InvoiceLine.Note := _InvoiceLine.Note + #13#10;
+      _InvoiceLine.Note := _InvoiceLine.Note + _TradeLineItem.AssociatedDocument.Notes[j].Content; //BT-127
+    end;
+  end;
+  if _TradeLineItem.GlobalID.ID <> '' then
+  if _TradeLineItem.GlobalID.SchemeID.GetValueOrDefault(TZUGFeRDGlobalIDSchemeIdentifiers.Unknown) = EAN then
+    _InvoiceLine.GlobalID_EAN_GTIN := _TradeLineItem.GlobalID.ID; //BT-157
+  _InvoiceLine.Name := _TradeLineItem.Name; //BT-153
+  _InvoiceLine.Description := _TradeLineItem.Description; //BT-154
+  _InvoiceLine.Quantity := _TradeLineItem.BilledQuantity; //BT-129
+  _InvoiceLine.UnitCode := UnitCodeFrom(_TradeLineItem.UnitCode); //BT-130
+  _InvoiceLine.SellersItemIdentification := _TradeLineItem.SellerAssignedID; //BT-155
+  _InvoiceLine.BuyersItemIdentification := _TradeLineItem.BuyerAssignedID; //BT-156
+  if _TradeLineItem.BuyerOrderReferencedDocument <> nil then
+  begin
+    _InvoiceLine.OrderNumber := _TradeLineItem.BuyerOrderReferencedDocument.ID; //BT-X-21
+    _InvoiceLine.OrderLineReference := _TradeLineItem.BuyerOrderReferencedDocument.LineID; //BT-132
+  end;
+  if _TradeLineItem.ReceivableSpecifiedTradeAccountingAccounts.Count > 0 then
+    _InvoiceLine.BuyerAccountingReference := _TradeLineItem.ReceivableSpecifiedTradeAccountingAccounts.First.TradeAccountID; //BT-133
+  _InvoiceLine.TaxPercent := _TradeLineItem.TaxPercent; //BT-152
+  _InvoiceLine.TaxCategory := TaxCategoryFrom(_TradeLineItem.TaxCategoryCode); //BT-151
+  _InvoiceLine.TaxExemptionReason := _TradeLineItem.TaxExemptionReason;
+  _InvoiceLine.GrossPriceAmount := _TradeLineItem.GrossUnitPrice.GetValueOrDefault(0); //BT-148
+
+  for j := 0 to _TradeLineItem.TradeAllowanceCharges.Count-1 do
+  begin
+    //wegen XRechnung UBL nur ein Item moeglich mit ChargeIndicator = false
+    //weitere Felder aus TradeAllowanceCharge werden nach _InvoiceLine.AllowanceCharges
+    //transferiert
+    //z.B. liefern manche Lieferanten Rohstoffzuschlaege an dieser Stelle
+    if (_TradeLineItem.TradeAllowanceCharges[j].ChargeIndicator = false) and firstDiscount then
+    begin
+      firstDiscount := false;
+      _InvoiceLine.DiscountOnTheGrossPrice := _TradeLineItem.TradeAllowanceCharges[j].ActualAmount; //BT-147
+    end else
+      TransferAllowanceCharge(_InvoiceLine.AllowanceCharges.AddAllowanceCharge,
+                              _TradeLineItem.TradeAllowanceCharges[j]);
+  end;
+
+  if _TradeLineItem.BillingPeriodStart.HasValue then
+    _InvoiceLine.InvoiceLinePeriodStartDate := _TradeLineItem.BillingPeriodStart; //BT-134
+  if _TradeLineItem.BillingPeriodEnd.HasValue then
+    _InvoiceLine.InvoiceLinePeriodEndDate := _TradeLineItem.BillingPeriodEnd; //BT-135
+  _InvoiceLine.NetPriceAmount := _TradeLineItem.NetUnitPrice.GetValueOrDefault(0); //BT-146
+  _InvoiceLine.BaseQuantity := _TradeLineItem.NetQuantity.GetValueOrDefault(0); //BT-149
+  //BT-150 gehoert zur Preiseinheit und hat eine eigene Mengeneinheit; ist sie nicht
+  //angegeben, gilt die der abgerechneten Menge.
+  if _TradeLineItem.NetUnitCode.HasValue then
+    _InvoiceLine.BaseQuantityUnitCode := UnitCodeFrom(_TradeLineItem.NetUnitCode)
+  else
+    _InvoiceLine.BaseQuantityUnitCode := UnitCodeFrom(_TradeLineItem.UnitCode);
+  _InvoiceLine.LineAmount := _TradeLineItem.LineTotalAmount.GetValueOrDefault(0); //BT-131
+
+  for j := 0 to _TradeLineItem.SpecifiedTradeAllowanceCharges.Count-1 do
+    TransferAllowanceCharge(_InvoiceLine.AllowanceCharges.AddAllowanceCharge,
+                            _TradeLineItem.SpecifiedTradeAllowanceCharges[j]);
+
+  for j := 0 to _TradeLineItem.ApplicableProductCharacteristics.Count-1 do
+  with _InvoiceLine.ItemAttributes.AddItemAttribute do
+  begin
+    Name := _TradeLineItem.ApplicableProductCharacteristics[j].Description; //BT-160
+    Value := _TradeLineItem.ApplicableProductCharacteristics[j].Value; //BT-161
+  end;
+
+  for j := 0 to _TradeLineItem.DesignedProductClassifications.Count-1 do
+  with _InvoiceLine.ItemClassifications.AddItemClassification do
+  begin
+    ClassCode := _TradeLineItem.DesignedProductClassifications[j].ClassCode; //BT-158
+    ListID := CodeFromEnum<TZUGFeRDDesignatedProductClassificationClassCodes>(
+                _TradeLineItem.DesignedProductClassifications[j].ListID); //BT-158-1
+    ListVersionID := _TradeLineItem.DesignedProductClassifications[j].ListVersionID; //BT-158-2
+    ClassificationName := _TradeLineItem.DesignedProductClassifications[j].ClassName_; //nur EXTENDED
+  end;
+
+  _InvoiceLine.OriginTradeCountry := CodeFromEnum<TZUGFeRDCountryCodes>(_TradeLineItem.OriginTradeCountry); //BT-159
+end;
+
+class function TZUGFeRDInvoiceAdapter.LoadFromInvoiceDescriptor(
+  _Invoice: TInvoice; _InvoiceDescriptor: TZUGFeRDInvoiceDescriptor;
+  out _Error : String) : Boolean;
+var
+  i : Integer;
+  lAttachment : TInvoiceAttachment;
+begin
+  Result := false;
+  _Error := '';
+  if _Invoice = nil then
+    exit;
+  if _InvoiceDescriptor = nil then
+    exit;
+
+  try
+    if _InvoiceDescriptor.BusinessProcess <> '' then
+      _Invoice.ProfileID := _InvoiceDescriptor.BusinessProcess; //BT-23
+    _Invoice.InvoiceNumber := _InvoiceDescriptor.InvoiceNo; //BT-1
+    _Invoice.InvoiceIssueDate := _InvoiceDescriptor.InvoiceDate.GetValueOrDefault(0); //BT-2
+    _Invoice.InvoicePeriodStartDate := _InvoiceDescriptor.BillingPeriodStart.GetValueOrDefault(0); //BT-73
+    _Invoice.InvoicePeriodEndDate := _InvoiceDescriptor.BillingPeriodEnd.GetValueOrDefault(0); //BT-74
+    _Invoice.InvoiceTypeCode := TXRechnungHelper.InvoiceTypeCodeFromStr( //BT-3
+      CodeFromEnum<TZUGFeRDInvoiceType>(ZUGFeRDNullable<TZUGFeRDInvoiceType>.Create(_InvoiceDescriptor.Type_)));
+    _Invoice.InvoiceCurrencyCode := CodeFromEnum<TZUGFeRDCurrencyCodes>( //BT-5
+      ZUGFeRDNullable<TZUGFeRDCurrencyCodes>.Create(_InvoiceDescriptor.Currency));
+    _Invoice.TaxCurrencyCode := _Invoice.InvoiceCurrencyCode; //BT-6, die ZUGFeRD-Bibliothek fuehrt keine eigene Steuerwaehrung
+    _Invoice.BuyerReference := _InvoiceDescriptor.ReferenceOrderNo; //BT-10
+
+    for i := 0 to _InvoiceDescriptor.Notes.Count-1 do
+    with _Invoice.Notes.AddNote do
+    begin
+      Content := _InvoiceDescriptor.Notes[i].Content; //BT-22
+      SubjectCode := TXRechnungHelper.InvoiceNoteSubjectCodeFromStr( //BT-21
+        CodeFromEnum<TZUGFeRDSubjectCodes>(_InvoiceDescriptor.Notes[i].SubjectCode));
+    end;
+
+    if _InvoiceDescriptor.SellerOrderReferencedDocument <> nil then
+      _Invoice.SellerOrderReference := _InvoiceDescriptor.SellerOrderReferencedDocument.ID; //BT-14
+    _Invoice.PurchaseOrderReference := _InvoiceDescriptor.OrderNo; //BT-13
+    if _InvoiceDescriptor.SpecifiedProcuringProject <> nil then
+      _Invoice.ProjectReference := _InvoiceDescriptor.SpecifiedProcuringProject.ID; //BT-11
+    //BT-15 (Empfangsbestaetigung) kennt die ZUGFeRD-Bibliothek nicht
+    if _InvoiceDescriptor.ContractReferencedDocument <> nil then
+      _Invoice.ContractDocumentReference := _InvoiceDescriptor.ContractReferencedDocument.ID; //BT-12
+    if _InvoiceDescriptor.DespatchAdviceReferencedDocument <> nil then
+    begin
+      _Invoice.DeliveryReceiptNumber := _InvoiceDescriptor.DespatchAdviceReferencedDocument.ID; //BT-16
+      _Invoice.DeliveryReceiptDate := _InvoiceDescriptor.DespatchAdviceReferencedDocument.IssueDateTime.GetValueOrDefault(0); //BT-X-200
+    end;
+    if _InvoiceDescriptor.DeliveryNoteReferencedDocument <> nil then
+    begin
+      _Invoice.DeliveryReceiptNumberExtended := _InvoiceDescriptor.DeliveryNoteReferencedDocument.ID; //BT-X-202
+      _Invoice.DeliveryReceiptDateExtended := _InvoiceDescriptor.DeliveryNoteReferencedDocument.IssueDateTime.GetValueOrDefault(0); //BT-X-203
+    end;
+    if _InvoiceDescriptor.ReceivableSpecifiedTradeAccountingAccounts.Count > 0 then
+      _Invoice.BuyerAccountingReference := _InvoiceDescriptor.ReceivableSpecifiedTradeAccountingAccounts[0].TradeAccountID; //BT-19
+
+    TransferParty(_Invoice.AccountingSupplierParty,_InvoiceDescriptor.Seller,
+      _InvoiceDescriptor.SellerContact,_InvoiceDescriptor.SellerTaxRegistration,
+      _InvoiceDescriptor.SellerElectronicAddress);
+    TransferParty(_Invoice.AccountingCustomerParty,_InvoiceDescriptor.Buyer,
+      _InvoiceDescriptor.BuyerContact,_InvoiceDescriptor.BuyerTaxRegistration,
+      _InvoiceDescriptor.BuyerElectronicAddress);
+    //BT-33 gibt es nur beim Verkaeufer
+    _Invoice.AccountingCustomerParty.AdditionalLegalInformationSeller := '';
+
+    if _InvoiceDescriptor.ShipTo <> nil then
+    begin
+      _Invoice.DeliveryInformation.Name := _InvoiceDescriptor.ShipTo.Name; //BT-70
+      TransferAddress(_Invoice.DeliveryInformation.Address,_InvoiceDescriptor.ShipTo);
+      //BT-71 steht in CII als ram:ID der ShipToTradeParty, ersatzweise als ram:GlobalID
+      if _InvoiceDescriptor.ShipTo.ID.ID <> '' then
       begin
-        if lInvoiceLine.Note <> '' then
-          lInvoiceLine.Note := lInvoiceLine.Note + #13#10;
-        lInvoiceLine.Note := lInvoiceLine.Note + _InvoiceDescriptor.TradeLineItems[i].AssociatedDocument.Notes[j].Content;
-      end;
-    end;
-    if _InvoiceDescriptor.TradeLineItems[i].GlobalID.ID <> '' then
-    if _InvoiceDescriptor.TradeLineItems[i].GlobalID.SchemeID = EAN then
-      lInvoiceLine.GlobalID_EAN_GTIN := _InvoiceDescriptor.TradeLineItems[i].GlobalID.ID;
-    lInvoiceLine.Name := _InvoiceDescriptor.TradeLineItems[i].Name;
-    lInvoiceLine.Description := _InvoiceDescriptor.TradeLineItems[i].Description;
-    lInvoiceLine.Quantity := _InvoiceDescriptor.TradeLineItems[i].BilledQuantity;
-    //lInvoiceLine.UnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(TZUGFeRDQuantityCodesExtensions.EnumToString(_InvoiceDescriptor.TradeLineItems[i].BilledQuantityUnitCode));
-    lInvoiceLine.UnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(TEnumExtensions<TZUGFeRDQuantityCodes>.EnumToString(_InvoiceDescriptor.TradeLineItems[i].UnitCode));
-    lInvoiceLine.SellersItemIdentification := _InvoiceDescriptor.TradeLineItems[i].SellerAssignedID;
-    lInvoiceLine.BuyersItemIdentification := _InvoiceDescriptor.TradeLineItems[i].BuyerAssignedID;
-    if _InvoiceDescriptor.TradeLineItems[i].BuyerOrderReferencedDocument <> nil then
-    begin
-      lInvoiceLine.OrderNumber := _InvoiceDescriptor.TradeLineItems[i].BuyerOrderReferencedDocument.ID;
-      lInvoiceLine.OrderLineReference := _InvoiceDescriptor.TradeLineItems[i].BuyerOrderReferencedDocument.LineID;
-    end;
-    if _InvoiceDescriptor.TradeLineItems[i].ReceivableSpecifiedTradeAccountingAccounts.Count > 0 then
-      lInvoiceLine.BuyerAccountingReference := _InvoiceDescriptor.TradeLineItems[i].ReceivableSpecifiedTradeAccountingAccounts.First.TradeAccountID;
-    lInvoiceLine.TaxPercent := _InvoiceDescriptor.TradeLineItems[i].TaxPercent;
-    lInvoiceLine.TaxCategory := idtfcc_None;
-    if _InvoiceDescriptor.TradeLineItems[i].TaxCategoryCode.HasValue then
-    case _InvoiceDescriptor.TradeLineItems[i].TaxCategoryCode.Value of
-      TZUGFeRDTaxCategoryCodes.AE : lInvoiceLine.TaxCategory := idtfcc_AE_VATReverseCharge;
-      TZUGFeRDTaxCategoryCodes.E : lInvoiceLine.TaxCategory := idtfcc_E_ExemptFromTax;
-      TZUGFeRDTaxCategoryCodes.G : lInvoiceLine.TaxCategory := idtfcc_G_FreeExportItemTaxNotCharged;
-      TZUGFeRDTaxCategoryCodes.K : lInvoiceLine.TaxCategory := idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices;
-      TZUGFeRDTaxCategoryCodes.L : lInvoiceLine.TaxCategory := idtfcc_L_CanaryIslandsGeneralIndirectTax;
-      TZUGFeRDTaxCategoryCodes.M : lInvoiceLine.TaxCategory := idtfcc_M_TaxForProductionServicesAndImportationInCeutaAndMelilla;
-      TZUGFeRDTaxCategoryCodes.O : lInvoiceLine.TaxCategory := idtfcc_O_ServicesOutsideScopeOfTax;
-      TZUGFeRDTaxCategoryCodes.S : lInvoiceLine.TaxCategory := idtfcc_S_StandardRate;
-      TZUGFeRDTaxCategoryCodes.Z : lInvoiceLine.TaxCategory := idtfcc_Z_ZeroRatedGoods;
-      else lInvoiceLine.TaxCategory := idtfcc_None; //TODO weitere Category Types von ZUGFeRD
-    end;
-    lInvoiceLine.GrossPriceAmount := _InvoiceDescriptor.TradeLineItems[i].GrossUnitPrice.GetValueOrDefault(0);
-    for j := 0 to _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges.Count-1 do
-    begin
-      //wegen XRechnung UBL nur ein Item moeglich mit ChargeIndicator = false
-      //weitere Felder aus TradeAllowanceCharge werden nach lInvoiceLine.AllowanceCharges
-      //transferiert
-      //z.B. liefern manche Lieferanten Rohstoffzuschlaege an dieser Stelle
-      if (_InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ChargeIndicator = false) and firstDiscount then
-      begin
-        firstDiscount := false;
-        lInvoiceLine.DiscountOnTheGrossPrice := _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ActualAmount;
+        _Invoice.DeliveryInformation.LocationIdentifier := _InvoiceDescriptor.ShipTo.ID.ID;
+        _Invoice.DeliveryInformation.LocationIdentifierSchemeID :=
+          CodeFromEnum<TZUGFeRDGlobalIDSchemeIdentifiers>(_InvoiceDescriptor.ShipTo.ID.SchemeID);
       end else
       begin
-        with lInvoiceLine.AllowanceCharges.AddAllowanceCharge do
-        begin
-          ChargeIndicator := _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ChargeIndicator;
-          ReasonCodeAllowance := iacic_None;
-          ReasonCodeCharge := issdc_None;
-          if ChargeIndicator then
-            case TZUGFeRDTradeCharge(_InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j]).ReasonCode.Value of
-              Advertising : ReasonCodeCharge := issdc_AA_Advertising;
-              Telecommunication : ReasonCodeCharge := issdc_AAA_Telecommunication;
-              Miscellaneous : ReasonCodeCharge := issdc_ABK_Miscellaneous;
-              AdditionalPackaging : ReasonCodeCharge := issdc_ABL_AdditionalPackaging;
-              OtherServices : ReasonCodeCharge := issdc_ADR_OtherServices;
-              Pickup : ReasonCodeCharge := issdc_ADT_Pickup;
-              FreightService : ReasonCodeCharge := issdc_FC_FreightService;
-              Financing : ReasonCodeCharge := issdc_FI_Financing;
-              Labelling : ReasonCodeCharge := issdc_LA_Labelling;
-              Packing  : ReasonCodeCharge := issdc_PC_Packing;
-              else ReasonCodeCharge := issdc_None;
-            end
-          else
-            case TZUGFeRDTradeAllowance(_InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j]).ReasonCode.Value of
-              BonusForWorksAheadOfSchedule : ReasonCodeAllowance := iacic_BonusForWorksAheadOfSchedule;
-              OtherBonus : ReasonCodeAllowance := iacic_OtherBonus;
-              ManufacturersConsumerDiscount : ReasonCodeAllowance :=  iacic_ManufacturersConsumerDiscount;
-              DueToMilitaryStatus : ReasonCodeAllowance :=  iacic_DueToMilitaryStatus;
-              DueToWorkAccident : ReasonCodeAllowance :=  iacic_DueToWorkAccident;
-              SpecialAgreement : ReasonCodeAllowance :=  iacic_SpecialAgreement;
-              ProductionErrorDiscount : ReasonCodeAllowance :=  iacic_ProductionErrorDiscount;
-              NewOutletDiscount : ReasonCodeAllowance :=  iacic_NewOutletDiscount;
-              SampleDiscount : ReasonCodeAllowance :=  iacic_SampleDiscount;
-              EndOfRangeDiscount : ReasonCodeAllowance :=  iacic_EndOfRangeDiscount;
-              IncotermDiscount : ReasonCodeAllowance :=  iacic_IncotermDiscount;
-              TZUGFeRDAllowanceReasonCodes.PointOfSalesThresholdAllowance : ReasonCodeAllowance :=  iacic_PointOfSalesThresholdAllowance;
-              MaterialSurchargeOrDeduction : ReasonCodeAllowance :=  iacic_MaterialSurchargeDeduction;
-              Discount : ReasonCodeAllowance :=  iacic_Discount;
-              SpecialRebate : ReasonCodeAllowance :=  iacic_SpecialRebate;
-              FixedLongTerm : ReasonCodeAllowance :=  iacic_FixedLongTerm;
-              Temporary : ReasonCodeAllowance :=  iacic_Temporary;
-              Standard : ReasonCodeAllowance :=  iacic_Standard;
-              YearlyTurnover : ReasonCodeAllowance :=  iacic_YearlyTurnover;
-              else ReasonCodeAllowance := iacic_None;
-            end;
-          Reason := _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].Reason;
-          BaseAmount := _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].BasisAmount;
-          MultiplierFactorNumeric := _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ChargePercentage;
-          Amount := _InvoiceDescriptor.TradeLineItems[i].TradeAllowanceCharges[j].ActualAmount;
-          TaxPercent := 0; //Nicht in Position vorhanden
-          TaxCategory := idtfcc_None; //Nicht in Position vorhanden
-        end;
+        _Invoice.DeliveryInformation.LocationIdentifier := _InvoiceDescriptor.ShipTo.GlobalID.ID;
+        _Invoice.DeliveryInformation.LocationIdentifierSchemeID :=
+          CodeFromEnum<TZUGFeRDGlobalIDSchemeIdentifiers>(_InvoiceDescriptor.ShipTo.GlobalID.SchemeID);
       end;
     end;
-    if _InvoiceDescriptor.TradeLineItems[i].BillingPeriodStart.HasValue then
-      lInvoiceLine.InvoiceLinePeriodStartDate := _InvoiceDescriptor.TradeLineItems[i].BillingPeriodStart;
-    if _InvoiceDescriptor.TradeLineItems[i].BillingPeriodEnd.HasValue then
-      lInvoiceLine.InvoiceLinePeriodEndDate := _InvoiceDescriptor.TradeLineItems[i].BillingPeriodEnd;
-    lInvoiceLine.NetPriceAmount := _InvoiceDescriptor.TradeLineItems[i].NetUnitPrice.GetValueOrDefault(0);
-    lInvoiceLine.BaseQuantity := _InvoiceDescriptor.TradeLineItems[i].NetQuantity.GetValueOrDefault(0);
-    lInvoiceLine.BaseQuantityUnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(TEnumExtensions<TZUGFeRDQuantityCodes>.EnumToString(_InvoiceDescriptor.TradeLineItems[i].UnitCode));
-    lInvoiceLine.LineAmount := _InvoiceDescriptor.TradeLineItems[i].LineTotalAmount.GetValueOrDefault(0);
-    for j := 0 to _InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges.Count-1 do
-    with lInvoiceLine.AllowanceCharges.AddAllowanceCharge do
-    begin
-      ChargeIndicator := _InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges[j].ChargeIndicator;
-      ReasonCodeAllowance := iacic_None;
-      ReasonCodeCharge := issdc_None;
-      if ChargeIndicator then
-        case TZUGFeRDTradeCharge(_InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges[j]).ReasonCode.Value of
-          Advertising : ReasonCodeCharge := issdc_AA_Advertising;
-          Telecommunication : ReasonCodeCharge := issdc_AAA_Telecommunication;
-          Miscellaneous : ReasonCodeCharge := issdc_ABK_Miscellaneous;
-          AdditionalPackaging : ReasonCodeCharge := issdc_ABL_AdditionalPackaging;
-          OtherServices : ReasonCodeCharge := issdc_ADR_OtherServices;
-          Pickup : ReasonCodeCharge := issdc_ADT_Pickup;
-          FreightService : ReasonCodeCharge := issdc_FC_FreightService;
-          Financing : ReasonCodeCharge := issdc_FI_Financing;
-          Labelling : ReasonCodeCharge := issdc_LA_Labelling;
-          Packing  : ReasonCodeCharge := issdc_PC_Packing;
-          else ReasonCodeCharge := issdc_None;
-        end
-      else
-        case TZUGFeRDTradeAllowance(_InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges[j]).ReasonCode.Value of
-          BonusForWorksAheadOfSchedule : ReasonCodeAllowance := iacic_BonusForWorksAheadOfSchedule;
-          OtherBonus : ReasonCodeAllowance := iacic_OtherBonus;
-          ManufacturersConsumerDiscount : ReasonCodeAllowance :=  iacic_ManufacturersConsumerDiscount;
-          DueToMilitaryStatus : ReasonCodeAllowance :=  iacic_DueToMilitaryStatus;
-          DueToWorkAccident : ReasonCodeAllowance :=  iacic_DueToWorkAccident;
-          SpecialAgreement : ReasonCodeAllowance :=  iacic_SpecialAgreement;
-          ProductionErrorDiscount : ReasonCodeAllowance :=  iacic_ProductionErrorDiscount;
-          NewOutletDiscount : ReasonCodeAllowance :=  iacic_NewOutletDiscount;
-          SampleDiscount : ReasonCodeAllowance :=  iacic_SampleDiscount;
-          EndOfRangeDiscount : ReasonCodeAllowance :=  iacic_EndOfRangeDiscount;
-          IncotermDiscount : ReasonCodeAllowance :=  iacic_IncotermDiscount;
-          TZUGFeRDAllowanceReasonCodes.PointOfSalesThresholdAllowance : ReasonCodeAllowance :=  iacic_PointOfSalesThresholdAllowance;
-          MaterialSurchargeOrDeduction : ReasonCodeAllowance :=  iacic_MaterialSurchargeDeduction;
-          Discount : ReasonCodeAllowance :=  iacic_Discount;
-          SpecialRebate : ReasonCodeAllowance :=  iacic_SpecialRebate;
-          FixedLongTerm : ReasonCodeAllowance :=  iacic_FixedLongTerm;
-          Temporary : ReasonCodeAllowance :=  iacic_Temporary;
-          Standard : ReasonCodeAllowance :=  iacic_Standard;
-          YearlyTurnover : ReasonCodeAllowance :=  iacic_YearlyTurnover;
-          else ReasonCodeAllowance := iacic_None;
-        end;
-      Reason := _InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges[j].Reason;
-      BaseAmount := _InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges[j].BasisAmount;
-      MultiplierFactorNumeric := _InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges[j].ChargePercentage;
-      Amount := _InvoiceDescriptor.TradeLineItems[i].SpecifiedTradeAllowanceCharges[j].ActualAmount;
-      TaxPercent := 0; //Nicht in Position vorhanden
-      TaxCategory := idtfcc_None; //Nicht in Position vorhanden
-    end;
+    _Invoice.DeliveryInformation.ActualDeliveryDate := _InvoiceDescriptor.ActualDeliveryDate.GetValueOrDefault(0); //BT-72
 
-    for j := 0 to _InvoiceDescriptor.TradeLineItems[i].ApplicableProductCharacteristics.Count-1 do
-    with lInvoiceLine.ItemAttributes.AddItemAttribute do
-    begin
-      Name := _InvoiceDescriptor.TradeLineItems[i].ApplicableProductCharacteristics[j].Description;
-      Value := _InvoiceDescriptor.TradeLineItems[i].ApplicableProductCharacteristics[j].Value;
-    end;
+    TransferPaymentMeans(_Invoice,_InvoiceDescriptor);
+    TransferPaymentTerms(_Invoice,_InvoiceDescriptor);
 
-    for j := 0 to _InvoiceDescriptor.TradeLineItems[i].DesignedProductClassifications.Count-1 do
-    with lInvoiceLine.ItemClassifications.AddItemClassification do
-    begin
-      ClassCode := _InvoiceDescriptor.TradeLineItems[i].DesignedProductClassifications[j].ClassCode;
-      //Unbekannte listIDs liefert die ZUGFeRD-Bibliothek als Unknown, sie werden hier
-      //nicht uebernommen, statt sie faelschlich als gueltigen Code auszugeben.
-      if _InvoiceDescriptor.TradeLineItems[i].DesignedProductClassifications[j].ListID.HasValue then
-      if _InvoiceDescriptor.TradeLineItems[i].DesignedProductClassifications[j].ListID.Value <> TZUGFeRDDesignatedProductClassificationClassCodes.Unknown then
-        ListID := TEnumExtensions<TZUGFeRDDesignatedProductClassificationClassCodes>.EnumToString(
-                    _InvoiceDescriptor.TradeLineItems[i].DesignedProductClassifications[j].ListID.Value);
-      ListVersionID := _InvoiceDescriptor.TradeLineItems[i].DesignedProductClassifications[j].ListVersionID;
-      ClassificationName := _InvoiceDescriptor.TradeLineItems[i].DesignedProductClassifications[j].ClassName_;
-    end;
-  end;
+    for i := 0 to _InvoiceDescriptor.TradeLineItems.Count-1 do
+      TransferInvoiceLine(_Invoice.InvoiceLines.AddInvoiceLine,_InvoiceDescriptor.TradeLineItems[i]);
 
-  for i := 0 to _InvoiceDescriptor.AdditionalReferencedDocuments.Count-1 do
-  begin
-    var lAttachment : TInvoiceAttachment := TInvoiceAttachment.Create(iat_application_None);
-    lAttachment.ID := _InvoiceDescriptor.AdditionalReferencedDocuments[i].ID;
-    //TODO fehlt in ZUGFeRD lAttachment.ExternalReference
-    lAttachment.DocumentDescription := _InvoiceDescriptor.AdditionalReferencedDocuments[i].Name;
-    lAttachment.Filename := _InvoiceDescriptor.AdditionalReferencedDocuments[i].Filename;
-    lAttachment.AttachmentType := TInvoiceAttachmentTypeHelper.GetTypeFromFilename(_InvoiceDescriptor.AdditionalReferencedDocuments[i].Filename);
-    if _InvoiceDescriptor.AdditionalReferencedDocuments[i].AttachmentBinaryObject<> nil then
+    for i := 0 to _InvoiceDescriptor.AdditionalReferencedDocuments.Count-1 do
     begin
-      lAttachment.Data.LoadFromStream(_InvoiceDescriptor.AdditionalReferencedDocuments[i].AttachmentBinaryObject);
-      _InvoiceDescriptor.AdditionalReferencedDocuments[i].AttachmentBinaryObject.Position := 0;
-    end;
-    lAttachment.ExternalReference := '';
-    _Invoice.Attachments.Add(lAttachment);
-  end;
-
-  for i := 0 to _InvoiceDescriptor.TradeAllowanceCharges.Count-1 do
-  with _Invoice.AllowanceCharges.AddAllowanceCharge do
-  begin
-    ChargeIndicator := _InvoiceDescriptor.TradeAllowanceCharges[i].ChargeIndicator;
-    ReasonCodeAllowance := iacic_None;
-    ReasonCodeCharge := issdc_None;
-    if ChargeIndicator then
-      case TZUGFeRDTradeCharge(_InvoiceDescriptor.TradeAllowanceCharges[i]).ReasonCode.Value of
-        Advertising : ReasonCodeCharge := issdc_AA_Advertising;
-        Telecommunication : ReasonCodeCharge := issdc_AAA_Telecommunication;
-        Miscellaneous : ReasonCodeCharge := issdc_ABK_Miscellaneous;
-        AdditionalPackaging : ReasonCodeCharge := issdc_ABL_AdditionalPackaging;
-        OtherServices : ReasonCodeCharge := issdc_ADR_OtherServices;
-        Pickup : ReasonCodeCharge := issdc_ADT_Pickup;
-        FreightService : ReasonCodeCharge := issdc_FC_FreightService;
-        Financing : ReasonCodeCharge := issdc_FI_Financing;
-        Labelling : ReasonCodeCharge := issdc_LA_Labelling;
-        Packing  : ReasonCodeCharge := issdc_PC_Packing;
-        else ReasonCodeCharge := issdc_None;
-      end
-    else
-      case TZUGFeRDTradeAllowance(_InvoiceDescriptor.TradeAllowanceCharges[i]).ReasonCode.Value of
-        BonusForWorksAheadOfSchedule : ReasonCodeAllowance := iacic_BonusForWorksAheadOfSchedule;
-        OtherBonus : ReasonCodeAllowance := iacic_OtherBonus;
-        ManufacturersConsumerDiscount : ReasonCodeAllowance :=  iacic_ManufacturersConsumerDiscount;
-        DueToMilitaryStatus : ReasonCodeAllowance :=  iacic_DueToMilitaryStatus;
-        DueToWorkAccident : ReasonCodeAllowance :=  iacic_DueToWorkAccident;
-        SpecialAgreement : ReasonCodeAllowance :=  iacic_SpecialAgreement;
-        ProductionErrorDiscount : ReasonCodeAllowance :=  iacic_ProductionErrorDiscount;
-        NewOutletDiscount : ReasonCodeAllowance :=  iacic_NewOutletDiscount;
-        SampleDiscount : ReasonCodeAllowance :=  iacic_SampleDiscount;
-        EndOfRangeDiscount : ReasonCodeAllowance :=  iacic_EndOfRangeDiscount;
-        IncotermDiscount : ReasonCodeAllowance :=  iacic_IncotermDiscount;
-        TZUGFeRDAllowanceReasonCodes.PointOfSalesThresholdAllowance : ReasonCodeAllowance :=  iacic_PointOfSalesThresholdAllowance;
-        MaterialSurchargeOrDeduction : ReasonCodeAllowance :=  iacic_MaterialSurchargeDeduction;
-        Discount : ReasonCodeAllowance :=  iacic_Discount;
-        SpecialRebate : ReasonCodeAllowance :=  iacic_SpecialRebate;
-        FixedLongTerm : ReasonCodeAllowance :=  iacic_FixedLongTerm;
-        Temporary : ReasonCodeAllowance :=  iacic_Temporary;
-        Standard : ReasonCodeAllowance :=  iacic_Standard;
-        YearlyTurnover : ReasonCodeAllowance :=  iacic_YearlyTurnover;
-        else ReasonCodeAllowance := iacic_None;
+      lAttachment := TInvoiceAttachment.Create(iat_application_None);
+      lAttachment.AttachmentType := TInvoiceAttachmentTypeHelper.GetTypeFromFilename(
+        _InvoiceDescriptor.AdditionalReferencedDocuments[i].Filename);
+      lAttachment.ID := _InvoiceDescriptor.AdditionalReferencedDocuments[i].ID; //BT-122
+      lAttachment.DocumentDescription := _InvoiceDescriptor.AdditionalReferencedDocuments[i].Name; //BT-123
+      lAttachment.Filename := _InvoiceDescriptor.AdditionalReferencedDocuments[i].Filename; //BT-125-2
+      lAttachment.TypeCode := TXRechnungHelper.InvoiceAttachmentTypeCodeFromStr(
+        CodeFromEnum<TZUGFeRDAdditionalReferencedDocumentTypeCode>(_InvoiceDescriptor.AdditionalReferencedDocuments[i].TypeCode));
+      lAttachment.ExternalReference := _InvoiceDescriptor.AdditionalReferencedDocuments[i].URIID; //BT-124
+      if _InvoiceDescriptor.AdditionalReferencedDocuments[i].AttachmentBinaryObject <> nil then
+      begin
+        lAttachment.Data.LoadFromStream(_InvoiceDescriptor.AdditionalReferencedDocuments[i].AttachmentBinaryObject);
+        _InvoiceDescriptor.AdditionalReferencedDocuments[i].AttachmentBinaryObject.Position := 0;
       end;
-    Reason := _InvoiceDescriptor.TradeAllowanceCharges[i].Reason;
-    BaseAmount := _InvoiceDescriptor.TradeAllowanceCharges[i].BasisAmount;
-    MultiplierFactorNumeric := _InvoiceDescriptor.TradeAllowanceCharges[i].ChargePercentage;
-    Amount := _InvoiceDescriptor.TradeAllowanceCharges[i].ActualAmount;
-    TaxPercent := _InvoiceDescriptor.TradeAllowanceCharges[i].Tax.Percent;
-    TaxCategory := idtfcc_None; //TODO weitere Category Types von ZUGFeRD
-    if _InvoiceDescriptor.TradeAllowanceCharges[i].Tax.CategoryCode.HasValue then
-    case _InvoiceDescriptor.TradeAllowanceCharges[i].Tax.CategoryCode.Value of
-      TZUGFeRDTaxCategoryCodes.AE : TaxCategory := idtfcc_AE_VATReverseCharge;
-      TZUGFeRDTaxCategoryCodes.E : TaxCategory := idtfcc_E_ExemptFromTax;
-      TZUGFeRDTaxCategoryCodes.G : TaxCategory := idtfcc_G_FreeExportItemTaxNotCharged;
-      TZUGFeRDTaxCategoryCodes.K : TaxCategory := idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices;
-      TZUGFeRDTaxCategoryCodes.L : TaxCategory := idtfcc_L_CanaryIslandsGeneralIndirectTax;
-      TZUGFeRDTaxCategoryCodes.M : TaxCategory := idtfcc_M_TaxForProductionServicesAndImportationInCeutaAndMelilla;
-      TZUGFeRDTaxCategoryCodes.O : TaxCategory := idtfcc_O_ServicesOutsideScopeOfTax;
-      TZUGFeRDTaxCategoryCodes.S : TaxCategory := idtfcc_S_StandardRate;
-      TZUGFeRDTaxCategoryCodes.Z : TaxCategory := idtfcc_Z_ZeroRatedGoods;
-      else TaxCategory := idtfcc_None; //TODO weitere Category Types von ZUGFeRD
+      _Invoice.Attachments.Add(lAttachment);
+    end;
+
+    for i := 0 to _InvoiceDescriptor.TradeAllowanceCharges.Count-1 do
+      TransferAllowanceCharge(_Invoice.AllowanceCharges.AddAllowanceCharge,
+                              _InvoiceDescriptor.TradeAllowanceCharges[i]);
+
+    //Achtung, CII-Format <= v2.2 maximal ein Element erlaubt, UBL-Format beliebig viele
+    for i := 0 to _InvoiceDescriptor.InvoiceReferencedDocuments.Count-1 do
+    if (_InvoiceDescriptor.InvoiceReferencedDocuments[i].ID <> '') and
+       (_InvoiceDescriptor.InvoiceReferencedDocuments[i].IssueDateTime.GetValueOrDefault > 100) then
+    with _Invoice.PrecedingInvoiceReferences.AddPrecedingInvoiceReference do
+    begin
+      ID := _InvoiceDescriptor.InvoiceReferencedDocuments[i].ID; //BT-25
+      IssueDate := _InvoiceDescriptor.InvoiceReferencedDocuments[i].IssueDateTime.GetValueOrDefault(0); //BT-26
+    end;
+
+    _Invoice.TaxAmountTotal := _InvoiceDescriptor.TaxTotalAmount.GetValueOrDefault(0); //BT-110
+    for i := 0 to _InvoiceDescriptor.Taxes.Count-1 do
+    with _Invoice.TaxAmountSubtotals.AddTaxAmount do
+    begin
+      TaxableAmount := _InvoiceDescriptor.Taxes[i].BasisAmount; //BT-116
+      TaxAmount := _InvoiceDescriptor.Taxes[i].TaxAmount; //BT-117
+      TaxPercent := _InvoiceDescriptor.Taxes[i].Percent; //BT-119
+      TaxCategory := TaxCategoryFrom(_InvoiceDescriptor.Taxes[i].CategoryCode); //BT-118
+      TaxExemptionReason := _InvoiceDescriptor.Taxes[i].ExemptionReason; //BT-120
+    end;
+
+    _Invoice.LineAmount := _InvoiceDescriptor.LineTotalAmount.GetValueOrDefault(0); //BT-106
+    _Invoice.TaxExclusiveAmount := _InvoiceDescriptor.TaxBasisAmount.GetValueOrDefault(0); //BT-109
+    _Invoice.TaxInclusiveAmount := _InvoiceDescriptor.GrandTotalAmount.GetValueOrDefault(0); //BT-112
+    _Invoice.AllowanceTotalAmount := _InvoiceDescriptor.AllowanceTotalAmount.GetValueOrDefault(0); //BT-107
+    _Invoice.ChargeTotalAmount := _InvoiceDescriptor.ChargeTotalAmount.GetValueOrDefault(0); //BT-108
+    _Invoice.PrepaidAmount := _InvoiceDescriptor.TotalPrepaidAmount.GetValueOrDefault(0); //BT-113
+    _Invoice.PayableRoundingAmount := _InvoiceDescriptor.RoundingAmount.GetValueOrDefault(0); //BT-114
+    _Invoice.PayableAmount := _InvoiceDescriptor.DuePayableAmount.GetValueOrDefault(0); //BT-115
+    Result := True;
+  except
+    on E:Exception do
+    begin
+      _Error := E.Message;
+      Result := false;
     end;
   end;
-
-  //Achtung, CII-Format <= v2.2 maximal ein Element erlaubt, UBL-Format beliebig viele
-  for i := 0 to _InvoiceDescriptor.InvoiceReferencedDocuments.Count-1 do
-  if (_InvoiceDescriptor.InvoiceReferencedDocuments[i].ID <> '') and
-     (_InvoiceDescriptor.InvoiceReferencedDocuments[i].IssueDateTime.GetValueOrDefault > 100) then
-  with _Invoice.PrecedingInvoiceReferences.AddPrecedingInvoiceReference do
-  begin
-    ID := _InvoiceDescriptor.InvoiceReferencedDocuments[i].ID;
-    IssueDate := _InvoiceDescriptor.InvoiceReferencedDocuments[i].IssueDateTime.GetValueOrDefault(0);
-  end;
-
-  _Invoice.TaxAmountTotal := _InvoiceDescriptor.TaxTotalAmount.GetValueOrDefault(0);
-  for i := 0 to _InvoiceDescriptor.Taxes.Count-1 do
-  with _Invoice.TaxAmountSubtotals.AddTaxAmount do
-  begin
-    TaxableAmount := _InvoiceDescriptor.Taxes[i].BasisAmount;
-    TaxAmount := _InvoiceDescriptor.Taxes[i].TaxAmount;
-    TaxPercent := _InvoiceDescriptor.Taxes[i].Percent;
-    //TODO DEFAULT VAT_InvoiceDescriptor.Taxes[i].TypeCode
-    TaxCategory := idtfcc_None; //TODO weitere Category Types von ZUGFeRD
-    if _InvoiceDescriptor.Taxes[i].CategoryCode.HasValue then
-    case _InvoiceDescriptor.Taxes[i].CategoryCode.Value of
-      TZUGFeRDTaxCategoryCodes.AE : TaxCategory := idtfcc_AE_VATReverseCharge;
-      TZUGFeRDTaxCategoryCodes.E : TaxCategory := idtfcc_E_ExemptFromTax;
-      TZUGFeRDTaxCategoryCodes.G : TaxCategory := idtfcc_G_FreeExportItemTaxNotCharged;
-      TZUGFeRDTaxCategoryCodes.K : TaxCategory := idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices;
-      TZUGFeRDTaxCategoryCodes.L : TaxCategory := idtfcc_L_CanaryIslandsGeneralIndirectTax;
-      TZUGFeRDTaxCategoryCodes.M : TaxCategory := idtfcc_M_TaxForProductionServicesAndImportationInCeutaAndMelilla;
-      TZUGFeRDTaxCategoryCodes.O : TaxCategory := idtfcc_O_ServicesOutsideScopeOfTax;
-      TZUGFeRDTaxCategoryCodes.S : TaxCategory := idtfcc_S_StandardRate;
-      TZUGFeRDTaxCategoryCodes.Z : TaxCategory := idtfcc_Z_ZeroRatedGoods;
-      else TaxCategory := idtfcc_None; //TODO weitere Category Types von ZUGFeRD
-    end;
-    TaxExemptionReason := _InvoiceDescriptor.Taxes[i].ExemptionReason;
-  end;
-
-  _Invoice.LineAmount := _InvoiceDescriptor.LineTotalAmount.GetValueOrDefault(0);
-  _Invoice.TaxExclusiveAmount := _InvoiceDescriptor.TaxBasisAmount.GetValueOrDefault(0);
-  _Invoice.TaxInclusiveAmount := _InvoiceDescriptor.GrandTotalAmount.GetValueOrDefault(0);
-  _Invoice.AllowanceTotalAmount := _InvoiceDescriptor.AllowanceTotalAmount.GetValueOrDefault(0);
-  _Invoice.ChargeTotalAmount := _InvoiceDescriptor.ChargeTotalAmount.GetValueOrDefault(0);
-  _Invoice.PrepaidAmount := _InvoiceDescriptor.TotalPrepaidAmount.GetValueOrDefault(0);
-  _Invoice.PayableRoundingAmount := _InvoiceDescriptor.RoundingAmount.GetValueOrDefault(0);
-  _Invoice.PayableAmount := _InvoiceDescriptor.DuePayableAmount.GetValueOrDefault(0);
-  Result := True;
 end;
 
 class function TZUGFeRDInvoiceAdapter.LoadAdditionalContentFromXMLDocument(
@@ -2510,28 +2507,12 @@ begin
   if _InvoiceDescriptor.Invoicee <> nil then
   begin
     _AdditionalContent.InvoiceeTradePartyFound := true;
-
-    if _InvoiceDescriptor.Invoicee.SpecifiedLegalOrganization <> nil then
-    begin
-      _AdditionalContent.InvoiceeTradeParty.Name := _InvoiceDescriptor.Invoicee.SpecifiedLegalOrganization.TradingBusinessName;
-      _AdditionalContent.InvoiceeTradeParty.CompanyID := _InvoiceDescriptor.Invoicee.SpecifiedLegalOrganization.ID.ID;
-    end;
-    _AdditionalContent.InvoiceeTradeParty.RegistrationName := _InvoiceDescriptor.Invoicee.Name;
-    if _InvoiceDescriptor.Invoicee.ContactName = '' then
-    begin
-      _AdditionalContent.InvoiceeTradeParty.Address.StreetName := _InvoiceDescriptor.Invoicee.Street;
-      _AdditionalContent.InvoiceeTradeParty.Address.AdditionalStreetName := '';
-    end else
-    begin
-      _AdditionalContent.InvoiceeTradeParty.Address.StreetName := _InvoiceDescriptor.Invoicee.ContactName;
-      _AdditionalContent.InvoiceeTradeParty.Address.AdditionalStreetName := _InvoiceDescriptor.Invoicee.Street;
-    end;
-    _AdditionalContent.InvoiceeTradeParty.Address.City := _InvoiceDescriptor.Invoicee.City;
-    _AdditionalContent.InvoiceeTradeParty.Address.PostalZone := _InvoiceDescriptor.Invoicee.Postcode;
-    _AdditionalContent.InvoiceeTradeParty.Address.CountrySubentity := _InvoiceDescriptor.Invoicee.CountrySubdivisionName;
-    _AdditionalContent.InvoiceeTradeParty.Address.AddressLine := _InvoiceDescriptor.Invoicee.AddressLine3;
-    _AdditionalContent.InvoiceeTradeParty.Address.CountryCode := TEnumExtensions<TZUGFeRDCountryCodes>.EnumToString(_InvoiceDescriptor.Invoicee.Country);
-    _AdditionalContent.InvoiceeTradeParty.IdentifierSellerBuyer := _InvoiceDescriptor.Invoicee.ID.ID;
+    //Der Rechnungsempfaenger kennt in der ZUGFeRD-Bibliothek keinen eigenen
+    //Ansprechpartner und keine elektronische Adresse.
+    TransferParty(_AdditionalContent.InvoiceeTradeParty,_InvoiceDescriptor.Invoicee,
+      nil,_InvoiceDescriptor.InvoiceeTaxRegistration,nil);
+    //BT-33 gibt es nur beim Verkaeufer
+    _AdditionalContent.InvoiceeTradeParty.AdditionalLegalInformationSeller := '';
   end;
 
   _AdditionalContent.SpecifiedLogisticsServiceChargeFound := _InvoiceDescriptor.ServiceCharges.Count > 0;

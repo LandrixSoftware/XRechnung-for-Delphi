@@ -1131,10 +1131,14 @@ var
     with _Node.AddChild('cac:AllowanceCharge') do
     begin
       AddChild('cbc:ChargeIndicator').Text := LowerCase(BoolToStr(_Invoiceline.AllowanceCharges[i].ChargeIndicator,true));
-      AddChild('cbc:AllowanceChargeReasonCode').Text :=
-               IfThen(_Invoiceline.AllowanceCharges[i].ChargeIndicator,
-               TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(_Invoiceline.AllowanceCharges[i].ReasonCodeCharge),
-               TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(_Invoiceline.AllowanceCharges[i].ReasonCodeAllowance));
+      //Ohne Grundcode bleibt das Element weg - ein leeres Element wird beanstandet
+      if _Invoiceline.AllowanceCharges[i].ChargeIndicator then
+      begin
+        if _Invoiceline.AllowanceCharges[i].ReasonCodeCharge <> issdc_None then
+          AddChild('cbc:AllowanceChargeReasonCode').Text := TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(_Invoiceline.AllowanceCharges[i].ReasonCodeCharge);
+      end else
+      if _Invoiceline.AllowanceCharges[i].ReasonCodeAllowance <> iacic_None then
+        AddChild('cbc:AllowanceChargeReasonCode').Text := TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(_Invoiceline.AllowanceCharges[i].ReasonCodeAllowance);
       if not (_Invoiceline.AllowanceCharges[i].Reason = '') then
         AddChild('cbc:AllowanceChargeReason').Text := _Invoiceline.AllowanceCharges[i].Reason;
       if _Invoiceline.AllowanceCharges[i].MultiplierFactorNumeric <> 0 then
@@ -1712,10 +1716,14 @@ begin
   with xRoot.AddChild('cac:AllowanceCharge') do
   begin
     AddChild('cbc:ChargeIndicator').Text := LowerCase(BoolToStr(_Invoice.AllowanceCharges[i].ChargeIndicator,true));
-    AddChild('cbc:AllowanceChargeReasonCode').Text :=
-             IfThen(_Invoice.AllowanceCharges[i].ChargeIndicator,
-             TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(_Invoice.AllowanceCharges[i].ReasonCodeCharge),
-             TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(_Invoice.AllowanceCharges[i].ReasonCodeAllowance));
+    //Ohne Grundcode bleibt das Element weg - ein leeres Element wird beanstandet
+    if _Invoice.AllowanceCharges[i].ChargeIndicator then
+    begin
+      if _Invoice.AllowanceCharges[i].ReasonCodeCharge <> issdc_None then
+        AddChild('cbc:AllowanceChargeReasonCode').Text := TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(_Invoice.AllowanceCharges[i].ReasonCodeCharge);
+    end else
+    if _Invoice.AllowanceCharges[i].ReasonCodeAllowance <> iacic_None then
+      AddChild('cbc:AllowanceChargeReasonCode').Text := TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(_Invoice.AllowanceCharges[i].ReasonCodeAllowance);
     if not (_Invoice.AllowanceCharges[i].Reason = '') then
       AddChild('cbc:AllowanceChargeReason').Text := _Invoice.AllowanceCharges[i].Reason;
     if _Invoice.AllowanceCharges[i].MultiplierFactorNumeric <> 0 then
@@ -1974,10 +1982,14 @@ var
           AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(_Invoiceline.AllowanceCharges[i].BaseAmount);
         end;
         AddChild('ram:ActualAmount').Text := TXRechnungHelper.AmountToStr(_Invoiceline.AllowanceCharges[i].Amount);
-        AddChild('ram:ReasonCode').Text :=
-                 IfThen(_Invoiceline.AllowanceCharges[i].ChargeIndicator,
-                 TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(_Invoiceline.AllowanceCharges[i].ReasonCodeCharge),
-                 TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(_Invoiceline.AllowanceCharges[i].ReasonCodeAllowance));
+        //Ohne Grundcode bleibt das Element weg - ein leeres Element wird beanstandet
+        if _Invoiceline.AllowanceCharges[i].ChargeIndicator then
+        begin
+          if _Invoiceline.AllowanceCharges[i].ReasonCodeCharge <> issdc_None then
+            AddChild('ram:ReasonCode').Text := TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(_Invoiceline.AllowanceCharges[i].ReasonCodeCharge);
+        end else
+        if _Invoiceline.AllowanceCharges[i].ReasonCodeAllowance <> iacic_None then
+          AddChild('ram:ReasonCode').Text := TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(_Invoiceline.AllowanceCharges[i].ReasonCodeAllowance);
         if not (_Invoiceline.AllowanceCharges[i].Reason = '') then
           AddChild('ram:Reason').Text := _Invoiceline.AllowanceCharges[i].Reason;
       end;
@@ -2409,10 +2421,14 @@ begin
         if _Invoice.AllowanceCharges[i].BaseAmount <> 0 then
           AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.AllowanceCharges[i].BaseAmount);
         AddChild('ram:ActualAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.AllowanceCharges[i].Amount);
-        AddChild('ram:ReasonCode').Text :=
-                 IfThen(_Invoice.AllowanceCharges[i].ChargeIndicator,
-                 TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(_Invoice.AllowanceCharges[i].ReasonCodeCharge),
-                 TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(_Invoice.AllowanceCharges[i].ReasonCodeAllowance));
+        //Ohne Grundcode bleibt das Element weg - ein leeres Element wird beanstandet
+        if _Invoice.AllowanceCharges[i].ChargeIndicator then
+        begin
+          if _Invoice.AllowanceCharges[i].ReasonCodeCharge <> issdc_None then
+            AddChild('ram:ReasonCode').Text := TXRechnungHelper.InvoiceSpecialServiceDescriptionCodeToStr(_Invoice.AllowanceCharges[i].ReasonCodeCharge);
+        end else
+        if _Invoice.AllowanceCharges[i].ReasonCodeAllowance <> iacic_None then
+          AddChild('ram:ReasonCode').Text := TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeToStr(_Invoice.AllowanceCharges[i].ReasonCodeAllowance);
         if not (_Invoice.AllowanceCharges[i].Reason = '') then
           AddChild('ram:Reason').Text := _Invoice.AllowanceCharges[i].Reason;
         with AddChild('ram:CategoryTradeTax') do

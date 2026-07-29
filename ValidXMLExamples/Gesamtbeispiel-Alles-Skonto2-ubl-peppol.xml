@@ -300,6 +300,9 @@ Zeile 3</cbc:Description>
       <cac:OriginCountry>
         <cbc:IdentificationCode>DE</cbc:IdentificationCode>
       </cac:OriginCountry>
+      <cac:CommodityClassification>
+        <cbc:ItemClassificationCode listID="GB">FRACHT</cbc:ItemClassificationCode>
+      </cac:CommodityClassification>
       <cac:ClassifiedTaxCategory>
         <cbc:ID>S</cbc:ID>
         <cbc:Percent>7.00</cbc:Percent>
@@ -352,6 +355,9 @@ Zeile 3</cbc:Description>
       <cac:OriginCountry>
         <cbc:IdentificationCode>DE</cbc:IdentificationCode>
       </cac:OriginCountry>
+      <cac:CommodityClassification>
+        <cbc:ItemClassificationCode listID="HS" listVersionID="2022">23456789123</cbc:ItemClassificationCode>
+      </cac:CommodityClassification>
       <cac:ClassifiedTaxCategory>
         <cbc:ID>S</cbc:ID>
         <cbc:Percent>19.00</cbc:Percent>

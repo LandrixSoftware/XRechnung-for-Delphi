@@ -40,6 +40,9 @@ Zeile 3</ram:Description>
           <ram:Description>Key2</ram:Description>
           <ram:Value>123</ram:Value>
         </ram:ApplicableProductCharacteristic>
+        <ram:DesignatedProductClassification>
+          <ram:ClassCode listID="GB">FRACHT</ram:ClassCode>
+        </ram:DesignatedProductClassification>
         <ram:OriginTradeCountry>
           <ram:ID>DE</ram:ID>
         </ram:OriginTradeCountry>
@@ -89,6 +92,10 @@ Zeile 3</ram:Description>
         <ram:Description>Langtext Artikel 2
 Zeile 2
 Zeile 3</ram:Description>
+        <ram:DesignatedProductClassification>
+          <ram:ClassCode listID="HS" listVersionID="2022">23456789123</ram:ClassCode>
+          <ram:ClassName>Zolltarifnummer</ram:ClassName>
+        </ram:DesignatedProductClassification>
         <ram:OriginTradeCountry>
           <ram:ID>DE</ram:ID>
         </ram:OriginTradeCountry>

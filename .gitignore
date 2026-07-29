@@ -107,3 +107,5 @@ __recovery/
 *.rar
 # FreePascal-Test-Build-Ausgaben
 Tests/FreePascal/out/
+
+CLAUDE.md

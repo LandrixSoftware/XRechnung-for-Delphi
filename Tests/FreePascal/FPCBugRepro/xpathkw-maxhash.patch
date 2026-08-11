@@ -1,0 +1,20 @@
+Off-by-one in LookupXPathKeyword: KeywordIndex is declared as
+array[0..MaxHash-1], so index MaxHash is one past the end. The value read there
+is interpreted as a TXPathKeyword and used to index the XPathKeywords pointer
+array, which is then dereferenced.
+
+All 48 real XPath keywords hash to 2..54, so tightening the bound loses none of
+them; index 55 can only be produced by non-keyword tokens, for which xkNone is
+the correct result.
+
+--- a/packages/fcl-xml/src/xpathkw.inc
++++ b/packages/fcl-xml/src/xpathkw.inc
+@@ -152,7 +152,7 @@
+       else
+         Exit;
+   end;
+-  if (hash >= 0) and (hash <= MaxHash) then
++  if (hash >= 0) and (hash < MaxHash) then
+   begin
+     p1 := XPathKeywords[KeywordIndex[hash]];
+     if (ord(p1^) = Len) and

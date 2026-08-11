@@ -91,6 +91,7 @@ type
     function GetVersionFromStr(const _Xml : String) : Integer;
     function GetVersionFromFile(const _Filename : String) : Integer;
     function GetNewTempFileName(const _TempPath : String): string;
+    procedure DeleteTempFiles(const _TmpFilename : String);
     function GetNewTempPath: string;
   public
     constructor Create;
@@ -176,7 +177,8 @@ var
   SA: TSecurityAttributes;
   SI: TStartupInfo;
   PI: TProcessInformation;
-  StdOutPipeRead, StdOutPipeWrite, StdOutFile: THandle;
+  StdOutPipeRead, StdOutPipeWrite, StdOutFile, StdInRead, StdInWrite, Job: THandle;
+  JobLimits : TJobObjectExtendedLimitInformation;
   Buffer: array[0..4095] of Byte;
   BytesRead, BytesAvail: Cardinal;
   StartTick : UInt64;
@@ -195,6 +197,8 @@ begin
   SA.lpSecurityDescriptor := nil;
 
   StdOutFile := INVALID_HANDLE_VALUE;
+  StdInRead := INVALID_HANDLE_VALUE;
+  Job := 0;
   if not CreatePipe(StdOutPipeRead, StdOutPipeWrite, @SA, 0) then
     exit;
   try
@@ -206,11 +210,26 @@ begin
         exit;
     end;
 
+    // Leeres stdin statt des geerbten Handles: eine VCL-Anwendung hat keine Konsole,
+    // GetStdHandle liefert dort 0. Der KoSIT-Validator ruft System.in.available() auf
+    // (isPiped) und quittiert ein ungueltiges Handle mit
+    // "java.io.IOException: Unzulaessige Funktion" statt zu validieren.
+    // Eine Pipe mit sofort geschlossenem Schreibende liefert available()=0 und beim
+    // Lesen EOF. Das NUL-Geraet reicht hier nicht - darauf schlaegt available() mit
+    // derselben IOException fehl (geprueft gegen Validator 1.6.2).
+    if CreatePipe(StdInRead, StdInWrite, @SA, 0) then
+      CloseHandle(StdInWrite)
+    else
+      StdInRead := INVALID_HANDLE_VALUE;
+
     FillChar(SI, SizeOf(SI), 0);
     SI.cb := SizeOf(SI);
     SI.dwFlags := STARTF_USESHOWWINDOW or STARTF_USESTDHANDLES;
     SI.wShowWindow := SW_HIDE;
-    SI.hStdInput := GetStdHandle(STD_INPUT_HANDLE); // don't redirect stdin
+    if StdInRead <> INVALID_HANDLE_VALUE then
+      SI.hStdInput := StdInRead
+    else
+      SI.hStdInput := GetStdHandle(STD_INPUT_HANDLE);
     if StdOutFile <> INVALID_HANDLE_VALUE then
       SI.hStdOutput := StdOutFile
     else
@@ -233,10 +252,40 @@ begin
       Flags := Flags or CREATE_UNICODE_ENVIRONMENT;
     end;
 
+    // Jobobjekt, damit beim Timeout der ganze Prozessbaum stirbt: TerminateProcess
+    // beendet nur das direkte Kind. valitool.exe startet seinerseits eine JVM, die
+    // sonst weiterlaeuft und Arbeitsverzeichnis und Ausgabedatei gesperrt haelt.
+    // Schlaegt das Anlegen fehl (aeltere Windows-Versionen ohne verschachtelte Jobs),
+    // faellt der Code auf TerminateProcess zurueck.
+    Job := CreateJobObject(nil,nil);
+    if Job <> 0 then
+    begin
+      FillChar(JobLimits,SizeOf(JobLimits),0);
+      JobLimits.BasicLimitInformation.LimitFlags := JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+      if not SetInformationJobObject(Job,JobObjectExtendedLimitInformation,
+                                     @JobLimits,SizeOf(JobLimits)) then
+      begin
+        CloseHandle(Job);
+        Job := 0;
+      end;
+    end;
+    if Job <> 0 then
+      Flags := Flags or CREATE_SUSPENDED;
+
     if not CreateProcess(PChar(_Filename), PChar(CmdLine),
                          nil, nil, True, Flags, EnvPtr,
                          PChar(WorkDir), SI, PI) then
       exit;
+
+    if Job <> 0 then
+    begin
+      if not AssignProcessToJobObject(Job,PI.hProcess) then
+      begin
+        CloseHandle(Job); // ohne Job bleibt es beim TerminateProcess-Verhalten
+        Job := 0;
+      end;
+      ResumeThread(PI.hThread);
+    end;
 
     CloseHandle(StdOutPipeWrite);
     StdOutPipeWrite := 0;
@@ -263,7 +312,10 @@ begin
              (GetTickCount64 - StartTick >= UInt64(ExecTimeoutSeconds) * 1000) then
           begin
             TimedOut := true;
-            TerminateProcess(PI.hProcess, 1);
+            if Job <> 0 then
+              TerminateJobObject(Job,1) // beendet auch Enkelprozesse
+            else
+              TerminateProcess(PI.hProcess, 1);
             WaitForSingleObject(PI.hProcess, 5000); // sonst sind Tempdateien beim Loeschen evtl. noch gesperrt
             Break;
           end;
@@ -296,23 +348,54 @@ begin
     CloseHandle(StdOutPipeRead);
     if StdOutFile <> INVALID_HANDLE_VALUE then
       CloseHandle(StdOutFile);
+    if StdInRead <> INVALID_HANDLE_VALUE then
+      CloseHandle(StdInRead);
+    if Job <> 0 then
+      CloseHandle(Job); // KILL_ON_JOB_CLOSE raeumt hier evtl. noch laufende Enkel ab
   end;
 end;
 
 // Ohne Batchdatei gibt es kein "chcp 65001" mehr, das die Ausgabecodepage festlegt.
 // Java schreibt je nach Version und Aufrufparametern UTF-8 oder ANSI.
+// TEncoding.UTF8 ist mit MB_ERR_INVALID_CHARS angelegt und wirft bei ungueltigem
+// UTF-8 eine EEncodingError, statt den Fallback unten zu erreichen - deshalb ein
+// eigenes UTF-8-Encoding ohne dieses Flag. Betroffen war jede lokalisierte Meldung
+// von Java/Valitool, z.B. "Unzulaessige Funktion" des KoSIT-Validators.
 function TXRechnungValidationHelperJava.DecodeOutput(const _Bytes : TBytes) : String;
 var
   lRoundTrip : TBytes;
+  lUtf8 : TEncoding;
 begin
   Result := '';
   if Length(_Bytes) = 0 then
     exit;
-  Result := TEncoding.UTF8.GetString(_Bytes);
-  lRoundTrip := TEncoding.UTF8.GetBytes(Result);
+  lUtf8 := TUTF8Encoding.Create(CP_UTF8,0,0);
+  try
+    Result := lUtf8.GetString(_Bytes);
+    lRoundTrip := lUtf8.GetBytes(Result);
+  finally
+    lUtf8.Free;
+  end;
   if (Length(lRoundTrip) <> Length(_Bytes)) or
      not CompareMem(@lRoundTrip[0],@_Bytes[0],Length(_Bytes)) then
     Result := TEncoding.ANSI.GetString(_Bytes);
+end;
+
+// Vergleicht zwei "NAME=WERT"-Eintraege nach dem Namen, so wie CreateProcess es erwartet.
+function CompareEnvNames(_List : TStringList; _Index1,_Index2 : Integer) : Integer;
+var
+  lName1, lName2 : String;
+  p : Integer;
+begin
+  lName1 := _List[_Index1];
+  p := Pos('=',lName1);
+  if p > 0 then
+    lName1 := Copy(lName1,1,p-1);
+  lName2 := _List[_Index2];
+  p := Pos('=',lName2);
+  if p > 0 then
+    lName2 := Copy(lName2,1,p-1);
+  Result := CompareText(lName1,lName2);
 end;
 
 function TXRechnungValidationHelperJava.BuildEnvironmentBlock(const _Overrides : TStrings) : String;
@@ -340,6 +423,12 @@ begin
 
     for i := 0 to _Overrides.Count-1 do
       lEnv.Values[_Overrides.Names[i]] := _Overrides.ValueFromIndex[i];
+
+    // CreateProcess verlangt einen nach Variablennamen sortierten Block; GetEnvironmentStrings
+    // liefert zwar sortiert, neu hinzugekommene Variablen haengen aber hinten.
+    // MSDN: case-insensitive, Unicode-Reihenfolge, ohne Beruecksichtigung der Locale -
+    // deshalb CompareText und nicht das locale-abhaengige TStringList.Sort.
+    lEnv.CustomSort(CompareEnvNames);
 
     lBlock := TStringBuilder.Create;
     try
@@ -418,6 +507,31 @@ begin
   Result := lTempFileName;
 end;
 
+// Raeumt alles weg, was zu einem Temp-Namen aus GetNewTempFileName gehoert.
+// Wichtig ist vor allem der Stamm selbst: GetTempFileName mit uUnique=0 *legt die
+// Datei an*, und geloescht wurden bisher nur die abgeleiteten Dateien - pro Aufruf
+// blieb also eine 0-Byte-Leiche im Temp-Verzeichnis liegen.
+// Mustang haengt seine Endung an den Namen an, Saxon/FOP/KOSIT ersetzen sie.
+procedure TXRechnungValidationHelperJava.DeleteTempFiles(const _TmpFilename : String);
+const
+  cAngehaengt : array[0..2] of String = ('.pdf','.xml','.html');
+  cErsetzt : array[0..5] of String =
+    ('-xr.xml','-.fo','-.pdf','-.html','-report.xml','-report.html');
+var
+  i : Integer;
+begin
+  if _TmpFilename = '' then
+    exit;
+  if FileExists(_TmpFilename) then
+    DeleteFile(_TmpFilename);
+  for i := Low(cAngehaengt) to High(cAngehaengt) do
+    if FileExists(_TmpFilename+cAngehaengt[i]) then
+      DeleteFile(_TmpFilename+cAngehaengt[i]);
+  for i := Low(cErsetzt) to High(cErsetzt) do
+    if FileExists(ChangeFileExt(_TmpFilename,cErsetzt[i])) then
+      DeleteFile(ChangeFileExt(_TmpFilename,cErsetzt[i]));
+end;
+
 function TXRechnungValidationHelperJava.GetNewTempPath: string;
 var
   lTempPath: array[0..255] of Char;
@@ -482,28 +596,29 @@ begin
 
   tmpFilename := GetNewTempFileName(TempPath);
 
-  Result := ExecAndWait(JavaExe,MustangCliParams(
-              '--action combine' +
-              ' --source '+ QuoteIfContainsSpace(_InvoicePDFFilename)+
-              ' --source-xml '+ QuoteIfContainsSpace(_InvoiceXMLFilename)+
-              ' --out '+QuoteIfContainsSpace(tmpFilename+'.pdf')+
-              ' --format zf'+
-              ' --version 2'+
-              ' --profile '+IfThen(_Extended,'T','E')+
-              ' --no-additional-attachments'),ExtractFilePath(tmpFilename));
+  try
+    Result := ExecAndWait(JavaExe,MustangCliParams(
+                '--action combine' +
+                ' --source '+ QuoteIfContainsSpace(_InvoicePDFFilename)+
+                ' --source-xml '+ QuoteIfContainsSpace(_InvoiceXMLFilename)+
+                ' --out '+QuoteIfContainsSpace(tmpFilename+'.pdf')+
+                ' --format zf'+
+                ' --version 2'+
+                ' --profile '+IfThen(_Extended,'T','E')+
+                ' --no-additional-attachments'),ExtractFilePath(tmpFilename));
 
-  if Result and FileExists(tmpFilename+'.pdf') then
-  begin
-    _CombinedPdf := TMemoryStream.Create;
-    _CombinedPdf.LoadFromFile(tmpFilename+'.pdf');
-    _CombinedPdf.Position := 0;
-  end else
-    _CombinedPdf := nil;
+    if Result and FileExists(tmpFilename+'.pdf') then
+    begin
+      _CombinedPdf := TMemoryStream.Create;
+      _CombinedPdf.LoadFromFile(tmpFilename+'.pdf');
+      _CombinedPdf.Position := 0;
+    end else
+      _CombinedPdf := nil;
 
-  _CmdOutput := CmdOutput.Text;
-
-  if FileExists(tmpFilename+'.pdf') then
-    DeleteFile(tmpFilename+'.pdf');
+    _CmdOutput := CmdOutput.Text;
+  finally
+    DeleteTempFiles(tmpFilename);
+  end;
 end;
 
 function TXRechnungValidationHelperJava.MustangUpgradeToPDFA3Only(const _InvoicePDFFilename: String;
@@ -523,23 +638,24 @@ begin
 
   tmpFilename := GetNewTempFileName(TempPath);
 
-  Result := ExecAndWait(JavaExe,MustangCliParams(
-              '--action a3only' +
-              ' --source '+ QuoteIfContainsSpace(_InvoicePDFFilename)+
-              ' --out '+QuoteIfContainsSpace(tmpFilename+'.pdf')),ExtractFilePath(tmpFilename));
+  try
+    Result := ExecAndWait(JavaExe,MustangCliParams(
+                '--action a3only' +
+                ' --source '+ QuoteIfContainsSpace(_InvoicePDFFilename)+
+                ' --out '+QuoteIfContainsSpace(tmpFilename+'.pdf')),ExtractFilePath(tmpFilename));
 
-  if Result and FileExists(tmpFilename+'.pdf') then
-  begin
-    _PdfA3 := TMemoryStream.Create;
-    _PdfA3.LoadFromFile(tmpFilename+'.pdf');
-    _PdfA3.Position := 0;
-  end else
-    _PdfA3 := nil;
+    if Result and FileExists(tmpFilename+'.pdf') then
+    begin
+      _PdfA3 := TMemoryStream.Create;
+      _PdfA3.LoadFromFile(tmpFilename+'.pdf');
+      _PdfA3.Position := 0;
+    end else
+      _PdfA3 := nil;
 
-  _CmdOutput := CmdOutput.Text;
-
-  if FileExists(tmpFilename+'.pdf') then
-    DeleteFile(tmpFilename+'.pdf');
+    _CmdOutput := CmdOutput.Text;
+  finally
+    DeleteTempFiles(tmpFilename);
+  end;
 end;
 
 function TXRechnungValidationHelperJava.MustangValidateFile(
@@ -560,21 +676,22 @@ begin
 
   tmpFilename := GetNewTempFileName(TempPath);
 
-  Result := ExecAndWait(JavaExe,MustangCliParams(
-              '--action validate' +
-              ' --source '+ QuoteIfContainsSpace(_InvoiceXMLFilename)),
-              ExtractFilePath(tmpFilename),tmpFilename+'.xml');
+  try
+    Result := ExecAndWait(JavaExe,MustangCliParams(
+                '--action validate' +
+                ' --source '+ QuoteIfContainsSpace(_InvoiceXMLFilename)),
+                ExtractFilePath(tmpFilename),tmpFilename+'.xml');
 
-  if FileExists(tmpFilename+'.xml') then
-  begin
-    _ValidationResultAsXML := TFile.ReadAllText(tmpFilename+'.xml',TEncoding.UTF8);
-    Result := true;
+    if FileExists(tmpFilename+'.xml') then
+    begin
+      _ValidationResultAsXML := TFile.ReadAllText(tmpFilename+'.xml',TEncoding.UTF8);
+      Result := true;
+    end;
+
+    _CmdOutput := CmdOutput.Text;
+  finally
+    DeleteTempFiles(tmpFilename);
   end;
-
-  _CmdOutput := CmdOutput.Text;
-
-  if FileExists(tmpFilename+'.xml') then
-    DeleteFile(tmpFilename+'.xml');
 end;
 
 function TXRechnungValidationHelperJava.MustangVisualizeFile(
@@ -595,25 +712,27 @@ begin
 
   tmpFilename := GetNewTempFileName(TempPath);
 
-  Result := ExecAndWait(JavaExe,MustangCliParams(
-              '--action visualize' +
-              ' --source '+ QuoteIfContainsSpace(_InvoiceXMLFilename)+
-              ' --out '+QuoteIfContainsSpace(tmpFilename+'.html')+
-              ' --language de'),ExtractFilePath(tmpFilename));
+  try
+    Result := ExecAndWait(JavaExe,MustangCliParams(
+                '--action visualize' +
+                ' --source '+ QuoteIfContainsSpace(_InvoiceXMLFilename)+
+                ' --out '+QuoteIfContainsSpace(tmpFilename+'.html')+
+                ' --language de'),ExtractFilePath(tmpFilename));
 
-  if Result and FileExists(tmpFilename+'.html') then
-  begin
-    _VisualizationAsHTML := TFile.ReadAllText(tmpFilename+'.html',TEncoding.UTF8);
+    if Result and FileExists(tmpFilename+'.html') then
+    begin
+      _VisualizationAsHTML := TFile.ReadAllText(tmpFilename+'.html',TEncoding.UTF8);
+    end;
+
+    _CmdOutput := CmdOutput.Text;
+  finally
+    DeleteTempFiles(tmpFilename);
+    // Mustang legt diese beiden neben die HTML-Datei, unabhaengig vom Temp-Namen
+    if FileExists(ExtractFilePath(tmpFilename)+'xrechnung-viewer.css') then
+      DeleteFile(ExtractFilePath(tmpFilename)+'xrechnung-viewer.css');
+    if FileExists(ExtractFilePath(tmpFilename)+'xrechnung-viewer.js') then
+      DeleteFile(ExtractFilePath(tmpFilename)+'xrechnung-viewer.js');
   end;
-
-  _CmdOutput := CmdOutput.Text;
-
-  if FileExists(tmpFilename+'.html') then
-    DeleteFile(tmpFilename+'.html');
-  if FileExists(ExtractFilePath(tmpFilename)+'xrechnung-viewer.css') then
-    DeleteFile(ExtractFilePath(tmpFilename)+'xrechnung-viewer.css');
-  if FileExists(ExtractFilePath(tmpFilename)+'xrechnung-viewer.js') then
-    DeleteFile(ExtractFilePath(tmpFilename)+'xrechnung-viewer.js');
 end;
 
 function TXRechnungValidationHelperJava.MustangVisualizeFileAsPdf(
@@ -634,24 +753,25 @@ begin
 
   tmpFilename := GetNewTempFileName(TempPath);
 
-  Result := ExecAndWait(JavaExe,MustangCliParams(
-              '--action pdf' +
-              ' --source '+ QuoteIfContainsSpace(_InvoiceXMLFilename)+
-              ' --out '+QuoteIfContainsSpace(tmpFilename+'.pdf')+
-              ' --language de'),ExtractFilePath(tmpFilename));
+  try
+    Result := ExecAndWait(JavaExe,MustangCliParams(
+                '--action pdf' +
+                ' --source '+ QuoteIfContainsSpace(_InvoiceXMLFilename)+
+                ' --out '+QuoteIfContainsSpace(tmpFilename+'.pdf')+
+                ' --language de'),ExtractFilePath(tmpFilename));
 
-  if Result and FileExists(tmpFilename+'.pdf') then
-  begin
-    _VisualizationAsPdf := TMemoryStream.Create;
-    _VisualizationAsPdf.LoadFromFile(tmpFilename+'.pdf');
-    _VisualizationAsPdf.Position := 0;
-  end else
-    _VisualizationAsPdf := nil;
+    if Result and FileExists(tmpFilename+'.pdf') then
+    begin
+      _VisualizationAsPdf := TMemoryStream.Create;
+      _VisualizationAsPdf.LoadFromFile(tmpFilename+'.pdf');
+      _VisualizationAsPdf.Position := 0;
+    end else
+      _VisualizationAsPdf := nil;
 
-  _CmdOutput := CmdOutput.Text;
-
-  if FileExists(tmpFilename+'.pdf') then
-    DeleteFile(tmpFilename+'.pdf');
+    _CmdOutput := CmdOutput.Text;
+  finally
+    DeleteTempFiles(tmpFilename);
+  end;
 end;
 
 function TXRechnungValidationHelperJava.SetSaxonLibPath(
@@ -798,6 +918,7 @@ begin
     end;
 
   finally
+    DeleteTempFiles(tmpFilename);
     hstrl.Free;
   end;
 end;
@@ -935,6 +1056,7 @@ begin
     end;
 
   finally
+    DeleteTempFiles(tmpFilename);
     lEnv.Free;
     hstrl.Free;
   end;
@@ -1036,6 +1158,7 @@ begin
     end;
 
   finally
+    DeleteTempFiles(tmpFilename);
     hstrl.Free;
   end;
 end;
@@ -1120,6 +1243,7 @@ begin
     end else
       Result := false;
   finally
+    DeleteTempFiles(tmpFilename); // deckt auch den frueheren "exit"-Pfad ab
     hstrl.Free;
   end;
 end;
@@ -1184,6 +1308,7 @@ begin
       Result := false;
 
   finally
+    DeleteTempFiles(tmpFilename);
     hstrl.Free;
   end;
 end;
@@ -1225,44 +1350,48 @@ begin
 
   tmpFilename := GetNewTempFileName(TempPath);
 
-  Result := SaxonTransform(_InvoiceXMLFilename,SaxonXslForVersion(version),
-              ChangeFileExt(tmpFilename,'-xr.xml'),ExtractFilePath(tmpFilename));
-  _CmdOutput := CmdOutput.Text;
+  try
+    Result := SaxonTransform(_InvoiceXMLFilename,SaxonXslForVersion(version),
+                ChangeFileExt(tmpFilename,'-xr.xml'),ExtractFilePath(tmpFilename));
+    _CmdOutput := CmdOutput.Text;
 
-  if Result then
-  begin
-    Result := SaxonTransform(ChangeFileExt(tmpFilename,'-xr.xml'),
-                VisualizationLibPath+'xsl\xr-pdf.xsl',
-                ChangeFileExt(tmpFilename,'-.fo'),ExtractFilePath(tmpFilename)); // geaendert von pdf auf fo
-    _CmdOutput := _CmdOutput+CmdOutput.Text;
+    if Result then
+    begin
+      Result := SaxonTransform(ChangeFileExt(tmpFilename,'-xr.xml'),
+                  VisualizationLibPath+'xsl\xr-pdf.xsl',
+                  ChangeFileExt(tmpFilename,'-.fo'),ExtractFilePath(tmpFilename)); // geaendert von pdf auf fo
+      _CmdOutput := _CmdOutput+CmdOutput.Text;
+    end;
+
+    if not Result then
+      exit;
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Fopper aufrufen. Datei ist eine fo Datei. Saxon HE gibt eine fo-Datei zurueck!
+    if FileExists(ChangeFileExt(tmpFilename,'-.fo')) then
+    begin
+      Result := FopTransform(ChangeFileExt(tmpFilename,'-.fo'),
+                  ChangeFileExt(tmpFilename,'-.pdf'),ExtractFilePath(tmpFilename));
+
+      _CmdOutput := _CmdOutput + #13#10 + CmdOutput.Text;
+
+      DeleteFile(ChangeFileExt(tmpFilename,'-.fo'));
+    end else
+      Result := false;
+
+    DeleteFile(ChangeFileExt(tmpFilename,'-xr.xml'));
+    ////////////////////////////////////////////////////////////////////////////
+    if FileExists(ChangeFileExt(tmpFilename,'-.pdf')) then
+    begin
+      _VisualizationAsPdf := TMemoryStream.Create;
+      _VisualizationAsPdf.LoadFromFile(ChangeFileExt(tmpFilename,'-.pdf'));
+      _VisualizationAsPdf.Position := 0;
+      DeleteFile(ChangeFileExt(tmpFilename,'-.pdf'));
+    end else
+      Result := false;
+  finally
+    DeleteTempFiles(tmpFilename); // deckt auch den "exit"-Pfad oben ab
   end;
-
-  if not Result then
-    exit;
-
-  //////////////////////////////////////////////////////////////////////////////
-  // Fopper aufrufen. Datei ist eine fo Datei. Saxon HE gibt eine fo-Datei zurueck!
-  if FileExists(ChangeFileExt(tmpFilename,'-.fo')) then
-  begin
-    Result := FopTransform(ChangeFileExt(tmpFilename,'-.fo'),
-                ChangeFileExt(tmpFilename,'-.pdf'),ExtractFilePath(tmpFilename));
-
-    _CmdOutput := _CmdOutput + #13#10 + CmdOutput.Text;
-
-    DeleteFile(ChangeFileExt(tmpFilename,'-.fo'));
-  end else
-    Result := false;
-
-  DeleteFile(ChangeFileExt(tmpFilename,'-xr.xml'));
-  //////////////////////////////////////////////////////////////////////////////
-  if FileExists(ChangeFileExt(tmpFilename,'-.pdf')) then
-  begin
-    _VisualizationAsPdf := TMemoryStream.Create;
-    _VisualizationAsPdf.LoadFromFile(ChangeFileExt(tmpFilename,'-.pdf'));
-    _VisualizationAsPdf.Position := 0;
-    DeleteFile(ChangeFileExt(tmpFilename,'-.pdf'));
-  end else
-    Result := false;
 end;
 
 function TXRechnungValidationHelperJava.QuoteIfContainsSpace(const _Value: String): String;

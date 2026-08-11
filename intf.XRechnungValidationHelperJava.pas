@@ -1,4 +1,4 @@
-{
+﻿{
 Copyright (C) 2026 Landrix Software GmbH & Co. KG
 Sven Harazim, info@landrix.de
 Version 3.0.2
@@ -8,6 +8,54 @@ This file is not official part of the package XRechnung-for-Delphi.
 
 This is provided as is, expressly without a warranty of any kind.
 You use it at your own risc.
+}
+
+{
+Offene Punkte (aus dem Review zu PR #83/#84, bewusst nicht mit umgesetzt):
+
+1. QuoteIfContainsSpace ist kein korrektes Windows-Argument-Quoting.
+   Es setzt nur Anfuehrungszeichen aussen herum. Endet ein Wert auf "\", entsteht
+   z.B. "C:\Mein Ordner\" - die CRT des Kindprozesses liest das abschliessende \"
+   als maskiertes Anfuehrungszeichen, das Argument laeuft weiter und alle folgenden
+   Parameter verrutschen. Betroffen ist praktisch nur ValitoolValidateDirectory, weil
+   dort ein Verzeichnis von aussen hereingereicht wird; alle intern gebauten Pfade
+   enden auf einen Dateinamen. Tabulatoren werden ebenfalls nicht als
+   quotierungsbeduerftig erkannt. Richtig waere echtes Quoting, das Backslashes vor
+   einem " und vor dem schliessenden " verdoppelt. Der Fehler ist aelter als PR #83 -
+   ueber die Batchdatei ging dieselbe Zeichenkette unveraendert an das Programm.
+
+2. CmdOutput ist geteilter Instanzzustand statt Rueckgabewert.
+   ExecAndWait leert das Feld zu Beginn und der Aufrufer liest es danach aus. Ruft der
+   ValidationErrorHandler - der beim Timeout aus ExecAndWait heraus aufgerufen wird -
+   synchron eine weitere Operation desselben Objekts auf, leert deren ExecAndWait das
+   Feld, und der aeussere Aufrufer bekommt die Ausgabe des inneren Laufs. Parallele
+   Nutzung eines Objekts ist aus demselben Grund nicht moeglich (TStringList ist nicht
+   threadsicher). Sauber waere, die Prozessausgabe als out-Parameter zurueckzugeben;
+   das aendert die Signatur und saemtliche Aufrufstellen.
+
+3. Die Leseschleife endet am Ende des direkten Kindprozesses, nicht am Pipe-EOF.
+   Vor PR #84 wurde bis EOF gelesen, also implizit gewartet, bis auch Enkelprozesse
+   ihr Schreib-Handle geschlossen hatten. Startet ein Werkzeug nach Launcher-Muster
+   einen Enkel und beendet sich vor ihm, geht dessen Ausgabe verloren. Bei gesetztem
+   Timeout ist das gewollt (das Jobobjekt beendet den Baum), ohne Timeout wird kein
+   Jobobjekt mehr angelegt. java.exe ist nicht betroffen, valitool.exe nur, falls es
+   nicht auf seine JVM wartet.
+
+4. hstrl.LoadFromFile(...,TEncoding.UTF8) kann EEncodingError werfen.
+   In Validate, Visualize und VisualizeFile werden Werkzeugausgaben so eingelesen.
+   TEncoding.UTF8 hat MB_ERR_INVALID_CHARS gesetzt und wirft bei einer mitten in einer
+   Mehrbyte-Sequenz abgeschnittenen Datei - denkbar nach einem Timeout. Die beiden
+   Mustang-Stellen nutzen dafuer bereits ReadTextFileUtf8; die drei uebrigen liessen
+   sich genauso umstellen.
+
+5. BuildEnvironmentBlock: TStringList.Values[Name] := '' entfernt den Eintrag, statt
+   ihn leer zu setzen. Ein Override der Form "NAME=" loescht die Variable also aus dem
+   Block. Die heutigen Aufrufer uebergeben nie leere Werte.
+
+6. Delphi6/intfXRechnungValidationHelperJava.pas ist nicht nachgezogen und arbeitet
+   weiter mit .bat-Dateien, ohne Timeout und ohne Aufraeumen der Temp-Dateien. Eine
+   woertliche Portierung scheitert an fehlenden APIs (TEncoding, TBytesStream); das
+   Temp-Datei-Leck aus GetTempFileName besteht dort aber unveraendert.
 }
 
 unit intf.XRechnungValidationHelperJava;
@@ -73,6 +121,10 @@ type
     ValitoolLicense : String;
     CmdOutput : TStringList;
     ExecTimeoutSeconds : Integer; //0 = kein Timeout (Standard, Verhalten wie bisher)
+    // true, wenn der letzte ExecAndWait-Aufruf den Prozess wirklich bis zu dessen Ende
+    // laufen liess. false bei Startfehler oder Timeout - dann sagt ein evtl. vorhandenes
+    // Ausgabefile *nichts* ueber den Erfolg aus (die Datei wird vor CreateProcess angelegt).
+    LastRunCompleted : Boolean;
     FValidationErrorHandler : TValidationErrorHandler;
     procedure HandleValidationError(const _ErrMessage : String);
     function RequireFile(const _Filename : String) : Boolean;
@@ -92,6 +144,7 @@ type
     function GetVersionFromFile(const _Filename : String) : Integer;
     function GetNewTempFileName(const _TempPath : String): string;
     procedure DeleteTempFiles(const _TmpFilename : String);
+    function ReadTextFileUtf8(const _Filename : String) : String;
     function GetNewTempPath: string;
   public
     constructor Create;
@@ -190,6 +243,7 @@ var
   Flags : DWORD;
 begin
   Result := false;
+  LastRunCompleted := false;
   CmdOutput.Clear;
 
   SA.nLength := SizeOf(SA);
@@ -255,18 +309,23 @@ begin
     // Jobobjekt, damit beim Timeout der ganze Prozessbaum stirbt: TerminateProcess
     // beendet nur das direkte Kind. valitool.exe startet seinerseits eine JVM, die
     // sonst weiterlaeuft und Arbeitsverzeichnis und Ausgabedatei gesperrt haelt.
+    // Nur bei gesetztem Timeout, denn KILL_ON_JOB_CLOSE beendet beim Schliessen des
+    // Handles auch Enkel, die im Normalbetrieb absichtlich laenger laufen duerfen.
     // Schlaegt das Anlegen fehl (aeltere Windows-Versionen ohne verschachtelte Jobs),
     // faellt der Code auf TerminateProcess zurueck.
-    Job := CreateJobObject(nil,nil);
-    if Job <> 0 then
+    if ExecTimeoutSeconds > 0 then
     begin
-      FillChar(JobLimits,SizeOf(JobLimits),0);
-      JobLimits.BasicLimitInformation.LimitFlags := JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
-      if not SetInformationJobObject(Job,JobObjectExtendedLimitInformation,
-                                     @JobLimits,SizeOf(JobLimits)) then
+      Job := CreateJobObject(nil,nil);
+      if Job <> 0 then
       begin
-        CloseHandle(Job);
-        Job := 0;
+        FillChar(JobLimits,SizeOf(JobLimits),0);
+        JobLimits.BasicLimitInformation.LimitFlags := JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+        if not SetInformationJobObject(Job,JobObjectExtendedLimitInformation,
+                                       @JobLimits,SizeOf(JobLimits)) then
+        begin
+          CloseHandle(Job);
+          Job := 0;
+        end;
       end;
     end;
     if Job <> 0 then
@@ -305,6 +364,11 @@ begin
             if not ReadFile(StdOutPipeRead, Buffer, SizeOf(Buffer), BytesRead, nil) or (BytesRead = 0) then
               Break;
             Output.Write(Buffer,BytesRead);
+            // Deadline auch hier pruefen: ein Prozess, der die Pipe dauerhaft gefuellt
+            // haelt, wuerde die Schleife sonst nie verlassen und den Timeout aushebeln.
+            if (ExecTimeoutSeconds > 0) and
+               (GetTickCount64 - StartTick >= UInt64(ExecTimeoutSeconds) * 1000) then
+              Break;
           end;
           if WaitForSingleObject(PI.hProcess, 100) = WAIT_OBJECT_0 then
             Break;
@@ -337,7 +401,10 @@ begin
           [_Filename,ExecTimeoutSeconds]));
       end
       else
+      begin
+        LastRunCompleted := true;
         Result := GetExitCodeProcess(PI.hProcess, ProcessExitCode) and (ProcessExitCode = 0);
+      end;
     finally
       CloseHandle(PI.hThread);
       CloseHandle(PI.hProcess);
@@ -396,6 +463,29 @@ begin
   if p > 0 then
     lName2 := Copy(lName2,1,p-1);
   Result := CompareText(lName1,lName2);
+end;
+
+// Liest eine von den Werkzeugen geschriebene Textdatei. Bewusst nicht ueber
+// TFile.ReadAllText(...,TEncoding.UTF8): dessen UTF-8-Encoding hat MB_ERR_INVALID_CHARS
+// gesetzt und wirft EEncodingError, sobald die Datei mitten in einer Mehrbyte-Sequenz
+// abgeschnitten ist - genau der Fall nach einem Timeout. Leere oder fehlende Datei
+// liefert ''. Die Dekodierlogik ist dieselbe wie fuer die Konsolenausgabe.
+function TXRechnungValidationHelperJava.ReadTextFileUtf8(const _Filename : String) : String;
+var
+  lBytes : TBytes;
+begin
+  Result := '';
+  if not FileExists(_Filename) then
+    exit;
+  try
+    lBytes := TFile.ReadAllBytes(_Filename);
+  except
+    exit;
+  end;
+  // BOM entfernen, das TFile.ReadAllText sonst geschluckt haette
+  if (Length(lBytes) >= 3) and (lBytes[0] = $EF) and (lBytes[1] = $BB) and (lBytes[2] = $BF) then
+    lBytes := Copy(lBytes,3,Length(lBytes)-3);
+  Result := DecodeOutput(lBytes);
 end;
 
 function TXRechnungValidationHelperJava.BuildEnvironmentBlock(const _Overrides : TStrings) : String;
@@ -495,15 +585,26 @@ begin
             QuoteIfContainsSpace(MustangprojectPath+'Mustang-CLI.jar')+' '+_Params;
 end;
 
+// Liefert '' wenn keine Temp-Datei angelegt werden konnte - die Aufrufer brechen dann ab.
+// Der Ausgabepuffer muss laut MSDN mindestens MAX_PATH Zeichen fassen (vorher 256 - zu
+// klein) und wird initialisiert, weil er bei einem Fehlschlag sonst Stackmuell enthaelt,
+// der als Dateiname weiterverwendet wuerde.
 function TXRechnungValidationHelperJava.GetNewTempFileName(
   const _TempPath: String): string;
 var
-  lTempPath: array[0..255] of Char;
-  lTempFileName: array[0..255] of Char;
+  lTempPath: array[0..MAX_PATH] of Char;
+  lTempFileName: array[0..MAX_PATH] of Char;
 begin
-  FillChar(lTempPath,256,0);
+  Result := '';
+  FillChar(lTempPath,SizeOf(lTempPath),0);
+  FillChar(lTempFileName,SizeOf(lTempFileName),0);
   StrPLCopy(lTempPath, _TempPath, Length(lTempPath) - 1);
-  GetTempFileName(lTempPath, 'TMP', 0, lTempFileName);
+  if GetTempFileName(lTempPath, 'TMP', 0, lTempFileName) = 0 then
+  begin
+    HandleValidationError(Format('Temporaere Datei in %s konnte nicht angelegt werden: %s',
+      [_TempPath,SysErrorMessage(GetLastError)]));
+    exit;
+  end;
   Result := lTempFileName;
 end;
 
@@ -511,22 +612,35 @@ end;
 // Wichtig ist vor allem der Stamm selbst: GetTempFileName mit uUnique=0 *legt die
 // Datei an*, und geloescht wurden bisher nur die abgeleiteten Dateien - pro Aufruf
 // blieb also eine 0-Byte-Leiche im Temp-Verzeichnis liegen.
-// Mustang haengt seine Endung an den Namen an, Saxon/FOP/KOSIT ersetzen sie.
+// Zwei Namensschemata: Mustang und Valitool *haengen* an ("TMP1.tmp.pdf",
+// "TMP1.tmp.report.de.xml"), Saxon/FOP/KOSIT *ersetzen* die Endung ("TMP1-xr.xml").
+// Die angehaengten deckt das Suchmuster ab - eine feste Endungsliste kennt die
+// Valitool-Namen nicht. Fremde Dateien koennen nicht getroffen werden, weil der Stamm
+// von GetTempFileName eindeutig ist.
 procedure TXRechnungValidationHelperJava.DeleteTempFiles(const _TmpFilename : String);
 const
-  cAngehaengt : array[0..2] of String = ('.pdf','.xml','.html');
   cErsetzt : array[0..5] of String =
     ('-xr.xml','-.fo','-.pdf','-.html','-report.xml','-report.html');
 var
   i : Integer;
+  lDir : String;
+  lTreffer : TStringDynArray;
 begin
   if _TmpFilename = '' then
     exit;
+
+  lDir := ExtractFilePath(_TmpFilename);
+  if DirectoryExists(lDir) then
+  try
+    lTreffer := TDirectory.GetFiles(lDir,ExtractFileName(_TmpFilename)+'.*');
+    for i := 0 to Length(lTreffer)-1 do
+      DeleteFile(lTreffer[i]);
+  except
+    //Aufraeumen darf den Aufrufer nie mit einer Ausnahme behelligen
+  end;
+
   if FileExists(_TmpFilename) then
     DeleteFile(_TmpFilename);
-  for i := Low(cAngehaengt) to High(cAngehaengt) do
-    if FileExists(_TmpFilename+cAngehaengt[i]) then
-      DeleteFile(_TmpFilename+cAngehaengt[i]);
   for i := Low(cErsetzt) to High(cErsetzt) do
     if FileExists(ChangeFileExt(_TmpFilename,cErsetzt[i])) then
       DeleteFile(ChangeFileExt(_TmpFilename,cErsetzt[i]));
@@ -595,6 +709,8 @@ begin
     exit;
 
   tmpFilename := GetNewTempFileName(TempPath);
+  if tmpFilename = '' then
+    exit;
 
   try
     Result := ExecAndWait(JavaExe,MustangCliParams(
@@ -637,6 +753,8 @@ begin
     exit;
 
   tmpFilename := GetNewTempFileName(TempPath);
+  if tmpFilename = '' then
+    exit;
 
   try
     Result := ExecAndWait(JavaExe,MustangCliParams(
@@ -675,6 +793,8 @@ begin
     exit;
 
   tmpFilename := GetNewTempFileName(TempPath);
+  if tmpFilename = '' then
+    exit;
 
   try
     Result := ExecAndWait(JavaExe,MustangCliParams(
@@ -682,10 +802,14 @@ begin
                 ' --source '+ QuoteIfContainsSpace(_InvoiceXMLFilename)),
                 ExtractFilePath(tmpFilename),tmpFilename+'.xml');
 
-    if FileExists(tmpFilename+'.xml') then
+    // Mustang liefert bei einer fachlich ungueltigen Rechnung einen Exitcode <> 0,
+    // schreibt aber trotzdem einen Report - der zaehlt als Erfolg. Ein Startfehler oder
+    // Timeout darf das dagegen nicht: die Ausgabedatei wird von ExecAndWait schon vor
+    // CreateProcess angelegt und existiert deshalb auch dann, leer oder abgeschnitten.
+    if LastRunCompleted then
     begin
-      _ValidationResultAsXML := TFile.ReadAllText(tmpFilename+'.xml',TEncoding.UTF8);
-      Result := true;
+      _ValidationResultAsXML := ReadTextFileUtf8(tmpFilename+'.xml');
+      Result := _ValidationResultAsXML <> '';
     end;
 
     _CmdOutput := CmdOutput.Text;
@@ -711,6 +835,8 @@ begin
     exit;
 
   tmpFilename := GetNewTempFileName(TempPath);
+  if tmpFilename = '' then
+    exit;
 
   try
     Result := ExecAndWait(JavaExe,MustangCliParams(
@@ -721,7 +847,7 @@ begin
 
     if Result and FileExists(tmpFilename+'.html') then
     begin
-      _VisualizationAsHTML := TFile.ReadAllText(tmpFilename+'.html',TEncoding.UTF8);
+      _VisualizationAsHTML := ReadTextFileUtf8(tmpFilename+'.html');
     end;
 
     _CmdOutput := CmdOutput.Text;
@@ -752,6 +878,8 @@ begin
     exit;
 
   tmpFilename := GetNewTempFileName(TempPath);
+  if tmpFilename = '' then
+    exit;
 
   try
     Result := ExecAndWait(JavaExe,MustangCliParams(
@@ -879,6 +1007,8 @@ begin
     exit;
 
   tmpFilename := GetNewTempFileName(TempPath);
+  if tmpFilename = '' then
+    exit;
 
   hstrl := TStringList.Create;
   try
@@ -1014,6 +1144,8 @@ begin
     exit;
 
   tmpFilename := GetNewTempFileName(TempPath);
+  if tmpFilename = '' then
+    exit;
 
   hstrl := TStringList.Create;
   lEnv := TStringList.Create;
@@ -1129,6 +1261,8 @@ begin
     exit;
 
   tmpFilename := GetNewTempFileName(TempPath);
+  if tmpFilename = '' then
+    exit;
 
   hstrl := TStringList.Create;
   try
@@ -1198,6 +1332,8 @@ begin
     exit;
 
   tmpFilename := GetNewTempFileName(TempPath);
+  if tmpFilename = '' then
+    exit;
 
   hstrl := TStringList.Create;
   try
@@ -1282,6 +1418,8 @@ begin
     exit;
 
   tmpFilename := GetNewTempFileName(TempPath);
+  if tmpFilename = '' then
+    exit;
 
   hstrl := TStringList.Create;
   try
@@ -1349,6 +1487,8 @@ begin
     exit;
 
   tmpFilename := GetNewTempFileName(TempPath);
+  if tmpFilename = '' then
+    exit;
 
   try
     Result := SaxonTransform(_InvoiceXMLFilename,SaxonXslForVersion(version),

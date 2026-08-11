@@ -978,11 +978,7 @@ begin
         GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
             .SetValidatorLibPath(ValidatorLibPath)
             .SetValidatorConfigurationPath(DistributionBasePath+'validator-configuration-zugferd'+PathDelim)
-            .Validate(ExtractFilePath(Application.ExeName)+'ZUGFeRD-Extended.xml',cmdoutput,xmlresult,htmlresult);
-
-//        GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
-//            .SetMustangprojectLibPath(MustangLibPath)
-//            .MustangValidateFile(ExtractFilePath(Application.ExeName)+'ZUGFeRD-Extended.xml',cmdoutput,xmlresult);
+            .Validate(xml,cmdoutput,xmlresult,htmlresult);
 
         Memo3.Lines.Append(cmdoutput);
 
@@ -1023,7 +1019,6 @@ begin
 
       Memo2.Lines.Text := xml;
 
-      {
       if cbValidateWithJava.Checked then
       begin
         TXRechnungInvoiceAdapter.SaveToFile(inv,version,ExtractFilePath(Application.ExeName)+'ZUGFeRD-EN16931.xml');
@@ -1031,11 +1026,7 @@ begin
         GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
             .SetValidatorLibPath(ValidatorLibPath)
             .SetValidatorConfigurationPath(DistributionBasePath+'validator-configuration-zugferd'+PathDelim)
-            .ValidateFile(ExtractFilePath(Application.ExeName)+'ZUGFeRD-EN16931.xml',cmdoutput,xmlresult,htmlresult);
-
-        //        GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
-        //            .SetMustangprojectLibPath(MustangLibPath)
-        //            .MustangValidateFile(ExtractFilePath(Application.ExeName)+'ZUGFeRD-Extended.xml',cmdoutput,xmlresult);
+            .Validate(xml,cmdoutput,xmlresult,htmlresult); // Validate erwartet den XML-Inhalt, ValidateFile den Dateinamen
 
         Memo3.Lines.Append(cmdoutput);
 
@@ -1051,7 +1042,6 @@ begin
         TFile.WriteAllText(WebBrowserContentFilename,htmlresult,TEncoding.UTF8);
         ShowFileInBrowser(WebBrowserContentFilename,1);
       end;
-      }
 
       invtest := TInvoice.Create;
       try

@@ -28,15 +28,20 @@ unit intf.XRechnungHelper;
 
 interface
 
-{$IFNDEF FPC}
-// MSXML/XPath-basierter Lese-Helfer: ausschliesslich Windows/Delphi.
-// Im FreePascal-Schreib-Scope wird dieser Helfer nicht benoetigt; die Unit
-// bleibt unter FPC bewusst leer (siehe Portierungsdoku).
+// XPath-basierter Lese-Helfer. Unter Delphi liegt MSXML darunter, unter
+// FreePascal fcl-xml ueber intf.XRechnungXmlShim - die Signaturen und das
+// Verhalten sind in beiden Faellen identisch, damit der Lesecode in
+// intf.XRechnung_3_0.pas ungeteilt bleibt.
 
 uses
+  {$IFDEF FPC}
+  SysUtils, Classes, StrUtils
+  ,intf.XRechnungXmlShim
+  {$ELSE}
   System.SysUtils, System.Classes,System.StrUtils
   ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema
   ,Xml.Win.msxmldom, Winapi.MSXMLIntf, Winapi.msxml
+  {$ENDIF}
   ;
 
 type
@@ -110,6 +115,22 @@ begin
   Result := _Result <> nil;
 end;
 
+{$IFDEF FPC}
+class function TXRechnungXMLHelper.PrepareDocumentForXPathQuerys(
+  _Xml: IXMLDocument): IXMLDOMDocument2;
+begin
+  // Unter fcl-xml ist kein zweites Dokument noetig: der Shim liefert eine
+  // XPath-Sicht auf dieselben Knoten. Die Praefixbindung cbc/cac/ram/rsm/udt/
+  // qdt steckt fest im Namespace-Resolver des Shims und entspricht dem, was
+  // unter MSXML per setProperty('SelectionNamespaces', ...) gesetzt wird.
+  Result := nil;
+  if _Xml = nil then
+    exit;
+  if not _Xml.Active then
+    exit;
+  Result := _Xml.AsDOMDocument;
+end;
+{$ELSE}
 class function TXRechnungXMLHelper.PrepareDocumentForXPathQuerys(
   _Xml: IXMLDocument): IXMLDOMDocument2;
 var
@@ -169,6 +190,7 @@ begin
   Result.setProperty('SelectionLanguage', 'XPath');  // ab 4.0 ist SelectionLanguage eh immer XPath
   Result.setProperty('SelectionNamespaces', sNsLine) ;
 end;
+{$ENDIF}
 
 class function TXRechnungXMLHelper.FindNode(_XnRoot: IXMLDOMNode; const _NodePath: String): Boolean;
 var
@@ -176,9 +198,5 @@ var
 begin
   Result := TXRechnungXMLHelper.SelectNode(_XnRoot,_NodePath,Node);
 end;
-
-{$ELSE}
-implementation
-{$ENDIF}
 
 end.

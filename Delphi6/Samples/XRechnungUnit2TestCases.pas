@@ -126,7 +126,7 @@ begin
   end;
 
   inv.PaymentTermsType := iptt_Net;
-  inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceDueDate)]);
+  inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[FormatDateTime('dd.mm.yyyy',inv.InvoiceDueDate)]);
 
   with inv.InvoiceLines.AddInvoiceLine do
   begin
@@ -295,7 +295,7 @@ begin
   end;
 
   inv.PaymentTermsType := iptt_Net;
-  inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceDueDate)]);
+  inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[FormatDateTime('dd.mm.yyyy',inv.InvoiceDueDate)]);
 
   with inv.InvoiceLines.AddInvoiceLine do
   begin
@@ -440,7 +440,7 @@ begin
     1 :
     begin
       inv.PaymentTermsType := iptt_Net;
-      inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceDueDate)]);
+      inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[FormatDateTime('dd.mm.yyyy',inv.InvoiceDueDate)]);
     end;
     2 :
     begin
@@ -807,7 +807,7 @@ begin
   end;
 
   inv.PaymentTermsType := iptt_Net;
-  inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceDueDate)]);
+  inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[FormatDateTime('dd.mm.yyyy',inv.InvoiceDueDate)]);
 
   with inv.InvoiceLines.AddInvoiceLine do
   begin
@@ -917,7 +917,7 @@ begin
   end;
 
   inv.PaymentTermsType := iptt_Net;
-  inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceDueDate)]);
+  inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[FormatDateTime('dd.mm.yyyy',inv.InvoiceDueDate)]);
 
   with inv.InvoiceLines.AddInvoiceLine do
   begin
@@ -1023,7 +1023,7 @@ begin
   end;
 
   inv.PaymentTermsType := iptt_Net;
-  inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceDueDate)]);
+  inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[FormatDateTime('dd.mm.yyyy',inv.InvoiceDueDate)]);
 
   with inv.InvoiceLines.AddInvoiceLine do
   begin
@@ -1543,7 +1543,7 @@ begin
   end;
 
   inv.PaymentTermsType := iptt_Net;
-  inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceDueDate)]);
+  inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[FormatDateTime('dd.mm.yyyy',inv.InvoiceDueDate)]);
 
   with inv.InvoiceLines.AddInvoiceLine do
   begin
@@ -2073,7 +2073,7 @@ begin
   end;
 
   inv.PaymentTermsType := iptt_Net;
-  inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[DateToStr(inv.InvoiceDueDate)]);
+  inv.PaymentTermNetNote := Format('Zahlbar bis zum %s ohne Abzug.',[FormatDateTime('dd.mm.yyyy',inv.InvoiceDueDate)]);
 
   with inv.InvoiceLines.AddInvoiceLine do
   begin

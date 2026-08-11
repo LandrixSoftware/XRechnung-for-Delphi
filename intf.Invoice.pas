@@ -1541,6 +1541,8 @@ procedure TInvoiceAttachment.SetDataFromBase64(const _Val: String);
 var
   ss : TStringStream;
   dec : TBase64DecodingStream;
+  buf : array[0..16383] of Byte;
+  cnt : Integer;
 begin
   Data.Clear;
   if _Val = '' then
@@ -1548,7 +1550,14 @@ begin
   ss := TStringStream.Create(AnsiString(_Val));
   dec := TBase64DecodingStream.Create(ss);
   try
-    Data.CopyFrom(dec,0); // 0 = gesamten Quellstrom kopieren
+    //TBase64DecodingStream unterstuetzt weder Size noch Seek - CopyFrom(dec,0)
+    //wuerde daher EStreamError ausloesen. Stattdessen blockweise bis zum
+    //Stromende lesen.
+    repeat
+      cnt := dec.Read(buf,SizeOf(buf));
+      if cnt > 0 then
+        Data.Write(buf,cnt);
+    until cnt <= 0;
     Data.Seek(0,soFromBeginning);
   finally
     dec.Free;

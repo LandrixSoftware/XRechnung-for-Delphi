@@ -34,6 +34,7 @@ uses
   SysUtils,Classes,Types,StrUtils,DateUtils
   ,intf.XRechnungXmlShim
   ,intf.Invoice
+  ,intf.XRechnungHelper
   {$ELSE}
   System.SysUtils,System.Classes,System.Types,System.StrUtils,System.DateUtils
   ,Xml.xmldom,Xml.XMLDoc,Xml.XMLIntf,Xml.XMLSchema
@@ -50,10 +51,8 @@ type
   public
     class procedure SaveDocumentUNCEFACT(_Invoice: TInvoice;_Xml : IXMLDocument; _Profile : TInvoiceProfile);
     class procedure SaveDocumentUBL(_Invoice: TInvoice;_Xml : IXMLDocument; _Profile : TInvoiceProfile);
-    {$IFNDEF FPC}
     class function LoadDocumentUNCEFACT(_Invoice: TInvoice;_Xml : IXMLDocument; out _Error : String) : Boolean;
     class function LoadDocumentUBL(_Invoice: TInvoice;_Xml : IXMLDocument; out _Error : String) : Boolean;
-    {$ENDIF}
   end;
 
 implementation
@@ -63,7 +62,6 @@ uses
 
 { TXRechnungInvoiceAdapter301 }
 
-{$IFNDEF FPC}
 class function TXRechnungInvoiceAdapter301.LoadDocumentUBL(_Invoice: TInvoice;
   _Xml: IXMLDocument; out _Error : String) : Boolean;
 var
@@ -1067,7 +1065,6 @@ begin
     on E:Exception do _Error := E.ClassName+' '+E.Message;
   end;
 end;
-{$ENDIF}
 
 class procedure TXRechnungInvoiceAdapter301.SaveDocumentUBL(_Invoice: TInvoice;
   _Xml: IXMLDocument; _Profile : TInvoiceProfile);

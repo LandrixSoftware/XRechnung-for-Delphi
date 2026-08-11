@@ -122,7 +122,6 @@ type
                        //weiterhin, die Feldstruktur ist identisch
                        XRechnungVersion_2x_ReadingOnly);
 
-  {$IFNDEF FPC}
   TXRechnungValidationHelper = class(TObject)
   public
     class function GetXRechnungVersion(const _Filename : String) : TXRechnungVersion; overload;
@@ -133,7 +132,6 @@ type
     //First thoughts on the topic
     //class function Validate(_XSDFilename, _XmlFilename: String) : Boolean;
   end;
-  {$ENDIF}
 
   {$IFDEF ZUGFeRD_Support}
   TZUGFeRDAdditionalContent = class
@@ -153,9 +151,7 @@ type
   TXRechnungInvoiceAdapter = class
   private
     class procedure SaveDocument(_Invoice: TInvoice;_Version : TXRechnungVersion; _Xml : IXMLDocument);
-    {$IFNDEF FPC}
     class function  LoadFromXMLDocument(_Invoice: TInvoice; _XmlDocument: IXMLDocument; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
-    {$ENDIF}
   public const
     ccOK                       = 0;
     ccNoPaymentsCount          = 1;
@@ -176,11 +172,9 @@ type
     class procedure SaveToFile(_Invoice : TInvoice; _Version : TXRechnungVersion; const _Filename : String);
     class procedure SaveToXMLStr(_Invoice : TInvoice; _Version : TXRechnungVersion; out _XML : String);
 
-    {$IFNDEF FPC}
     class function  LoadFromStream(_Invoice : TInvoice; _Stream : TStream; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
     class function  LoadFromFile(_Invoice : TInvoice; const _Filename : String; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
     class function  LoadFromXMLStr(_Invoice : TInvoice; const _XML : String; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
-    {$ENDIF}
   end;
 
 const
@@ -473,7 +467,6 @@ begin
   end;
 end;
 
-{$IFNDEF FPC}
 class function TXRechnungInvoiceAdapter.LoadFromFile(_Invoice: TInvoice;
   const _Filename: String; out _Error : String
   {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
@@ -585,7 +578,6 @@ begin
     xml := nil;
   end;
 end;
-{$ENDIF}
 
 class procedure TXRechnungInvoiceAdapter.SaveDocument(_Invoice: TInvoice;
   _Version : TXRechnungVersion; _Xml: IXMLDocument);
@@ -1671,7 +1663,6 @@ begin
   end;
 end;
 
-{$IFNDEF FPC}
 { TXRechnungValidationHelper }
 
 class function TXRechnungValidationHelper.GetXRechnungVersion(
@@ -1842,7 +1833,6 @@ end;
 //    FXMLDocument:= nil;
 //  end;
 //end;
-{$ENDIF}
 
 {$IFDEF ZUGFeRD_Support}
 class function TZUGFeRDInvoiceAdapter.LoadFromStream(_Invoice : TInvoice;

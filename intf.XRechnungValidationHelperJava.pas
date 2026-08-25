@@ -134,6 +134,7 @@ type
     function BuildEnvironmentBlock(const _Overrides : TStrings) : String;
     function DecodeOutput(const _Bytes : TBytes) : String;
     function JavaExe : String;
+    function JavaUtf8Params : String;
     function SaxonClassPath : String;
     function SaxonXslForVersion(_Version : Integer) : String;
     function SaxonTransform(const _Source,_Xsl,_Out,_WorkDir : String) : Boolean;
@@ -539,6 +540,18 @@ begin
   Result := JavaRuntimeEnvironmentPath+'bin\java.exe';
 end;
 
+// Fuer jeden Java-Aufruf: Bis Java 17 schreibt die JVM bei Pipe-Umleitung in der
+// ANSI-Codepage, erst ab Java 18 in UTF-8. -Dfile.encoding legt das Encoding bis
+// Java 17 fest, stdout/stderr.encoding sind die ab JDK 19 offiziellen Properties.
+// Damit kommt die Prozessausgabe unabhaengig von der Java-Version als UTF-8 an und
+// DecodeOutput muss nicht auf den ANSI-Fallback ausweichen - wichtig, sobald die
+// Ausgabe Nicht-ASCII-Zeichen enthaelt (z.B. Umlaute im Temp-Pfad, wenn der
+// Windows-Benutzername welche traegt).
+function TXRechnungValidationHelperJava.JavaUtf8Params : String;
+begin
+  Result := '-Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8';
+end;
+
 function TXRechnungValidationHelperJava.SaxonClassPath : String;
 begin
   Result := QuoteIfContainsSpace(SaxonLibPath+'saxon-he-12.9.jar;'+SaxonLibPath+'lib\xmlresolver-5.3.3.jar');
@@ -557,7 +570,7 @@ end;
 function TXRechnungValidationHelperJava.SaxonTransform(const _Source,_Xsl,_Out,_WorkDir : String) : Boolean;
 begin
   Result := ExecAndWait(JavaExe,
-    '-cp '+SaxonClassPath+' net.sf.saxon.Transform'+
+    JavaUtf8Params+' -cp '+SaxonClassPath+' net.sf.saxon.Transform'+
     ' -s:'+QuoteIfContainsSpace(_Source)+
     ' -xsl:'+QuoteIfContainsSpace(_Xsl)+
     ' -o:'+QuoteIfContainsSpace(_Out),_WorkDir);
@@ -568,7 +581,8 @@ end;
 function TXRechnungValidationHelperJava.FopTransform(const _FoFilename,_PdfFilename,_WorkDir : String) : Boolean;
 begin
   Result := ExecAndWait(JavaExe,
-    '-cp '+QuoteIfContainsSpace(FopLibPath+'fop\build\fop.jar;'+FopLibPath+'fop\lib\batik-all-1.16.jar;' +
+    JavaUtf8Params+
+    ' -cp '+QuoteIfContainsSpace(FopLibPath+'fop\build\fop.jar;'+FopLibPath+'fop\lib\batik-all-1.16.jar;' +
                                 FopLibPath+'fop\lib\commons-io-2.11.0.jar;'+FopLibPath+'fop\lib\commons-logging-1.0.4.jar;' +
                                 FopLibPath+'fop\lib\fontbox-2.0.24.jar;'+FopLibPath+'fop\lib\serializer-2.7.2.jar;' +
                                 FopLibPath+'fop\lib\xml-apis-1.4.01.jar;'+FopLibPath+'fop\lib\xml-apis-ext-1.3.04.jar;' +
@@ -581,7 +595,7 @@ end;
 //https://github.com/ZUGFeRD/mustangproject/blob/f9905d6fca18733b468541415b9750654045cc09/Mustang-CLI/src/main/java/org/mustangproject/commandline/Main.java#L45
 function TXRechnungValidationHelperJava.MustangCliParams(const _Params : String) : String;
 begin
-  Result := '-Xmx1G -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8 -jar '+
+  Result := '-Xmx1G '+JavaUtf8Params+' -jar '+
             QuoteIfContainsSpace(MustangprojectPath+'Mustang-CLI.jar')+' '+_Params;
 end;
 
@@ -1015,7 +1029,7 @@ begin
     hstrl.Text := _InvoiceXMLData;
     hstrl.SaveToFile(tmpFilename,TEncoding.UTF8);
 
-    params := '-Xmx1024m -classpath '+
+    params := '-Xmx1024m '+JavaUtf8Params+' -classpath '+
              QuoteIfContainsSpace(ValidatorLibPath+'libs')+' -jar '+
              QuoteIfContainsSpace(ValidatorLibPath+'validator-1.6.2-standalone.jar');
     for i := 0 to ValidatorConfigurationPath.Count-1 do
@@ -1081,7 +1095,7 @@ begin
   hstrl := TStringList.Create;
   try
     cmd := JavaExe;
-    params:= '-Xmx1024m -classpath '+
+    params:= '-Xmx1024m '+JavaUtf8Params+' -classpath '+
              QuoteIfContainsSpace(ValidatorLibPath+'libs')+' -jar '+
              QuoteIfContainsSpace(ValidatorLibPath+'validator-1.6.2-standalone.jar');
     for i := 0 to ValidatorConfigurationPath.Count-1 do

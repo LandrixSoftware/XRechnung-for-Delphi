@@ -173,11 +173,11 @@ type
     class procedure SaveToFile(_Invoice : TInvoice; _Version : TXRechnungVersion; const _Filename : String);
     class procedure SaveToXMLStr(_Invoice : TInvoice; _Version : TXRechnungVersion; out _XML : String);
 
-    //LoadFromStream und LoadFromFile erkennen ein PDF an seiner Kennung und holen
+    //LoadFromStream und LoadFromFile erkennen optinal ein PDF an seiner Kennung und holen
     //die eingebettete Rechnung selbst heraus - ohne externe Werkzeuge. Fuer den
     //umgekehrten Fall (alle Anhaenge eines PDFs) siehe intf.XRechnungPdfExtract.
-    class function  LoadFromStream(_Invoice : TInvoice; _Stream : TStream; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
-    class function  LoadFromFile(_Invoice : TInvoice; const _Filename : String; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
+    class function  LoadFromStream(_Invoice : TInvoice; _Stream : TStream; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}; _ProcessPdfFiles : Boolean = false) : Boolean;
+    class function  LoadFromFile(_Invoice : TInvoice; const _Filename : String; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}; _ProcessPdfFiles : Boolean = false) : Boolean;
     class function  LoadFromXMLStr(_Invoice : TInvoice; const _XML : String; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
 
     //Liest die Rechnung ausdruecklich aus einem ZUGFeRD-/Factur-X-PDF. Liefert
@@ -478,7 +478,8 @@ end;
 
 class function TXRechnungInvoiceAdapter.LoadFromFile(_Invoice: TInvoice;
   const _Filename: String; out _Error : String
-  {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
+  {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}
+  ; _ProcessPdfFiles : Boolean = false) : Boolean;
 var
   xml : IXMLDocument;
   attachmentName : String;
@@ -495,6 +496,7 @@ begin
   end;
 
   //ZUGFeRD-/Factur-X-PDF: die eingebettete Rechnung selbst herausholen
+  if _ProcessPdfFiles then
   if TXRechnungPdfExtractor.IsPdfFile(_Filename) then
   begin
     Result := TXRechnungInvoiceAdapter.LoadFromPdfFile(_Invoice,_Filename,_Error,attachmentName{$IFDEF ZUGFeRD_Support},_AdditionalContent{$ENDIF});
@@ -512,7 +514,8 @@ end;
 
 class function TXRechnungInvoiceAdapter.LoadFromStream(_Invoice: TInvoice;
   _Stream: TStream; out _Error : String
-  {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
+  {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}
+  ; _ProcessPdfFiles : Boolean = false) : Boolean;
 var
   xml : IXMLDocument;
   attachmentName : String;
@@ -524,6 +527,7 @@ begin
     exit;
 
   //ZUGFeRD-/Factur-X-PDF: die eingebettete Rechnung selbst herausholen
+  if _ProcessPdfFiles then
   if TXRechnungPdfExtractor.IsPdfStream(_Stream) then
   begin
     Result := TXRechnungInvoiceAdapter.LoadFromPdfStream(_Invoice,_Stream,_Error,attachmentName{$IFDEF ZUGFeRD_Support},_AdditionalContent{$ENDIF});

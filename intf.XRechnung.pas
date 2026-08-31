@@ -43,6 +43,7 @@ uses
   ,System.StrUtils,System.DateUtils,System.Contnrs
   ,Xml.XMLDoc,Xml.XMLIntf
   {$ENDIF}
+  ,intf.XRechnungPdfExtract
   {$IFDEF ZUGFeRD_Support}
   ,intf.ZUGFeRDInvoiceDescriptor
   ,intf.ZUGFeRDCurrencyCodes
@@ -172,9 +173,17 @@ type
     class procedure SaveToFile(_Invoice : TInvoice; _Version : TXRechnungVersion; const _Filename : String);
     class procedure SaveToXMLStr(_Invoice : TInvoice; _Version : TXRechnungVersion; out _XML : String);
 
+    //LoadFromStream und LoadFromFile erkennen ein PDF an seiner Kennung und holen
+    //die eingebettete Rechnung selbst heraus - ohne externe Werkzeuge. Fuer den
+    //umgekehrten Fall (alle Anhaenge eines PDFs) siehe intf.XRechnungPdfExtract.
     class function  LoadFromStream(_Invoice : TInvoice; _Stream : TStream; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
     class function  LoadFromFile(_Invoice : TInvoice; const _Filename : String; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
     class function  LoadFromXMLStr(_Invoice : TInvoice; const _XML : String; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
+
+    //Liest die Rechnung ausdruecklich aus einem ZUGFeRD-/Factur-X-PDF. Liefert
+    //zusaetzlich den Namen des eingebetteten Anhangs (factur-x.xml, xrechnung.xml, ...).
+    class function  LoadFromPdfStream(_Invoice : TInvoice; _Stream : TStream; out _Error : String; out _AttachmentName : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
+    class function  LoadFromPdfFile(_Invoice : TInvoice; const _Filename : String; out _Error : String; out _AttachmentName : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
   end;
 
 const
@@ -472,6 +481,7 @@ class function TXRechnungInvoiceAdapter.LoadFromFile(_Invoice: TInvoice;
   {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
 var
   xml : IXMLDocument;
+  attachmentName : String;
 begin
   Result := false;
   if _Invoice = nil then
@@ -479,7 +489,17 @@ begin
   if _Filename = '' then
     exit;
   if not FileExists(_Filename) then
+  begin
+    _Error := 'Datei nicht gefunden: ' + _Filename;
     exit;
+  end;
+
+  //ZUGFeRD-/Factur-X-PDF: die eingebettete Rechnung selbst herausholen
+  if TXRechnungPdfExtractor.IsPdfFile(_Filename) then
+  begin
+    Result := TXRechnungInvoiceAdapter.LoadFromPdfFile(_Invoice,_Filename,_Error,attachmentName{$IFDEF ZUGFeRD_Support},_AdditionalContent{$ENDIF});
+    exit;
+  end;
 
   xml := TXMLDocument.Create(nil);
   try
@@ -495,6 +515,7 @@ class function TXRechnungInvoiceAdapter.LoadFromStream(_Invoice: TInvoice;
   {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
 var
   xml : IXMLDocument;
+  attachmentName : String;
 begin
   Result := false;
   if _Invoice = nil then
@@ -502,12 +523,97 @@ begin
   if _Stream = nil then
     exit;
 
+  //ZUGFeRD-/Factur-X-PDF: die eingebettete Rechnung selbst herausholen
+  if TXRechnungPdfExtractor.IsPdfStream(_Stream) then
+  begin
+    Result := TXRechnungInvoiceAdapter.LoadFromPdfStream(_Invoice,_Stream,_Error,attachmentName{$IFDEF ZUGFeRD_Support},_AdditionalContent{$ENDIF});
+    exit;
+  end;
+
   xml := TXMLDocument.Create(nil);
   try
     xml.LoadFromStream(_Stream);
     Result := TXRechnungInvoiceAdapter.LoadFromXMLDocument(_Invoice,xml,_Error{$IFDEF ZUGFeRD_Support},_AdditionalContent{$ENDIF});
   finally
     xml := nil;
+  end;
+end;
+
+class function TXRechnungInvoiceAdapter.LoadFromPdfStream(_Invoice: TInvoice;
+  _Stream: TStream; out _Error : String; out _AttachmentName : String
+  {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
+var
+  xml : IXMLDocument;
+  xmlBytes : TBytes;
+  info : TXRechnungPdfExtractInfo;
+  ms : TMemoryStream;
+begin
+  Result := false;
+  _AttachmentName := '';
+  if _Invoice = nil then
+    exit;
+  if _Stream = nil then
+    exit;
+
+  if not TXRechnungPdfExtractor.ExtractInvoiceFromStream(_Stream,xmlBytes,_AttachmentName,info) then
+  begin
+    if info.Error <> '' then
+      _Error := info.Error
+    else
+      _Error := 'Im PDF wurde keine eingebettete Rechnung gefunden';
+    exit;
+  end;
+  if Length(xmlBytes) = 0 then
+  begin
+    _Error := 'Die eingebettete Rechnung ist leer';
+    exit;
+  end;
+
+  ms := TMemoryStream.Create;
+  try
+    ms.WriteBuffer(xmlBytes[0],Length(xmlBytes));
+    ms.Position := 0;
+    xml := TXMLDocument.Create(nil);
+    try
+      xml.LoadFromStream(ms);
+      Result := TXRechnungInvoiceAdapter.LoadFromXMLDocument(_Invoice,xml,_Error{$IFDEF ZUGFeRD_Support},_AdditionalContent{$ENDIF});
+    finally
+      xml := nil;
+    end;
+  finally
+    ms.Free;
+  end;
+end;
+
+class function TXRechnungInvoiceAdapter.LoadFromPdfFile(_Invoice: TInvoice;
+  const _Filename: String; out _Error : String; out _AttachmentName : String
+  {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}) : Boolean;
+var
+  fs : TFileStream;
+begin
+  Result := false;
+  _AttachmentName := '';
+  if _Invoice = nil then
+    exit;
+  if not FileExists(_Filename) then
+  begin
+    _Error := 'Datei nicht gefunden: ' + _Filename;
+    exit;
+  end;
+
+  try
+    fs := TFileStream.Create(_Filename,fmOpenRead or fmShareDenyWrite);
+  except
+    on E : Exception do
+    begin
+      _Error := 'Datei nicht lesbar: ' + E.Message;
+      exit;
+    end;
+  end;
+  try
+    Result := TXRechnungInvoiceAdapter.LoadFromPdfStream(_Invoice,fs,_Error,_AttachmentName{$IFDEF ZUGFeRD_Support},_AdditionalContent{$ENDIF});
+  finally
+    fs.Free;
   end;
 end;
 
@@ -1720,14 +1826,68 @@ begin
   end;
 end;
 
+//Holt die eingebettete Rechnung aus einem ZUGFeRD-/Factur-X-PDF und liefert sie
+//als XML-Dokument. Die Position des Datenstroms bleibt unveraendert.
+function TryLoadXmlFromPdfStream(_Stream : TStream; out _Xml : IXMLDocument) : Boolean;
+var
+  xmlBytes : TBytes;
+  attachmentName : String;
+  info : TXRechnungPdfExtractInfo;
+  ms : TMemoryStream;
+  savePos : Int64;
+begin
+  Result := false;
+  _Xml := nil;
+  if _Stream = nil then
+    exit;
+  savePos := _Stream.Position;
+  try
+    if not TXRechnungPdfExtractor.ExtractInvoiceFromStream(_Stream,xmlBytes,attachmentName,info) then
+      exit;
+    if Length(xmlBytes) = 0 then
+      exit;
+    ms := TMemoryStream.Create;
+    try
+      ms.WriteBuffer(xmlBytes[0],Length(xmlBytes));
+      ms.Position := 0;
+      _Xml := TXMLDocument.Create(nil);
+      _Xml.LoadFromStream(ms);
+      Result := true;
+    finally
+      ms.Free;
+    end;
+  finally
+    _Stream.Position := savePos;
+  end;
+end;
+
 class function TXRechnungValidationHelper.GetXRechnungVersion(
   const _Filename: String): TXRechnungVersion;
 var
   xml : IXMLDocument;
+  fs : TFileStream;
 begin
   Result := XRechnungVersion_Unknown;
   if not FileExists(_Filename) then
     exit;
+
+  //ZUGFeRD-/Factur-X-PDF: Version der eingebetteten Rechnung bestimmen
+  if TXRechnungPdfExtractor.IsPdfFile(_Filename) then
+  begin
+    fs := TFileStream.Create(_Filename,fmOpenRead or fmShareDenyWrite);
+    try
+      if TryLoadXmlFromPdfStream(fs,xml) then
+      try
+        Result := TXRechnungValidationHelper.GetXRechnungVersion(xml);
+      finally
+        xml := nil;
+      end;
+    finally
+      fs.Free;
+    end;
+    exit;
+  end;
+
   xml := TXMLDocument.Create(nil);
   try
     xml.LoadFromFile(_Filename);
@@ -1747,6 +1907,20 @@ begin
   if (_Stream = nil) then
     exit;
   currentStreamPosition := _Stream.Position;
+
+  //ZUGFeRD-/Factur-X-PDF: Version der eingebetteten Rechnung bestimmen
+  if TXRechnungPdfExtractor.IsPdfStream(_Stream) then
+  begin
+    if TryLoadXmlFromPdfStream(_Stream,xml) then
+    try
+      Result := TXRechnungValidationHelper.GetXRechnungVersion(xml);
+    finally
+      xml := nil;
+    end;
+    _Stream.Position := currentStreamPosition;
+    exit;
+  end;
+
   xml := TXMLDocument.Create(nil);
   try
     xml.LoadFromStream(_Stream);

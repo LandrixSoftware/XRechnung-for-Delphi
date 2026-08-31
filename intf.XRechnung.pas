@@ -125,9 +125,12 @@ type
 
   TXRechnungValidationHelper = class(TObject)
   public
-    class function GetXRechnungVersion(const _Filename : String) : TXRechnungVersion; overload;
+    //_ProcessPdfFiles wirkt wie bei LoadFromFile/LoadFromStream: nur damit wird
+    //ein ZUGFeRD-/Factur-X-PDF erkannt und die Version der eingebetteten
+    //Rechnung bestimmt. Ohne den Schalter bleibt es bei der reinen XML-Sicht.
+    class function GetXRechnungVersion(const _Filename : String; _ProcessPdfFiles : Boolean = false) : TXRechnungVersion; overload;
     class function GetXRechnungVersion(_Xml : IXMLDocument) : TXRechnungVersion; overload;
-    class function GetXRechnungVersion(_Stream: TStream) : TXRechnungVersion; overload;
+    class function GetXRechnungVersion(_Stream: TStream; _ProcessPdfFiles : Boolean = false) : TXRechnungVersion; overload;
     class function GetXRechnungVersionFromString(const _XML: String) : TXRechnungVersion;
 
     //First thoughts on the topic
@@ -173,7 +176,7 @@ type
     class procedure SaveToFile(_Invoice : TInvoice; _Version : TXRechnungVersion; const _Filename : String);
     class procedure SaveToXMLStr(_Invoice : TInvoice; _Version : TXRechnungVersion; out _XML : String);
 
-    //LoadFromStream und LoadFromFile erkennen optinal ein PDF an seiner Kennung und holen
+    //LoadFromStream und LoadFromFile erkennen optional ein PDF an seiner Kennung und holen
     //die eingebettete Rechnung selbst heraus - ohne externe Werkzeuge. Fuer den
     //umgekehrten Fall (alle Anhaenge eines PDFs) siehe intf.XRechnungPdfExtract.
     class function  LoadFromStream(_Invoice : TInvoice; _Stream : TStream; out _Error : String {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}; _ProcessPdfFiles : Boolean = false) : Boolean;
@@ -505,7 +508,18 @@ begin
 
   xml := TXMLDocument.Create(nil);
   try
-    xml.LoadFromFile(_Filename);
+    //Ungueltiges XML darf kein Aufrufer-Absturz sein: der XML-Parser wirft
+    //(je nach Plattform EXMLReadError bzw. EOleException), das Ergebnis ist
+    //hier aber ein sauberes False mit Fehlertext.
+    try
+      xml.LoadFromFile(_Filename);
+    except
+      on E : Exception do
+      begin
+        _Error := 'Datei ist kein gueltiges XML: ' + E.Message;
+        exit;
+      end;
+    end;
     Result := TXRechnungInvoiceAdapter.LoadFromXMLDocument(_Invoice,xml,_Error{$IFDEF ZUGFeRD_Support},_AdditionalContent{$ENDIF});
   finally
     xml := nil;
@@ -536,7 +550,15 @@ begin
 
   xml := TXMLDocument.Create(nil);
   try
-    xml.LoadFromStream(_Stream);
+    try
+      xml.LoadFromStream(_Stream);
+    except
+      on E : Exception do
+      begin
+        _Error := 'Datenstrom ist kein gueltiges XML: ' + E.Message;
+        exit;
+      end;
+    end;
     Result := TXRechnungInvoiceAdapter.LoadFromXMLDocument(_Invoice,xml,_Error{$IFDEF ZUGFeRD_Support},_AdditionalContent{$ENDIF});
   finally
     xml := nil;
@@ -579,7 +601,16 @@ begin
     ms.Position := 0;
     xml := TXMLDocument.Create(nil);
     try
-      xml.LoadFromStream(ms);
+      try
+        xml.LoadFromStream(ms);
+      except
+        on E : Exception do
+        begin
+          _Error := 'Der eingebettete Anhang ' + _AttachmentName +
+                    ' ist kein gueltiges XML: ' + E.Message;
+          exit;
+        end;
+      end;
       Result := TXRechnungInvoiceAdapter.LoadFromXMLDocument(_Invoice,xml,_Error{$IFDEF ZUGFeRD_Support},_AdditionalContent{$ENDIF});
     finally
       xml := nil;
@@ -682,7 +713,15 @@ begin
 
   xml := TXMLDocument.Create(nil);
   try
-    xml.LoadFromXML(_XML);
+    try
+      xml.LoadFromXML(_XML);
+    except
+      on E : Exception do
+      begin
+        _Error := 'Der uebergebene Text ist kein gueltiges XML: ' + E.Message;
+        exit;
+      end;
+    end;
     Result := TXRechnungInvoiceAdapter.LoadFromXMLDocument(_Invoice,xml,_Error{$IFDEF ZUGFeRD_Support},_AdditionalContent{$ENDIF});
   finally
     xml := nil;
@@ -1866,7 +1905,7 @@ begin
 end;
 
 class function TXRechnungValidationHelper.GetXRechnungVersion(
-  const _Filename: String): TXRechnungVersion;
+  const _Filename: String; _ProcessPdfFiles : Boolean = false): TXRechnungVersion;
 var
   xml : IXMLDocument;
   fs : TFileStream;
@@ -1876,7 +1915,7 @@ begin
     exit;
 
   //ZUGFeRD-/Factur-X-PDF: Version der eingebetteten Rechnung bestimmen
-  if TXRechnungPdfExtractor.IsPdfFile(_Filename) then
+  if _ProcessPdfFiles and TXRechnungPdfExtractor.IsPdfFile(_Filename) then
   begin
     fs := TFileStream.Create(_Filename,fmOpenRead or fmShareDenyWrite);
     try
@@ -1894,7 +1933,12 @@ begin
 
   xml := TXMLDocument.Create(nil);
   try
-    xml.LoadFromFile(_Filename);
+    //Ungueltiges XML bedeutet hier schlicht: Version nicht bestimmbar.
+    try
+      xml.LoadFromFile(_Filename);
+    except
+      exit;
+    end;
     Result := TXRechnungValidationHelper.GetXRechnungVersion(xml);
   finally
     xml := nil;
@@ -1902,7 +1946,7 @@ begin
 end;
 
 class function TXRechnungValidationHelper.GetXRechnungVersion(
-  _Stream: TStream): TXRechnungVersion;
+  _Stream: TStream; _ProcessPdfFiles : Boolean = false): TXRechnungVersion;
 var
   xml : IXMLDocument;
   currentStreamPosition : Int64;
@@ -1913,7 +1957,7 @@ begin
   currentStreamPosition := _Stream.Position;
 
   //ZUGFeRD-/Factur-X-PDF: Version der eingebetteten Rechnung bestimmen
-  if TXRechnungPdfExtractor.IsPdfStream(_Stream) then
+  if _ProcessPdfFiles and TXRechnungPdfExtractor.IsPdfStream(_Stream) then
   begin
     if TryLoadXmlFromPdfStream(_Stream,xml) then
     try
@@ -1927,7 +1971,12 @@ begin
 
   xml := TXMLDocument.Create(nil);
   try
-    xml.LoadFromStream(_Stream);
+    try
+      xml.LoadFromStream(_Stream);
+    except
+      _Stream.Position := currentStreamPosition;
+      exit;
+    end;
     _Stream.Position := currentStreamPosition;
     Result := TXRechnungValidationHelper.GetXRechnungVersion(xml);
   finally
@@ -1945,7 +1994,11 @@ begin
     exit;
   xml := TXMLDocument.Create(nil);
   try
-    xml.LoadFromXML(_XML);
+    try
+      xml.LoadFromXML(_XML);
+    except
+      exit;
+    end;
     Result := TXRechnungValidationHelper.GetXRechnungVersion(xml);
   finally
     xml := nil;

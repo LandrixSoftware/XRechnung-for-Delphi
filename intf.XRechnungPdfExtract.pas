@@ -1541,6 +1541,8 @@ type
     FIdFirst : TBytes;
     FXrefSections : Integer;
     FReconstructed : Boolean;
+    // Nur waehrend eines hybriden /XRefStm gesetzt - siehe SetEntry.
+    FAllowFreeOverride : Boolean;
     // Standard-Security-Handler
     FEncrypted : Boolean;        // Datei fuehrt ein /Encrypt-Woerterbuch
     FCryptReady : Boolean;       // Schluessel steht, Ent-/Verschluesselung laeuft
@@ -1594,6 +1596,7 @@ begin
   FOwned := TList.Create;
   FXrefSections := 0;
   FReconstructed := False;
+  FAllowFreeOverride := False;
   FEncrypted := False;
   FCryptReady := False;
   FCryptDone := False;
@@ -1656,7 +1659,23 @@ procedure TPdfDocument.SetEntry(_Num : Integer; _Kind : TPdfXrefKind;
 begin
   if (_Num < 0) or (_Num > MaxPlausibleObjNum) then exit;
   EnsureSize(_Num);
-  if FXref[_Num].Known then exit;
+  if FXref[_Num].Known then
+  begin
+    // Der zuerst gesehene (neueste) Abschnitt gewinnt. Eine einzige Ausnahme:
+    // in einer hybriden Datei (ISO 32000-1, 7.5.8.4) fuehrt die klassische
+    // Tabelle desselben Updates jedes Objekt, das in einem Object Stream
+    // liegt, als FREI - den echten Eintrag liefert erst der ueber /XRefStm
+    // angehaengte Querverweisstrom. Ohne diese Ausnahme bliebe ein solches
+    // Objekt unauffindbar.
+    //
+    // Die Ausnahme gilt bewusst nur waehrend genau dieses /XRefStm und nur
+    // von "frei" auf "belegt": ein aelterer Abschnitt darf ein Objekt, das
+    // eine neuere Fassung freigegeben hat, NICHT wiederbeleben - sonst waere
+    // der Schutz gegen ueberschriebene Vorversionen aufgeweicht.
+    if not (FAllowFreeOverride and (FXref[_Num].Kind = xkFree) and
+            (_Kind <> xkFree)) then
+      exit;
+  end;
   FXref[_Num].Known := True;
   FXref[_Num].Kind := _Kind;
   FXref[_Num].Offset := _Ofs;
@@ -1908,7 +1927,16 @@ begin
               stmObj := nil;
             end;
             if (stmObj <> nil) and (stmObj.Kind = pokStream) then
-              ParseXrefStream(stmObj);
+            begin
+              // Nur hier darf ein Eintrag einen freien Platzhalter der eben
+              // gelesenen klassischen Tabelle ersetzen - siehe SetEntry.
+              FAllowFreeOverride := True;
+              try
+                ParseXrefStream(stmObj);
+              finally
+                FAllowFreeOverride := False;
+              end;
+            end;
           end;
         end;
       end

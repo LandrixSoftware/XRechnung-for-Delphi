@@ -61,7 +61,14 @@ eine zweite Fassung ersetzt. Nur die zweite ist laut xref-Kette gültig; die
 erste bleibt vollständig in der Datei stehen. Geprüft wird, dass der Extraktor
 die gültige Fassung liefert.
 
-**3. Selbsttest Verschlüsselung.** Fünf PDFs um fest hinterlegte Testvektoren,
+**3. Selbsttest hybride xref.** Eine hybride Datei nach ISO 32000-1, 7.5.8.4
+führt in der klassischen Tabelle jedes Objekt, das in einem Object Stream
+liegt, als **frei**; den echten Eintrag liefert erst der über `/XRefStm`
+angehängte Querverweisstrom. Geprüft wird beides: dass dieser Eintrag den
+freien Platzhalter ersetzen darf — und dass umgekehrt eine ältere Tabelle ein
+Objekt, das ein neueres Update freigegeben hat, **nicht** wiederbelebt.
+
+**4. Selbsttest Verschlüsselung.** Fünf PDFs um fest hinterlegte Testvektoren,
 die ein unabhängig geschriebener Erzeuger (Python mit `hashlib`) produziert
 hat: RC4 40 Bit (`/V 1 /R 2`), RC4 128 Bit (`/V 2 /R 3`, zusätzlich mit
 `FlateDecode`) und RC4 über einen benannten Crypt-Filter (`/V 4 /R 4 /CFM /V2`)
@@ -81,6 +88,11 @@ PASS: Parser findet in allen Faellen mindestens so viel wie der naive Scanner.
 --- Selbsttest: inkrementelles Update ---
   Parser liefert          : ZWEITE-GUELTIG  (richtig)
   Rohdaten-Scanner        : ERSTE-UEBERSCHRIEBEN  (tote Vorversion)
+  PASS
+
+--- Selbsttest: hybride xref (/XRefStm) ---
+  /XRefStm ersetzt freien Platzhalter : HYBRID-XREFSTM  (richtig)
+  Freigabe bleibt bestehen            : Anhang korrekt nicht gefunden
   PASS
 
 --- Selbsttest: verschluesselte PDFs (RC4) ---
@@ -180,6 +192,14 @@ externes Review (Codex) hat die folgenden Punkte aufgedeckt; sie sind behoben:
 - **`/DecodeParms` rechnet in `Int64`** und wird gegen die Streamlänge geprüft
   — `/Columns 200000000` forderte sonst zwei Zeilenpuffer à 200 MB an.
 - **Der `/XRefStm`-Offset wird geprüft**, bevor er als Lexerposition dient.
+- **Hybride Dateien werden vollständig aufgelöst.** Die Regel „der zuerst
+  gesehene Abschnitt gewinnt" hatte einen blinden Fleck: die klassische
+  Tabelle einer hybriden Datei führt Objekte aus Object Streams als *frei*,
+  und dieser Platzhalter blockierte den echten Eintrag aus dem `/XRefStm`
+  desselben Updates — solche Anhänge blieben unauffindbar. Die Ausnahme gilt
+  eng: nur während genau dieses `/XRefStm` und nur von „frei" auf „belegt",
+  damit ein älterer Abschnitt kein freigegebenes Objekt wiederbelebt.
+  (Aufgefallen beim Quervergleich mit XelPDF, siehe unten.)
 - **Der Index eines Typ-2-xref-Eintrags wird ausgewertet.** Stimmt er nicht mit
   der Position im Object-Stream-Header überein, wird das Objekt verworfen.
 
@@ -220,6 +240,31 @@ Zyklenschutz, läuft bei zyklischem `/Prev` also endlos.
 Übernehmenswert wäre umgekehrt sein Diagnosemodell: nummerierte Fehlercodes
 plus `DoWarning`/`DoProgress`-Callbacks. Für den hiesigen Zweck — ein XML
 herausholen — genügt der `TXRechnungPdfExtractInfo`-Record.
+
+## Und warum nicht XelPDF?
+
+[XelPDF](https://github.com/Xelitan/PDF-Viewer-exporter-in-pure-Free-Pascal-Lazarus-Delphi)
+ist ein PDF-**Viewer** und -Exporter in Pascal: Renderer, Fonts (CFF/TrueType),
+JPEG, CCITT, JBIG2, JPEG2000 — allein `PdfParser.pas` hat 209 KB. Anhänge kennt
+er nicht: `EmbeddedFile`, `Filespec` und `AFRelationship` kommen im gesamten
+Projekt kein einziges Mal vor. Für den hiesigen Zweck bliebe also derselbe
+Aufbau ohnehin selbst zu schreiben.
+
+Sein `PdfCrypt.pas` deckt dagegen genau den offenen Punkt ab — RC4, AESV2 und
+AESV3 samt SHA-2-Ableitung für `/R 6`, in rund 1000 Zeilen inklusive der
+SHA-Units. Übernehmen lässt sich das trotzdem nicht: XelPDF steht unter GPLv3
+mit kommerzieller Zweitlizenz, und XRechnung-for-Delphi wird selbst dual
+lizenziert (GPLv3 plus Landrix Software Commercial License). Fremder GPL-Code
+würde die kommerzielle Schiene unmöglich machen. Als *Referenz* beim
+Nachrechnen der Algorithmen ist die Unit dennoch brauchbar.
+
+Ein Detail hat der Quervergleich gebracht: XelPDF lässt in einer hybriden Datei
+den `/XRefStm` die freien Platzhalter der klassischen Tabelle ersetzen
+(`FXRefOverrideFree`). Genau das fehlte hier — siehe den letzten Punkt unter
+[Härtung](#härtung-gegen-manipulierte-eingaben). Bestätigt hat der Vergleich
+umgekehrt die Grundregel: auch dort gewinnt die zuerst gesehene Definition,
+und die `/Prev`-Kette hat einen Zyklenschutz (`FXRefVisited`) — anders als bei
+`fppdfparser`.
 
 ## Dateien
 

@@ -37,6 +37,8 @@ begin
       ok := False;
     if not RunEncryptionSelfTest then
       ok := False;
+    if not RunHybridXrefSelfTest then
+      ok := False;
     if ok then
       Halt(0)
     else

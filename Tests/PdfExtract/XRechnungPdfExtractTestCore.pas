@@ -57,6 +57,14 @@ function RunIncrementalUpdateSelfTest : Boolean;
 // Erkennungstest: XML mit %PDF- im Fliesstext darf nicht als PDF gelten.
 function RunPdfDetectionSelfTest : Boolean;
 
+// Selbsttest fuer hybride Dateien (ISO 32000-1, 7.5.8.4): die klassische
+// xref-Tabelle fuehrt ein Objekt, das in einem Object Stream liegt, als frei,
+// der ueber /XRefStm angehaengte Querverweisstrom liefert den echten Eintrag.
+// Geprueft wird beides: dass dieser Eintrag den freien Platzhalter ersetzt -
+// und dass ein AELTERER Abschnitt eine spaetere Freigabe nicht rueckgaengig
+// macht.
+function RunHybridXrefSelfTest : Boolean;
+
 // Selbsttest ohne Fremddateien fuer den Standard-Security-Handler. Baut fuenf
 // PDFs um fest hinterlegte, mit einem unabhaengigen Werkzeug erzeugte
 // Testvektoren: RC4 40 Bit, RC4 128 Bit, RC4 ueber Crypt-Filter (die drei
@@ -841,6 +849,260 @@ begin
   GOnlyParserList.Free;
   GOnlyBruteList.Free;
   GDiffList.Free;
+end;
+
+//==============================================================================
+// Selbsttest: hybride xref (klassische Tabelle + /XRefStm)
+//==============================================================================
+
+// Baut ein hybrides PDF: der Filespec (Objekt 4) liegt in einem Object Stream,
+// die klassische Tabelle fuehrt ihn deshalb als FREI, und der ueber /XRefStm
+// angehaengte Querverweisstrom traegt den echten Typ-2-Eintrag nach. Wer den
+// freien Platzhalter als endgueltig nimmt, findet den Anhang nicht.
+// Object Stream und Querverweisstrom bleiben ungefiltert - das ist zulaessig
+// und macht den Testfall nachvollziehbar.
+function BuildHybridXrefPdf(const _Xml : AnsiString) : TBytes;
+var
+  stm : TMemoryStream;
+  ofs : array[1..7] of Integer;
+  classicOfs, first, i : Integer;
+  objStmBody, hdr : AnsiString;
+
+  procedure Put(const _S : AnsiString);
+  begin
+    if _S <> '' then
+      stm.WriteBuffer(_S[1], Length(_S));
+  end;
+
+  function Pos10(_V : Integer) : AnsiString;
+  begin
+    Result := AnsiString(Format('%.10d', [_V]));
+  end;
+
+  // Ein Eintrag des Querverweisstroms im Format /W [1 4 2], Felder in
+  // Big-Endian-Reihenfolge.
+  procedure PutRow(_Typ, _F2, _F3 : Integer);
+  begin
+    Put(AnsiChar(Byte(_Typ)));
+    Put(AnsiChar(Byte((_F2 shr 24) and $FF)) + AnsiChar(Byte((_F2 shr 16) and $FF))
+      + AnsiChar(Byte((_F2 shr 8) and $FF)) + AnsiChar(Byte(_F2 and $FF)));
+    Put(AnsiChar(Byte((_F3 shr 8) and $FF)) + AnsiChar(Byte(_F3 and $FF)));
+  end;
+
+begin
+  hdr := '4 0 ';
+  objStmBody := hdr + '<< /Type /Filespec /F (factur-x.xml) /UF (factur-x.xml) '
+    + '/EF << /F 5 0 R >> /AFRelationship /Alternative >>';
+  first := Length(hdr);
+
+  stm := TMemoryStream.Create;
+  try
+    Put('%PDF-1.6'#10'%'#$E2#$E3#$CF#$D3#10);
+
+    ofs[1] := stm.Position;
+    Put('1 0 obj'#10'<< /Type /Catalog /Pages 2 0 R /Names << /EmbeddedFiles '
+      + '<< /Names [ (factur-x.xml) 4 0 R ] >> >> /AF [ 4 0 R ] >>'#10'endobj'#10);
+
+    ofs[2] := stm.Position;
+    Put('2 0 obj'#10'<< /Type /Pages /Kids [ 3 0 R ] /Count 1 >>'#10'endobj'#10);
+
+    ofs[3] := stm.Position;
+    Put('3 0 obj'#10'<< /Type /Page /Parent 2 0 R /MediaBox [ 0 0 595 842 ] >>'#10'endobj'#10);
+
+    // Objekt 4 steht nicht hier, sondern im Object Stream 6.
+    ofs[4] := 0;
+
+    ofs[5] := stm.Position;
+    Put(AnsiString(Format('5 0 obj'#10'<< /Type /EmbeddedFile /Subtype /text#2Fxml'
+      + ' /Length %d >>'#10'stream'#10, [Length(_Xml)])));
+    Put(_Xml);
+    Put(#10'endstream'#10'endobj'#10);
+
+    ofs[6] := stm.Position;
+    Put(AnsiString(Format('6 0 obj'#10'<< /Type /ObjStm /N 1 /First %d /Length %d >>'#10
+      + 'stream'#10, [first, Length(objStmBody)])));
+    Put(objStmBody);
+    Put(#10'endstream'#10'endobj'#10);
+
+    // Querverweisstrom: acht Eintraege, Objekt 4 als Typ 2 im Object Stream 6.
+    ofs[7] := stm.Position;
+    Put(AnsiString(Format('7 0 obj'#10'<< /Type /XRef /Size 8 /W [ 1 4 2 ] '
+      + '/Root 1 0 R /Length %d >>'#10'stream'#10, [8 * 7])));
+    PutRow(0, 0, 65535);
+    PutRow(1, ofs[1], 0);
+    PutRow(1, ofs[2], 0);
+    PutRow(1, ofs[3], 0);
+    PutRow(2, 6, 0);
+    PutRow(1, ofs[5], 0);
+    PutRow(1, ofs[6], 0);
+    PutRow(1, ofs[7], 0);
+    Put(#10'endstream'#10'endobj'#10);
+
+    // Klassische Tabelle - Objekt 4 als frei, wie es die Spezifikation
+    // fuer den kompatiblen Teil einer hybriden Datei vorsieht.
+    classicOfs := stm.Position;
+    Put('xref'#10'0 8'#10);
+    Put('0000000004 65535 f '#10);
+    for i := 1 to 3 do
+      Put(Pos10(ofs[i]) + ' 00000 n '#10);
+    Put('0000000000 00000 f '#10);
+    for i := 5 to 7 do
+      Put(Pos10(ofs[i]) + ' 00000 n '#10);
+    Put(AnsiString(Format('trailer'#10'<< /Size 8 /Root 1 0 R /XRefStm %d >>'#10
+      + 'startxref'#10'%d'#10'%%%%EOF'#10, [ofs[7], classicOfs])));
+
+    SetLength(Result, stm.Size);
+    if stm.Size > 0 then
+      Move(stm.Memory^, Result[0], stm.Size);
+  finally
+    stm.Free;
+  end;
+end;
+
+// Gegenprobe zur Ausnahme oben: ein inkrementelles Update gibt Objekt 4 frei.
+// Die AELTERE Tabelle definiert es weiterhin - sie darf es nicht wiederbeleben,
+// sonst waere der Schutz gegen ueberschriebene Vorversionen aufgeweicht.
+function BuildFreedObjectPdf(const _Xml : AnsiString) : TBytes;
+var
+  stm : TMemoryStream;
+  ofs : array[1..5] of Integer;
+  xref1, xref2, i : Integer;
+
+  procedure Put(const _S : AnsiString);
+  begin
+    if _S <> '' then
+      stm.WriteBuffer(_S[1], Length(_S));
+  end;
+
+  function Pos10(_V : Integer) : AnsiString;
+  begin
+    Result := AnsiString(Format('%.10d', [_V]));
+  end;
+
+begin
+  stm := TMemoryStream.Create;
+  try
+    Put('%PDF-1.6'#10'%'#$E2#$E3#$CF#$D3#10);
+
+    ofs[1] := stm.Position;
+    Put('1 0 obj'#10'<< /Type /Catalog /Pages 2 0 R /Names << /EmbeddedFiles '
+      + '<< /Names [ (factur-x.xml) 4 0 R ] >> >> /AF [ 4 0 R ] >>'#10'endobj'#10);
+
+    ofs[2] := stm.Position;
+    Put('2 0 obj'#10'<< /Type /Pages /Kids [ 3 0 R ] /Count 1 >>'#10'endobj'#10);
+
+    ofs[3] := stm.Position;
+    Put('3 0 obj'#10'<< /Type /Page /Parent 2 0 R /MediaBox [ 0 0 595 842 ] >>'#10'endobj'#10);
+
+    ofs[4] := stm.Position;
+    Put('4 0 obj'#10'<< /Type /Filespec /F (factur-x.xml) /UF (factur-x.xml) '
+      + '/EF << /F 5 0 R >> /AFRelationship /Alternative >>'#10'endobj'#10);
+
+    ofs[5] := stm.Position;
+    Put(AnsiString(Format('5 0 obj'#10'<< /Type /EmbeddedFile /Subtype /text#2Fxml'
+      + ' /Length %d >>'#10'stream'#10, [Length(_Xml)])));
+    Put(_Xml);
+    Put(#10'endstream'#10'endobj'#10);
+
+    xref1 := stm.Position;
+    Put('xref'#10'0 6'#10);
+    Put('0000000000 65535 f '#10);
+    for i := 1 to 5 do
+      Put(Pos10(ofs[i]) + ' 00000 n '#10);
+    Put(AnsiString(Format('trailer'#10'<< /Size 6 /Root 1 0 R >>'#10
+      + 'startxref'#10'%d'#10'%%%%EOF'#10, [xref1])));
+
+    // Update: Objekt 4 wird freigegeben.
+    xref2 := stm.Position;
+    Put('xref'#10'4 1'#10);
+    Put('0000000000 00001 f '#10);
+    Put(AnsiString(Format('trailer'#10'<< /Size 6 /Root 1 0 R /Prev %d >>'#10
+      + 'startxref'#10'%d'#10'%%%%EOF'#10, [xref1, xref2])));
+
+    SetLength(Result, stm.Size);
+    if stm.Size > 0 then
+      Move(stm.Memory^, Result[0], stm.Size);
+  finally
+    stm.Free;
+  end;
+end;
+
+function RunHybridXrefSelfTest : Boolean;
+const
+  XML_H : AnsiString =
+    '<?xml version="1.0" encoding="UTF-8"?>'#10 +
+    '<rsm:CrossIndustryInvoice xmlns:rsm="urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100">' +
+    '<Fassung>HYBRID-XREFSTM</Fassung></rsm:CrossIndustryInvoice>';
+  XML_F : AnsiString =
+    '<?xml version="1.0" encoding="UTF-8"?>'#10 +
+    '<rsm:CrossIndustryInvoice xmlns:rsm="urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100">' +
+    '<Fassung>FREIGEGEBEN</Fassung></rsm:CrossIndustryInvoice>';
+var
+  ok : Boolean;
+
+  function ExtractFrom(const _Pdf : TBytes; out _Got : AnsiString;
+    out _Info : TXRechnungPdfExtractInfo) : Boolean;
+  var
+    ms : TMemoryStream;
+    xml : TBytes;
+    attName : String;
+    i : Integer;
+  begin
+    _Got := '';
+    ms := TMemoryStream.Create;
+    try
+      if Length(_Pdf) > 0 then
+        ms.WriteBuffer(_Pdf[0], Length(_Pdf));
+      ms.Position := 0;
+      SetLength(xml, 0);
+      attName := '';
+      Result := TXRechnungPdfExtractor.ExtractInvoiceFromStream(ms, xml, attName, _Info);
+    finally
+      ms.Free;
+    end;
+    for i := 0 to Length(xml) - 1 do
+      _Got := _Got + AnsiChar(xml[i]);
+  end;
+
+var
+  got : AnsiString;
+  info : TXRechnungPdfExtractInfo;
+begin
+  Writeln;
+  Writeln('--- Selbsttest: hybride xref (/XRefStm) ---');
+  ok := True;
+
+  // 1. Der Querverweisstrom muss den freien Platzhalter ersetzen duerfen.
+  if not ExtractFrom(BuildHybridXrefPdf(XML_H), got, info) then
+  begin
+    Writeln('  /XRefStm ersetzt freien Platzhalter : FEHLER - nicht gelesen (',
+            info.Error, ')');
+    ok := False;
+  end
+  else if System.Pos(AnsiString('HYBRID-XREFSTM'), got) = 0 then
+  begin
+    Writeln('  /XRefStm ersetzt freien Platzhalter : FEHLER - falscher Inhalt');
+    ok := False;
+  end
+  else
+    Writeln('  /XRefStm ersetzt freien Platzhalter : HYBRID-XREFSTM  (richtig)');
+
+  // 2. Umgekehrt darf eine aeltere Tabelle ein freigegebenes Objekt nicht
+  //    zurueckholen.
+  if ExtractFrom(BuildFreedObjectPdf(XML_F), got, info) then
+  begin
+    Writeln('  Freigabe bleibt bestehen            : FEHLER - Anhang trotz ',
+            'Freigabe gelesen');
+    ok := False;
+  end
+  else
+    Writeln('  Freigabe bleibt bestehen            : Anhang korrekt nicht gefunden');
+
+  Result := ok;
+  if Result then
+    Writeln('  PASS')
+  else
+    Writeln('  FAIL');
 end;
 
 //==============================================================================

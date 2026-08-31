@@ -36,6 +36,7 @@ function Resolve-FpcExecutable {
   if (-not [string]::IsNullOrWhiteSpace($RequestedFpc)) { $candidates += $RequestedFpc }
   $candidates += @(
     'D:\Bin\fpc\fpcupdeluxe\fpc\bin\x86_64-win64\fpc.exe',
+    'D:\Bin\fpc\fpcupdeluxe\fpc\bin\aarch64-win64\fpc.exe',
     'D:\Bin\fpc\lazarus\fpc\3.2.2\bin\x86_64-win64\fpc.exe'
   )
   foreach ($c in $candidates) {
@@ -45,6 +46,14 @@ function Resolve-FpcExecutable {
 }
 
 $Fpc = Resolve-FpcExecutable $Fpc
+
+# Zielplattform nur erzwingen, wenn der gefundene Compiler ein x86_64-Compiler
+# ist. Auf einer aarch64-Installation gibt es ppcrossx64 in der Regel nicht,
+# und -Px86_64 laesst FPC dann mit "Failed to execute" abbrechen - dort wird
+# nativ gebaut.
+$TargetArgs = @()
+if ($Fpc -match 'x86_64-win64') { $TargetArgs = @('-Twin64','-Px86_64') }
+$FpcArch = if ($Fpc -match 'aarch64-win64') { 'aarch64-win64' } else { 'x86_64-win64' }
 
 # Repo-Root: Tests\FreePascal\Scripts -> Tests\FreePascal -> Tests -> Repo
 $Root   = (Resolve-Path "$PSScriptRoot\..\..\..").Path
@@ -61,10 +70,10 @@ New-Item -ItemType Directory -Force -Path $Out | Out-Null
 # (XRechnungXmlCompare).
 $fu = @($Root, $TestSrc) -join ';'
 
-Write-Host ">>> XRechnungRoundtripTest (x86_64-win64)"
+Write-Host ">>> XRechnungRoundtripTest ($FpcArch)"
 
 # --- Build (Compiler-Output gefiltert; voller Log in $BuildLog) ---
-$build = & $Fpc -MDelphiUnicode -B -Twin64 -Px86_64 `
+$build = & $Fpc -MDelphiUnicode -B @TargetArgs `
   "-Fu$fu" "-FU$Out" "-FE$Out" "-o$Exe" $Lpr 2>&1
 $buildRc = $LASTEXITCODE
 $build | Set-Content -Path $BuildLog -Encoding utf8

@@ -57,6 +57,13 @@ function RunIncrementalUpdateSelfTest : Boolean;
 // Erkennungstest: XML mit %PDF- im Fliesstext darf nicht als PDF gelten.
 function RunPdfDetectionSelfTest : Boolean;
 
+// Selbsttest ohne Fremddateien fuer den Standard-Security-Handler. Baut fuenf
+// PDFs um fest hinterlegte, mit einem unabhaengigen Werkzeug erzeugte
+// Testvektoren: RC4 40 Bit, RC4 128 Bit, RC4 ueber Crypt-Filter (die drei
+// muessen gelesen werden), dazu ein echtes Benutzerpasswort und AES (die beiden
+// muessen abgelehnt werden).
+function RunEncryptionSelfTest : Boolean;
+
 implementation
 
 {$IFNDEF FPC}
@@ -834,6 +841,321 @@ begin
   GOnlyParserList.Free;
   GOnlyBruteList.Free;
   GDiffList.Free;
+end;
+
+//==============================================================================
+// Selbsttest: Standard-Security-Handler (RC4)
+//
+// Die Testvektoren unten stammen aus einem unabhaengig geschriebenen Erzeuger
+// (Python mit hashlib) und sind hier fest hinterlegt: das /Encrypt-Woerterbuch
+// mit /O und /U, die verschluesselten Dateinamen (in Objekt 1 und 4) und die
+// verschluesselte Nutzlast (Objekt 5). Das PDF drumherum baut der Test selbst.
+//
+// Damit prueft der Test genau das, was der Extraktor nachrechnen muss:
+// Schluesselableitung aus dem leeren Benutzerpasswort (Algorithmus 2), die
+// Pruefung gegen /U (Algorithmus 4 bzw. 5), den Objektschluessel
+// (Algorithmus 1) und die Reihenfolge "erst entschluesseln, dann Filterkette".
+//==============================================================================
+
+// Wandelt eine Hexfolge in Bytes. Ungerade Laenge oder Fremdzeichen liefern
+// ein leeres Ergebnis - im Test faellt das sofort als FAIL auf.
+function HexToBytes(const _Hex : AnsiString) : TBytes;
+var
+  i, n, hi, lo : Integer;
+
+  function Nibble(_C : AnsiChar) : Integer;
+  begin
+    case _C of
+      '0'..'9' : Result := Ord(_C) - Ord('0');
+      'A'..'F' : Result := Ord(_C) - Ord('A') + 10;
+      'a'..'f' : Result := Ord(_C) - Ord('a') + 10;
+    else
+      Result := -1;
+    end;
+  end;
+
+begin
+  SetLength(Result, 0);
+  n := Length(_Hex);
+  if (n = 0) or ((n mod 2) <> 0) then exit;
+  SetLength(Result, n div 2);
+  for i := 0 to (n div 2) - 1 do
+  begin
+    hi := Nibble(_Hex[i * 2 + 1]);
+    lo := Nibble(_Hex[i * 2 + 2]);
+    if (hi < 0) or (lo < 0) then
+    begin
+      SetLength(Result, 0);
+      exit;
+    end;
+    Result[i] := Byte(hi shl 4) or Byte(lo);
+  end;
+end;
+
+// Baut ein verschluesseltes Mini-PDF um die vorgegebenen Bausteine. Die
+// Objektnummern sind fest, weil sie in den Objektschluessel eingehen: der
+// Namensbaum steht in 1, der Filespec in 4, der Anhangsstrom in 5, das
+// /Encrypt-Woerterbuch in 6.
+function BuildEncryptedPdf(const _EncDict, _NameHex1, _NameHex4,
+  _DataHex : AnsiString; _Flate : Boolean) : TBytes;
+var
+  stm : TMemoryStream;
+  ofs : array[1..6] of Integer;
+  xref, i : Integer;
+  data : TBytes;
+  filt : AnsiString;
+
+  procedure Put(const _S : AnsiString);
+  begin
+    if _S <> '' then
+      stm.WriteBuffer(_S[1], Length(_S));
+  end;
+
+  function Pos10(_V : Integer) : AnsiString;
+  begin
+    Result := AnsiString(Format('%.10d', [_V]));
+  end;
+
+begin
+  data := HexToBytes(_DataHex);
+  if _Flate then
+    filt := ' /Filter /FlateDecode'
+  else
+    filt := '';
+
+  stm := TMemoryStream.Create;
+  try
+    Put('%PDF-1.6'#10'%'#$E2#$E3#$CF#$D3#10);
+
+    ofs[1] := stm.Position;
+    Put('1 0 obj'#10'<< /Type /Catalog /Pages 2 0 R /Names << /EmbeddedFiles '
+      + '<< /Names [ <' + _NameHex1 + '> 4 0 R ] >> >> /AF [ 4 0 R ] >>'#10'endobj'#10);
+
+    ofs[2] := stm.Position;
+    Put('2 0 obj'#10'<< /Type /Pages /Kids [ 3 0 R ] /Count 1 >>'#10'endobj'#10);
+
+    ofs[3] := stm.Position;
+    Put('3 0 obj'#10'<< /Type /Page /Parent 2 0 R /MediaBox [ 0 0 595 842 ] >>'#10'endobj'#10);
+
+    ofs[4] := stm.Position;
+    Put('4 0 obj'#10'<< /Type /Filespec /F <' + _NameHex4 + '> /UF <' + _NameHex4
+      + '> /EF << /F 5 0 R >> /AFRelationship /Alternative >>'#10'endobj'#10);
+
+    ofs[5] := stm.Position;
+    Put(AnsiString(Format('5 0 obj'#10'<< /Type /EmbeddedFile /Subtype /text#2Fxml%s'
+      + ' /Length %d >>'#10'stream'#10, [filt, Length(data)])));
+    if Length(data) > 0 then
+      stm.WriteBuffer(data[0], Length(data));
+    Put(#10'endstream'#10'endobj'#10);
+
+    ofs[6] := stm.Position;
+    Put('6 0 obj'#10 + _EncDict + #10'endobj'#10);
+
+    xref := stm.Position;
+    Put('xref'#10'0 7'#10);
+    Put('0000000000 65535 f '#10);
+    for i := 1 to 6 do
+      Put(Pos10(ofs[i]) + ' 00000 n '#10);
+    // /ID[0] geht in die Schluesselableitung ein und muss zu den Testvektoren
+    // passen: die Bytes 00 01 .. 0F.
+    Put(AnsiString(Format('trailer'#10'<< /Size 7 /Root 1 0 R /Encrypt 6 0 R '
+      + '/ID [ <000102030405060708090A0B0C0D0E0F> <000102030405060708090A0B0C0D0E0F> ] >>'#10
+      + 'startxref'#10'%d'#10'%%%%EOF'#10, [xref])));
+
+    SetLength(Result, stm.Size);
+    if stm.Size > 0 then
+      Move(stm.Memory^, Result[0], stm.Size);
+  finally
+    stm.Free;
+  end;
+end;
+
+function RunEncryptionSelfTest : Boolean;
+const
+  // RC4 40 Bit, /V 1 /R 2, unkomprimiert
+  ENC_A_DICT : AnsiString =
+    '<< /Filter /Standard /V 1 /R 2 /Length 40 /O <4B5950AB07FD'
+    + '5763B547C26FD9BF1A066D734250F0A7090069E275C57074F240> /U <'
+    + 'FAA956718B8B2683A2F2786FD4535A2E7179E5A3AC3BFDA7BC389558DA'
+    + '0AD1DA> /P -1036 >>';
+  ENC_A_N1 : AnsiString = '7B61F7B8A2F5AEE1D496D15E';
+  ENC_A_N4 : AnsiString = '72712126DC3A2C4111351618';
+  ENC_A_DATA : AnsiString =
+    '87F03695BE45BF7FB5A6D317AD6D6D25ED4600028785421DBB6752BC5E'
+    + 'D3930102EA44C42DBEA794F46A8C8F4082D7FD8EBE9485559D9E45C671'
+    + 'B302DF6AAB06CAACAC03B7A25D5474E9DE52835AC31DBE3F7165E8F97B'
+    + '685B3C6B006B76D1E4EA796D57D9E6AF278998B2B6EE8876235DA407BC'
+    + 'CFAB30C79ED5BA6C70D6E01549A249666C80469B88391F285FDC12475C'
+    + '2A4E20E7547870676DC919BBD8C0F8D0D720378F721B3B0AE8E15B7952'
+    + 'F55A9D9ECE8E75E11A54CECAD6EF2742800EC57D';
+
+  // RC4 128 Bit, /V 2 /R 3, zusaetzlich FlateDecode
+  ENC_B_DICT : AnsiString =
+    '<< /Filter /Standard /V 2 /R 3 /Length 128 /O <40BCFC88425'
+    + '729C0579B7774CD18E51203FD6E4CD875E4231633E376CF3BC3C1> /U '
+    + '<20C59A604A9A936AE0D7CA31F0FC132D0000000000000000000000000'
+    + '0000000> /P -1036 >>';
+  ENC_B_N1 : AnsiString = '1D2CF7E53C9C488CFA03C09F';
+  ENC_B_N4 : AnsiString = 'DA61693108C4CC52511DF04C';
+  ENC_B_DATA : AnsiString =
+    'DE6BA18D37778CD425CED7CF631D6040C3F685CC87AB4E237645BE35EE'
+    + '5CF7AB7BE718847A2B1D0136CEC20AD3A9AA8BCDB19CE519B976698F9D'
+    + '3B5EA72063667D620D8DC7CD62DE5E464F07DDE667D0E25754A6731E13'
+    + 'AADB94082800284C579C7E1BB0F63A85E9012D9959D841594762AB2C57'
+    + 'C43C07B2FA8CFDAAB9BF3381A28AE1093AC61BE4A2875AD1287E8D15D0';
+
+  // RC4 ueber benannten Crypt-Filter, /V 4 /R 4 /CFM /V2, mit FlateDecode
+  ENC_C_DICT : AnsiString =
+    '<< /Filter /Standard /V 4 /R 4 /Length 128 /CF << /StdCF <'
+    + '< /CFM /V2 /Length 16 >> >> /StmF /StdCF /StrF /StdCF /O <'
+    + '40BCFC88425729C0579B7774CD18E51203FD6E4CD875E4231633E376CF'
+    + '3BC3C1> /U <20C59A604A9A936AE0D7CA31F0FC132D00000000000000'
+    + '000000000000000000> /P -1036 >>';
+  ENC_C_N1 : AnsiString = '1D2CF7E53C9C488CFA03C09F';
+  ENC_C_N4 : AnsiString = 'DA61693108C4CC52511DF04C';
+  ENC_C_DATA : AnsiString =
+    'DE6BA18D37778CD425CED7CF631D98BF659F149D0408EC3CEF3829299B'
+    + '1121C9CA22C73F288062D929D94DFB946B50087982227571C0742CF01F'
+    + '98733DA9B884F56662F480A3317162AEEC37F5DE0FF89271087EF9AB8E'
+    + '276D9FC23871A1DD9EB2880B774A55FEEC9A1800DF3BF1FF703612DA8C'
+    + '5E37428C856DB2BD71E13727D64B71E3C714957B575E1E349ACC130D64'
+    + '4AB8AE344D';
+
+  // Echtes Benutzerpasswort ("geheim") - muss abgelehnt werden
+  ENC_D_DICT : AnsiString =
+    '<< /Filter /Standard /V 2 /R 3 /Length 128 /O <0F66DAB3654'
+    + 'F8B3E7DC57757B8A3801A638591000915F48D39899AE095E885B7> /U '
+    + '<473ECB70C3593EF2E217BEF3F18BD7620000000000000000000000000'
+    + '0000000> /P -1036 >>';
+  ENC_D_N1 : AnsiString = '8669F6F85AADFE700070761F';
+  ENC_D_N4 : AnsiString = '0C43DCC1892BF8ECAC89530C';
+  ENC_D_DATA : AnsiString =
+    '15B254921E7D6EAA71B9A712F9886F1DD24FD5D4FAC1B2794D14A95FA3'
+    + 'BA326144755370A5969B2E141AE1861F189EED690DFA85FC27754F86B7'
+    + '40315A53CD233E86588750F4B4979E8F4A602429200EECF7902A722447'
+    + '23AE58B03C32BE42460ADBC5D6873EE34EFA1B507C0829EBD70350670D'
+    + '022B93E2A0D5D47B3768EAEB050BB335F44F419C4CE5C19980F4A357CB'
+    + 'AD0102F972FE95F0E5A0D889E92C2B786D726F5E33BCF5F4AA2A11B0D3'
+    + '30E117BB65973B96BDEB70BC7104D63FA1F528FD9A14';
+
+  // AES (/CFM /AESV2) - muss als nicht unterstuetzt gemeldet werden
+  ENC_E_DICT : AnsiString =
+    '<< /Filter /Standard /V 4 /R 4 /Length 128 /CF << /StdCF <'
+    + '< /CFM /AESV2 /Length 16 >> >> /StmF /StdCF /StrF /StdCF /'
+    + 'O <40BCFC88425729C0579B7774CD18E51203FD6E4CD875E4231633E37'
+    + '6CF3BC3C1> /U <20C59A604A9A936AE0D7CA31F0FC132D00000000000'
+    + '000000000000000000000> /P -1036 >>';
+  ENC_E_N1 : AnsiString = '1D2CF7E53C9C488CFA03C09F';
+  ENC_E_N4 : AnsiString = 'DA61693108C4CC52511DF04C';
+  ENC_E_DATA : AnsiString =
+    '9AC8AC6EEA5D798143BD49DE88440DA43F87B9A566CFAF27A333C0C087'
+    + '7A51FDD2EF4259FB61FFEB86F0982C3721E6966BE67A56E890B6FCB080'
+    + '54753A622E5961FC31970B897FE9314AD2E1943526767E0C8F4D4B6CDA'
+    + 'EC8F292657D066A964D64068712250F07147346C10C985D550D8464E4C'
+    + '2C3371E3D5190B5379F90A2E93D9FBF766A254712A467B0F7E139E25A2'
+    + '1AC7AF37D3CD998D75CD7AEB08EF68CB12D3456CC8D93252F49157E81A'
+    + '663E825FAF87D1C14430C5EA2D986B81D0DD475F6904';
+
+var
+  ok : Boolean;
+
+  // Baut den Fall, laesst ihn extrahieren und prueft das Ergebnis.
+  // _ExpectMarker <> '' : muss gelesen werden und diesen Text enthalten.
+  // _ExpectMarker = ''  : muss scheitern, und die Meldung muss _ExpectErr
+  //                       enthalten.
+  procedure Check(const _Title : String;
+    const _Dict, _N1, _N4, _Data : AnsiString; _Flate : Boolean;
+    const _ExpectMarker : AnsiString; const _ExpectErr : String);
+  var
+    pdf, xml : TBytes;
+    ms : TMemoryStream;
+    info : TXRechnungPdfExtractInfo;
+    attName : String;
+    got : AnsiString;
+    i : Integer;
+    good : Boolean;
+  begin
+    pdf := BuildEncryptedPdf(_Dict, _N1, _N4, _Data, _Flate);
+    ms := TMemoryStream.Create;
+    try
+      if Length(pdf) > 0 then
+        ms.WriteBuffer(pdf[0], Length(pdf));
+      ms.Position := 0;
+      SetLength(xml, 0);
+      attName := '';
+      good := TXRechnungPdfExtractor.ExtractInvoiceFromStream(ms, xml, attName, info);
+    finally
+      ms.Free;
+    end;
+
+    got := '';
+    for i := 0 to Length(xml) - 1 do
+      got := got + AnsiChar(xml[i]);
+
+    if _ExpectMarker <> '' then
+    begin
+      if not good then
+      begin
+        Writeln('  ', _Title, ': FEHLER - nicht gelesen (', info.Error, ')');
+        ok := False;
+      end
+      else if System.Pos(_ExpectMarker, got) = 0 then
+      begin
+        Writeln('  ', _Title, ': FEHLER - falscher Inhalt');
+        ok := False;
+      end
+      else if attName <> 'factur-x.xml' then
+      begin
+        Writeln('  ', _Title, ': FEHLER - Anhangsname "', attName,
+                '" statt factur-x.xml (String nicht entschluesselt?)');
+        ok := False;
+      end
+      else if not info.Encrypted then
+      begin
+        Writeln('  ', _Title, ': FEHLER - Datei nicht als verschluesselt gemeldet');
+        ok := False;
+      end
+      else
+        Writeln('  ', _Title, ': ', String(_ExpectMarker), '  (richtig)');
+    end
+    else
+    begin
+      if good then
+      begin
+        Writeln('  ', _Title, ': FEHLER - haette abgelehnt werden muessen');
+        ok := False;
+      end
+      else if System.Pos(_ExpectErr, info.Error) = 0 then
+      begin
+        Writeln('  ', _Title, ': FEHLER - unerwartete Meldung: ', info.Error);
+        ok := False;
+      end
+      else
+        Writeln('  ', _Title, ': abgelehnt - ', info.Error);
+    end;
+  end;
+
+begin
+  Writeln;
+  Writeln('--- Selbsttest: verschluesselte PDFs (RC4) ---');
+  ok := True;
+
+  Check('RC4 40 Bit  (V1/R2)  ', ENC_A_DICT, ENC_A_N1, ENC_A_N4, ENC_A_DATA,
+        False, 'RC4-40-BIT', '');
+  Check('RC4 128 Bit (V2/R3)  ', ENC_B_DICT, ENC_B_N1, ENC_B_N4, ENC_B_DATA,
+        True, 'RC4-128-BIT', '');
+  Check('RC4 Cryptfilter (V4) ', ENC_C_DICT, ENC_C_N1, ENC_C_N4, ENC_C_DATA,
+        True, 'RC4-CRYPTFILTER', '');
+  Check('Benutzerpasswort     ', ENC_D_DICT, ENC_D_N1, ENC_D_N4, ENC_D_DATA,
+        False, '', 'Benutzerpasswort');
+  Check('AES (AESV2)          ', ENC_E_DICT, ENC_E_N1, ENC_E_N4, ENC_E_DATA,
+        False, '', 'AES');
+
+  Result := ok;
+  if Result then
+    Writeln('  PASS')
+  else
+    Writeln('  FAIL');
 end;
 
 function RunPdfExtractTest(const _Root : String) : Boolean;

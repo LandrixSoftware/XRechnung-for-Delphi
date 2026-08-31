@@ -44,7 +44,8 @@ end;
 `info.UsedReconstruction` meldet, dass die xref-Kette unbrauchbar war und die
 Objekttabelle per Scan rekonstruiert wurde — dann ist das Ergebnis nicht mehr
 gegen überschriebene Vorversionen abgesichert. `info.Encrypted` meldet ein
-verschlüsseltes PDF (PDF/A-3 verbietet das; es wird abgelehnt, nicht geraten).
+verschlüsseltes PDF — auch dann, wenn es erfolgreich gelesen wurde
+(siehe [Verschlüsselte PDFs](#verschlüsselte-pdfs)).
 
 ## Was geprüft wird
 
@@ -60,6 +61,14 @@ eine zweite Fassung ersetzt. Nur die zweite ist laut xref-Kette gültig; die
 erste bleibt vollständig in der Datei stehen. Geprüft wird, dass der Extraktor
 die gültige Fassung liefert.
 
+**3. Selbsttest Verschlüsselung.** Fünf PDFs um fest hinterlegte Testvektoren,
+die ein unabhängig geschriebener Erzeuger (Python mit `hashlib`) produziert
+hat: RC4 40 Bit (`/V 1 /R 2`), RC4 128 Bit (`/V 2 /R 3`, zusätzlich mit
+`FlateDecode`) und RC4 über einen benannten Crypt-Filter (`/V 4 /R 4 /CFM /V2`)
+müssen gelesen werden; ein echtes Benutzerpasswort und AES müssen abgelehnt
+werden. Geprüft wird neben dem Inhalt auch der Anhangsname — der steht als
+verschlüsselter String im PDF und belegt damit die String-Entschlüsselung.
+
 ## Erwartetes Ergebnis
 
 ```
@@ -72,6 +81,14 @@ PASS: Parser findet in allen Faellen mindestens so viel wie der naive Scanner.
 --- Selbsttest: inkrementelles Update ---
   Parser liefert          : ZWEITE-GUELTIG  (richtig)
   Rohdaten-Scanner        : ERSTE-UEBERSCHRIEBEN  (tote Vorversion)
+  PASS
+
+--- Selbsttest: verschluesselte PDFs (RC4) ---
+  RC4 40 Bit  (V1/R2)  : RC4-40-BIT  (richtig)
+  RC4 128 Bit (V2/R3)  : RC4-128-BIT  (richtig)
+  RC4 Cryptfilter (V4) : RC4-CRYPTFILTER  (richtig)
+  Benutzerpasswort     : abgelehnt - PDF ist mit einem Benutzerpasswort geschuetzt
+  AES (AESV2)          : abgelehnt - PDF ist AES-verschluesselt (AESV2)
   PASS
 ```
 
@@ -112,6 +129,38 @@ Ein Scanner, der statt des Wurzelelements auf Textbausteine prüft, liegt
 übrigens schon auf dem normalen Bestand daneben: das XMP-Metadatenpaket eines
 Factur-X-PDFs enthält im Extension-Schema den Text `CrossIndustryDocument` und
 wird dann in 186 von 322 Fällen für die Rechnung gehalten.
+
+## Verschlüsselte PDFs
+
+PDF/A-3 verbietet Verschlüsselung — die Praxis hält sich nicht daran. In einem
+Posteingang mit 80 Rechnungen war eine dabei, die mit RC4 128 Bit
+(`/V 2 /R 3 /P -1036`) verschlüsselt ist: ein reines **Berechtigungspasswort**
+bei leerem Benutzerpasswort, wie es Kanzlei- und Dokumentensysteme routinemäßig
+setzen. Jeder Betrachter öffnet solche Dateien ohne Nachfrage, PDFBox liest sie
+ebenfalls; nur unsere Unit lehnte sie ab.
+
+Deshalb enthält `intf.XRechnungPdfExtract.pas` jetzt den Standard-Security-Handler
+nach ISO 32000-1, 7.6.3 — mit eigener MD5- und RC4-Implementierung, damit Delphi
+und FreePascal dieselbe Quelle benutzen:
+
+| Fall | Verhalten |
+|---|---|
+| `/V 1`, `/V 2` (RC4 40–128 Bit), `/R 2`–`/R 4` | wird entschlüsselt gelesen |
+| `/V 4` mit `/CFM /V2` (RC4 über Crypt-Filter) | wird entschlüsselt gelesen |
+| `/CFM /Identity` bzw. `/None` | unverschlüsselter Teil, wird gelesen |
+| `/CFM /AESV2`, `/AESV3` (AES-128/256) | wird gemeldet, nicht geraten |
+| echtes Benutzerpasswort | wird gemeldet, nicht geraten |
+
+Entschlüsselt werden Ströme (vor der Filterkette) und Strings — letztere, weil
+sonst der Anhangsname unlesbar wäre. Ausgenommen sind die Stellen, die die
+Spezifikation ausnimmt: XRef-Ströme, das `/Encrypt`-Wörterbuch selbst und die
+Objekte innerhalb eines Object Streams, dessen Trägerstrom bereits als Ganzes
+entschlüsselt wurde. Der Schlüssel steht deshalb vor dem ersten Katalogzugriff
+fest — sonst ließe sich ein Object Stream nicht auspacken.
+
+AES nachzurüsten wäre der nächste Schritt, wenn ein Bestand das verlangt: die
+Schlüsselableitung ist dieselbe, es fehlt der AES-CBC-Kern (und für `/R 6` die
+SHA-2-Ableitung).
 
 ## Härtung gegen manipulierte Eingaben
 

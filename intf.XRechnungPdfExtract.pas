@@ -46,8 +46,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
   Beruecksichtigte Stromfilter: FlateDecode (mit /Predictor), LZWDecode
   (mit /Predictor), ASCIIHexDecode, ASCII85Decode, RunLengthDecode.
-  Verschluesselte Dateien werden erkannt und abgelehnt, nicht geraten -
-  PDF/A-3 verbietet Verschluesselung ohnehin.
+
+  Verschluesselung verbietet PDF/A-3, in der Praxis kommt sie trotzdem vor:
+  Rechnungen aus Kanzlei- und Dokumentensystemen tragen haeufig ein reines
+  Berechtigungspasswort bei leerem Benutzerpasswort - jeder Betrachter oeffnet
+  sie ohne Nachfrage. Solche Dateien liest diese Unit ueber den
+  Standard-Security-Handler mit RC4 (/V 1, 2 und 4 mit /CFM /V2, /R 2 bis 4).
+  AES und ein echtes Benutzerpasswort werden erkannt und gemeldet, nicht
+  geraten.
 
   Anhaenge auf Seitenebene (/AF am Seitenobjekt) werden nicht gesucht;
   ZUGFeRD und Factur-X betten die Rechnung immer am Katalog ein.
@@ -122,6 +128,9 @@ type
     UsedReconstruction : Boolean;
     // Anzahl der xref-Abschnitte (1 = ohne inkrementelles Update).
     XrefSections : Integer;
+    // True, wenn die Datei verschluesselt ist - auch dann, wenn sie erfolgreich
+    // entschluesselt wurde. Ob sie gelesen werden konnte, sagt der Rueckgabewert
+    // zusammen mit Error.
     Encrypted : Boolean;
     PdfVersion : String;
     Error : String;
@@ -750,6 +759,249 @@ begin
 end;
 
 //==============================================================================
+// MD5 und RC4 fuer den Standard-Security-Handler
+//
+// Beides ist hier selbst implementiert, damit Delphi und FreePascal dieselbe
+// Quelle benutzen (System.Hash gibt es unter FPC nicht, die md5-Unit der FCL
+// nicht unter Delphi). Keines der beiden Verfahren wird hier zum Schutz von
+// Daten eingesetzt - sie sind ausschliesslich noetig, um den in aelteren
+// PDF-Dateien vorgeschriebenen Schluessel nachzurechnen.
+//==============================================================================
+
+// Ueberlauf- und Bereichspruefung nur fuer diesen Abschnitt abschalten: MD5
+// rechnet definitionsgemaess modulo 2^32.
+{$IFOPT Q+}{$DEFINE XRPdfRestoreQ}{$Q-}{$ENDIF}
+{$IFOPT R+}{$DEFINE XRPdfRestoreR}{$R-}{$ENDIF}
+
+type
+  TXRPdfMd5Ctx = record
+    State : array[0..3] of LongWord;
+    Buffer : array[0..63] of Byte;
+    BufLen : Integer;
+    TotalBytes : Int64;
+  end;
+
+const
+  XRPdfMd5K : array[0..63] of LongWord = (
+    $D76AA478, $E8C7B756, $242070DB, $C1BDCEEE,
+    $F57C0FAF, $4787C62A, $A8304613, $FD469501,
+    $698098D8, $8B44F7AF, $FFFF5BB1, $895CD7BE,
+    $6B901122, $FD987193, $A679438E, $49B40821,
+    $F61E2562, $C040B340, $265E5A51, $E9B6C7AA,
+    $D62F105D, $02441453, $D8A1E681, $E7D3FBC8,
+    $21E1CDE6, $C33707D6, $F4D50D87, $455A14ED,
+    $A9E3E905, $FCEFA3F8, $676F02D9, $8D2A4C8A,
+    $FFFA3942, $8771F681, $6D9D6122, $FDE5380C,
+    $A4BEEA44, $4BDECFA9, $F6BB4B60, $BEBFBC70,
+    $289B7EC6, $EAA127FA, $D4EF3085, $04881D05,
+    $D9D4D039, $E6DB99E5, $1FA27CF8, $C4AC5665,
+    $F4292244, $432AFF97, $AB9423A7, $FC93A039,
+    $655B59C3, $8F0CCC92, $FFEFF47D, $85845DD1,
+    $6FA87E4F, $FE2CE6E0, $A3014314, $4E0811A1,
+    $F7537E82, $BD3AF235, $2AD7D2BB, $EB86D391);
+
+  // Fuellzeichenfolge aus ISO 32000-1, 7.6.3.3. Ein leeres Benutzerpasswort
+  // besteht genau aus diesen 32 Bytes.
+  XRPdfPasswordPad : array[0..31] of Byte = (
+    $28, $BF, $4E, $5E, $4E, $75, $8A, $41, $64, $00, $4E, $56, $FF, $FA, $01, $08,
+    $2E, $2E, $00, $B6, $D0, $68, $3E, $80, $2F, $0C, $A9, $FE, $64, $53, $69, $7A);
+
+  XRPdfMd5S : array[0..63] of Byte = (
+    7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,
+    5,  9, 14, 20,  5,  9, 14, 20,  5,  9, 14, 20,  5,  9, 14, 20,
+    4, 11, 16, 23,  4, 11, 16, 23,  4, 11, 16, 23,  4, 11, 16, 23,
+    6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21);
+
+procedure XRPdfMd5Transform(var _State : array of LongWord;
+  const _Block : array of Byte; _Ofs : Integer);
+var
+  m : array[0..15] of LongWord;
+  a, b, c, d, f, tmp : LongWord;
+  i, g, s : Integer;
+begin
+  for i := 0 to 15 do
+    m[i] := LongWord(_Block[_Ofs + i * 4]) or
+            (LongWord(_Block[_Ofs + i * 4 + 1]) shl 8) or
+            (LongWord(_Block[_Ofs + i * 4 + 2]) shl 16) or
+            (LongWord(_Block[_Ofs + i * 4 + 3]) shl 24);
+
+  a := _State[0];
+  b := _State[1];
+  c := _State[2];
+  d := _State[3];
+
+  for i := 0 to 63 do
+  begin
+    if i < 16 then
+    begin
+      f := (b and c) or ((not b) and d);
+      g := i;
+    end
+    else if i < 32 then
+    begin
+      f := (d and b) or ((not d) and c);
+      g := (5 * i + 1) and 15;
+    end
+    else if i < 48 then
+    begin
+      f := b xor c xor d;
+      g := (3 * i + 5) and 15;
+    end
+    else
+    begin
+      f := c xor (b or (not d));
+      g := (7 * i) and 15;
+    end;
+
+    tmp := d;
+    d := c;
+    c := b;
+    f := f + a + XRPdfMd5K[i] + m[g];
+    s := XRPdfMd5S[i];
+    b := b + ((f shl s) or (f shr (32 - s)));
+    a := tmp;
+  end;
+
+  _State[0] := _State[0] + a;
+  _State[1] := _State[1] + b;
+  _State[2] := _State[2] + c;
+  _State[3] := _State[3] + d;
+end;
+
+procedure XRPdfMd5Init(var _Ctx : TXRPdfMd5Ctx);
+begin
+  _Ctx.State[0] := $67452301;
+  _Ctx.State[1] := $EFCDAB89;
+  _Ctx.State[2] := $98BADCFE;
+  _Ctx.State[3] := $10325476;
+  _Ctx.BufLen := 0;
+  _Ctx.TotalBytes := 0;
+end;
+
+procedure XRPdfMd5Update(var _Ctx : TXRPdfMd5Ctx; const _Data : TBytes;
+  _Ofs, _Len : Integer);
+var
+  take, pos : Integer;
+begin
+  if _Len <= 0 then exit;
+  if _Ofs < 0 then exit;
+  if _Ofs + _Len > Length(_Data) then exit;
+
+  Inc(_Ctx.TotalBytes, _Len);
+  pos := _Ofs;
+
+  // Zuerst den angefangenen Block auffuellen
+  if _Ctx.BufLen > 0 then
+  begin
+    take := 64 - _Ctx.BufLen;
+    if take > _Len then take := _Len;
+    Move(_Data[pos], _Ctx.Buffer[_Ctx.BufLen], take);
+    Inc(_Ctx.BufLen, take);
+    Inc(pos, take);
+    Dec(_Len, take);
+    if _Ctx.BufLen = 64 then
+    begin
+      XRPdfMd5Transform(_Ctx.State, _Ctx.Buffer, 0);
+      _Ctx.BufLen := 0;
+    end;
+  end;
+
+  while _Len >= 64 do
+  begin
+    XRPdfMd5Transform(_Ctx.State, _Data, pos);
+    Inc(pos, 64);
+    Dec(_Len, 64);
+  end;
+
+  if _Len > 0 then
+  begin
+    Move(_Data[pos], _Ctx.Buffer[0], _Len);
+    _Ctx.BufLen := _Len;
+  end;
+end;
+
+procedure XRPdfMd5Final(var _Ctx : TXRPdfMd5Ctx; out _Digest : TBytes);
+var
+  bitLen : Int64;
+  padLen, i : Integer;
+  tail : TBytes;
+begin
+  bitLen := _Ctx.TotalBytes * 8;
+
+  // 0x80, dann Nullen bis Restlaenge 56, dann die Bitlaenge little-endian
+  padLen := 56 - (_Ctx.BufLen mod 64);
+  if padLen <= 0 then Inc(padLen, 64);
+  SetLength(tail, padLen + 8);
+  FillChar(tail[0], Length(tail), 0);
+  tail[0] := $80;
+  for i := 0 to 7 do
+    tail[padLen + i] := Byte((bitLen shr (8 * i)) and $FF);
+  XRPdfMd5Update(_Ctx, tail, 0, Length(tail));
+
+  SetLength(_Digest, 16);
+  for i := 0 to 3 do
+  begin
+    _Digest[i * 4]     := Byte(_Ctx.State[i] and $FF);
+    _Digest[i * 4 + 1] := Byte((_Ctx.State[i] shr 8) and $FF);
+    _Digest[i * 4 + 2] := Byte((_Ctx.State[i] shr 16) and $FF);
+    _Digest[i * 4 + 3] := Byte((_Ctx.State[i] shr 24) and $FF);
+  end;
+end;
+
+function XRPdfMd5(const _Data : TBytes; _Len : Integer) : TBytes;
+var
+  ctx : TXRPdfMd5Ctx;
+begin
+  if (_Len < 0) or (_Len > Length(_Data)) then _Len := Length(_Data);
+  XRPdfMd5Init(ctx);
+  XRPdfMd5Update(ctx, _Data, 0, _Len);
+  XRPdfMd5Final(ctx, Result);
+end;
+
+// RC4 ist symmetrisch - dieselbe Routine ver- und entschluesselt.
+procedure XRPdfRc4(const _Key, _Src : TBytes; out _Dst : TBytes);
+var
+  s : array[0..255] of Byte;
+  i, j, k, keyLen : Integer;
+  t : Byte;
+begin
+  SetLength(_Dst, Length(_Src));
+  keyLen := Length(_Key);
+  if (keyLen = 0) or (Length(_Src) = 0) then
+  begin
+    if Length(_Src) > 0 then
+      Move(_Src[0], _Dst[0], Length(_Src));
+    exit;
+  end;
+
+  for i := 0 to 255 do
+    s[i] := Byte(i);
+  j := 0;
+  for i := 0 to 255 do
+  begin
+    j := (j + s[i] + _Key[i mod keyLen]) and $FF;
+    t := s[i];
+    s[i] := s[j];
+    s[j] := t;
+  end;
+
+  i := 0;
+  j := 0;
+  for k := 0 to Length(_Src) - 1 do
+  begin
+    i := (i + 1) and $FF;
+    j := (j + s[i]) and $FF;
+    t := s[i];
+    s[i] := s[j];
+    s[j] := t;
+    _Dst[k] := _Src[k] xor s[(Integer(s[i]) + Integer(s[j])) and $FF];
+  end;
+end;
+
+{$IFDEF XRPdfRestoreQ}{$Q+}{$UNDEF XRPdfRestoreQ}{$ENDIF}
+{$IFDEF XRPdfRestoreR}{$R+}{$UNDEF XRPdfRestoreR}{$ENDIF}
+
+//==============================================================================
 // Objektmodell
 //==============================================================================
 
@@ -774,6 +1026,15 @@ type
     StreamLen : Integer;
     RefNum : Integer;
     RefGen : Integer;
+    // Objekt- und Generationsnummer der indirekten Definition, aus der dieses
+    // Objekt stammt. Sie bilden bei verschluesselten Dateien den Objektschluessel
+    // (ISO 32000-1, 7.6.2, Algorithmus 1). OwnerNum = -1 heisst "nicht
+    // entschluesseln" - das gilt fuer Objekte aus einem Object Stream, deren
+    // Traegerstrom bereits als Ganzes entschluesselt wurde.
+    OwnerNum : Integer;
+    OwnerGen : Integer;
+    // Streams, die laut Spezifikation nie verschluesselt sind (XRef-Streams).
+    NoDecrypt : Boolean;
     constructor Create(_Kind : TPdfObjKind);
     destructor Destroy; override;
     function AsInt : Int64;
@@ -792,6 +1053,9 @@ begin
   StreamLen := -1;
   RefNum := -1;
   RefGen := 0;
+  OwnerNum := -1;
+  OwnerGen := 0;
+  NoDecrypt := False;
   if _Kind = pokArr then
     Items := TList.Create;
   if (_Kind = pokDict) or (_Kind = pokStream) then
@@ -1274,8 +1538,18 @@ type
     FOwned : TList;
     FRootRef : TPdfObj;
     FEncryptRef : TPdfObj;
+    FIdFirst : TBytes;
     FXrefSections : Integer;
     FReconstructed : Boolean;
+    // Standard-Security-Handler
+    FEncrypted : Boolean;        // Datei fuehrt ein /Encrypt-Woerterbuch
+    FCryptReady : Boolean;       // Schluessel steht, Ent-/Verschluesselung laeuft
+    FCryptDone : Boolean;        // SetupEncryption bereits durchlaufen
+    FCryptError : String;        // gesetzt, wenn die Datei nicht lesbar ist
+    FCryptKey : TBytes;
+    FCryptStreams : Boolean;     // /StmF ist kein Identity-Filter
+    FCryptStrings : Boolean;     // /StrF ist kein Identity-Filter
+    FEncryptNum : Integer;       // Objektnummer des /Encrypt-Woerterbuchs
     function MaxPlausibleObjNum : Integer;
     procedure EnsureSize(_Num : Integer);
     procedure SetEntry(_Num : Integer; _Kind : TPdfXrefKind; _Ofs : Int64;
@@ -1286,6 +1560,12 @@ type
     function ParseXrefStream(_Obj : TPdfObj) : Boolean;
     procedure Reconstruct;
     procedure LoadObjStm(_StmNum : Integer);
+    procedure SetupEncryption;
+    function ObjectKey(_Num, _Gen : Integer) : TBytes;
+    procedure DecryptBytes(var _Data : TBytes; _Num, _Gen : Integer);
+    // Setzt Objekt-/Generationsnummer im gesamten Teilbaum und entschluesselt
+    // dabei die enthaltenen Strings.
+    procedure TagAndDecrypt(_O : TPdfObj; _Num, _Gen, _Depth : Integer);
   public
     constructor Create;
     destructor Destroy; override;
@@ -1299,6 +1579,12 @@ type
     property XrefSections : Integer read FXrefSections;
     property Reconstructed : Boolean read FReconstructed;
     property EncryptRef : TPdfObj read FEncryptRef;
+    // True, sobald die Datei ein /Encrypt-Woerterbuch fuehrt - unabhaengig
+    // davon, ob wir sie entschluesseln koennen.
+    property Encrypted : Boolean read FEncrypted;
+    // Leer, wenn die Datei lesbar ist (unverschluesselt oder erfolgreich
+    // entschluesselt); sonst der Grund.
+    property CryptError : String read FCryptError;
     property Buf : TBytes read FBuf;
   end;
 
@@ -1308,6 +1594,13 @@ begin
   FOwned := TList.Create;
   FXrefSections := 0;
   FReconstructed := False;
+  FEncrypted := False;
+  FCryptReady := False;
+  FCryptDone := False;
+  FCryptError := '';
+  FCryptStreams := True;
+  FCryptStrings := True;
+  FEncryptNum := -1;
 end;
 
 destructor TPdfDocument.Destroy;
@@ -1374,7 +1667,7 @@ end;
 
 procedure TPdfDocument.NoteTrailer(_Dict : TPdfObj);
 var
-  o : TPdfObj;
+  o, idObj : TPdfObj;
 begin
   if (_Dict = nil) or not _Dict.IsDictLike then exit;
   if FRootRef = nil then
@@ -1386,6 +1679,22 @@ begin
   begin
     o := _Dict.RawGet('Encrypt');
     if o <> nil then FEncryptRef := o;
+  end;
+  // /ID[0] geht in die Schluesselableitung ein (ISO 32000-1, 7.6.3.3,
+  // Algorithmus 2 Schritt e). Wie bei /Root und /Encrypt gilt der zuerst
+  // gesehene, also der neueste Trailer.
+  if Length(FIdFirst) = 0 then
+  begin
+    idObj := _Dict.RawGet('ID');
+    if (idObj <> nil) and (idObj.Kind = pokArr) and (idObj.ArrCount > 0) then
+    begin
+      o := idObj.ArrItem(0);
+      if (o <> nil) and (o.Kind = pokStr) and (Length(o.StrVal) > 0) then
+      begin
+        SetLength(FIdFirst, Length(o.StrVal));
+        Move(o.StrVal[0], FIdFirst[0], Length(o.StrVal));
+      end;
+    end;
   end;
 end;
 
@@ -1458,6 +1767,9 @@ var
 begin
   Result := False;
   if (_Obj = nil) or (_Obj.Kind <> pokStream) then exit;
+  // Ein XRef-Strom ist laut ISO 32000-1, 7.5.8.2 nie verschluesselt - er muss
+  // ja lesbar sein, bevor das /Encrypt-Woerterbuch ueberhaupt gefunden ist.
+  _Obj.NoDecrypt := True;
   if not GetStreamData(_Obj, data) then exit;
 
   wObj := DGet(_Obj, 'W');
@@ -1788,6 +2100,9 @@ begin
       if FCache[num] <> nil then continue;
       objLex.Pos := ofs;
       parsed := objLex.ParseObject(0);
+      // Objekte aus einem Object Stream bleiben mit OwnerNum = -1 stehen: der
+      // Traegerstrom wurde als Ganzes entschluesselt, seine Strings sind es
+      // damit auch. Ein zweiter Durchgang wuerde sie wieder verschluesseln.
       if parsed <> nil then
         FCache[num] := parsed;
     end;
@@ -1796,12 +2111,352 @@ begin
   end;
 end;
 
+// Richtet den Standard-Security-Handler ein (ISO 32000-1, 7.6.3).
+//
+// Unterstuetzt wird RC4 (/V 1, 2 und 4 mit /CFM /V2, also /R 2 bis 4) mit
+// LEEREM Benutzerpasswort. Das ist der in der Praxis haeufige Fall: die Datei
+// traegt nur ein Berechtigungspasswort (Drucken, Aendern), jeder Betrachter
+// oeffnet sie ohne Nachfrage. Eine Datei mit echtem Benutzerpasswort bleibt
+// abgewiesen - ohne das Passwort ist sie nicht zu lesen.
+//
+// AES (/CFM /AESV2, /AESV3) wird erkannt und ausdruecklich abgelehnt, nicht
+// geraten.
+//
+//TODO AES nachruesten, sobald ein Bestand es verlangt: die Schluesselableitung
+//     bis hierher ist dieselbe. Fuer /AESV2 (AES-128) fehlt nur der
+//     AES-CBC-Kern - der Objektschluessel bekommt dann zusaetzlich die
+//     Kennung 73 41 6C 54 ("sAlT") angehaengt, und die ersten 16 Bytes des
+//     Stroms sind der Initialisierungsvektor. Fuer /AESV3 (AES-256, /V 5,
+//     /R 5 und 6) kommt eine eigene Ableitung ueber SHA-256/384/512 hinzu;
+//     dort entfaellt der Objektschluessel, der Dateischluessel gilt direkt.
+procedure TPdfDocument.SetupEncryption;
+var
+  enc, o, cfDict, cfEntry : TPdfObj;
+  v, r, lenBits, keyLen, i, j, n : Integer;
+  encryptMetadata, ok : Boolean;
+  filterName, cfmName, stmF, strF, cfName : String;
+  oVal, uVal, digest, tmp, key2, x, padded : TBytes;
+  ctx : TXRPdfMd5Ctx;
+  p32 : LongWord;
+begin
+  if FCryptDone then exit;
+  // Solange kein /Encrypt bekannt ist, gibt es nichts einzurichten - der Aufruf
+  // nach einer Rekonstruktion soll es dann aber noch einmal versuchen.
+  if FEncryptRef = nil then exit;
+  FCryptDone := True;
+
+  FEncrypted := True;
+  // Das /Encrypt-Woerterbuch selbst ist nicht verschluesselt - seine Strings
+  // (/O, /U) muessen roh bleiben.
+  if FEncryptRef.Kind = pokRef then
+    FEncryptNum := FEncryptRef.RefNum;
+
+  enc := Resolve(FEncryptRef);
+  if (enc = nil) or not enc.IsDictLike then
+  begin
+    FCryptError := 'PDF ist verschluesselt - das /Encrypt-Woerterbuch fehlt';
+    exit;
+  end;
+
+  filterName := '';
+  o := DGet(enc, 'Filter');
+  if (o <> nil) and (o.Kind = pokName) then filterName := o.NameVal;
+  if filterName <> 'Standard' then
+  begin
+    if filterName = '' then
+      FCryptError := 'PDF ist verschluesselt - Sicherheitshandler unbekannt'
+    else
+      FCryptError := 'PDF ist verschluesselt - Sicherheitshandler /' +
+                     filterName + ' wird nicht unterstuetzt';
+    exit;
+  end;
+
+  v := 0;
+  r := 0;
+  o := DGet(enc, 'V');
+  if (o <> nil) and (o.Kind = pokNum) then v := Integer(o.AsInt);
+  o := DGet(enc, 'R');
+  if (o <> nil) and (o.Kind = pokNum) then r := Integer(o.AsInt);
+
+  lenBits := 40;
+  o := DGet(enc, 'Length');
+  if (o <> nil) and (o.Kind = pokNum) then lenBits := Integer(o.AsInt);
+
+  // Ab /V 4 sagen benannte Crypt-Filter, womit Stroeme und Strings behandelt
+  // werden. /Identity heisst: dieser Teil bleibt unverschluesselt.
+  cfmName := 'V2';
+  if v >= 4 then
+  begin
+    stmF := 'Identity';
+    strF := 'Identity';
+    o := DGet(enc, 'StmF');
+    if (o <> nil) and (o.Kind = pokName) then stmF := o.NameVal;
+    o := DGet(enc, 'StrF');
+    if (o <> nil) and (o.Kind = pokName) then strF := o.NameVal;
+    FCryptStreams := stmF <> 'Identity';
+    FCryptStrings := strF <> 'Identity';
+
+    if FCryptStreams and FCryptStrings and (stmF <> strF) then
+    begin
+      FCryptError := 'PDF ist verschluesselt - getrennte Crypt-Filter fuer ' +
+                     'Stroeme und Strings werden nicht unterstuetzt';
+      exit;
+    end;
+
+    if FCryptStreams or FCryptStrings then
+    begin
+      if FCryptStreams then cfName := stmF else cfName := strF;
+      cfEntry := nil;
+      cfDict := DGet(enc, 'CF');
+      if (cfDict <> nil) and cfDict.IsDictLike then
+        cfEntry := DGet(cfDict, cfName);
+      if (cfEntry = nil) or not cfEntry.IsDictLike then
+      begin
+        FCryptError := 'PDF ist verschluesselt - Crypt-Filter /' + cfName +
+                       ' ist nicht definiert';
+        exit;
+      end;
+      cfmName := '';
+      o := DGet(cfEntry, 'CFM');
+      if (o <> nil) and (o.Kind = pokName) then cfmName := o.NameVal;
+      // /Length steht im Crypt-Filter meist in Bytes, im /Encrypt-Woerterbuch
+      // dagegen in Bits. Die Praxis ist uneinheitlich, daher nach Groesse
+      // unterscheiden.
+      o := DGet(cfEntry, 'Length');
+      if (o <> nil) and (o.Kind = pokNum) then
+      begin
+        n := Integer(o.AsInt);
+        if (n > 0) and (n <= 40) then
+          lenBits := n * 8
+        else
+          lenBits := n;
+      end;
+    end
+    else
+      cfmName := 'None';
+  end;
+
+  if cfmName = 'None' then
+  begin
+    FCryptStreams := False;
+    FCryptStrings := False;
+  end
+  else if cfmName <> 'V2' then
+  begin
+    //TODO AES: siehe den Hinweis am Kopf von SetupEncryption
+    if (cfmName = 'AESV2') or (cfmName = 'AESV3') then
+      FCryptError := 'PDF ist AES-verschluesselt (' + cfmName +
+                     ') - nur RC4 wird unterstuetzt'
+    else if cfmName = '' then
+      FCryptError := 'PDF ist verschluesselt - Verschluesselungsverfahren unbekannt'
+    else
+      FCryptError := 'PDF ist verschluesselt (Verfahren ' + cfmName +
+                     ') - nur RC4 wird unterstuetzt';
+    exit;
+  end;
+
+  if (r < 2) or (r > 4) then
+  begin
+    FCryptError := 'PDF ist verschluesselt - Revision ' + IntToStr(r) +
+                   ' wird nicht unterstuetzt';
+    exit;
+  end;
+
+  // /V 1 ist auf 40 Bit festgelegt, unabhaengig von einem abweichenden /Length.
+  if v = 1 then
+    lenBits := 40;
+  if (lenBits < 40) or (lenBits > 128) or ((lenBits mod 8) <> 0) then
+  begin
+    FCryptError := 'PDF ist verschluesselt - unplausible Schluessellaenge (' +
+                   IntToStr(lenBits) + ' Bit)';
+    exit;
+  end;
+  keyLen := lenBits div 8;
+
+  o := DGet(enc, 'O');
+  if (o = nil) or (o.Kind <> pokStr) or (Length(o.StrVal) < 32) then
+  begin
+    FCryptError := 'PDF ist verschluesselt - /O fehlt oder ist zu kurz';
+    exit;
+  end;
+  oVal := o.StrVal;
+
+  o := DGet(enc, 'U');
+  if (o = nil) or (o.Kind <> pokStr) or (Length(o.StrVal) < 32) then
+  begin
+    FCryptError := 'PDF ist verschluesselt - /U fehlt oder ist zu kurz';
+    exit;
+  end;
+  uVal := o.StrVal;
+
+  // /P ist eine vorzeichenbehaftete 32-Bit-Zahl, wird aber auch vorzeichenlos
+  // geschrieben. Beides fuehrt nach der Maskierung auf dasselbe Bitmuster.
+  p32 := 0;
+  o := DGet(enc, 'P');
+  if (o <> nil) and (o.Kind = pokNum) then
+    p32 := LongWord(o.AsInt and $FFFFFFFF);
+
+  encryptMetadata := True;
+  o := DGet(enc, 'EncryptMetadata');
+  if (o <> nil) and (o.Kind = pokBool) then
+    encryptMetadata := o.BoolVal;
+
+  // --- Algorithmus 2: Verschluesselungsschluessel aus dem leeren Passwort ---
+  SetLength(padded, 32);
+  Move(XRPdfPasswordPad[0], padded[0], 32);
+
+  XRPdfMd5Init(ctx);
+  XRPdfMd5Update(ctx, padded, 0, 32);
+  XRPdfMd5Update(ctx, oVal, 0, 32);
+  SetLength(tmp, 4);
+  for i := 0 to 3 do
+    tmp[i] := Byte((p32 shr (8 * i)) and $FF);
+  XRPdfMd5Update(ctx, tmp, 0, 4);
+  if Length(FIdFirst) > 0 then
+    XRPdfMd5Update(ctx, FIdFirst, 0, Length(FIdFirst));
+  if (r >= 4) and not encryptMetadata then
+  begin
+    for i := 0 to 3 do
+      tmp[i] := $FF;
+    XRPdfMd5Update(ctx, tmp, 0, 4);
+  end;
+  XRPdfMd5Final(ctx, digest);
+
+  if r >= 3 then
+    for i := 1 to 50 do
+      digest := XRPdfMd5(digest, keyLen);
+
+  SetLength(FCryptKey, keyLen);
+  Move(digest[0], FCryptKey[0], keyLen);
+
+  // --- Algorithmus 6: passt das leere Benutzerpasswort zu /U? ---
+  ok := False;
+  if r = 2 then
+  begin
+    // Algorithmus 4
+    XRPdfRc4(FCryptKey, padded, x);
+    ok := Length(x) >= 32;
+    if ok then
+      for i := 0 to 31 do
+        if x[i] <> uVal[i] then
+        begin
+          ok := False;
+          break;
+        end;
+  end
+  else
+  begin
+    // Algorithmus 5. Verglichen werden nur die ersten 16 Bytes - die restlichen
+    // 16 sind laut Spezifikation beliebige Fuellbytes.
+    XRPdfMd5Init(ctx);
+    XRPdfMd5Update(ctx, padded, 0, 32);
+    if Length(FIdFirst) > 0 then
+      XRPdfMd5Update(ctx, FIdFirst, 0, Length(FIdFirst));
+    XRPdfMd5Final(ctx, digest);
+
+    XRPdfRc4(FCryptKey, digest, x);
+    SetLength(key2, keyLen);
+    for i := 1 to 19 do
+    begin
+      for j := 0 to keyLen - 1 do
+        key2[j] := Byte(FCryptKey[j] xor Byte(i));
+      XRPdfRc4(key2, x, tmp);
+      x := tmp;
+    end;
+
+    ok := Length(x) >= 16;
+    if ok then
+      for i := 0 to 15 do
+        if x[i] <> uVal[i] then
+        begin
+          ok := False;
+          break;
+        end;
+  end;
+
+  if not ok then
+  begin
+    SetLength(FCryptKey, 0);
+    FCryptError := 'PDF ist mit einem Benutzerpasswort geschuetzt - ' +
+                   'Anhaenge koennen nicht gelesen werden';
+    exit;
+  end;
+
+  FCryptReady := True;
+end;
+
+// Objektschluessel nach ISO 32000-1, 7.6.2, Algorithmus 1: Dateischluessel,
+// gefolgt von Objekt- und Generationsnummer, durch MD5 gedreht.
+function TPdfDocument.ObjectKey(_Num, _Gen : Integer) : TBytes;
+var
+  buf, digest : TBytes;
+  n, keyLen : Integer;
+begin
+  SetLength(Result, 0);
+  keyLen := Length(FCryptKey);
+  if keyLen = 0 then exit;
+
+  SetLength(buf, keyLen + 5);
+  Move(FCryptKey[0], buf[0], keyLen);
+  buf[keyLen]     := Byte(_Num and $FF);
+  buf[keyLen + 1] := Byte((_Num shr 8) and $FF);
+  buf[keyLen + 2] := Byte((_Num shr 16) and $FF);
+  buf[keyLen + 3] := Byte(_Gen and $FF);
+  buf[keyLen + 4] := Byte((_Gen shr 8) and $FF);
+
+  digest := XRPdfMd5(buf, Length(buf));
+  n := keyLen + 5;
+  if n > 16 then n := 16;
+  SetLength(Result, n);
+  Move(digest[0], Result[0], n);
+end;
+
+procedure TPdfDocument.DecryptBytes(var _Data : TBytes; _Num, _Gen : Integer);
+var
+  k, dst : TBytes;
+begin
+  if not FCryptReady then exit;
+  if _Num < 0 then exit;
+  if Length(_Data) = 0 then exit;
+  k := ObjectKey(_Num, _Gen);
+  if Length(k) = 0 then exit;
+  XRPdfRc4(k, _Data, dst);
+  _Data := dst;
+end;
+
+procedure TPdfDocument.TagAndDecrypt(_O : TPdfObj; _Num, _Gen, _Depth : Integer);
+var
+  i : Integer;
+begin
+  if _O = nil then exit;
+  if _Depth > XRechnungPdfMaxDepth then exit;
+  // Schon behandelt - ein zweiter Durchlauf wuerde Strings ein zweites Mal
+  // durch RC4 schicken und damit wieder verschluesseln.
+  if _O.OwnerNum >= 0 then exit;
+
+  _O.OwnerNum := _Num;
+  _O.OwnerGen := _Gen;
+
+  case _O.Kind of
+    pokStr :
+      if FCryptReady and FCryptStrings and (_Num >= 0) and (_Num <> FEncryptNum) then
+        DecryptBytes(_O.StrVal, _Num, _Gen);
+    pokArr :
+      for i := 0 to _O.ArrCount - 1 do
+        TagAndDecrypt(_O.ArrItem(i), _Num, _Gen, _Depth + 1);
+    pokDict, pokStream :
+      if _O.DVals <> nil then
+        for i := 0 to _O.DVals.Count - 1 do
+          TagAndDecrypt(TPdfObj(_O.DVals[i]), _Num, _Gen, _Depth + 1);
+  end;
+end;
+
 function TPdfDocument.GetObject(_Num : Integer) : TPdfObj;
 var
   lex : TPdfLexer;
   tok : AnsiString;
   d : Double;
-  code, gotNum : Integer;
+  code, gotNum, gotGen : Integer;
 begin
   Result := nil;
   if (_Num < 0) or (_Num >= Length(FXref)) then exit;
@@ -1834,11 +2489,20 @@ begin
             gotNum := Trunc(d);
             // Objektnummer muss passen - sonst zeigt der xref ins Leere
             if gotNum <> _Num then exit;
-            lex.ReadToken;             // Generation
+            tok := lex.ReadToken;      // Generation
+            Val(String(tok), d, code);
+            if code = 0 then
+              gotGen := Trunc(d)
+            else
+              gotGen := FXref[_Num].Gen;
             tok := lex.ReadToken;
             if tok <> 'obj' then exit;
             Result := lex.ParseObject(0);
             FCache[_Num] := Result;
+            // Objekt- und Generationsnummer im Teilbaum vermerken; bei
+            // verschluesselten Dateien werden dabei die Strings entschluesselt.
+            if Result <> nil then
+              TagAndDecrypt(Result, _Num, gotGen, 0);
           finally
             lex.Free;
           end;
@@ -1933,6 +2597,14 @@ begin
   SetLength(raw, rawLen);
   if rawLen > 0 then
     Move(FBuf[_O.StreamPos], raw[0], rawLen);
+
+  // Beim Standard-Security-Handler ist der Rohinhalt verschluesselt - das muss
+  // vor der Filterkette rueckgaengig gemacht werden. Ausgenommen sind
+  // XRef-Stroeme (NoDecrypt), das /Encrypt-Woerterbuch selbst und Objekte aus
+  // einem Object Stream (OwnerNum = -1), deren Traeger schon entschluesselt war.
+  if FCryptReady and FCryptStreams and not _O.NoDecrypt and
+     (_O.OwnerNum >= 0) and (_O.OwnerNum <> FEncryptNum) then
+    DecryptBytes(raw, _O.OwnerNum, _O.OwnerGen);
 
   // Filterkette anwenden
   filterObj := DGet(_O, 'Filter');
@@ -2092,6 +2764,11 @@ begin
     end;
   end;
 
+  // Verschluesselung einrichten, BEVOR zum ersten Mal auf den Katalog
+  // zugegriffen wird: dessen Aufloesung kann Object Streams laden, und die
+  // liessen sich ohne Schluessel nicht auspacken.
+  SetupEncryption;
+
   // Kein brauchbarer Katalog -> Objekttabelle rekonstruieren
   if Catalog = nil then
   begin
@@ -2104,6 +2781,9 @@ begin
         exit;
       end;
     end;
+    // Die Rekonstruktion kann einen Trailer gefunden haben, den die kaputte
+    // xref-Kette nicht hergab - damit womoeglich auch erst das /Encrypt.
+    SetupEncryption;
     if Catalog = nil then
     begin
       // Letzter Versuch: irgendein Objekt mit /Type /Catalog
@@ -2596,11 +3276,14 @@ begin
     if Length(doc.Buf) >= 8 then
       _Info.PdfVersion := String(BytesToAnsiStr(doc.Buf, 5, 3));
 
-    // Verschluesselung: PDF/A-3 verbietet sie. Wir raten nicht, sondern melden.
-    if doc.EncryptRef <> nil then
+    // Verschluesselung: PDF/A-3 verbietet sie, in der Praxis kommt sie
+    // trotzdem vor - meist als reines Berechtigungspasswort bei leerem
+    // Benutzerpasswort. Solche Dateien werden entschluesselt gelesen; was der
+    // Handler nicht kann, wird gemeldet und nicht geraten.
+    _Info.Encrypted := doc.Encrypted;
+    if doc.CryptError <> '' then
     begin
-      _Info.Encrypted := True;
-      _Info.Error := 'PDF ist verschluesselt - Anhaenge koennen nicht gelesen werden';
+      _Info.Error := doc.CryptError;
       exit;
     end;
 

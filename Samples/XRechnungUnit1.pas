@@ -107,6 +107,7 @@ type
     procedure ClearBrowser;
     procedure ShowFileInBrowser(const _Filename : String; _BrowserIdx : Integer);
     procedure ShowXMLAsHtml(_Content : String);
+    procedure ShowPeppolXMLAsHtml(_Content : String);
     procedure ShowXMLAsPdf(_Content : String);
     procedure ShowXMLAsHtmlMustang(_Filename : String);
     procedure ShowXMLAsPdfMustang(_Filename : String);
@@ -118,6 +119,7 @@ type
     ValidatorConfigurationPath : String;
     ValidatorPeppolConfigurationPath : String;
     VisualizationLibPath : String;
+    PeppolVisualizationLibPath : String;
     SaxonLibPath : String;
     FopLibPath : String;
     MustangLibPath : String;
@@ -142,6 +144,7 @@ begin
   ValidatorConfigurationPath := DistributionBasePath +'validator-configuration30x'+PathDelim;
   ValidatorPeppolConfigurationPath := DistributionBasePath +'validator-configuration-bis'+PathDelim;
   VisualizationLibPath := DistributionBasePath +'visualization30x'+PathDelim;
+  PeppolVisualizationLibPath := DistributionBasePath +'visualization-bis'+PathDelim;
   SaxonLibPath := DistributionBasePath + 'saxon'+PathDelim;
   FopLibPath := DistributionBasePath + 'apache-fop'+PathDelim;
   MustangLibPath := DistributionBasePath + 'mustangproject'+PathDelim;
@@ -583,6 +586,10 @@ var
   pdfresult : TMemoryStream;
   xml : String;
   {$ENDIF}
+  {$IFDEF USE_Landrix_Valitool}
+  pdfresult : TMemoryStream;
+  xml : String;
+  {$ENDIF}
 begin
   ClearBrowser;
 
@@ -591,6 +598,7 @@ begin
     if not od.Execute then
       exit;
 
+    {$IFNDEF USE_Landrix_Valitool}
     case TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) of
 
       XRechnungVersion_30x_UBL,
@@ -625,6 +633,7 @@ begin
       htmlresult := '<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
     TFile.WriteAllText(WebBrowserContentFilename,htmlresult,TEncoding.UTF8);
     ShowFileInBrowser(WebBrowserContentFilename,1);
+    {$ENDIF}
 
     {$IFDEF USE_Valitool}
     xml := TFile.ReadAllText(od.FileName,TEncoding.UTF8);
@@ -640,6 +649,46 @@ begin
       pdfresult.SaveToFile(WebBrowserContentFilenameValitoolPdf);
       pdfresult.Free;
       ShowFileInBrowser(WebBrowserContentFilenameValitoolPdf,4);
+    end;
+    {$ENDIF}
+    {$IFDEF USE_Landrix_Valitool}
+    if cbValidateWithExtern.Checked and cbValidateWithExtern.Enabled then
+    begin
+
+      var lValidationResult : TMemoryStream;
+      var lClient : TLandrixEInvoiceValidationClient;
+      var tmpFilename : String := TPath.GetTempFileName;
+      var hstrl :TStringList := TStringList.Create;
+
+      xml := TFile.ReadAllText(od.FileName,TEncoding.UTF8);
+
+      LClient := TLandrixEInvoiceValidationClient.Create(LANDRIX_VALITOOL_LICENSE,LANDRIX_VALIDATOR_URL);
+      try
+        hstrl.Text := xml;
+        hstrl.WriteBOM := false;
+        hstrl.SaveToFile(tmpFilename,TEncoding.UTF8);
+
+        if lClient.ValidateEInvoice(tmpFilename,'',lValidationResult) then
+        try
+          var pck : TLandrixEInvoiceValidationPackage := TLandrixEInvoiceValidationPackage.Create;
+          if pck.GetPdfResult(lValidationResult,pdfresult) then
+          begin
+            if pdfresult <> nil then
+            begin
+              pdfresult.SaveToFile(WebBrowserContentFilenameValitoolPdf);
+              pdfresult.Free;
+              ShowFileInBrowser(WebBrowserContentFilenameValitoolPdf,4);
+            end;
+          end;
+          pck.Free;
+
+        finally
+          DeleteFile(tmpFilename);
+          lValidationResult.Free;
+        end
+      finally
+        lClient.Free;
+      end;
     end;
     {$ENDIF}
   finally
@@ -699,10 +748,17 @@ begin
     if not od.Execute then
       exit;
 
-    GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
-        .SetSaxonLibPath(SaxonLibPath)
-        .SetVisualizationLibPath(VisualizationLibPath)
-        .VisualizeFile(od.FileName,cmdoutput,htmlresult);
+    //Peppol-Rechnungen bekommen das OpenPEPPOL-Stylesheet, alles andere die KoSIT-Visualisierung
+    if TXRechnungValidationHelper.GetXRechnungVersion(od.FileName) = PeppolBillingVersion_30 then
+      GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+          .SetSaxonLibPath(SaxonLibPath)
+          .SetPeppolVisualizationLibPath(PeppolVisualizationLibPath)
+          .PeppolVisualizeFile(od.FileName,cmdoutput,htmlresult)
+    else
+      GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+          .SetSaxonLibPath(SaxonLibPath)
+          .SetVisualizationLibPath(VisualizationLibPath)
+          .VisualizeFile(od.FileName,cmdoutput,htmlresult);
 
     Memo3.Lines.Append(cmdoutput);
 
@@ -1078,11 +1134,8 @@ begin
 
         if htmlresult <> '' then
         begin
-          //if cbVisualizeWithJava.Checked then
-          //begin
-          //  ShowXMLAsHtml(xml);
-          //  ShowXMLAsPdf(xml);
-          //end;
+          if cbVisualizeWithJava.Checked then
+            ShowPeppolXMLAsHtml(xml);
         end else
           htmlresult := '<html><body>Validation nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
         TFile.WriteAllText(WebBrowserContentFilename,htmlresult,TEncoding.UTF8);
@@ -1164,7 +1217,6 @@ begin
         lClient.Free;
       end;
     end;
-
     {$ENDIF}
   finally
     Screen.Cursor := crDefault;
@@ -1211,6 +1263,32 @@ begin
       .SetSaxonLibPath(SaxonLibPath)
       .SetVisualizationLibPath(VisualizationLibPath)
       .Visualize(_Content,cmdoutput,htmlresult);
+
+  Memo3.Lines.Append(cmdoutput);
+
+  if htmlresult = '' then
+    htmlresult := '<html><body>Visualisierung nicht erfolgreich. Siehe Verzeichnis ./Distribution/Read.Me</body></html>';
+  TFile.WriteAllText(WebBrowserContentFilenameHtml,htmlresult,TEncoding.UTF8);
+
+{$IFDEF USE_EDGE_BROWSER}
+  EdgeBrowser2.Navigate('file:///'+WebBrowserContentFilenameHtml);
+{$ELSE}
+  ShellExecute(0,'open',PChar(WebBrowserContentFilenameHtml),'','',SW_SHOWNORMAL);
+{$IFEND}
+end;
+
+//Peppol BIS Billing 3.0 mit dem offiziellen OpenPEPPOL-Stylesheet darstellen.
+//Die KoSIT-Visualisierung (ShowXMLAsHtml) verarbeitet diese Rechnungen zwar auch,
+//beschriftet sie aber mit den deutschen XRechnung-Begriffen; einen PDF-Zweig gibt es
+//beim Peppol-Stylesheet nicht, es liefert direkt HTML.
+procedure TForm1.ShowPeppolXMLAsHtml(_Content: String);
+var
+  cmdoutput,htmlresult : String;
+begin
+  GetXRechnungValidationHelperJava.SetJavaRuntimeEnvironmentPath(JavaRuntimeEnvironmentPath)
+      .SetSaxonLibPath(SaxonLibPath)
+      .SetPeppolVisualizationLibPath(PeppolVisualizationLibPath)
+      .PeppolVisualize(_Content,cmdoutput,htmlresult);
 
   Memo3.Lines.Append(cmdoutput);
 

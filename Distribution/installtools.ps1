@@ -1,6 +1,6 @@
 <#
   Installationstool mit Profilen je Modul. Ohne Parameter werden alle Module installiert.
-  Module: validator, config23x, config30x, bis, zugferd, vis23x, vis30x, jre, fop, mustang, saxon
+  Module: validator, config23x, config30x, bis, zugferd, vis23x, vis30x, visbis, jre, fop, mustang, saxon
 
   Beispiele:
   - Alle Module installieren (Default ohne Parameter):
@@ -17,7 +17,7 @@
 #>
 
 param(
-  [Parameter(Position=0, HelpMessage='Module: validator, config23x, config30x, bis, zugferd, vis23x, vis30x, jre, fop, mustang, saxon')]
+  [Parameter(Position=0, HelpMessage='Module: validator, config23x, config30x, bis, zugferd, vis23x, vis30x, visbis, jre, fop, mustang, saxon')]
   [string[]]$Modules
 )
 
@@ -103,7 +103,7 @@ function Install-Validator {
   $targetDir = Join-Path $Root 'validator'
   New-Item -Path $targetDir -ItemType Directory -Force | Out-Null
   $destinationJar = Join-Path $targetDir 'validator-1.6.2-standalone.jar'
-  Invoke-Download -Uri "https://github.com/itplr-kosit/validator/releases/download/v1.6.2/validator-1.6.2-standalone.jar" -Destination $destinationJar -Label 'validator download'
+  Invoke-Download -Uri "https://github.com/itplr-kosit/validator/releases/download/v1.6.3/validator-1.6.3-standalone.jar" -Destination $destinationJar -Label 'validator download'
 }
 
 function Install-Config23x {
@@ -119,7 +119,7 @@ function Install-Config30x {
   Write-Host 'Installing: validator-configuration30x'
   Remove-Dir (Join-Path $Root 'validator-configuration30x')
   $zip = Join-Path $Root 'validator-configuration30x.zip'
-  Invoke-Download -Uri "https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/v2026-01-31/xrechnung-3.0.2-validator-configuration-2026-01-31.zip" -Destination $zip -Label 'config30x download'
+  Invoke-Download -Uri "https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/v2026-08-31/xrechnung-3.0.2-validator-configuration-2026-08-31.zip" -Destination $zip -Label 'config30x download'
   Expand-Archive $zip -DestinationPath (Join-Path $Root 'validator-configuration30x') -Force
   Remove-File $zip
 }
@@ -128,7 +128,7 @@ function Install-Bis {
   Write-Host 'Installing: validator-configuration-bis'
   Remove-Dir (Join-Path $Root 'validator-configuration-bis')
   $zip = Join-Path $Root 'validator-configuration-bis.zip'
-  Invoke-Download -Uri "https://github.com/itplr-kosit/validator-configuration-bis/releases/download/release-3.0.20/validation-configuration-bis-3.0.20.zip" -Destination $zip -Label 'bis download'
+  Invoke-Download -Uri "https://github.com/itplr-kosit/validator-configuration-bis/releases/download/release-3.0.21/validation-configuration-bis-3.0.21.zip" -Destination $zip -Label 'bis download'
   Expand-Archive $zip -DestinationPath (Join-Path $Root 'validator-configuration-bis') -Force
   Remove-File $zip
 }
@@ -155,9 +155,23 @@ function Install-Vis30x {
   Write-Host 'Installing: visualization30x'
   Remove-Dir (Join-Path $Root 'visualization30x')
   $zip = Join-Path $Root 'visualization30x.zip'
-  Invoke-Download -Uri "https://github.com/itplr-kosit/xrechnung-visualization/releases/download/v2026-01-31/xrechnung-3.0.2-visualization-2026-01-31.zip" -Destination $zip -Label 'visualization30x download'
+  Invoke-Download -Uri "https://github.com/itplr-kosit/xrechnung-visualization/releases/download/v2026-08-31/xrechnung-3.0.2-visualization-2026-08-31.zip" -Destination $zip -Label 'visualization30x download'
   Expand-Archive $zip -DestinationPath (Join-Path $Root 'visualization30x') -Force
   Remove-File $zip
+}
+
+function Install-VisBis {
+  # Offizielles OpenPEPPOL-Stylesheet fuer Peppol BIS Billing 3.0 (UBL Invoice und CreditNote).
+  # Eine einzige, in sich geschlossene XSLT-2.0-Datei - CSS und Codelisten sind eingebettet,
+  # deshalb kein Zip und keine weiteren Dateien. Sie wird unter xsl/ abgelegt, damit die
+  # Verzeichnisstruktur der von KoSIT gelieferten Visualisierungen entspricht.
+  # Bezogen wird die veroeffentlichte Fassung von docs.peppol.eu; die getaggte Quelldatei im
+  # GitHub-Repo (stylesheet/stylesheet-ubl.xslt) ist dieselbe XSLT *ohne* die eingebetteten
+  # Codelisten und zeigt Codes wie H87 oder S daher unaufgeloest an.
+  Write-Host 'Installing: visualization-bis (Peppol BIS Billing 3.0 stylesheet)'
+  Remove-Dir (Join-Path $Root 'visualization-bis')
+  $targetFile = Join-Path $Root 'visualization-bis\xsl\stylesheet-ubl.xslt'
+  Invoke-Download -Uri "https://docs.peppol.eu/poacc/billing/3.0/files/stylesheet-ubl.xslt" -Destination $targetFile -Label 'visualization-bis download'
 }
 
 function Install-Jre {
@@ -217,7 +231,7 @@ function Install-Mustang {
   }
 }
 
-$all = @('validator','config23x','config30x','bis','zugferd','vis23x','vis30x','jre','fop','saxon','mustang')
+$all = @('validator','config23x','config30x','bis','zugferd','vis23x','vis30x','visbis','jre','fop','saxon','mustang')
 if (-not $Modules -or $Modules.Count -eq 0) { $Modules = $all }
 $Modules = $Modules | ForEach-Object { $_.ToLower() }
 
@@ -237,6 +251,7 @@ foreach ($m in $Modules) {
     'zugferd'     { Install-Zugferd }
     'vis23x'      { Install-Vis23x }
     'vis30x'      { Install-Vis30x }
+    'visbis'      { Install-VisBis }
     'jre'         { Install-Jre }
     'fop'         { Install-Fop }
     'saxon'       { Install-Saxon }

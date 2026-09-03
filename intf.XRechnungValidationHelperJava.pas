@@ -80,6 +80,7 @@ type
     function SetValidatorLibPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetValidatorConfigurationPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetVisualizationLibPath(const _Path : String) : IXRechnungValidationHelperJava;
+    function SetPeppolVisualizationLibPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetSaxonLibPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetFopLibPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetMustangprojectLibPath(const _Path : String) : IXRechnungValidationHelperJava;
@@ -91,6 +92,8 @@ type
     function VisualizeAsPdf(const _InvoiceXMLData : String; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function VisualizeFile(const _InvoiceXMLFilename : String; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
     function VisualizeFileAsPdf(const _InvoiceXMLFilename : String; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
+    function PeppolVisualize(const _InvoiceXMLData : String; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
+    function PeppolVisualizeFile(const _InvoiceXMLFilename : String; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
     function MustangValidateFile(const _InvoiceXMLFilename : String; out _CmdOutput,_ValidationResultAsXML : String) : Boolean;
     function MustangVisualizeFile(const _InvoiceXMLFilename : String; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
     function MustangVisualizeFileAsPdf(const _InvoiceXMLFilename : String; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
@@ -114,6 +117,7 @@ type
     ValidatorLibPath : String;
     ValidatorConfigurationPath : TStringList;
     VisualizationLibPath : String;
+    PeppolVisualizationLibPath : String;
     SaxonLibPath : String;
     FopLibPath : String;
     MustangprojectPath : String;
@@ -156,6 +160,7 @@ type
     function SetValidatorLibPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetValidatorConfigurationPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetVisualizationLibPath(const _Path : String) : IXRechnungValidationHelperJava;
+    function SetPeppolVisualizationLibPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetSaxonLibPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetFopLibPath(const _Path : String) : IXRechnungValidationHelperJava;
     function SetMustangprojectLibPath(const _Path : String) : IXRechnungValidationHelperJava;
@@ -167,6 +172,8 @@ type
     function VisualizeAsPdf(const _InvoiceXMLData : String; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
     function VisualizeFile(const _InvoiceXMLFilename : String; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
     function VisualizeFileAsPdf(const _InvoiceXMLFilename : String; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
+    function PeppolVisualize(const _InvoiceXMLData : String; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
+    function PeppolVisualizeFile(const _InvoiceXMLFilename : String; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
     function MustangValidateFile(const _InvoiceXMLFilename : String; out _CmdOutput,_ValidationResultAsXML : String) : Boolean;
     function MustangVisualizeFile(const _InvoiceXMLFilename : String; out _CmdOutput,_VisualizationAsHTML : String) : Boolean;
     function MustangVisualizeFileAsPdf(const _InvoiceXMLFilename : String; out _CmdOutput : String; out _VisualizationAsPdf : TMemoryStream) : Boolean;
@@ -998,6 +1005,12 @@ begin
   Result := self;
 end;
 
+function TXRechnungValidationHelperJava.SetPeppolVisualizationLibPath(const _Path: String): IXRechnungValidationHelperJava;
+begin
+  PeppolVisualizationLibPath := IncludeTrailingPathDelimiter(_Path);
+  Result := self;
+end;
+
 function TXRechnungValidationHelperJava.Validate(const _InvoiceXMLData: String; out _CmdOutput,
   _ValidationResultAsXML, _ValidationResultAsHTML: String): Boolean;
 var
@@ -1545,6 +1558,94 @@ begin
       Result := false;
   finally
     DeleteTempFiles(tmpFilename); // deckt auch den "exit"-Pfad oben ab
+  end;
+end;
+
+// Visualisierung mit dem offiziellen OpenPEPPOL-Stylesheet (Peppol BIS Billing 3.0).
+// Anders als die KoSIT-Visualisierung ist das ein einstufiger Weg: das Stylesheet erzeugt
+// direkt HTML, es gibt kein XR-Zwischenformat und damit auch keinen FO-/PDF-Zweig.
+// Es verarbeitet UBL Invoice und UBL CreditNote; CII kann es nicht - dafuer bleibt die
+// KoSIT-Visualisierung (Visualize/VisualizeFile) zustaendig.
+// Die Beschriftungen sind englisch: das Stylesheet kennt zwar einen Parameter "language",
+// seine Uebersetzungstabelle enthaelt aber nur Eintraege mit id="en".
+function TXRechnungValidationHelperJava.PeppolVisualize(const _InvoiceXMLData: String;
+  out _CmdOutput, _VisualizationAsHTML: String): Boolean;
+var
+  hstrl: TStringList;
+  tmpFilename : String;
+begin
+  Result := false;
+  _CmdOutput := '';
+  _VisualizationAsHTML := '';
+  if _InvoiceXMLData = '' then
+    exit;
+  if not RequireDir(TempPath) then
+    exit;
+
+  tmpFilename := GetNewTempFileName(TempPath);
+  if tmpFilename = '' then
+    exit;
+
+  hstrl := TStringList.Create;
+  try
+    hstrl.Text := _InvoiceXMLData;
+    hstrl.SaveToFile(tmpFilename,TEncoding.UTF8);
+
+    Result := PeppolVisualizeFile(tmpFilename,_CmdOutput,_VisualizationAsHTML);
+  finally
+    DeleteTempFiles(tmpFilename);
+    hstrl.Free;
+  end;
+end;
+
+function TXRechnungValidationHelperJava.PeppolVisualizeFile(
+  const _InvoiceXMLFilename: String;
+  out _CmdOutput, _VisualizationAsHTML: String): Boolean;
+var
+  tmpFilename : String;
+  version : Integer;
+begin
+  Result := false;
+  _CmdOutput := '';
+  _VisualizationAsHTML := '';
+  if _InvoiceXMLFilename = '' then
+    exit;
+  if not RequireFile(_InvoiceXMLFilename) then
+    exit;
+  if not RequireFile(JavaRuntimeEnvironmentPath+'bin\java.exe') then
+    exit;
+  if not RequireFile(SaxonLibPath+'saxon-he-12.9.jar') then
+    exit;
+  if not RequireFile(SaxonLibPath+'lib\xmlresolver-5.3.3.jar') then
+    exit;
+  if not RequireFile(PeppolVisualizationLibPath+'xsl\stylesheet-ubl.xslt') then
+    exit;
+  version := GetVersionFromFile(_InvoiceXMLFilename);
+  if not (version in [1,2]) then //nur UBL Invoice und UBL CreditNote
+  begin
+    HandleValidationError('Das Peppol-Stylesheet verarbeitet nur UBL Invoice und UBL CreditNote.');
+    exit;
+  end;
+  if not RequireDir(TempPath) then
+    exit;
+
+  tmpFilename := GetNewTempFileName(TempPath);
+  if tmpFilename = '' then
+    exit;
+
+  try
+    Result := SaxonTransform(_InvoiceXMLFilename,
+                PeppolVisualizationLibPath+'xsl\stylesheet-ubl.xslt',
+                ChangeFileExt(tmpFilename,'-.html'),ExtractFilePath(tmpFilename));
+    _CmdOutput := CmdOutput.Text;
+
+    if FileExists(ChangeFileExt(tmpFilename,'-.html')) then
+      _VisualizationAsHTML := ReadTextFileUtf8(ChangeFileExt(tmpFilename,'-.html'));
+
+    if _VisualizationAsHTML = '' then
+      Result := false;
+  finally
+    DeleteTempFiles(tmpFilename);
   end;
 end;
 

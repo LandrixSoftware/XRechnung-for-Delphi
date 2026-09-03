@@ -32,7 +32,26 @@ Set-ExecutionPolicy Unrestricted
 
  - Schließe PowerShell und versuche es erneut.
 
+## Visualisierung
+
+Es gibt zwei Visualisierungen, die das Skript in getrennte Verzeichnisse legt:
+
+- `visualization30x` - die Visualisierung der KoSIT (Module `vis23x`/`vis30x`). Sie verarbeitet
+  UBL und CII, beschriftet deutsch und kann ueber Apache FOP auch PDF erzeugen. In der Bibliothek
+  sind das `Visualize`/`VisualizeFile` und `VisualizeAsPdf`/`VisualizeFileAsPdf`.
+- `visualization-bis` - das offizielle OpenPEPPOL-Stylesheet fuer Peppol BIS Billing 3.0
+  (Modul `visbis`). Eine einzige XSLT-Datei, die direkt HTML erzeugt: kein PDF-Zweig, nur UBL
+  (Invoice und CreditNote), englische Beschriftungen, dafuer mit aufgeloesten Codelisten
+  (`H87 - piece` statt `H87`). In der Bibliothek `PeppolVisualize`/`PeppolVisualizeFile`.
+
 ## Historie
+- 03.09.2026 Update\
+  https://docs.peppol.eu/poacc/billing/3.0/files/stylesheet-ubl.xslt\
+  https://github.com/itplr-kosit/validator-configuration-bis/releases/download/release-3.0.21/validation-configuration-bis-3.0.21.zip\
+  https://github.com/itplr-kosit/validator/releases/download/v1.6.3/validator-1.6.3-standalone.jar\
+  https://github.com/itplr-kosit/validator-configuration-xrechnung/releases/download/v2026-08-31/xrechnung-3.0.2-validator-configuration-2026-08-31.zip\
+  https://github.com/itplr-kosit/xrechnung-visualization/releases/download/v2026-08-31/xrechnung-3.0.2-visualization-2026-08-31.zip
+
 - 08.12.2025 Update\
   https://github.com/Saxonica/Saxon-HE/releases/download/SaxonHE12-9/SaxonHE12-9J.zip\
   https://github.com/LandrixSoftware/validator-configuration-zugferd/releases/download/validation-configuration-zugferd-2.3.3-20251208/validation-configuration-zugferd-2.3.3-2025-12-08.zip
@@ -110,6 +129,8 @@ https://github.com/itplr-kosit/validator
 https://github.com/itplr-kosit/validator-configuration-xrechnung
 
 https://github.com/itplr-kosit/xrechnung-visualization
+
+https://github.com/OpenPEPPOL/peppol-bis-invoice-3/tree/master/stylesheet
 
 https://adoptium.net/de/
 

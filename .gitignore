@@ -36,6 +36,8 @@ Documentation/*.rc
 Documentation/*.res
 Documentation/*.eml
 Documentation/*.md
+!Documentation/Parteikennungen-BT-29-BT-46.md
+!Documentation/ZUGFeRD-Support.md
 Documentation/More
 Samples/Win32
 Samples/Win64

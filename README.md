@@ -2,137 +2,221 @@
 
 # XRechnung-for-Delphi
 
-Erstellen von Rechnungen im 
+Elektronische Rechnungen **schreiben und lesen** – in Delphi und FreePascal, ohne externe Werkzeuge.
+Auch die in ein ZUGFeRD-/Factur-X-PDF eingebettete Rechnung holt die Bibliothek selbst heraus, ohne
+Mustang, PDFtk oder Java.
 
-- XRechnung-UBL-Format (Universal Business Language)
-- XRechnung-CII-Format (Cross Industrie Invoice)
-- ZUGFeRD-EXTENDED-Format
+## Formate und Versionen
 
-## Version
+| Format | schreiben | lesen |
+|---|:---:|:---:|
+| XRechnung 3.0.2 – UBL (Universal Business Language) | ja | ja |
+| XRechnung 3.0.2 – CII (Cross Industry Invoice) | ja | ja |
+| ZUGFeRD / Factur-X 2.5.2 – EN16931 | ja | ja |
+| ZUGFeRD / Factur-X 2.5.2 – EXTENDED | ja | ja |
+| Peppol BIS Billing 3.0 | ja | ja |
+| ältere XRechnung (1.2 bis 2.3) und fremde EN16931-CIUS | – | ja |
+| ZUGFeRD 1.0 (`rsm:CrossIndustryDocument`) | – | – |
 
-Aktuell unterstützte Versionen:
+Seit dem 1.2.2024 darf nur noch als XRechnung 3.0.x geschrieben werden; ältere Stände lassen sich
+weiterhin einlesen, die Feldstruktur ist dieselbe. Die Zuordnung der BT-/BG-Nummern zu den Feldern
+des Datenmodells steht als Kommentar in [intf.Invoice.pas](intf.Invoice.pas), eine Übersicht der
+Pflichtfelder findet sich unter [xeinkauf.de](https://xeinkauf.de/xrechnung/versionen-und-bundles/).
 
-- XRechnung 3.0.2 gültig ab 1.2.2024 - Übersicht der Pflichtfelder unter https://blog.seeburger.com/de/xrechnung-version-3-0-1-gueltig-ab-01-februar-2024/
-- ZUGFeRD 2.5.0 EXTENDED gültig ab 1.7.2026
-- ZUGFeRD 2.5.0 EN16931 gültig ab 1.7.2026
-- Peppol BIS Billing 3.0
+## Plattformen
 
-## Beispiele
+- **Delphi** XE7 oder neuer, Win32 und Win64 – XML über MSXML
+- **FreePascal** 3.2.2 / Lazarus mit `{$MODE DELPHIUNICODE}`, Windows und Linux – XML über `fcl-xml`
+- **Delphi 6**: eigene Fassung im Verzeichnis [Delphi6/](Delphi6/), ohne die optionale
+  ZUGFeRD-for-Delphi-Anbindung
 
-Zu finden unter Samples\XRechnungUnit2TestCases.pas
+Der Lese- und Schreibcode ist für beide Compiler derselbe; unter FreePascal liegt mit
+[intf.XRechnungXmlShim.pas](intf.XRechnungXmlShim.pas) eine Anpassungsschicht darunter.
 
-Alle Beispiele als erzeugte ERechnung sind im Ordner ValidXMLExamples zu finden. Sie sind komplett valide gegenüber dem Validierer [valitool.org](https://valitool.org/).
+## Einbindung
 
-## ZUGFeRD Support
+Die Units des Wurzelverzeichnisses in den Suchpfad legen – weitere Abhängigkeiten gibt es nicht.
 
-Um den Import von ZUGFeRD-Rechnungen anderer Versionen als > 2.3.2 zu ermöglichen, 
-wurde die Bibliothek ZUGFeRD-for-Delphi integriert. Die Quellen hier zu finden:
+| Unit | Rolle |
+|---|---|
+| [intf.Invoice.pas](intf.Invoice.pas) | Datenmodell: `TInvoice`, `TInvoiceLine`, Codelisten |
+| [intf.XRechnung.pas](intf.XRechnung.pas) | Fassade: `TXRechnungInvoiceAdapter`, Versionserkennung |
+| [intf.XRechnung_3_0.pas](intf.XRechnung_3_0.pas) | Lesen und Schreiben von UBL und CII |
+| [intf.XRechnungHelper.pas](intf.XRechnungHelper.pas) | XPath-Lesehelfer |
+| [intf.XRechnungPdfExtract.pas](intf.XRechnungPdfExtract.pas) | Anhangsextraktion aus PDF |
+| [intf.XRechnungXmlShim.pas](intf.XRechnungXmlShim.pas) | nur FreePascal |
+| [intf.XRechnungValidationHelperJava.pas](intf.XRechnungValidationHelperJava.pas) | optional: Aufruf von Validator und Visualisierung |
 
-https://github.com/LandrixSoftware/ZUGFeRD-for-Delphi
-
-Aktivieren Sie dazu auch in der Unit intf.XRechnung.pas den Compiler-Schalter ZUGFeRD_Support.
+## Rechnung schreiben
 
 ```delphi
-{$DEFINE ZUGFeRD_Support}
-```
-Ebenso steht zusätzlich eine Klasse TZUGFeRDAdditionalContent zur Verfügung, um weitere ZUGFeRD-Profil-Inhalte zu laden, die nicht vom XRechnungs-Profil unterstützt werden, z.B. die abweichende Rechnungsanschrift. Eine Instanz dieser Klasse kann man optional an die Methode TXRechnungInvoiceAdapter.LoadFrom...() übergeben. Sie enthält außerdem die geladene ZUGFeRD-Rechnung als 
-komplettes Objekt. Hier kann man selbst weitere ZUGFeRD-Inhalte auslesen.
+uses
+  intf.Invoice, intf.XRechnung;
 
-```delphi
-  TZUGFeRDAdditionalContent = class
-  public
-    ZUGFeRDInvoice : TZUGFeRDInvoiceDescriptor;
-
-    InvoiceeTradePartyFound : Boolean;
-    InvoiceeTradeParty : TInvoiceAccountingParty;
-
-    SpecifiedLogisticsServiceChargeFound : Boolean;
-  end;
-
-  var error : String;
-  var inv : TInvoice := TInvoice.Create;
-  var invAdditionalData : TZUGFeRDAdditionalContent := TZUGFeRDAdditionalContent.Create;
+var
+  inv : TInvoice;
+begin
+  inv := TInvoice.Create;
   try
-    if TXRechnungInvoiceAdapter.LoadFromFile(inv, aFileName,
-                                  error, invAdditionalData) then
+    inv.InvoiceNumber := 'R2026-0815';
+    inv.InvoiceIssueDate := EncodeDate(2026,9,3);
+    inv.InvoiceDueDate := EncodeDate(2026,10,1);
+    inv.InvoiceTypeCode := itc_CommercialInvoice;
+    inv.InvoiceCurrencyCode := 'EUR';
+    inv.TaxCurrencyCode := 'EUR';
+    inv.BuyerReference := TInvoiceEmptyLeitwegID.NON_EXISTENT;   //B2B ohne Leitweg-ID
+
+    with inv.AccountingSupplierParty do
     begin
-      invAdditionalData.ZUGFeRDInvoice. .....
-    end;  
+      RegistrationName := 'Verkaeufer GmbH';
+      Address.StreetName := 'Hauptstrasse 1';
+      Address.City := 'Verkaeuferstadt';
+      Address.PostalZone := '01234';
+      Address.CountryCode := 'DE';
+      VATCompanyID := 'DE123456788';
+      ContactName := 'Meier';
+      ContactTelephone := '030 0815';
+      ContactElectronicMail := 'meier@verkaeufer.de';
+      ElectronicAddressSellerBuyer := 'rechnung@verkaeufer.de';   //BT-34
+      ElectronicAddressSellerBuyerSchemeID := 'EM';
+    end;
+
+    with inv.AccountingCustomerParty do
+    begin
+      RegistrationName := 'Kaeufer AG';
+      Address.StreetName := 'Nebenweg 2';
+      Address.City := 'Kaeuferstadt';
+      Address.PostalZone := '05678';
+      Address.CountryCode := 'DE';
+      ElectronicAddressSellerBuyer := 'rechnung@kaeufer.de';      //BT-49
+      ElectronicAddressSellerBuyerSchemeID := 'EM';
+    end;
+
+    inv.DeliveryInformation.ActualDeliveryDate := EncodeDate(2026,9,1);
+
+    with inv.PaymentTypes.AddPaymentType do
+    begin
+      PaymentMeansCode := ipmc_SEPACreditTransfer;
+      FinancialAccount := 'DE75512108001245126199';
+      FinancialAccountName := 'Verkaeufer GmbH';
+    end;
+    inv.PaymentTermsType := iptt_Net;
+    inv.PaymentTermNetNote := 'Zahlbar bis zum 01.10.2026 ohne Abzug.';
+
+    with inv.InvoiceLines.AddInvoiceLine do
+    begin
+      ID := '1';
+      Name := 'Beratungsleistung';
+      Quantity := 2;
+      UnitCode := iuc_hour;
+      NetPriceAmount := 100;
+      LineAmount := 200;
+      TaxPercent := 19.0;
+      TaxCategory := idtfcc_S_StandardRate;
+    end;
+
+    with inv.TaxAmountSubtotals.AddTaxAmount do
+    begin
+      TaxPercent := 19.0;
+      TaxCategory := idtfcc_S_StandardRate;
+      TaxableAmount := 200.00;
+      TaxAmount := 38.00;
+    end;
+    inv.TaxAmountTotal := 38.00;
+
+    inv.LineAmount := 200.00;
+    inv.TaxExclusiveAmount := 200.00;
+    inv.TaxInclusiveAmount := 238.00;
+    inv.PayableAmount := 238.00;
+
+    TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,'rechnung-ubl.xml');
   finally
-    invAdditionalData.Free;
+    inv.Free;
+  end;
+end;
+```
+
+Dieses Beispiel erzeugt eine gegen den KoSIT-Validator gültige XRechnung 3.0.2. Für ein anderes
+Zielformat genügt es, die Version zu wechseln: `XRechnungVersion_30x_UNCEFACT` (CII),
+`ZUGFeRDEN16931Version_250`, `ZUGFeRDExtendedVersion_250` oder `PeppolBillingVersion_30`. Neben
+`SaveToFile` gibt es `SaveToStream` und `SaveToXMLStr`.
+
+Ob eine Rechnung ins Zielprofil passt, beantwortet vorab:
+
+```delphi
+if not TXRechnungInvoiceAdapter.ConsistencyCheck(inv,XRechnungVersion_30x_UBL,errorCode) then
+  //enthält Werte, die dieses Profil nicht erlaubt - errorCode sagt welche
+```
+
+Die Prüfung ist nicht vollständig und wird laufend erweitert.
+
+## Rechnung lesen
+
+Derselbe Aufruf nimmt XML und PDF entgegen; erst der letzte Parameter erlaubt den PDF-Weg:
+
+```delphi
+var
+  inv : TInvoice;
+  error : String;
+begin
+  inv := TInvoice.Create;
+  try
+    if TXRechnungInvoiceAdapter.LoadFromFile(inv,'rechnung.pdf',error,true) then
+      //gelesen - egal ob XML oder ZUGFeRD-/Factur-X-PDF
+  finally
     inv.Free;
   end;
 ```
 
-## Delphi 6 Support
+Dazu passend gibt es `LoadFromStream`, `LoadFromXMLStr` sowie
+`TXRechnungValidationHelper.GetXRechnungVersion`, das ein Format erkennt, bevor man es einliest.
 
-Für Delphi 6 gibt es eine spezielle Version, die unter dem Verzeichnis Delphi6 zu finden ist. 
-Diese Version enthält keine ZUGFeRD-for-Delphi-Unterstützung.
+Ausdrücklich aus einem PDF liest `LoadFromPdfFile` / `LoadFromPdfStream` – sie liefern zusätzlich den
+Namen des Anhangs (`factur-x.xml`, `xrechnung.xml`, `ZUGFeRD-invoice.xml`, …). Sämtliche Anhänge eines
+PDFs, auch Beilagen nach BG-24, bekommt man über `TXRechnungPdfExtractor.ExtractAllFromFile`. Die
+Extraktion ist vollständig in Pascal geschrieben: eigener PDF-Objektparser mit xref-, XRef- und
+Object-Streams. Verschlüsselte PDFs mit leerem Benutzerpasswort (reines Berechtigungspasswort) werden
+gelesen; AES-verschlüsselte und passwortgeschützte PDFs werden gemeldet, nicht geraten. Details unter
+[Tests/PdfExtract/README.md](Tests/PdfExtract/README.md).
 
-## Hilfsfunktion für den XRechnung-Export
+## Validierung und Visualisierung
 
-Prüft, ob die zu exportierende Rechnung den Anforderungen der XRechnung entspricht. Gibt False zurück, wenn die Rechnung Werte enthält, die nicht im XRechnung-Profil erlaubt sind. Die Funktion ist nicht vollständig und wird ständig erweitert.
+Im Verzeichnis [Distribution/](Distribution/) richtet `installtools.ps1` die Werkzeuge ein: den
+KoSIT-Validator mit den Konfigurationen für XRechnung, Peppol BIS und ZUGFeRD, dazu Saxon, eine JRE,
+Apache FOP, Mustang und beide Visualisierungen – die der KoSIT (HTML und PDF, deutsch) und das
+offizielle OpenPEPPOL-Stylesheet für Peppol BIS Billing 3.0. Angesprochen werden sie über
+[intf.XRechnungValidationHelperJava.pas](intf.XRechnungValidationHelperJava.pas); Einzelheiten stehen
+in [Distribution/README.md](Distribution/README.md).
 
-```delphi
-unit intf.XRechnung;
+## Beispiele und Tests
 
-TXRechnungInvoiceAdapter.ConsistencyCheck(_Invoice : TInvoice; _Version : TXRechnungVersion) : Boolean;
-```
-## Kennungen der Parteien (BT-29 / BT-46)
+- [Samples/](Samples/) – VCL-Demo zum Erzeugen, Validieren und Visualisieren. Die Testfälle in
+  `XRechnungUnit2TestCases.pas` decken vom Minimalbeispiel bis zu Skonto, Differenzbesteuerung und
+  Reverse-Charge alles ab, was die Bibliothek kann.
+- [ValidXMLExamples/](ValidXMLExamples/) – 102 aus diesen Testfällen erzeugte Rechnungen, alle gegen
+  den KoSIT-Validator geprüft (Schema, Schematron, Acceptance).
+- [Tests/FreePascal/](Tests/FreePascal/) – Schreib-Parität und Lese-Roundtrip unter FreePascal gegen
+  dieselben 102 Dateien.
+- [Tests/PdfExtract/](Tests/PdfExtract/) – Test der PDF-Anhangsextraktion unter Delphi und FreePascal.
 
-Für die Kennung des Verkäufers (BT-29) und des Käufers (BT-46) stehen je Partei zwei Felder zur Verfügung:
+## Weitere Themen
 
-```delphi
-inv.AccountingSupplierParty.IdentifierSellerBuyer := 'KRED-10001';                //BT-29 Kreditor-Nr.
-inv.AccountingSupplierParty.GlobalIdentifierSellerBuyer := '4123450000027';       //BT-29-0 z.B. GLN
-inv.AccountingSupplierParty.GlobalIdentifierSellerBuyerSchemeID := '0088';        //BT-29-1 Schema, Default 0088
+- [Kennungen der Parteien (BT-29 / BT-46)](Documentation/Parteikennungen-BT-29-BT-46.md) – wann eine
+  Kreditor-Nummer und wann eine GLN geschrieben wird, und warum in UBL nur eine von beiden ankommt.
+  **Enthält einen Migrationshinweis für Anwendungen bis Version 3.0.2.7.**
+- [Optionaler ZUGFeRD-Lesepfad](Documentation/ZUGFeRD-Support.md) – Anbindung von
+  [ZUGFeRD-for-Delphi](https://github.com/LandrixSoftware/ZUGFeRD-for-Delphi) über den Schalter
+  `ZUGFeRD_Support`, um an Profil-Inhalte jenseits des XRechnungs-Modells zu kommen.
 
-inv.AccountingCustomerParty.IdentifierSellerBuyer := '20003';                     //BT-46 Debitor-Nr.
-inv.AccountingCustomerParty.GlobalIdentifierSellerBuyer := '4260000000004';       //BT-46-0
-inv.AccountingCustomerParty.GlobalIdentifierSellerBuyerSchemeID := '0088';        //BT-46-1
-```
+## Weiterführende Links
 
-Der Unterschied ist das Schema: `GlobalIdentifierSellerBuyer` ist für Kennungen aus der ICD-Codeliste gedacht (0088 GLN, 0060 DUNS, 0021 SWIFT, 0177 ODETTE), `IdentifierSellerBuyer` für eine eigene Kreditor- oder Debitor-Nummer ohne Schema.
+- [Peppol BIS Billing 3.0 – UBL-Syntax](https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice)
+- [xeinkauf.de – XRechnung-Versionen und Bundles](https://xeinkauf.de/xrechnung/versionen-und-bundles/)
+- [KoSIT auf GitHub – Validator, Konfiguration, Visualisierung](https://github.com/itplr-kosit)
+- [GEFEG-Profilbrowser – CII / Factur-X](https://portal3.gefeg.com/invoice/tthome/index/617afdc4-623f-44e0-a05b-5b878840e508)
+- Online validieren: [ecosio](https://ecosio.com/de/peppol-und-xml-dokumente-online-validieren/) · [portinvoice](https://www.portinvoice.com/) · [valitool](https://valitool.org/)
 
-**In UBL kommt je Partei nur eine Kennung an.** Sind beide Felder gefüllt, wird die GlobalID geschrieben und die Kennung verworfen. Ursache sind die Kardinalitätsregeln `UBL-SR-16` (Käufer) und das UBL-Syntaxbinding unter BG-4-0 (Verkäufer, `VD-Valitool-23`). In CII gilt dasselbe für den Käufer (`CII-SR-450`), lediglich unter ZUGFeRD EXTENDED werden `ram:ID` und `ram:GlobalID` gemeinsam ausgegeben.
-
-Die Gläubiger-ID (BT-90) belegt in UBL ebenfalls eine `cac:PartyIdentification` beim Verkäufer, unterschieden über `schemeID="SEPA"`. Der KoSIT-Validator prüft beide Kennungsarten getrennt – je eine Regel für `[@schemeID = 'SEPA']` und für `[@schemeID != 'SEPA']` – und lässt die Kombination zu. [valitool.org](https://valitool.org/) zählt dagegen alle `cac:PartyIdentification` unter BG-4-0 zusammen und meldet `VD-Valitool-23`, sobald eine Verkäuferkennung und eine Gläubiger-ID zusammentreffen, also bei jeder Lastschrift mit GLN. Die Bibliothek schreibt trotzdem beide: BT-90 hat in UBL keine andere Abbildung, und eine der beiden Angaben zu unterdrücken würde gültige Daten verlieren.
-
-Beim Einlesen greift dieselbe Aufteilung: Eine `cbc:ID` mit `schemeID` (außer SEPA) landet in `GlobalIdentifierSellerBuyer`, eine ohne Schema in `IdentifierSellerBuyer`.
-
-### Hinweis für Bestandsanwendungen
-
-Bis einschließlich Version 3.0.2.7 wurde `IdentifierSellerBuyer` in UBL immer mit `schemeID="0088"` ausgegeben, also als GLN deklariert. Wer dieses Feld tatsächlich für eine GLN genutzt hat, muss den Wert nach `GlobalIdentifierSellerBuyer` umstellen – andernfalls erreicht die GLN den Empfänger nicht mehr. Unter Peppol war die alte Ausgabe ohnehin fehlerhaft, dort wird `schemeID="0088"` gegen die GS1-Prüfziffer validiert (`PEPPOL-COMMON-R040`).
-
-## Weitere Informationen zu XRechnung
-
-- UBL-Format\
-  https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice
-
-- CII-Format\
-  https://portal3.gefeg.com/invoice/tthome/index/617afdc4-623f-44e0-a05b-5b878840e508
-
-- Validieren von XRechnung\
-  https://ecosio.com/de/peppol-und-xml-dokumente-online-validieren/ \
-  https://www.portinvoice.com/
-
-- https://portal3.gefeg.com/projectdata/invoice/deliverables/installed/publishingproject/factur-x%20(zugferd%202.0)/factur-x;%20draft;%20extended.scm/html/021.htm?https://portal3.gefeg.com/projectdata/invoice/deliverables/installed/publishingproject/factur-x%20(zugferd%202.0)/factur-x;%20draft;%20extended.scm/html/02233.htm
-
-- https://www.verband-e-rechnung.org/xrechnung/
-
-- https://xeinkauf.de/
-
-- https://xeinkauf.de/xrechnung/versionen-und-bundles/
-
-- https://github.com/itplr-kosit
-
-- https://cranesoftwrights.github.io/resources/Crane-UBL-2.2-Skeleton/Crane-UBL-Invoice-2.2.html#result
-
-- https://www.e-rechnung-bund.de/wp-content/uploads/2023/04/Uebersichtslisten-Eingabefelder-OZG-RE.pdf
-
-- https://www.deutschebahn.com/en/invoicing-6930178#collapse6130808
-
-# Lizenz / License
+## Lizenz / License
 
 english version below
 

@@ -12,13 +12,17 @@ Set-Location "d:\Projekte\src-XRechnung-for-Delphi\Tests\PdfExtract\Scripts"
 
 ## Nutzung in der Bibliothek
 
-Die Fassade nutzt die Unit automatisch — `LoadFromFile` nimmt ein PDF genauso an
-wie eine XML-Datei:
+Die Fassade nutzt die Unit — `LoadFromFile` nimmt ein PDF genauso an wie eine
+XML-Datei, sobald der letzte Parameter den PDF-Weg erlaubt:
 
 ```pascal
-if TXRechnungInvoiceAdapter.LoadFromFile(invoice, 'rechnung.pdf', err) then
+if TXRechnungInvoiceAdapter.LoadFromFile(invoice, 'rechnung.pdf', err, true) then
   // gelesen, egal ob PDF oder XML
 ```
+
+Ohne diesen Schalter (Standard `false`) bleibt es bei der reinen XML-Sicht. Mit
+aktivem `ZUGFeRD_Support` steht `_AdditionalContent` davor, der Aufruf lautet
+dann `LoadFromFile(invoice, 'rechnung.pdf', err, nil, true)`.
 
 Ausdrücklich, wenn der Name des Anhangs interessiert:
 

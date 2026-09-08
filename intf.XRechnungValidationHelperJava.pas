@@ -242,7 +242,7 @@ function TXRechnungValidationHelperJava.ExecAndWait(const _Filename, _Params : S
   const _WorkDir : String = ''; const _StdOutFilename : String = '';
   const _EnvOverrides : TStrings = nil) : Boolean;
 var
-  SA: TSecurityAttributes;
+  SA, JobSA: TSecurityAttributes;
   SI: TStartupInfo;
   PI: TProcessInformation;
   StdOutPipeRead, StdOutPipeWrite, StdOutFile, StdInRead, StdInWrite, Job: THandle;
@@ -330,7 +330,15 @@ begin
     // faellt der Code auf TerminateProcess zurueck.
     if ExecTimeoutSeconds > 0 then
     begin
-      Job := CreateJobObject(nil,nil);
+      // Eigene Sicherheitsstruktur statt SA: das Job-Handle darf nicht vererbbar sein,
+      // sonst haelt eine geerbte Kopie im Kindprozess das Jobobjekt am Leben und
+      // KILL_ON_JOB_CLOSE greift beim Schliessen unseres Handles nicht mehr.
+      // Kein nil, weil Winapi.Windows die Zeiger-Ueberladung von CreateJobObject erst
+      // ab Delphi 10.3 kennt; die var-Fassung gibt es in allen Versionen.
+      JobSA.nLength := SizeOf(JobSA);
+      JobSA.bInheritHandle := False;
+      JobSA.lpSecurityDescriptor := nil;
+      Job := CreateJobObject(JobSA,nil);
       if Job <> 0 then
       begin
         FillChar(JobLimits,SizeOf(JobLimits),0);

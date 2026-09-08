@@ -109,6 +109,13 @@ type
 
 implementation
 
+//Winapi.Windows kennt die Jobobjekt-Konstante erst ab Delphi 10.3; unter 10.2
+//und aelter selbst deklarieren. Wert laut winnt.h, dort seit Windows 2000.
+{$IF NOT DECLARED(JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE)}
+const
+  JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = $00002000;
+{$IFEND}
+
 type
   TXRechnungValidationHelperJava = class(TInterfacedObject,IXRechnungValidationHelperJava)
   private

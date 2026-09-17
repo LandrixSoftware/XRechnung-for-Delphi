@@ -572,7 +572,8 @@ type
     ID : String; //BT-126 Positionsnummer
     GlobalID_EAN_GTIN: String; //BG-31, BT-157 GTIN/EAN
     Note : String; //BT-127 Hinweis
-    //BT-128 fehlt, "Objektkennung auf Ebene der Rechnungsposition", vom Verkaeufer vergeben
+    ObjectIdentifier : String; //BT-128 Objektkennung auf Ebene der Rechnungsposition, vom Verkaeufer vergeben
+    ObjectIdentifierSchemeID : String; //BT-128-1 Kennung des Schemas, Codeliste UNTDID 1153, z.B. ON = Bestellnummer des Kaeufers
     Name : String; //BG-31, BT-153 Kurztext
     Description : String; //BG-31, BT-154 Laengere Beschreibung
     Quantity : double; //BT-129 Menge
@@ -1082,6 +1083,8 @@ begin
   ID := '';
   GlobalID_EAN_GTIN := '';
   Note := '';
+  ObjectIdentifier := '';
+  ObjectIdentifierSchemeID := '';
   Name := '';
   Description := '';
   Quantity := 0;

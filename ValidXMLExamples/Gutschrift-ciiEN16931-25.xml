@@ -57,6 +57,10 @@
         <ram:SpecifiedTradeSettlementLineMonetarySummation>
           <ram:LineTotalAmount>500.00</ram:LineTotalAmount>
         </ram:SpecifiedTradeSettlementLineMonetarySummation>
+        <ram:AdditionalReferencedDocument>
+          <ram:IssuerAssignedID>OBJ-4711</ram:IssuerAssignedID>
+          <ram:TypeCode>130</ram:TypeCode>
+        </ram:AdditionalReferencedDocument>
       </ram:SpecifiedLineTradeSettlement>
     </ram:IncludedSupplyChainTradeLineItem>
     <ram:ApplicableHeaderTradeAgreement>

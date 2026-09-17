@@ -124,6 +124,10 @@
     <cbc:ID>01</cbc:ID>
     <cbc:CreditedQuantity unitCode="H87">1.0000</cbc:CreditedQuantity>
     <cbc:LineExtensionAmount currencyID="EUR">500.00</cbc:LineExtensionAmount>
+    <cac:DocumentReference>
+      <cbc:ID>OBJ-4711</cbc:ID>
+      <cbc:DocumentTypeCode>130</cbc:DocumentTypeCode>
+    </cac:DocumentReference>
     <cac:Item>
       <cbc:Description>Provision</cbc:Description>
       <cbc:Name>Provision</cbc:Name>

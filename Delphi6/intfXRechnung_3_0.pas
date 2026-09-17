@@ -84,6 +84,16 @@ var
       _Invoiceline.InvoiceLinePeriodEndDate := TXRechnungHelper.DateFromStrUBLFormat(TXRechnungXMLHelper.SelectNodeText(node,'.//cbc:EndDate'));
     end;
     _InvoiceLine.OrderLineReference := TXRechnungXMLHelper.SelectNodeText(_Node, './/cac:OrderLineReference/cbc:LineID');
+    //BT-128 : nur die Referenz mit dem Code 130 ist die Objektkennung
+    if TXRechnungXMLHelper.SelectNodes(_Node,'cac:DocumentReference',nodes) then
+    for i := 0 to nodes.length-1 do
+    if TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'cbc:DocumentTypeCode') = '130' then
+    if TXRechnungXMLHelper.SelectNode(nodes.item[i],'cbc:ID',node) then
+    begin
+      _InvoiceLine.ObjectIdentifier := node.text;
+      _InvoiceLine.ObjectIdentifierSchemeID := TXRechnungXMLHelper.SelectAttributeText(node,'schemeID');
+      break;
+    end;
     if TXRechnungXMLHelper.SelectNodes(_Node,'cac:AllowanceCharge',nodes) then
     for i := 0 to nodes.length-1 do
     with _Invoiceline.AllowanceCharges.AddAllowanceCharge do
@@ -563,6 +573,15 @@ var
       if TXRechnungXMLHelper.SelectNode(node2,'.//ram:SpecifiedTradeSettlementLineMonetarySummation',node) then
       begin
         _Invoiceline.LineAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(node,'.//ram:LineTotalAmount'));
+      end;
+      //BT-128 : nur die Referenz mit dem Code 130 ist die Objektkennung, EXTENDED erlaubt weitere
+      if TXRechnungXMLHelper.SelectNodes(node2,'ram:AdditionalReferencedDocument',nodes) then
+      for i := 0 to nodes.length-1 do
+      if TXRechnungXMLHelper.SelectNodeText(nodes[i],'ram:TypeCode') = '130' then
+      begin
+        _InvoiceLine.ObjectIdentifier := TXRechnungXMLHelper.SelectNodeText(nodes[i],'ram:IssuerAssignedID');
+        _InvoiceLine.ObjectIdentifierSchemeID := TXRechnungXMLHelper.SelectNodeText(nodes[i],'ram:ReferenceTypeCode');
+        break;
       end;
       _InvoiceLine.BuyerAccountingReference := TXRechnungXMLHelper.SelectNodeText(node2, './/ram:ReceivableSpecifiedTradeAccountingAccount/ram:ID');
     end;
@@ -1107,10 +1126,17 @@ var
     end;
     if (_InvoiceLine.OrderLineReference <> '') then
       _Node.AddChild('cac:OrderLineReference').AddChild('cbc:LineID').Text := _InvoiceLine.OrderLineReference;
-    //  <cac:DocumentReference>
-    //     <cbc:ID/>
-    //     <cbc:DocumentType>916</cbc:DocumentType>
-    //  </cac:DocumentReference>
+    if (_InvoiceLine.ObjectIdentifier <> '') then //BT-128
+    with _Node.AddChild('cac:DocumentReference') do
+    begin
+      with AddChild('cbc:ID') do
+      begin
+        if (_InvoiceLine.ObjectIdentifierSchemeID <> '') then
+          Attributes['schemeID'] := _InvoiceLine.ObjectIdentifierSchemeID;
+        Text := _InvoiceLine.ObjectIdentifier;
+      end;
+      AddChild('cbc:DocumentTypeCode').Text := '130';
+    end;
     for i := 0 to _Invoiceline.AllowanceCharges.Count-1 do
     with _Node.AddChild('cac:AllowanceCharge') do
     begin
@@ -1981,6 +2007,14 @@ var
       with AddChild('ram:SpecifiedTradeSettlementLineMonetarySummation') do
       begin
         AddChild('ram:LineTotalAmount').Text := TXRechnungHelper.AmountToStr(_Invoiceline.LineAmount);
+      end;
+      if (_InvoiceLine.ObjectIdentifier <> '') then //BT-128
+      with AddChild('ram:AdditionalReferencedDocument') do
+      begin
+        AddChild('ram:IssuerAssignedID').Text := _InvoiceLine.ObjectIdentifier;
+        AddChild('ram:TypeCode').Text := '130';
+        if (_InvoiceLine.ObjectIdentifierSchemeID <> '') then
+          AddChild('ram:ReferenceTypeCode').Text := _InvoiceLine.ObjectIdentifierSchemeID;
       end;
       if (_InvoiceLine.BuyerAccountingReference <> '') then
         AddChild('ram:ReceivableSpecifiedTradeAccountingAccount').AddChild('ram:ID').Text := _InvoiceLine.BuyerAccountingReference;

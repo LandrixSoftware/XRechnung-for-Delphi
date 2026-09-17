@@ -76,6 +76,11 @@ Zeile 3</ram:Description>
         <ram:SpecifiedTradeSettlementLineMonetarySummation>
           <ram:LineTotalAmount>100.00</ram:LineTotalAmount>
         </ram:SpecifiedTradeSettlementLineMonetarySummation>
+        <ram:AdditionalReferencedDocument>
+          <ram:IssuerAssignedID>4500123456</ram:IssuerAssignedID>
+          <ram:TypeCode>130</ram:TypeCode>
+          <ram:ReferenceTypeCode>ON</ram:ReferenceTypeCode>
+        </ram:AdditionalReferencedDocument>
         <ram:ReceivableSpecifiedTradeAccountingAccount>
           <ram:ID>6171175.1</ram:ID>
         </ram:ReceivableSpecifiedTradeAccountingAccount>

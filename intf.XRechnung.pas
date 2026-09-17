@@ -66,6 +66,7 @@ uses
   ,intf.ZUGFeRDElectronicAddress
   ,intf.ZUGFeRDElectronicAddressSchemeIdentifiers
   ,intf.ZUGFeRDAdditionalReferencedDocumentTypeCodes
+  ,intf.ZUGFeRDReferenceTypeCodes
   ,intf.ZUGFeRDTradeLineItem
   ,System.Generics.Collections
   {$ENDIF}
@@ -2501,6 +2502,14 @@ begin
   begin
     _InvoiceLine.OrderNumber := _TradeLineItem.BuyerOrderReferencedDocument.ID; //BT-X-21
     _InvoiceLine.OrderLineReference := _TradeLineItem.BuyerOrderReferencedDocument.LineID; //BT-132
+  end;
+  //BT-128 : nur die Referenz mit dem Code 130 ist die Objektkennung, EXTENDED erlaubt weitere
+  for j := 0 to _TradeLineItem.AdditionalReferencedDocuments.Count-1 do
+  if CodeFromEnum<TZUGFeRDAdditionalReferencedDocumentTypeCode>(_TradeLineItem.AdditionalReferencedDocuments[j].TypeCode) = '130' then
+  begin
+    _InvoiceLine.ObjectIdentifier := _TradeLineItem.AdditionalReferencedDocuments[j].ID; //BT-128
+    _InvoiceLine.ObjectIdentifierSchemeID := CodeFromEnum<TZUGFeRDReferenceTypeCodes>(_TradeLineItem.AdditionalReferencedDocuments[j].ReferenceTypeCode); //BT-128-1
+    break;
   end;
   if _TradeLineItem.ReceivableSpecifiedTradeAccountingAccounts.Count > 0 then
     _InvoiceLine.BuyerAccountingReference := _TradeLineItem.ReceivableSpecifiedTradeAccountingAccounts.First.TradeAccountID; //BT-133

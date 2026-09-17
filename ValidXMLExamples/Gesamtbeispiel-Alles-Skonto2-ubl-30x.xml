@@ -283,6 +283,10 @@
     <cac:OrderLineReference>
       <cbc:LineID>6171175.1</cbc:LineID>
     </cac:OrderLineReference>
+    <cac:DocumentReference>
+      <cbc:ID schemeID="ON">4500123456</cbc:ID>
+      <cbc:DocumentTypeCode>130</cbc:DocumentTypeCode>
+    </cac:DocumentReference>
     <cac:Item>
       <cbc:Description>Langtext Artikel
 Zeile 2

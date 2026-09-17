@@ -525,6 +525,8 @@ begin
     ID := '001'; //Positionsnummer
     GlobalID_EAN_GTIN := '978381582086'; //EAN
     //Note : String; //Hinweis
+    ObjectIdentifier := '4500123456'; //BT-128 Objektkennung der Position
+    ObjectIdentifierSchemeID := 'ON'; //BT-128-1 UNTDID 1153, ON = Bestellnummer des Kaeufers
     Name := 'Kurzinfo Artikel 1'; //Kurztext
     Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
     Quantity := 2; //Menge
@@ -812,6 +814,7 @@ begin
   with inv.InvoiceLines.AddInvoiceLine do
   begin
     ID := '01'; //Positionsnummer
+    ObjectIdentifier := 'OBJ-4711'; //BT-128 ohne Schema-Kennung
     Name := 'Provision'; //Kurztext
     Description := 'Provision'; //Laengere Beschreibung
     Quantity := 1; //Menge

@@ -199,6 +199,20 @@ in [Distribution/README.md](Distribution/README.md).
   dieselben 102 Dateien.
 - [Tests/PdfExtract/](Tests/PdfExtract/) – Test der PDF-Anhangsextraktion unter Delphi und FreePascal.
 
+## Sicherheit und Cyber Resilience Act / Security and Cyber Resilience Act
+
+**Deutsch:** Hinweise zu vertraulichen Schwachstellenmeldungen und zum dokumentierten Supportstand
+stehen in [SECURITY.md](SECURITY.md#deutsch). Die [CRA-Dokumentation](Documentation/Cyber-Resilience-Act.md#deutsch)
+beschreibt die Einordnung, Komponenten und Vorbereitungsschritte für Hersteller, die diese Bibliothek
+einsetzen. Die Konformität erzeugter Rechnungen mit einem Rechnungsformat ist kein Nachweis der
+CRA-Konformität der Bibliothek oder der Anwendung.
+
+**English:** See [SECURITY.md](SECURITY.md#english) for private vulnerability reporting and the
+documented support status. The [CRA documentation](Documentation/Cyber-Resilience-Act.md#english)
+describes the context, components and preparation steps for manufacturers integrating this library.
+Conformance of generated invoices to an invoice format does not demonstrate CRA compliance of the
+library or the application.
+
 ## Weitere Themen
 
 - [Kennungen der Parteien (BT-29 / BT-46)](Documentation/Parteikennungen-BT-29-BT-46.md) – wann eine

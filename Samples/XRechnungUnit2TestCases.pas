@@ -70,6 +70,8 @@ type
     class procedure ThirdPartyPaymentBGDEX09(inv : TInvoice; //Durchlaufender Posten
                        NachlaesseZuschlaegeVerwenden : Boolean);
     class procedure VierNachkommastellen(inv : TInvoice);
+    //Preiseinheit BT-149 mit mehr als 2 Nachkommastellen (0.001 m3), frueher auf 0.00 gerundet
+    class procedure BasismengeNachkommastellen(inv : TInvoice);
     //Elektronische Adressen BT-34/BT-49 mit frei waehlbarem Schema: unter Peppol ist
     //weder 'EM' noch ein leeres Schema zulaessig, die XRechnung-Profile ersetzen ein
     //leeres Schema dagegen weiterhin durch 'EM'
@@ -2392,6 +2394,105 @@ begin
   inv.ChargeTotalAmount := 0; //Zuschlaege
   inv.PrepaidAmount := 0; //Anzahlungen
   inv.PayableAmount := 9.82;      //Summe Zahlbar MwSt
+end;
+
+class procedure TInvoiceTestCases.BasismengeNachkommastellen(inv: TInvoice);
+var
+  suc : Boolean;
+begin
+  inv.InvoiceNumber := 'R2020-0815';
+  inv.InvoiceIssueDate := TInvoiceTestCases.InvoiceIssueDate;          //Rechnungsdatum
+  inv.InvoiceDueDate := TInvoiceTestCases.InvoiceDueDate;         //Faelligkeitsdatum
+  inv.InvoicePeriodStartDate := TInvoiceTestCases.InvoicePeriodStartDate;
+  inv.InvoicePeriodEndDate := TInvoiceTestCases.InvoicePeriodEndDate;
+  inv.InvoiceTypeCode := TInvoiceTypeCode.itc_CommercialInvoice; //Schlussrechnung
+  inv.InvoiceCurrencyCode := 'EUR';
+  inv.TaxCurrencyCode := 'EUR';
+  inv.BuyerReference := TInvoiceEmptyLeitwegID.NON_EXISTENT; //B2B ohne Leitweg-ID
+  with inv.Notes.AddNote do //Sollte ausgefuellt werden
+  begin
+    Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
+    SubjectCode := insc_REG;
+  end;
+
+  inv.AccountingSupplierParty.Name := '';
+  inv.AccountingSupplierParty.RegistrationName := 'Verkaeufername'; //Sollte ausgefuellt werden
+  inv.AccountingSupplierParty.CompanyID :=  '';
+  inv.AccountingSupplierParty.Address.StreetName := ''; //Nicht wirklich Pflicht
+  inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
+  inv.AccountingSupplierParty.Address.PostalZone := '01234';
+  inv.AccountingSupplierParty.Address.CountryCode := 'DE';
+  //inv.AccountingSupplierParty.VATCompanyID := 'DE123456788';
+  inv.AccountingSupplierParty.VATCompanyNumber := '222/111/4444';
+  inv.AccountingSupplierParty.ContactName := 'Meier';
+  inv.AccountingSupplierParty.ContactTelephone := '030 0815';
+  inv.AccountingSupplierParty.ContactElectronicMail := 'meier@company.com';
+  //BT-34 Gibt die elektronische Adresse des Verkaeufers an, an die die Antwort auf eine Rechnung gesendet werden kann.
+  //Aktuell nur Unterstuetzung fuer schemeID=EM ElectronicMail
+  //Weitere Codes auf Anfrage
+  //https://www.xrepository.de/details/urn:xoev-de:kosit:codeliste:eas_4#version
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@company.com';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
+  //Um valide Rechnung zu erzeugen, weil keine UStID vorhanden ist
+  if (inv.AccountingSupplierParty.VATCompanyID = '') and
+     (inv.AccountingSupplierParty.CompanyID = '') then
+    inv.AccountingSupplierParty.CompanyID := TInvoiceEmptyLeitwegID.NON_EXISTENT;
+
+  inv.AccountingCustomerParty.Name := '';
+  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
+  inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
+  inv.AccountingCustomerParty.Address.StreetName := ''; //Nicht wirklich Pflicht
+  inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
+  inv.AccountingCustomerParty.Address.PostalZone := '05678';
+  inv.AccountingCustomerParty.Address.CountryCode := 'DE';
+  //bei AccountingCustomerParty nur eine VAT von beiden
+  //Die EN16931 laesst ausschliesslich die UStID zu
+  //Wenn nur die VATCompanyNumber angegeben wird, liefert die Validierung gegen ZUGFeRD einen Fehler
+  inv.AccountingCustomerParty.VATCompanyID := 'DE123456788';
+  //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
+
+  //Lieferdatum
+  inv.DeliveryInformation.ActualDeliveryDate := TInvoiceTestCases.InvoicePeriodEndDate;
+
+  inv.PaymentTypes.AddPaymentType.PaymentMeansCode := ipmc_InstrumentNotDefined;
+
+  inv.PaymentTermsType := iptt_None;
+
+  with inv.InvoiceLines.AddInvoiceLine do
+  begin
+    ID := '01'; //Positionsnummer
+    Name := 'Kurzinfo Artikel 1'; //Kurztext
+    Description := 'Langtext Artikel'+#13#10+'Zeile 2'+#13#10+'Zeile 3'; //Laengere Beschreibung
+    Quantity := 4; //Menge in Kubikmeter
+    UnitCode := TInvoiceUnitCode.iuc_cubic_metre; //Mengeneinheit
+    TaxPercent := 19.0; //MwSt
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    GrossPriceAmount := 0.05; //Brutto-Einzelpreis je 0.001 m3
+    DiscountOnTheGrossPrice := 0;
+    NetPriceAmount := 0.05; //Netto-Einzelpreis je 0.001 m3
+    BaseQuantity := 0.001; //Preiseinheit mit 3 Nachkommastellen
+    BaseQuantityUnitCode := TInvoiceUnitCode.iuc_cubic_metre; //wie UnitCode (PEPPOL-EN16931-R130)
+    LineAmount := 200.00; //4 * 0.05 / 0.001 (PEPPOL-EN16931-R120)
+  end;
+
+  inv.TaxAmountTotal := 38.00; //Summe der gesamten MwSt
+  with inv.TaxAmountSubtotals.AddTaxAmount do
+  begin
+    TaxPercent := 19.0;
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    TaxableAmount := 200.00;
+    TaxAmount := 38.00;
+  end;
+
+  inv.LineAmount := 200.00;        //Summe
+  inv.TaxExclusiveAmount := 200.00; //Summe ohne MwSt
+  inv.TaxInclusiveAmount := 238.00; //Summe inkl MwSt
+  inv.AllowanceTotalAmount := 0; //Abzuege
+  inv.ChargeTotalAmount := 0; //Zuschlaege
+  inv.PrepaidAmount := 0; //Anzahlungen
+  inv.PayableAmount := 238.00;      //Summe Zahlbar MwSt
 end;
 
 class procedure TInvoiceTestCases.PeppolEndpointSchemeID(inv: TInvoice;

@@ -69,6 +69,7 @@ type
     class function PercentageToStr(_Val : double) : String;
     class function PercentageFromStr(_Val : String) : double;
     class function QuantityToStr(_Val : double) : String;
+    class function BaseQuantityToStr(_Val : double) : String;
     class function QuantityFromStr(_Val : String) : double;
     class function InvoiceTypeCodeToStr(_Val : TInvoiceTypeCode) : String;
     class function InvoiceTypeCodeFromStr(const _Val : String) : TInvoiceTypeCode;
@@ -553,7 +554,7 @@ end;
 class function TXRechnungHelper.AmountToStr(
   _Val: Currency): String;
 begin
-  Result := StringReplace(Format('%.2f',[_Val]),',','.',[rfIgnoreCase,rfReplaceAll]);
+  Result := StringReplace(Format('%.2f',[_Val]),DecimalSeparator,'.',[rfReplaceAll]);
 end;
 
 class function TXRechnungHelper.UnitPriceAmountFromStr(
@@ -572,9 +573,9 @@ var
 begin
   lRounded := RoundTo(_Val,-2);
   if _Val = lRounded then
-    Result := StringReplace(Format('%.2f',[_Val]),',','.',[rfIgnoreCase,rfReplaceAll])
+    Result := StringReplace(Format('%.2f',[_Val]),DecimalSeparator,'.',[rfReplaceAll])
   else
-    Result := StringReplace(Format('%.4f',[_Val]),',','.',[rfIgnoreCase,rfReplaceAll]);
+    Result := StringReplace(Format('%.4f',[_Val]),DecimalSeparator,'.',[rfReplaceAll]);
 end;
 
 class function TXRechnungHelper.DateFromStrUBLFormat(const _Val : String) : TDateTime;
@@ -615,7 +616,7 @@ class function TXRechnungHelper.FloatToStr(
 begin
   if _DecimalPlaces < 0 then
     _DecimalPlaces := 0;
-  Result := StringReplace(Format('%.'+IntToStr(_DecimalPlaces)+'f',[_Val]),',','.',[rfIgnoreCase,rfReplaceAll]);
+  Result := StringReplace(Format('%.'+IntToStr(_DecimalPlaces)+'f',[_Val]),DecimalSeparator,'.',[rfReplaceAll]);
 end;
 
 class function TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeFromStr(
@@ -1474,7 +1475,7 @@ end;
 
 class function TXRechnungHelper.PercentageToStr(_Val: double): String;
 begin
-  Result := StringReplace(Format('%.2f',[_Val]),',','.',[rfIgnoreCase,rfReplaceAll]);
+  Result := StringReplace(Format('%.2f',[_Val]),DecimalSeparator,'.',[rfReplaceAll]);
 end;
 
 class function TXRechnungHelper.QuantityFromStr(_Val: String): double;
@@ -1484,7 +1485,21 @@ end;
 
 class function TXRechnungHelper.QuantityToStr(_Val: double): String;
 begin
-  Result := StringReplace(Format('%.4f',[_Val]),',','.',[rfIgnoreCase,rfReplaceAll]);
+  Result := StringReplace(Format('%.4f',[_Val]),DecimalSeparator,'.',[rfReplaceAll]);
+end;
+
+class function TXRechnungHelper.BaseQuantityToStr(_Val: double): String;
+begin
+  //BT-149 ist eine Menge ohne Begrenzung der Nachkommastellen (keine BR-DEC-Regel),
+  //0.001 darf also nicht zu 0.00 werden. Mit 6 Stellen formatieren (mehr bringt bei
+  //grossen Werten das Rauschen von double ins XML) und Nullen am Ende bis auf
+  //mindestens 2 Nachkommastellen streichen: 1 -> 1.00, 0.001 -> 0.001
+  Result := StringReplace(Format('%.6f',[_Val]),DecimalSeparator,'.',[rfReplaceAll]);
+  //Sehr grosse Werte gibt Format in Exponentialdarstellung aus - dort nicht kuerzen
+  if Pos('E',UpperCase(Result)) > 0 then
+    exit;
+  while (Result[Length(Result)] = '0') and (Length(Result) - Pos('.',Result) > 2) do
+    Delete(Result,Length(Result),1);
 end;
 
 class procedure TXRechnungHelper.ReadPaymentTerms(_Invoice: TInvoice;

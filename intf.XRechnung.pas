@@ -91,6 +91,8 @@ type
     class function PercentageFromStr(_Val : String) : double;
     class function QuantityToStr(_Val : double) : String;
     class function QuantityFromStr(_Val : String) : double;
+    class function BaseQuantityToStr(_Val : double) : String;
+    class function XmlFormatSettings : TFormatSettings;
     class function InvoiceTypeCodeToStr(_Val : TInvoiceTypeCode) : String;
     class function InvoiceTypeCodeFromStr(const _Val : String) : TInvoiceTypeCode;
     class function InvoicePaymentMeansCodeToStr(_Val : TInvoicePaymentMeansCode) : String;
@@ -748,15 +750,14 @@ class function TXRechnungHelper.AmountFromStr(_Val: String): Currency;
 var
   fs : TFormatSettings;
 begin
-  fs.ThousandSeparator := ',';
-  fs.DecimalSeparator := '.';
+  fs := XmlFormatSettings;
   Result := StrToCurrDef(_Val,0,fs);
 end;
 
 class function TXRechnungHelper.AmountToStr(
   _Val: Currency): String;
 begin
-  Result := ReplaceText(Format('%.2f',[_Val]),',','.');
+  Result := Format('%.2f',[_Val],XmlFormatSettings);
 end;
 
 class function TXRechnungHelper.UnitPriceAmountFromStr(
@@ -767,8 +768,7 @@ begin
   Result := 0;
   if _Val = '' then
     exit;
-  fs.ThousandSeparator := ',';
-  fs.DecimalSeparator := '.';
+  fs := XmlFormatSettings;
   Result := StrToCurrDef(_Val,0,fs);
 end;
 
@@ -779,9 +779,9 @@ var
 begin
   lRounded := RoundTo(_Val,-2);
   if _Val = lRounded then
-    Result := ReplaceText(Format('%.2f',[_Val]),',','.')
+    Result := Format('%.2f',[_Val],XmlFormatSettings)
   else
-    Result := ReplaceText(Format('%.4f',[_Val]),',','.');
+    Result := Format('%.4f',[_Val],XmlFormatSettings);
 end;
 
 class function TXRechnungHelper.DateFromStrUBLFormat(const _Val : String) : TDateTime;
@@ -816,8 +816,7 @@ class function TXRechnungHelper.FloatFromStr(_Val: String): double;
 var
   fs : TFormatSettings;
 begin
-  fs.ThousandSeparator := ',';
-  fs.DecimalSeparator := '.';
+  fs := XmlFormatSettings;
   Result := StrToFloatDef(_Val,0,fs);
 end;
 
@@ -826,7 +825,7 @@ class function TXRechnungHelper.FloatToStr(
 begin
   if _DecimalPlaces < 0 then
     _DecimalPlaces := 0;
-  Result := ReplaceText(Format('%.'+IntToStr(_DecimalPlaces)+'f',[_Val]),',','.');
+  Result := Format('%.'+IntToStr(_DecimalPlaces)+'f',[_Val],XmlFormatSettings);
 end;
 
 class function TXRechnungHelper.InvoiceAllowanceOrChargeIdentCodeFromStr(
@@ -1705,28 +1704,48 @@ class function TXRechnungHelper.PercentageFromStr(_Val: String): double;
 var
   fs : TFormatSettings;
 begin
-  fs.ThousandSeparator := ',';
-  fs.DecimalSeparator := '.';
+  fs := XmlFormatSettings;
   Result := StrToFloatDef(_Val,0,fs);
 end;
 
 class function TXRechnungHelper.PercentageToStr(_Val: double): String;
 begin
-  Result := ReplaceText(Format('%.2f',[_Val]),',','.');
+  Result := Format('%.2f',[_Val],XmlFormatSettings);
 end;
 
 class function TXRechnungHelper.QuantityFromStr(_Val: String): double;
 var
   fs : TFormatSettings;
 begin
-  fs.ThousandSeparator := ',';
-  fs.DecimalSeparator := '.';
+  fs := XmlFormatSettings;
   Result := StrToFloatDef(_Val,0,fs);
 end;
 
 class function TXRechnungHelper.QuantityToStr(_Val: double): String;
 begin
-  Result := ReplaceText(Format('%.4f',[_Val]),',','.');
+  Result := Format('%.4f',[_Val],XmlFormatSettings);
+end;
+
+class function TXRechnungHelper.BaseQuantityToStr(_Val: double): String;
+begin
+  //BT-149 ist eine Menge ohne Begrenzung der Nachkommastellen (keine BR-DEC-Regel),
+  //0.001 darf also nicht zu 0.00 werden. Mit 6 Stellen formatieren (mehr bringt bei
+  //grossen Werten das Rauschen von double ins XML) und Nullen am Ende bis auf
+  //mindestens 2 Nachkommastellen streichen: 1 -> 1.00, 0.001 -> 0.001
+  Result := Format('%.6f',[_Val],XmlFormatSettings);
+  //Sehr grosse Werte gibt Format in Exponentialdarstellung aus - dort nicht kuerzen
+  if Pos('E',UpperCase(Result)) > 0 then
+    exit;
+  while (Result[Length(Result)] = '0') and (Length(Result) - Pos('.',Result) > 2) do
+    Delete(Result,Length(Result),1);
+end;
+
+var
+  GXmlFormatSettings : TFormatSettings;
+
+class function TXRechnungHelper.XmlFormatSettings: TFormatSettings;
+begin
+  Result := GXmlFormatSettings;
 end;
 
 class procedure TXRechnungHelper.ReadPaymentTerms(_Invoice: TInvoice;
@@ -2772,6 +2791,18 @@ begin
 end;
 
 {$ENDIF}
+
+initialization
+  //Zahlen im XML immer mit '.' als Dezimaltrennzeichen, unabhaengig von den
+  //Laendereinstellungen des Systems. Einmalig belegt und danach nur gelesen,
+  //daher threadsicher - anders als ein Umschalten der globalen FormatSettings.
+  {$IFDEF FPC}
+  GXmlFormatSettings := DefaultFormatSettings;
+  {$ELSE}
+  GXmlFormatSettings := TFormatSettings.Create;
+  {$ENDIF}
+  GXmlFormatSettings.DecimalSeparator := '.';
+  GXmlFormatSettings.ThousandSeparator := ',';
 
 end.
 

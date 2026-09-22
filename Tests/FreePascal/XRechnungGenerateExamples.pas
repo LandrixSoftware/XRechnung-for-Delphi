@@ -258,6 +258,15 @@ begin
   TInvoiceTestCases.VierNachkommastellen(inv);
   Sv(XRechnungVersion_30x_UNCEFACT,'Vier-Nachkommastellen-cii-30x.xml');
   inv.Free;
+
+  inv := TInvoice.Create;
+  TInvoiceTestCases.BasismengeNachkommastellen(inv);
+  Sv(XRechnungVersion_30x_UBL,'Basismenge-Nachkommastellen-ubl-30x.xml');
+  Sv(ZUGFeRDEN16931Version_250,'Basismenge-Nachkommastellen-ciiEN16931-25.xml');
+  Sv(ZUGFeRDExtendedVersion_250,'Basismenge-Nachkommastellen-ciiextended-25.xml');
+  Sv(XRechnungVersion_30x_UNCEFACT,'Basismenge-Nachkommastellen-cii-30x.xml');
+  EA; Sv(PeppolBillingVersion_30,'Basismenge-Nachkommastellen-ubl-peppol.xml');
+  inv.Free;
 end;
 
 end.

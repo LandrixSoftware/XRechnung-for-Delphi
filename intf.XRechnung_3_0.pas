@@ -1229,7 +1229,7 @@ var
       with AddChild('cbc:BaseQuantity') do
       begin
         Attributes['unitCode'] := TXRechnungHelper.InvoiceUnitCodeToStr(_Invoiceline.BaseQuantityUnitCode);
-        Text := TXRechnungHelper.FloatToStr(_Invoiceline.BaseQuantity);
+        Text := TXRechnungHelper.BaseQuantityToStr(_Invoiceline.BaseQuantity);
       end;
       if (_Invoiceline.GrossPriceAmount <> 0) then
       with AddChild('cac:AllowanceCharge') do
@@ -1935,7 +1935,7 @@ var
         with AddChild('ram:BasisQuantity') do
         begin
           Attributes['unitCode'] := TXRechnungHelper.InvoiceUnitCodeToStr(_Invoiceline.BaseQuantityUnitCode);
-          Text := TXRechnungHelper.FloatToStr(_Invoiceline.BaseQuantity);
+          Text := TXRechnungHelper.BaseQuantityToStr(_Invoiceline.BaseQuantity);
         end;
         with AddChild('ram:AppliedTradeAllowanceCharge') do //auch wenn DiscountOnTheGrossPrice 0 ist ausgeben
         begin
@@ -1952,7 +1952,7 @@ var
         with AddChild('ram:BasisQuantity') do
         begin
           Attributes['unitCode'] := TXRechnungHelper.InvoiceUnitCodeToStr(_Invoiceline.BaseQuantityUnitCode);
-          Text := TXRechnungHelper.FloatToStr(_Invoiceline.BaseQuantity);
+          Text := TXRechnungHelper.BaseQuantityToStr(_Invoiceline.BaseQuantity);
         end;
       end;
     end;

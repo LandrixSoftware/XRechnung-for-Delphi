@@ -242,7 +242,8 @@ object Form1: TForm1
       'Endpoint-Schema leer'
       'BT-29/46 nur Kennung'
       'BT-29/46 GLN + BT-90'
-      'BT-29/46 Kennung+GLN')
+      'BT-29/46 Kennung+GLN'
+      'Basismenge 0.001')
     TabOrder = 15
   end
   object cbValidateWithJava: TCheckBox

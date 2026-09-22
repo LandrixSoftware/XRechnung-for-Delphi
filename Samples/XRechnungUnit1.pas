@@ -501,6 +501,19 @@ begin
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Vier-Nachkommastellen-cii-30x.xml');
   inv.Free;
 
+  inv := TInvoice.Create;
+  TInvoiceTestCases.BasismengeNachkommastellen(inv);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'Basismenge-Nachkommastellen-ubl-30x.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'Basismenge-Nachkommastellen-ciiEN16931-25.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'Basismenge-Nachkommastellen-ciiextended-25.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'Basismenge-Nachkommastellen-cii-30x.xml');
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
+  inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'FR23342';
+  inv.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID := '0002';
+  TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Basismenge-Nachkommastellen-ubl-peppol.xml');
+  inv.Free;
+
   {$IFDEF USE_Valitool}
   Memo3.Clear;
 
@@ -864,6 +877,7 @@ begin
       19: TInvoiceTestCases.PartyIdentifierGLN(inv,true,false,false); //nur Kreditor-/Debitor-Nr.
       20: TInvoiceTestCases.PartyIdentifierGLN(inv,false,true,true);  //GLN und Glaeubiger-ID (BT-90)
       21: TInvoiceTestCases.PartyIdentifierGLN(inv,true,true,false);  //Kennung und GLN
+      22: TInvoiceTestCases.BasismengeNachkommastellen(inv);
       else ShowMessage('Hat einer was vergessen!');
     end;
 

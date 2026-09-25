@@ -1663,6 +1663,10 @@ begin
     Result := iuc_percent else
   if SameText(_Val,'XPK') then
     Result := iuc_packaging else
+  if SameText(_Val,'ANN') then
+    Result := iuc_year else
+  if SameText(_Val,'IE') then
+    Result := iuc_person else
   Result := iuc_one; //C62
 end;
 
@@ -1697,6 +1701,8 @@ begin
     iuc_kilowatt_hour : Result := 'KWH';
     iuc_percent : Result := 'P1';
     iuc_packaging : Result := 'XPK';
+    iuc_year : Result := 'ANN';
+    iuc_person : Result := 'IE';
   end;
 end;
 

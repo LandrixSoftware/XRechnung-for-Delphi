@@ -231,6 +231,8 @@ type
                       ,iuc_kilowatt_hour
                       ,iuc_percent
                       ,iuc_packaging //Verpackung
+                      ,iuc_year   //ANN
+                      ,iuc_person //IE
                       );
   //mehr Einheiten in Res\intf.Invoice.unusedUnits.pas
 

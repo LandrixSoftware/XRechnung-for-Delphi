@@ -5,6 +5,8 @@ Thank you for your interest in contributing to **XRechnung-for-Delphi**.
 Bug reports, test cases, documentation improvements and pull requests are welcome.
 Please read the following guidelines before submitting code.
 
+By submitting a pull request or other contribution, you agree to the contribution licensing terms described below.
+
 ## Project scope
 
 XRechnung-for-Delphi is a Pascal library for reading, writing and processing electronic invoices, including:

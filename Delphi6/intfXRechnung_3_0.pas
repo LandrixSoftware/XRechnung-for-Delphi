@@ -1079,16 +1079,56 @@ var
   i : Integer;
   bBT18Written : Boolean;
 
+  //Die XRechnung-Extension nur deklarieren, wenn die Rechnung tatsaechlich
+  //Extension-Inhalte enthaelt (KoSIT XRechnung 3.0, Kapitel Extension):
+  //Unterpositionen (cac:SubInvoiceLine), eingebettete XML-Anhaenge (BR-DEX-01),
+  //Fremdforderungen (BG-DEX-09, cac:PrepaidPayment) und die Extension-Codes
+  //XR01..XR03 als Kennung. Sonst die Standard-XRechnung - viele Empfaenger
+  //(z.B. die DATEV E-Rechnungsplattform) lehnen die Extension ab.
+  //Bekannte Unschaerfe: XML-Anhaenge, die der Writer weiter unten ueberspringt
+  //(iatc_50, iatc_130 ohne ID bzw. nach BT-18), zaehlen hier trotzdem.
   function InternalExtensionEnabled : Boolean;
+
+    function IsExtensionSchemeID(const _SchemeID : String) : Boolean;
+    begin
+      Result := SameText(_SchemeID,'XR01') or SameText(_SchemeID,'XR02') or SameText(_SchemeID,'XR03');
+    end;
+
+  var
+    i : Integer;
   begin
+    //KoSIT kennt kein Extension-Szenario fuer die UBL-Gutschrift (CreditNote):
+    //Gutschriften werden wie bisher nie als Extension deklariert.
     Result := false;
     if _Invoice.InvoiceTypeCode = itc_CreditNote then
       exit;
-    if _Invoice.InvoiceLines.Count > 0 then
-    begin
-      Result := true;
+    Result := true;
+    for i := 0 to _Invoice.InvoiceLines.Count-1 do
+    if _Invoice.InvoiceLines[i].SubInvoiceLines.Count > 0 then
       exit;
-    end;
+    for i := 0 to _Invoice.Attachments.Count-1 do
+    if _Invoice.Attachments[i].ContainsBinaryObject and
+       (_Invoice.Attachments[i].AttachmentType = iat_application_xml) then
+      exit;
+    if _Invoice.PrepaidPayments.Count > 0 then
+      exit;
+    if (_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyer <> '') and
+       IsExtensionSchemeID(_Invoice.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID) then
+      exit;
+    if (_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyer <> '') and
+       IsExtensionSchemeID(_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID) then
+      exit;
+    //XR-Codes auch als Kennung von Verkaeufer/Kaeufer (BT-29/BT-46) und Lieferort (BT-71)
+    if (_Invoice.AccountingSupplierParty.GlobalIdentifierSellerBuyer <> '') and
+       IsExtensionSchemeID(_Invoice.AccountingSupplierParty.GlobalIdentifierSellerBuyerSchemeID) then
+      exit;
+    if (_Invoice.AccountingCustomerParty.GlobalIdentifierSellerBuyer <> '') and
+       IsExtensionSchemeID(_Invoice.AccountingCustomerParty.GlobalIdentifierSellerBuyerSchemeID) then
+      exit;
+    if (_Invoice.DeliveryInformation.LocationIdentifier <> '') and
+       IsExtensionSchemeID(_Invoice.DeliveryInformation.LocationIdentifierSchemeID) then
+      exit;
+    Result := false;
   end;
 
   procedure InternalAddInvoiceLine(_Invoiceline : TInvoiceLine; _Node : IXMLNode);

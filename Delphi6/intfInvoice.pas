@@ -68,26 +68,36 @@ type
     ///vollstaendig oder mangelhaft erbracht wurde und damit der
     ///Rechnungsbetrag reduziert werden muss. Eine Rechnungskorrektur
     ///muss sich dabei immer auf eine bereits erstellte Rechnung beziehen.
+    ///Bezug: BT-25 Nummer und BT-26 Datum der Originalrechnung (XRechnung
+    ///3.0.2 Kap. 13.1, BR-DE-26). Ein vollstaendiges Storno hat negative
+    ///Mengen bei positiven Einzelpreisen und damit negative Summen.
     itc_CorrectedInvoice, //384
 
-    itc_PrepaymentInvoice, // 386 Vorauszahlungsrechnung - nicht in XRechnung verwenden
+    ///TypeCode: 386 Vorauszahlungsrechnung
+    ///In XRechnung nicht empfohlen (BR-DE-17 nennt nur 326, 380, 381, 384,
+    ///389, 875, 876, 877; Warnung, kein Abbruch). Vorausrechnungen (z. B.
+    ///Wartung im Voraus) als 380 mit Hinweis im Rechnungstext.
+    itc_PrepaymentInvoice,
 
     itc_Cancellation, // 457 Storno - nicht in XRechnung verwenden
 
     ///TypeCode: 389 Selbstfakturierte Rechnung
-    ///Eine selbstfakturierte Rechnung wird vom Kunden ausgestellt.
+    ///Eine selbstfakturierte Rechnung wird vom Kunden ausgestellt
+    ///(umsatzsteuerliche Gutschrift, Paragraph 14 Abs. 2 UStG).
     ///Der Lieferant erhaelt eine Rechnungskopie und die Zahlung von
     ///dem Kunde.
     ///Fuer die Abrechnung von Bauleistungen muessen gemaess Paragraph 14 und 16 VOB/B
     ///folgende Rechnungstypen verwendet werden.
     itc_SelfbilledInvoice,
 
-    ///TypeCode: 381 Gutschrift
-    ///Eine Gutschrift ist steuerrechtlich eine Rechnung, die -im Gegensatz
-    ///zur Rechnung- vom Leistungsempfaenger ausgestellt wird. Nicht zu
-    ///verwechseln ist die Gutschrift mit einer Rechnungskorrektur die
-    ///landlaeufig auch als Gutschrift bezeichnet wird.
-    ///Die Gutschrift weist immer einen positiven Betrag aus.
+    ///TypeCode: 381 Gutschrift (Credit Note)
+    ///Kaufmaennische Gutschrift des Lieferanten an den Kunden, z. B. fuer
+    ///Rueckgaben oder Preisnachlaesse; beim Storno einer gewoehnlichen
+    ///Rechnung mit positiven Betraegen. Nicht die umsatzsteuerliche
+    ///Gutschrift (Abrechnung durch den Leistungsempfaenger, Paragraph 14
+    ///Abs. 2 UStG) - dafuer gilt 389. In UBL ist 381 ein eigenes
+    ///CreditNote-Dokument, nicht Invoice; in CII nur der Code.
+    ///Fuer das Storno einer eigenen Rechnung 384 verwenden.
     itc_CreditNote,
 
     ///TypeCode: 875 Abschlagsrechnung (Bauleistung)
@@ -671,7 +681,7 @@ type
     ContactElectronicMail : String;
     AdditionalLegalInformationSeller : String; //BT-33 Weitere rechtliche Informationen zum Verkaeufer
     ElectronicAddressSellerBuyer : String; //BT-34, BT-49 Pflicht
-    ElectronicAddressSellerBuyerSchemeID : String; //EM E-Mail, 9930 Peppol-ID, Pflicht
+    ElectronicAddressSellerBuyerSchemeID : String; //EM E-Mail (nicht bei Peppol https://docs.peppol.eu/poacc/billing/3.0/codelist/eas/), 9930 Peppol-ID, Pflicht
   public
     constructor Create;
     destructor Destroy; override;

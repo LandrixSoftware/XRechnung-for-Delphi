@@ -6,7 +6,7 @@
   <cbc:IssueDate>2026-08-30</cbc:IssueDate>
   <cbc:DueDate>2026-09-29</cbc:DueDate>
   <cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
-  <cbc:Note>#REG#Geschaeftsfuehrer Herr Meier - HRB 789</cbc:Note>
+  <cbc:Note>#REG#Geschäftsführer Herr Meier - HRB 789</cbc:Note>
   <cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode>
   <cbc:AccountingCost>1234</cbc:AccountingCost>
   <cbc:BuyerReference>991-01484-64</cbc:BuyerReference>
@@ -78,12 +78,12 @@
     <cac:Party>
       <cbc:EndpointID schemeID="EM">antwortaufrechnung@company.com</cbc:EndpointID>
       <cac:PartyName>
-        <cbc:Name>Verkaeufername</cbc:Name>
+        <cbc:Name>Verkäufername</cbc:Name>
       </cac:PartyName>
       <cac:PostalAddress>
-        <cbc:StreetName>Verkaeuferstrasse 1</cbc:StreetName>
+        <cbc:StreetName>Verkäuferstraße 1</cbc:StreetName>
         <cbc:AdditionalStreetName>Hinterhaus</cbc:AdditionalStreetName>
-        <cbc:CityName>Verkaeuferstadt</cbc:CityName>
+        <cbc:CityName>Verkäuferstadt</cbc:CityName>
         <cbc:PostalZone>01234</cbc:PostalZone>
         <cbc:CountrySubentity>Sachsen</cbc:CountrySubentity>
         <cac:AddressLine>
@@ -106,7 +106,7 @@
         </cac:TaxScheme>
       </cac:PartyTaxScheme>
       <cac:PartyLegalEntity>
-        <cbc:RegistrationName>VerkaeuferRegistrationName</cbc:RegistrationName>
+        <cbc:RegistrationName>VerkäuferRegistrationName</cbc:RegistrationName>
       </cac:PartyLegalEntity>
       <cac:Contact>
         <cbc:Name>Meier</cbc:Name>
@@ -119,8 +119,8 @@
     <cac:Party>
       <cbc:EndpointID schemeID="EM">antwortaufrechnung@kunde.de</cbc:EndpointID>
       <cac:PostalAddress>
-        <cbc:StreetName>Kaeuferstrasse 1</cbc:StreetName>
-        <cbc:CityName>Kaeuferstadt</cbc:CityName>
+        <cbc:StreetName>Käuferstraße 1</cbc:StreetName>
+        <cbc:CityName>Käuferstadt</cbc:CityName>
         <cbc:PostalZone>05678</cbc:PostalZone>
         <cac:Country>
           <cbc:IdentificationCode>DE</cbc:IdentificationCode>
@@ -133,11 +133,11 @@
         </cac:TaxScheme>
       </cac:PartyTaxScheme>
       <cac:PartyLegalEntity>
-        <cbc:RegistrationName>Kaeufername</cbc:RegistrationName>
+        <cbc:RegistrationName>Käufername</cbc:RegistrationName>
         <cbc:CompanyID>HRB 456</cbc:CompanyID>
       </cac:PartyLegalEntity>
       <cac:Contact>
-        <cbc:Name>Mueller</cbc:Name>
+        <cbc:Name>Müller</cbc:Name>
         <cbc:Telephone>030 1508</cbc:Telephone>
         <cbc:ElectronicMail>mueller@kunde.de</cbc:ElectronicMail>
       </cac:Contact>
@@ -148,7 +148,7 @@
     <cac:DeliveryLocation>
       <cbc:ID schemeID="0088">4005998000007</cbc:ID>
       <cac:Address>
-        <cbc:StreetName>Lieferstrasse 1</cbc:StreetName>
+        <cbc:StreetName>Lieferstraße 1</cbc:StreetName>
         <cbc:CityName>Lieferstadt</cbc:CityName>
         <cbc:PostalZone>05678</cbc:PostalZone>
         <cac:Country>
@@ -214,7 +214,7 @@
   <cac:AllowanceCharge>
     <cbc:ChargeIndicator>true</cbc:ChargeIndicator>
     <cbc:AllowanceChargeReasonCode>AAA</cbc:AllowanceChargeReasonCode>
-    <cbc:AllowanceChargeReason>Zuschlag fuer Kommunikation</cbc:AllowanceChargeReason>
+    <cbc:AllowanceChargeReason>Zuschlag für Kommunikation</cbc:AllowanceChargeReason>
     <cbc:MultiplierFactorNumeric>10.0000</cbc:MultiplierFactorNumeric>
     <cbc:Amount currencyID="EUR">1.00</cbc:Amount>
     <cbc:BaseAmount currencyID="EUR">10.00</cbc:BaseAmount>

@@ -406,7 +406,7 @@ begin
   inv.BuyerReference := '991-01484-64'; //Leitweg-ID - wird vom Rechnungsempfaenger dem Rechnungsersteller zur Verfuegung gestellt
   with inv.Notes.AddNote do //Sollte ausgefuellt werden
   begin
-    Content := 'Geschaeftsfuehrer Herr Meier - HRB 789';
+    Content := 'Geschäftsführer Herr Meier - HRB 789';
     SubjectCode := insc_REG;
   end;
   inv.PurchaseOrderReference := 'B0815'; //Bestell-Nr. optional
@@ -420,12 +420,12 @@ begin
   inv.DeliveryReceiptDateExtended := inv.InvoiceIssueDate-5; //Falls man es benötigt unter ZUGFeRD-Extended
   inv.BuyerAccountingReference := '1234';
 
-  inv.AccountingSupplierParty.Name := 'Verkaeufername'; //wenn von RegistrationName abweichend
-  inv.AccountingSupplierParty.RegistrationName := 'VerkaeuferRegistrationName'; //Sollte ausgefuellt werden
+  inv.AccountingSupplierParty.Name := 'Verkäufername'; //wenn von RegistrationName abweichend
+  inv.AccountingSupplierParty.RegistrationName := 'VerkäuferRegistrationName'; //Sollte ausgefuellt werden
   inv.AccountingSupplierParty.CompanyID :=  '';
-  inv.AccountingSupplierParty.Address.StreetName := 'Verkaeuferstrasse 1';
+  inv.AccountingSupplierParty.Address.StreetName := 'Verkäuferstraße 1';
   inv.AccountingSupplierParty.Address.AdditionalStreetName := 'Hinterhaus'; //optional
-  inv.AccountingSupplierParty.Address.City := 'Verkaeuferstadt';
+  inv.AccountingSupplierParty.Address.City := 'Verkäuferstadt';
   inv.AccountingSupplierParty.Address.PostalZone := '01234';
   inv.AccountingSupplierParty.Address.CountrySubentity := 'Sachsen';     //optional
   inv.AccountingSupplierParty.Address.AddressLine := 'Gate 64';  //optional
@@ -443,17 +443,17 @@ begin
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := 'EM';
 
   inv.AccountingCustomerParty.Name := '';
-  inv.AccountingCustomerParty.RegistrationName := 'Kaeufername'; //Sollte ausgefuellt werden
+  inv.AccountingCustomerParty.RegistrationName := 'Käufername'; //Sollte ausgefuellt werden
   inv.AccountingCustomerParty.CompanyID :=  'HRB 456';
-  inv.AccountingCustomerParty.Address.StreetName := 'Kaeuferstrasse 1';
-  inv.AccountingCustomerParty.Address.City := 'Kaeuferstadt';
+  inv.AccountingCustomerParty.Address.StreetName := 'Käuferstraße 1';
+  inv.AccountingCustomerParty.Address.City := 'Käuferstadt';
   inv.AccountingCustomerParty.Address.PostalZone := '05678';
   inv.AccountingCustomerParty.Address.CountryCode := 'DE';
   //bei AccountingCustomerParty nur eine VAT von beiden
   //Die EN16931 laesst ausschliesslich die UStID zu
   inv.AccountingCustomerParty.VATCompanyID := 'DE123456788';
   //inv.AccountingCustomerParty.VATCompanyNumber := '222/111/4444';
-  inv.AccountingCustomerParty.ContactName := 'Mueller';
+  inv.AccountingCustomerParty.ContactName := 'Müller';
   inv.AccountingCustomerParty.ContactTelephone := '030 1508';
   inv.AccountingCustomerParty.ContactElectronicMail := 'mueller@kunde.de';
   inv.AccountingCustomerParty.ElectronicAddressSellerBuyer := 'antwortaufrechnung@kunde.de'; //BT-49
@@ -468,7 +468,7 @@ begin
   begin
     inv.DeliveryInformation.Name := 'Firma die es bekommt';
     inv.DeliveryInformation.LocationIdentifier := '4005998000007';
-    inv.DeliveryInformation.Address.StreetName := 'Lieferstrasse 1';
+    inv.DeliveryInformation.Address.StreetName := 'Lieferstraße 1';
     inv.DeliveryInformation.Address.City := 'Lieferstadt';
     inv.DeliveryInformation.Address.PostalZone := '05678';
     inv.DeliveryInformation.Address.CountryCode := 'DE';
@@ -763,7 +763,7 @@ begin
     begin
       ChargeIndicator := true;
       ReasonCodeCharge := TInvoiceSpecialServiceDescriptionCode.issdc_AAA_Telecommunication;
-      Reason := 'Zuschlag fuer Kommunikation';
+      Reason := 'Zuschlag für Kommunikation';
       BaseAmount := 10.00;
       MultiplierFactorNumeric := 10; //10 Prozent auf 10 EUR
       Amount := 1.00;

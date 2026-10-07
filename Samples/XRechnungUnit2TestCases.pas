@@ -1060,6 +1060,7 @@ begin
     TaxPercent := 0.0;
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices;
     TaxExemptionReason := 'Keine Ausweisung der Umsatzsteuer - innergemeinschaftliche Lieferung EU';
+    TaxExemptionReasonCode := 'VATEX-EU-IC'; //BT-121, optional neben dem Text (BR-IC-10)
     TaxableAmount := 5000.00;
     TaxAmount     := 00.00;
   end;
@@ -1701,6 +1702,7 @@ begin
     TaxPercent := 0;
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_AE_VATReverseCharge;
     TaxExemptionReason := 'Hiermit erlaube ich mir folgende Rechnung fuer Bauleistungen zu stellen. Die Umsatzsteuer fuer diese Leistung schuldet nach Paragraph 13b UStG der Leistungsempfaenger.';
+    TaxExemptionReasonCode := 'VATEX-EU-AE'; //BT-121, optional neben dem Text (BR-AE-10)
     TaxableAmount := 200.0;
     TaxAmount := 0.0;
   end;

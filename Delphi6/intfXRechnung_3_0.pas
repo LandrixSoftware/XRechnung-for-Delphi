@@ -435,6 +435,7 @@ begin
       begin
         TaxAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//cbc:TaxAmount'));
         TaxExemptionReason := TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//cac:TaxCategory/cbc:TaxExemptionReason');
+        TaxExemptionReasonCode := TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//cac:TaxCategory/cbc:TaxExemptionReasonCode');
         TaxableAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//cbc:TaxableAmount'));
         TaxCategory := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//cac:TaxCategory/cbc:ID'));
         TaxPercent := TXRechnungHelper.PercentageFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//cac:TaxCategory/cbc:Percent'));
@@ -879,6 +880,7 @@ begin
       begin
         TaxAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:CalculatedAmount'));
         TaxExemptionReason := TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:ExemptionReason');
+        TaxExemptionReasonCode := TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:ExemptionReasonCode');
         TaxableAmount := TXRechnungHelper.AmountFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:BasisAmount'));
         TaxCategory := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:CategoryCode'));
         TaxPercent := TXRechnungHelper.PercentageFromStr(TXRechnungXMLHelper.SelectNodeText(nodes[i],'.//ram:RateApplicablePercent'));
@@ -1235,7 +1237,8 @@ var
       with AddChild('cac:ClassifiedTaxCategory') do
       begin
         AddChild('cbc:ID').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(_Invoiceline.TaxCategory);
-        AddChild('cbc:Percent').Text := TXRechnungHelper.PercentageToStr(_Invoiceline.TaxPercent);
+        if (_Invoiceline.TaxCategory <> idtfcc_O_ServicesOutsideScopeOfTax) then //BR-O-05
+          AddChild('cbc:Percent').Text := TXRechnungHelper.PercentageToStr(_Invoiceline.TaxPercent);
         AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
       end;
       for i := 0 to _Invoiceline.ItemAttributes.Count-1 do
@@ -1793,7 +1796,8 @@ begin
     with AddChild('cac:TaxCategory') do
     begin
       AddChild('cbc:ID').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(_Invoice.AllowanceCharges[i].TaxCategory);
-      AddChild('cbc:Percent').Text := TXRechnungHelper.PercentageToStr(_Invoice.AllowanceCharges[i].TaxPercent);
+      if (_Invoice.AllowanceCharges[i].TaxCategory <> idtfcc_O_ServicesOutsideScopeOfTax) then //BR-O-06/07
+        AddChild('cbc:Percent').Text := TXRechnungHelper.PercentageToStr(_Invoice.AllowanceCharges[i].TaxPercent);
       AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
     end;
   end;
@@ -1821,7 +1825,10 @@ begin
       with AddChild('cac:TaxCategory') do
       begin
         AddChild('cbc:ID').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(_Invoice.TaxAmountSubtotals[i].TaxCategory);
+        //BT-119 auch bei O (BR-DE-14), nur Zeilen und Nachlaesse ohne Satz (BR-O-05..07)
         AddChild('cbc:Percent').Text := TXRechnungHelper.PercentageToStr(_Invoice.TaxAmountSubtotals[i].TaxPercent);
+        if _Invoice.TaxAmountSubtotals[i].TaxExemptionReasonCode <> '' then
+          AddChild('cbc:TaxExemptionReasonCode').Text := _Invoice.TaxAmountSubtotals[i].TaxExemptionReasonCode;
         if _Invoice.TaxAmountSubtotals[i].TaxExemptionReason <> '' then
           AddChild('cbc:TaxExemptionReason').Text := _Invoice.TaxAmountSubtotals[i].TaxExemptionReason;
         AddChild('cac:TaxScheme').AddChild('cbc:ID').Text := 'VAT';
@@ -2447,8 +2454,10 @@ begin
           AddChild('ram:ExemptionReason').Text := _Invoice.TaxAmountSubtotals[i].TaxExemptionReason;
         AddChild('ram:BasisAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.TaxAmountSubtotals[i].TaxableAmount);
         AddChild('ram:CategoryCode').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(_Invoice.TaxAmountSubtotals[i].TaxCategory);
-        if (_Invoice.TaxAmountSubtotals[i].TaxCategory <> idtfcc_O_ServicesOutsideScopeOfTax) then
-          AddChild('ram:RateApplicablePercent').Text := TXRechnungHelper.PercentageToStr(_Invoice.TaxAmountSubtotals[i].TaxPercent);
+        if _Invoice.TaxAmountSubtotals[i].TaxExemptionReasonCode <> '' then
+          AddChild('ram:ExemptionReasonCode').Text := _Invoice.TaxAmountSubtotals[i].TaxExemptionReasonCode;
+        //BT-119 auch bei O (BR-DE-14)
+        AddChild('ram:RateApplicablePercent').Text := TXRechnungHelper.PercentageToStr(_Invoice.TaxAmountSubtotals[i].TaxPercent);
       end;
       if ((_Invoice.InvoicePeriodStartDate > 100) or
          (_Invoice.InvoicePeriodEndDate > 100)) and

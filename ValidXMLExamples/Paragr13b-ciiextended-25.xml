@@ -139,6 +139,7 @@ Zeile 3</ram:Description>
         <ram:ExemptionReason>Hiermit erlaube ich mir folgende Rechnung fuer Bauleistungen zu stellen. Die Umsatzsteuer fuer diese Leistung schuldet nach Paragraph 13b UStG der Leistungsempfaenger.</ram:ExemptionReason>
         <ram:BasisAmount>200.00</ram:BasisAmount>
         <ram:CategoryCode>AE</ram:CategoryCode>
+        <ram:ExemptionReasonCode>VATEX-EU-AE</ram:ExemptionReasonCode>
         <ram:RateApplicablePercent>0.00</ram:RateApplicablePercent>
       </ram:ApplicableTradeTax>
       <ram:BillingSpecifiedPeriod>

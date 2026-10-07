@@ -621,6 +621,7 @@ type
     TaxPercent : double;
     TaxCategory : TInvoiceDutyTaxFeeCategoryCode;
     TaxExemptionReason : String; //sollte gesetzt werden bei TaxCategory = AE,E,O,Z
+    TaxExemptionReasonCode : String; //BT-121 Code fuer den Befreiungsgrund (VATEX), z. B. VATEX-EU-AE
   public
     constructor Create;
   end;
@@ -1594,6 +1595,7 @@ begin
   TaxPercent := 0;
   TaxCategory := idtfcc_None;
   TaxExemptionReason := '';
+  TaxExemptionReasonCode := '';
 end;
 
 { TInvoiceTaxAmounts }

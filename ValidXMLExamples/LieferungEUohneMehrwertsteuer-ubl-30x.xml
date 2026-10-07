@@ -112,6 +112,7 @@
       <cac:TaxCategory>
         <cbc:ID>K</cbc:ID>
         <cbc:Percent>0.00</cbc:Percent>
+        <cbc:TaxExemptionReasonCode>VATEX-EU-IC</cbc:TaxExemptionReasonCode>
         <cbc:TaxExemptionReason>Keine Ausweisung der Umsatzsteuer - innergemeinschaftliche Lieferung EU</cbc:TaxExemptionReason>
         <cac:TaxScheme>
           <cbc:ID>VAT</cbc:ID>

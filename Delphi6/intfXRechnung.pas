@@ -923,6 +923,9 @@ begin
   if SameText(_Val,'PMT') then
     Result := insc_PMT
   else
+  if SameText(_Val,'BLP') then
+    Result := insc_BLP
+  else
     Result := insc_None;
 end;
 
@@ -939,6 +942,7 @@ begin
     insc_TXD: Result := 'TXD';
     insc_CUS: Result := 'CUS';
     insc_PMT: Result := 'PMT';
+    insc_BLP: Result := 'BLP';
     else Result := '';
   end;
 end;
@@ -1435,6 +1439,30 @@ begin
     Result := iuc_year else
   if SameText(_Val,'IE') then
     Result := iuc_person else
+  if SameText(_Val,'DMK') then
+    Result := iuc_square_decimetre else
+  if SameText(_Val,'DMQ') then
+    Result := iuc_cubic_decimetre else
+  if SameText(_Val,'DMT') then
+    Result := iuc_decimetre else
+  if SameText(_Val,'CMT') then
+    Result := iuc_centimetre else
+  if SameText(_Val,'CMK') then
+    Result := iuc_square_centimetre else
+  if SameText(_Val,'CMQ') then
+    Result := iuc_cubic_centimetre else
+  if SameText(_Val,'PR') then
+    Result := iuc_pair else
+  if SameText(_Val,'XBG') then
+    Result := iuc_bag else
+  if SameText(_Val,'XRO') then
+    Result := iuc_roll else
+  if SameText(_Val,'FOT') then
+    Result := iuc_foot else
+  if SameText(_Val,'INH') then
+    Result := iuc_inch else
+  if SameText(_Val,'H18') or SameText(_Val,'HAR') then
+    Result := iuc_hectare else
   Result := iuc_one; //C62
 end;
 
@@ -1471,6 +1499,18 @@ begin
     iuc_packaging : Result := 'XPK';
     iuc_year : Result := 'ANN';
     iuc_person : Result := 'IE';
+    iuc_square_decimetre : Result := 'DMK';
+    iuc_cubic_decimetre : Result := 'DMQ';
+    iuc_decimetre : Result := 'DMT';
+    iuc_centimetre : Result := 'CMT';
+    iuc_square_centimetre : Result := 'CMK';
+    iuc_cubic_centimetre : Result := 'CMQ';
+    iuc_pair : Result := 'PR';
+    iuc_bag : Result := 'XBG';
+    iuc_roll : Result := 'XRO';
+    iuc_foot : Result := 'FOT';
+    iuc_inch : Result := 'INH';
+    iuc_hectare : Result := 'H18'; //Quadrathektometer = Hektar; HAR lehnt die Factur-X-Codeliste ab
   end;
 end;
 

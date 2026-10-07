@@ -243,6 +243,18 @@ type
                       ,iuc_packaging //Verpackung
                       ,iuc_year   //ANN
                       ,iuc_person //IE
+                      ,iuc_square_decimetre //DMK
+                      ,iuc_cubic_decimetre  //DMQ
+                      ,iuc_decimetre        //DMT
+                      ,iuc_centimetre       //CMT
+                      ,iuc_square_centimetre //CMK
+                      ,iuc_cubic_centimetre //CMQ
+                      ,iuc_pair             //PR
+                      ,iuc_bag              //XBG
+                      ,iuc_roll             //XRO
+                      ,iuc_foot             //FOT
+                      ,iuc_inch             //INH
+                      ,iuc_hectare          //H18 (HAR lehnt Factur-X ab)
                       );
   //mehr Einheiten in Res\intf.Invoice.unusedUnits.pas
 
@@ -731,7 +743,8 @@ type
     insc_ABL,  //Rechtliche Informationen
     insc_TXD,  //Informationen zur Steuer
     insc_CUS,  //Zollinformationen
-    insc_PMT   //Payment Information Bürgschaften oder Sicherheitseinbehalte
+    insc_PMT,  //Payment Information Bürgschaften oder Sicherheitseinbehalte
+    insc_BLP   //Gesetzliche Vorschriften (Legislation), z. B. Aufbewahrungspflicht nach §14b UStG
     );
 
   TInvoiceNote = class(Tobject)
@@ -1123,7 +1136,8 @@ begin
 
   Result := _DefaultOnFailure;
   _Success := false;
-  _UnitOfMeasure := Trim(_UnitOfMeasure);
+  //SameText faltet nur A-Z: Umlaute vorher klein (STUECK, SAECKE, KOEPFE, FUSS)
+  _UnitOfMeasure := AnsiLowerCase(Trim(_UnitOfMeasure));
   if _UnitOfMeasure = '' then
   begin
     Result := iuc_one;
@@ -1139,8 +1153,8 @@ begin
      SameText(_UnitOfMeasure,'pcs') or
      SameText(_UnitOfMeasure,'stueck') or
      SameText(_UnitOfMeasure,'stuecke') or
-     SameText(_UnitOfMeasure,'st�ck') or
-     SameText(_UnitOfMeasure,'st�cke') or
+     SameText(_UnitOfMeasure,'st'+#252+'ck') or
+     SameText(_UnitOfMeasure,'st'+#252+'cke') or
      SameText(_UnitOfMeasure,'piece') or
      SameText(_UnitOfMeasure,'pieces') or
      SameText(_UnitOfMeasure,'stck') then
@@ -1288,7 +1302,6 @@ begin
     exit;
   end;
   if SameText(_UnitOfMeasure,'qm') or
-     SameText(_UnitOfMeasure,'dm2') or
      SameText(_UnitOfMeasure,'m2') or
      SameText(_UnitOfMeasure,'m'+#178) or
      SameText(_UnitOfMeasure,'quadratmeter') or
@@ -1303,7 +1316,6 @@ begin
   end;
   if SameText(_UnitOfMeasure,'qqm')or
      SameText(_UnitOfMeasure,'cbm') or
-     SameText(_UnitOfMeasure,'dm3') or
      SameText(_UnitOfMeasure,'m3') or
      SameText(_UnitOfMeasure,'m'+#179) or
      SameText(_UnitOfMeasure,'kubikmeter') or
@@ -1319,7 +1331,6 @@ begin
   end;
   if SameText(_UnitOfMeasure,'m') or
      SameText(_UnitOfMeasure,'lfm') or
-     SameText(_UnitOfMeasure,'me') or
      SameText(_UnitOfMeasure,'meter') or
      SameText(_UnitOfMeasure,'meters') or
      SameText(_UnitOfMeasure,'metre') or
@@ -1341,7 +1352,96 @@ begin
     exit;
   end;
   if SameText(_UnitOfMeasure,'qmm') or
-     SameText(_UnitOfMeasure,'mm3') or
+     SameText(_UnitOfMeasure,'mm2') or
+     SameText(_UnitOfMeasure,'mm'+#178) or
+     SameText(_UnitOfMeasure,'quadratmillimeter') or
+     SameText(_UnitOfMeasure,'square millimeter') or
+     SameText(_UnitOfMeasure,'square millimeters') or
+     SameText(_UnitOfMeasure,'square millimetre') or
+     SameText(_UnitOfMeasure,'square millimetres') then
+  begin
+    Result := iuc_square_millimetre;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'dm') or
+     SameText(_UnitOfMeasure,'dezimeter') or
+     SameText(_UnitOfMeasure,'decimeter') or
+     SameText(_UnitOfMeasure,'decimetre') then
+  begin
+    Result := iuc_decimetre;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'dm2') or
+     SameText(_UnitOfMeasure,'dm'+#178) or
+     SameText(_UnitOfMeasure,'qdm') or
+     SameText(_UnitOfMeasure,'quadratdezimeter') or
+     SameText(_UnitOfMeasure,'square decimeter') or
+     SameText(_UnitOfMeasure,'square decimetre') then
+  begin
+    Result := iuc_square_decimetre;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'dm3') or
+     SameText(_UnitOfMeasure,'dm'+#179) or
+     SameText(_UnitOfMeasure,'kubikdezimeter') or
+     SameText(_UnitOfMeasure,'cubic decimeter') or
+     SameText(_UnitOfMeasure,'cubic decimetre') then
+  begin
+    Result := iuc_cubic_decimetre;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'cm') or
+     SameText(_UnitOfMeasure,'zentimeter') or
+     SameText(_UnitOfMeasure,'centimeter') or
+     SameText(_UnitOfMeasure,'centimeters') or
+     SameText(_UnitOfMeasure,'centimetre') or
+     SameText(_UnitOfMeasure,'centimetres') then
+  begin
+    Result := iuc_centimetre;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'cm2') or
+     SameText(_UnitOfMeasure,'cm'+#178) or
+     SameText(_UnitOfMeasure,'qcm') or
+     SameText(_UnitOfMeasure,'quadratzentimeter') or
+     SameText(_UnitOfMeasure,'square centimeter') or
+     SameText(_UnitOfMeasure,'square centimeters') or
+     SameText(_UnitOfMeasure,'square centimetre') or
+     SameText(_UnitOfMeasure,'square centimetres') then
+  begin
+    Result := iuc_square_centimetre;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'cm3') or
+     SameText(_UnitOfMeasure,'cm'+#179) or
+     SameText(_UnitOfMeasure,'ccm') or
+     SameText(_UnitOfMeasure,'kubikzentimeter') or
+     SameText(_UnitOfMeasure,'cubic centimeter') or
+     SameText(_UnitOfMeasure,'cubic centimeters') or
+     SameText(_UnitOfMeasure,'cubic centimetre') or
+     SameText(_UnitOfMeasure,'cubic centimetres') then
+  begin
+    Result := iuc_cubic_centimetre;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'paar') or
+     SameText(_UnitOfMeasure,'paare') or
+     SameText(_UnitOfMeasure,'pr') or
+     SameText(_UnitOfMeasure,'pair') or
+     SameText(_UnitOfMeasure,'pairs') then
+  begin
+    Result := iuc_pair;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'mm3') or
      SameText(_UnitOfMeasure,'mm'+#179) or
      SameText(_UnitOfMeasure,'kubikmillimeter') or
      SameText(_UnitOfMeasure,'cubic millimeter') or
@@ -1354,7 +1454,6 @@ begin
     exit;
   end;
   if SameText(_UnitOfMeasure,'min') or
-     SameText(_UnitOfMeasure,'min') or
      SameText(_UnitOfMeasure,'minute') or
      SameText(_UnitOfMeasure,'minuten') or
      SameText(_UnitOfMeasure,'minutes') then
@@ -1403,12 +1502,104 @@ begin
      SameText(_UnitOfMeasure,'PCK') or
      SameText(_UnitOfMeasure,'Pack') or
      SameText(_UnitOfMeasure,'VP') or
+     SameText(_UnitOfMeasure,'pak') or
      SameText(_UnitOfMeasure,'Kart.') then
   begin
     Result := iuc_packaging;
     _Success := true;
     exit;
   end;
+
+  if SameText(_UnitOfMeasure,'anz') or
+     SameText(_UnitOfMeasure,'anzahl') or
+     SameText(_UnitOfMeasure,'qty') then
+  begin
+    Result := iuc_number_of_articles;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'set') or
+     SameText(_UnitOfMeasure,'sets') then
+  begin
+    Result := iuc_set;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'j') or
+     SameText(_UnitOfMeasure,'y') or
+     SameText(_UnitOfMeasure,'yr') or
+     SameText(_UnitOfMeasure,'jahr') or
+     SameText(_UnitOfMeasure,'jahre') or
+     SameText(_UnitOfMeasure,'year') or
+     SameText(_UnitOfMeasure,'years') then
+  begin
+    Result := iuc_year;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'person') or
+     SameText(_UnitOfMeasure,'personen') or
+     SameText(_UnitOfMeasure,'pers') or
+     SameText(_UnitOfMeasure,'persons') or
+     SameText(_UnitOfMeasure,'people') or
+     SameText(_UnitOfMeasure,'kopf') or
+     SameText(_UnitOfMeasure,'kpf') or
+     SameText(_UnitOfMeasure,'k'+#246+'pfe') or
+     SameText(_UnitOfMeasure,'koepfe') then
+  begin
+    Result := iuc_person;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'sack') or
+     SameText(_UnitOfMeasure,'s'+#228+'cke') or
+     SameText(_UnitOfMeasure,'saecke') or
+     SameText(_UnitOfMeasure,'sck') or
+     SameText(_UnitOfMeasure,'bag') or
+     SameText(_UnitOfMeasure,'bags') then
+  begin
+    Result := iuc_bag;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'rolle') or
+     SameText(_UnitOfMeasure,'rollen') or
+     SameText(_UnitOfMeasure,'rol') or
+     SameText(_UnitOfMeasure,'roll') or
+     SameText(_UnitOfMeasure,'rolls') then
+  begin
+    Result := iuc_roll;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'ft') or
+     SameText(_UnitOfMeasure,'foot') or
+     SameText(_UnitOfMeasure,'feet') or
+     SameText(_UnitOfMeasure,'fu'+#223) or
+     SameText(_UnitOfMeasure,'fuss') then
+  begin
+    Result := iuc_foot;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'inch') or
+     SameText(_UnitOfMeasure,'zoll') then
+  begin
+    Result := iuc_inch;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'ha') or
+     SameText(_UnitOfMeasure,'hektar') or
+     SameText(_UnitOfMeasure,'hectare') then
+  begin
+    Result := iuc_hectare;
+    _Success := true;
+    exit;
+  end;
+  //nicht zugeordnet (mehrdeutig oder ohne Code in der ZUGFeRD-Bibliothek):
+  //Nutzung E55 (x, mal, time - "mal" ist C62), Kopf/Tier HEA, Kubikfuss FTQ,
+  //ktu, no, in, per, me
 end;
 
 { TInvoiceAttachment }

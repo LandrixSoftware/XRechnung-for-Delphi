@@ -150,6 +150,44 @@ if not TXRechnungInvoiceAdapter.ConsistencyCheck(inv,XRechnungVersion_30x_UBL,er
 
 Die Prüfung ist nicht vollständig und wird laufend erweitert.
 
+### Sammelrechnung: Lieferschein je Position – nur ZUGFeRD/Factur-X EXTENDED
+
+> **Nur im Profil EXTENDED** (`ZUGFeRDExtendedVersion_250`). EN16931, XRechnung (UBL und CII) und
+> Peppol kennen keine Lieferangaben auf Positionsebene, dort gibt es den Lieferschein nur einmal für
+> die ganze Rechnung. In allen anderen Profilen werden die folgenden Felder beim Schreiben
+> **weggelassen**; `ConsistencyCheck` meldet das vorab mit `ccLineDeliveryOnlyExtended` (10).
+
+```delphi
+with inv.InvoiceLines.AddInvoiceLine do
+begin
+  ID := '1';
+  Name := 'Hydraulikoel HLP 46';
+  Quantity := 200;
+  UnitCode := iuc_litre;
+  NetPriceAmount := 15.50;
+  LineAmount := 3100.00;
+  TaxPercent := 19.0;
+  TaxCategory := idtfcc_S_StandardRate;
+  DeliveryNoteNumber := 'LS-2026-88741';       //BT-X-92 Lieferscheinnummer
+  DeliveryNoteLineID := '1';                   //BT-X-93 Position auf dem Lieferschein
+  DeliveryNoteDate := EncodeDate(2026,9,12);   //BT-X-94 Lieferscheindatum
+  ActualDeliveryDate := EncodeDate(2026,9,12); //tatsächliches Lieferdatum der Position
+end;
+...
+TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,'sammelrechnung.xml');
+```
+
+Ausgegeben wird das unter `ram:SpecifiedLineTradeDelivery` der Position. Beim Einlesen werden die Felder
+unabhängig vom Profil gefüllt, sobald sie in der Datei stehen. Das vollständige Beispiel steht in
+`TInvoiceTestCases.SammelrechnungLieferscheineJePosition` (Samples/XRechnungUnit2TestCases.pas). Die
+erzeugten Dateien liegen unter `ValidXMLExamples/SammelrechnungLieferscheine-*.xml`; die
+EN16931-Fassung dort zeigt, dass die Angaben außerhalb von EXTENDED fehlen.
+
+Ohne EXTENDED bleibt nur ein Behelf, der in allen Profilen gültig ist: die Lieferscheinnummer in
+die Positionsbemerkung (`Note`, BT-127) schreiben und das Lieferdatum als Leistungszeitraum der
+Position angeben (`InvoiceLinePeriodStartDate`/`EndDate`, BT-134/135). Ob die Empfängersoftware das
+als Lieferschein erkennt, hängt von ihr ab.
+
 ## Rechnung lesen
 
 Derselbe Aufruf nimmt XML und PDF entgegen; erst der letzte Parameter erlaubt den PDF-Weg:
@@ -193,10 +231,10 @@ in [Distribution/README.md](Distribution/README.md).
 - [Samples/](Samples/) – VCL-Demo zum Erzeugen, Validieren und Visualisieren. Die Testfälle in
   `XRechnungUnit2TestCases.pas` decken vom Minimalbeispiel bis zu Skonto, Differenzbesteuerung und
   Reverse-Charge alles ab, was die Bibliothek kann.
-- [ValidXMLExamples/](ValidXMLExamples/) – 102 aus diesen Testfällen erzeugte Rechnungen, alle gegen
+- [ValidXMLExamples/](ValidXMLExamples/) – 109 aus diesen Testfällen erzeugte Rechnungen, alle gegen
   den KoSIT-Validator geprüft (Schema, Schematron, Acceptance).
 - [Tests/FreePascal/](Tests/FreePascal/) – Schreib-Parität und Lese-Roundtrip unter FreePascal gegen
-  dieselben 102 Dateien.
+  dieselben 109 Dateien.
 - [Tests/PdfExtract/](Tests/PdfExtract/) – Test der PDF-Anhangsextraktion unter Delphi und FreePascal.
 
 ## Sicherheit und Cyber Resilience Act / Security and Cyber Resilience Act

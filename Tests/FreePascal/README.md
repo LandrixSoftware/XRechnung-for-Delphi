@@ -36,9 +36,9 @@ Der eigentliche Lese- und Schreibcode in `intf.XRechnung_3_0.pas` ist dadurch
 
 Beide nutzen `XRechnungXmlCompare.pas` für den kanonischen Vergleich (DOM-Baum;
 Whitespace-, Einrückungs- und Attribut-Reihenfolge-unabhängig) und geben eine
-PASS/FAIL-Summary aus (ExitCode 0 = alle 102 Dateien in Ordnung).
+PASS/FAIL-Summary aus (ExitCode 0 = alle 109 Dateien in Ordnung).
 
-Der Roundtrip taugt als Lesetest, weil Lesen+Schreiben über alle 102
+Der Roundtrip taugt als Lesetest, weil Lesen+Schreiben über alle 109
 Golden-Files verlustfrei ist — unter Delphi ebenso wie unter FPC. Jede
 Abweichung ist damit ein echter Lesefehler: ein fehlendes Kindelement heißt
 „Feld nicht gelesen“, eine Text- oder Attributabweichung „falsch
@@ -64,7 +64,7 @@ Voraussetzungen: FPC ≥ 3.2.2 inkl. `fcl-xml`. Der Compiler wird über `-Fpc`,
 `$env:FPC` oder bekannte fpcupdeluxe-/Lazarus-Pfade gefunden.
 
 **Linux** wird ebenfalls unterstützt (geprüft mit FPC 3.2.2 aarch64-linux,
-beide Tests 102/102). Die Runner-Skripte sind PowerShell mit Windows-Pfaden,
+beide Tests 109/109). Die Runner-Skripte sind PowerShell mit Windows-Pfaden,
 daher dort direkt aufrufen:
 
 ```bash

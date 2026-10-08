@@ -536,10 +536,22 @@ var
       end;
     end;
     if TXRechnungXMLHelper.SelectNode(_Node,'.//ram:SpecifiedLineTradeDelivery',node2) then
-    if TXRechnungXMLHelper.SelectNode(node2,'.//ram:BilledQuantity',node) then
     begin
-      _Invoiceline.UnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(TXRechnungXMLHelper.SelectAttributeText(node,'unitCode'));
-      _Invoiceline.Quantity := TXRechnungHelper.QuantityFromStr(node.text);
+      if TXRechnungXMLHelper.SelectNode(node2,'.//ram:BilledQuantity',node) then
+      begin
+        _Invoiceline.UnitCode := TXRechnungHelper.InvoiceUnitCodeFromStr(TXRechnungXMLHelper.SelectAttributeText(node,'unitCode'));
+        _Invoiceline.Quantity := TXRechnungHelper.QuantityFromStr(node.text);
+      end;
+      //nur EXTENDED, wird aber unabhaengig vom Profil gelesen
+      if TXRechnungXMLHelper.SelectNode(node2,'ram:ActualDeliverySupplyChainEvent/ram:OccurrenceDateTime/udt:DateTimeString',node) then
+        _Invoiceline.ActualDeliveryDate := TXRechnungHelper.DateFromStrUNCEFACTFormat(node.text);
+      if TXRechnungXMLHelper.SelectNode(node2,'ram:DeliveryNoteReferencedDocument',node3) then
+      begin
+        _Invoiceline.DeliveryNoteNumber := TXRechnungXMLHelper.SelectNodeText(node3,'ram:IssuerAssignedID'); //BT-X-92
+        _Invoiceline.DeliveryNoteLineID := TXRechnungXMLHelper.SelectNodeText(node3,'ram:LineID'); //BT-X-93
+        if TXRechnungXMLHelper.SelectNode(node3,'ram:FormattedIssueDateTime/qdt:DateTimeString',node) then
+          _Invoiceline.DeliveryNoteDate := TXRechnungHelper.DateFromStrUNCEFACTFormat(node.text); //BT-X-94
+      end;
     end;
     if TXRechnungXMLHelper.SelectNode(_Node,'.//ram:SpecifiedLineTradeSettlement',node2) then
     begin
@@ -1991,10 +2003,39 @@ var
         end;
       end;
     end;
-    with _Node.AddChild('ram:SpecifiedLineTradeDelivery').AddChild('ram:BilledQuantity') do
+    with _Node.AddChild('ram:SpecifiedLineTradeDelivery') do
     begin
-      Attributes['unitCode'] := TXRechnungHelper.InvoiceUnitCodeToStr(_Invoiceline.UnitCode);
-      Text := TXRechnungHelper.QuantityToStr(_Invoiceline.Quantity);
+      with AddChild('ram:BilledQuantity') do
+      begin
+        Attributes['unitCode'] := TXRechnungHelper.InvoiceUnitCodeToStr(_Invoiceline.UnitCode);
+        Text := TXRechnungHelper.QuantityToStr(_Invoiceline.Quantity);
+      end;
+      //Lieferangaben je Position gibt es nur im Profil EXTENDED, Reihenfolge laut XSD:
+      //ActualDeliverySupplyChainEvent vor DeliveryNoteReferencedDocument
+      if (_Profile = ipZUGFeRDExtended) then
+      begin
+        if (_Invoiceline.ActualDeliveryDate > 0) then
+        with AddChild('ram:ActualDeliverySupplyChainEvent')
+             .AddChild('ram:OccurrenceDateTime')
+             .AddChild('udt:DateTimeString') do
+        begin
+          Attributes['format'] := '102';
+          Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoiceline.ActualDeliveryDate);
+        end;
+        if (_Invoiceline.DeliveryNoteNumber <> '') then //BT-X-92
+        with AddChild('ram:DeliveryNoteReferencedDocument') do
+        begin
+          AddChild('ram:IssuerAssignedID').Text := _Invoiceline.DeliveryNoteNumber;
+          if (_Invoiceline.DeliveryNoteLineID <> '') then //BT-X-93
+            AddChild('ram:LineID').Text := _Invoiceline.DeliveryNoteLineID;
+          if (_Invoiceline.DeliveryNoteDate > 0) then //BT-X-94
+          with AddChild('ram:FormattedIssueDateTime').AddChild('qdt:DateTimeString') do
+          begin
+            Attributes['format'] := '102';
+            Text := TXRechnungHelper.DateToStrUNCEFACTFormat(_Invoiceline.DeliveryNoteDate);
+          end;
+        end;
+      end;
     end;
     with _Node.AddChild('ram:SpecifiedLineTradeSettlement') do
     begin

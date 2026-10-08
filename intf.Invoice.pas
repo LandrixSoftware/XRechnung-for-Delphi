@@ -624,6 +624,17 @@ type
     OriginTradeCountry : String; //BG-31, BT-159 Artikelherkunftsland z.B. DE
     ItemAttributes : TInvoiceLineItemAttributes; //BG-31:BG-32 (BT-160..BT-161)
 
+    // Lieferangaben je Position, z.B. fuer Sammelrechnungen ueber mehrere Lieferscheine.
+    // NUR ZUGFeRD/Factur-X EXTENDED (ram:SpecifiedLineTradeDelivery). EN16931, XRechnung
+    // (UBL und CII) und Peppol kennen diese Angaben auf Positionsebene nicht, dort werden
+    // die Felder beim Schreiben ignoriert, ConsistencyCheck meldet dann ccLineDeliveryOnlyExtended.
+    // Rechnungsweit: DeliveryReceiptNumberExtended,
+    // DeliveryReceiptDateExtended und DeliveryInformation.ActualDeliveryDate am TInvoice.
+    DeliveryNoteNumber : String; //BT-X-92 Lieferscheinnummer der Position, nur EXTENDED
+    DeliveryNoteLineID : String; //BT-X-93 Positionsnummer auf dem Lieferschein, nur EXTENDED, nur zusammen mit DeliveryNoteNumber
+    DeliveryNoteDate : TDate;    //BT-X-94 Lieferscheindatum der Position, nur EXTENDED, nur zusammen mit DeliveryNoteNumber
+    ActualDeliveryDate : TDate;  //Tatsaechliches Lieferdatum der Position, nur EXTENDED
+
     // Extension XRechnung
     SubInvoiceLines : TInvoiceLines;
   public
@@ -1134,6 +1145,10 @@ begin
   InvoiceLinePeriodStartDate := 0;
   InvoiceLinePeriodEndDate := 0;
   OriginTradeCountry := '';
+  DeliveryNoteNumber := '';
+  DeliveryNoteLineID := '';
+  DeliveryNoteDate := 0;
+  ActualDeliveryDate := 0;
 end;
 
 destructor TInvoiceLine.Destroy;

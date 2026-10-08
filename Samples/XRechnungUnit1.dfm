@@ -243,7 +243,8 @@ object Form1: TForm1
       'BT-29/46 nur Kennung'
       'BT-29/46 GLN + BT-90'
       'BT-29/46 Kennung+GLN'
-      'Basismenge 0.001')
+      'Basismenge 0.001'
+      'Sammelrechnung (nur EXTENDED)')
     TabOrder = 15
   end
   object cbValidateWithJava: TCheckBox

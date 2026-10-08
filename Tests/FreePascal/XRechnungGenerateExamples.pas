@@ -267,6 +267,12 @@ begin
   Sv(XRechnungVersion_30x_UNCEFACT,'Basismenge-Nachkommastellen-cii-30x.xml');
   EA; Sv(PeppolBillingVersion_30,'Basismenge-Nachkommastellen-ubl-peppol.xml');
   inv.Free;
+
+  inv := TInvoice.Create;
+  TInvoiceTestCases.SammelrechnungLieferscheineJePosition(inv);
+  Sv(ZUGFeRDExtendedVersion_250,'SammelrechnungLieferscheine-ciiextended-25.xml');
+  Sv(ZUGFeRDEN16931Version_250,'SammelrechnungLieferscheine-ciiEN16931-25.xml');
+  inv.Free;
 end;
 
 end.

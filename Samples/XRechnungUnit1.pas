@@ -514,6 +514,14 @@ begin
   TXRechnungInvoiceAdapter.SaveToFile(inv,PeppolBillingVersion_30,ValidXMLExamplesPath+'Basismenge-Nachkommastellen-ubl-peppol.xml');
   inv.Free;
 
+  //Lieferschein je Position gibt es nur in EXTENDED; die EN16931-Datei zeigt,
+  //dass die Angaben dort weggelassen werden
+  inv := TInvoice.Create;
+  TInvoiceTestCases.SammelrechnungLieferscheineJePosition(inv);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'SammelrechnungLieferscheine-ciiextended-25.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'SammelrechnungLieferscheine-ciiEN16931-25.xml');
+  inv.Free;
+
   {$IFDEF USE_Valitool}
   Memo3.Clear;
 
@@ -878,6 +886,8 @@ begin
       20: TInvoiceTestCases.PartyIdentifierGLN(inv,false,true,true);  //GLN und Glaeubiger-ID (BT-90)
       21: TInvoiceTestCases.PartyIdentifierGLN(inv,true,true,false);  //Kennung und GLN
       22: TInvoiceTestCases.BasismengeNachkommastellen(inv);
+      //Lieferschein je Position, wird nur in ZUGFeRD/Factur-X EXTENDED ausgegeben
+      23: TInvoiceTestCases.SammelrechnungLieferscheineJePosition(inv);
       else ShowMessage('Hat einer was vergessen!');
     end;
 

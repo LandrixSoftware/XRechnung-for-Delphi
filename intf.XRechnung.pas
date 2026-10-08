@@ -170,6 +170,7 @@ type
     ccNoBT31BT32               = 7;
     ccPrepaidPaymentNotSupported = 8;
     ccNoEMUnderPeppol          = 9;
+    ccLineDeliveryOnlyExtended = 10; //Lieferschein/Lieferdatum je Position nur in ZUGFeRD/Factur-X EXTENDED
   public
     class function ConsistencyCheck(_Invoice : TInvoice; _Version : TXRechnungVersion) : Boolean; overload;
     class function ConsistencyCheck(_Invoice : TInvoice; _Version : TXRechnungVersion; out _ErrorCode : Integer) : Boolean; overload;
@@ -349,6 +350,25 @@ class function TXRechnungInvoiceAdapter.ConsistencyCheck(_Invoice: TInvoice;
   _Version: TXRechnungVersion; out _ErrorCode: Integer): Boolean;
 var
   lCount,i : Integer;
+  function HasLineDeliveryData(_Lines : TInvoiceLines) : Boolean;
+  var
+    j : Integer;
+  begin
+    Result := false;
+    for j := 0 to _Lines.Count-1 do
+    begin
+      if (_Lines[j].DeliveryNoteNumber <> '') or
+         (_Lines[j].DeliveryNoteLineID <> '') or
+         (_Lines[j].DeliveryNoteDate > 0) or
+         (_Lines[j].ActualDeliveryDate > 0) or
+         HasLineDeliveryData(_Lines[j].SubInvoiceLines) then
+      begin
+        Result := true;
+        exit;
+      end;
+    end;
+  end;
+
 begin
   Result := true;
   _ErrorCode := ccOK;
@@ -450,6 +470,16 @@ begin
        (_Invoice.AccountingCustomerParty.ElectronicAddressSellerBuyerSchemeID = ''))) then
   begin
     _ErrorCode := ccNoEMUnderPeppol;
+    Result := false;
+    exit;
+  end;
+
+  //Lieferschein und Lieferdatum je Position gibt es nur im Profil ZUGFeRD/Factur-X EXTENDED,
+  //in allen anderen Formaten wuerden sie beim Schreiben weggelassen
+  if (_Version <> ZUGFeRDExtendedVersion_250) then
+  if HasLineDeliveryData(_Invoice.InvoiceLines) then
+  begin
+    _ErrorCode := ccLineDeliveryOnlyExtended;
     Result := false;
     exit;
   end;
@@ -2634,6 +2664,16 @@ begin
   end;
 
   _InvoiceLine.OriginTradeCountry := CodeFromEnum<TZUGFeRDCountryCodes>(_TradeLineItem.OriginTradeCountry); //BT-159
+
+  //Lieferangaben je Position, nur EXTENDED
+  if _TradeLineItem.ActualDeliveryDate.HasValue then
+    _InvoiceLine.ActualDeliveryDate := _TradeLineItem.ActualDeliveryDate.Value;
+  if _TradeLineItem.DeliveryNoteReferencedDocument <> nil then
+  begin
+    _InvoiceLine.DeliveryNoteNumber := _TradeLineItem.DeliveryNoteReferencedDocument.ID; //BT-X-92
+    _InvoiceLine.DeliveryNoteLineID := _TradeLineItem.DeliveryNoteReferencedDocument.LineID; //BT-X-93
+    _InvoiceLine.DeliveryNoteDate := _TradeLineItem.DeliveryNoteReferencedDocument.IssueDateTime.GetValueOrDefault(0); //BT-X-94
+  end;
 end;
 
 class function TZUGFeRDInvoiceAdapter.LoadFromInvoiceDescriptor(

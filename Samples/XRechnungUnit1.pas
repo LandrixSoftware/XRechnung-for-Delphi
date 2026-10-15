@@ -18,7 +18,7 @@ interface
 
 //https://valitool.org/
 {.$DEFINE USE_Valitool}
-{$DEFINE USE_Landrix_Valitool}
+{.$DEFINE USE_Landrix_Valitool}
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,

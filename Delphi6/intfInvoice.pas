@@ -573,6 +573,12 @@ type
     function  AddItemClassification : TInvoiceLineItemClassification;
   end;
 
+  //BT-X-8 Untertyp der Rechnungsposition (ram:LineStatusReasonCode), nur ZUGFeRD/Factur-X EXTENDED
+  //- DETAIL : regulaere Position, zaehlt in die Summen (Standard)
+  //- GROUP : Zwischensumme ueber ihre Unterpositionen, zaehlt nicht in die Summen
+  //- INFORMATION : reine Information, zaehlt nicht in die Summen
+  TInvoiceLineStatusReasonCode = (ilsrc_None, ilsrc_Detail, ilsrc_Group, ilsrc_Information);
+
   TInvoiceLine = class(TObject) // insgesamt BG-25
   public
     ID : String; //BT-126 Positionsnummer
@@ -617,8 +623,20 @@ type
     DeliveryNoteDate : TDate;    //BT-X-94 Lieferscheindatum der Position, nur EXTENDED, nur zusammen mit DeliveryNoteNumber
     ActualDeliveryDate : TDate;  //Tatsaechliches Lieferdatum der Position, nur EXTENDED
 
-    // Extension XRechnung
+    // Unterpositionen, z.B. Titel/Positionsgruppen
+    // - XRechnung UBL (Extension): cac:SubInvoiceLine, der Betrag der Oberposition zaehlt
+    //   in die Summe der Positionen (BT-106), die Unterpositionen nicht.
+    // - ZUGFeRD/Factur-X EXTENDED: flache Positionen mit ParentLineID (BT-X-304), nur die
+    //   DETAIL-Positionen zaehlen in BT-106. Eine Oberposition (GROUP) muss genau die Summe
+    //   ihrer DETAIL- und GROUP-Unterpositionen tragen (BR-FXEXT-08), Unterpositionen
+    //   muessen vollstaendige Positionen sein (Menge, Nettopreis, Steuerkategorie).
+    //   ConsistencyCheck prueft das (ccSubInvoiceLineAmountMismatch).
+    // - XRechnung CII und ZUGFeRD EN16931 kennen keine Unterpositionen (ccSubInvoiceLinesNotSupported).
     SubInvoiceLines : TInvoiceLines;
+    // BT-X-8, nur EXTENDED. Bei ilsrc_None leitet der Schreibcode den Wert aus der
+    // Struktur ab: mit Unterpositionen GROUP, als Unterposition DETAIL, sonst nichts.
+    // Beim Lesen wird der Wert aus der Datei uebernommen.
+    LineStatusReasonCode : TInvoiceLineStatusReasonCode;
   public
     constructor Create;
     destructor Destroy; override;

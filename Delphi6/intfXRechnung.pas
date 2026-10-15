@@ -83,6 +83,9 @@ type
     class function InvoiceSpecialServiceDescriptionCodeFromStr(_Val : String) : TInvoiceSpecialServiceDescriptionCode;
     class function InvoiceDutyTaxFeeCategoryCodeToStr(_Val : TInvoiceDutyTaxFeeCategoryCode) : String;
     class function InvoiceDutyTaxFeeCategoryCodeFromStr(_Val : String) : TInvoiceDutyTaxFeeCategoryCode;
+    class function InvoiceLineStatusReasonCodeToStr(_Val : TInvoiceLineStatusReasonCode) : String;
+    class function InvoiceLineStatusReasonCodeFromStr(_Val : String) : TInvoiceLineStatusReasonCode;
+    class function InvoiceLineStatusReasonCodeOf(_Invoiceline : TInvoiceLine; _IsSubInvoiceLine : Boolean) : TInvoiceLineStatusReasonCode;
     class function InvoiceAttachmentTypeToStr(_Val : TInvoiceAttachmentType) : String;
     class function InvoiceAttachmentTypeFromStr(_Val : String) : TInvoiceAttachmentType;
     class function InvoiceAttachmentTypeCodeToStr(_Val : TInvoiceAttachmentTypeCode) : String;
@@ -160,6 +163,8 @@ const
   ccPrepaidPaymentNotSupported = 8;
   ccNoEMUnderPeppol          = 9;
   ccLineDeliveryOnlyExtended = 10; //Lieferschein/Lieferdatum je Position nur in ZUGFeRD/Factur-X EXTENDED
+  ccSubInvoiceLinesNotSupported = 11; //Unterpositionen nur in XRechnung UBL, Peppol und ZUGFeRD/Factur-X EXTENDED, INFORMATION auf oberster Ebene und DETAIL mit Unterpositionen nur EXTENDED
+  ccSubInvoiceLineAmountMismatch = 12; //EXTENDED: Betrag einer Oberposition (GROUP) ungleich der Summe ihrer Unterpositionen (BR-FXEXT-08)
 
   ZUGFERD_INVOICE_PDF_FILENAME_FACTURX =
     'factur-x.xml';
@@ -287,6 +292,75 @@ class function TXRechnungInvoiceAdapter.ConsistencyCheck(_Invoice: TInvoice;
   _Version: TXRechnungVersion; out _ErrorCode: Integer): Boolean;
 var
   lCount,i : Integer;
+  function HasSubInvoiceLines(_Lines : TInvoiceLines) : Boolean;
+  var
+    j : Integer;
+  begin
+    Result := false;
+    for j := 0 to _Lines.Count-1 do
+    if _Lines[j].SubInvoiceLines.Count > 0 then
+    begin
+      Result := true;
+      exit;
+    end;
+  end;
+
+  //nur oberste Ebene: dort wuerde eine INFORMATION-Position ausserhalb von
+  //EXTENDED mitgezaehlt, Unterpositionen zaehlen in UBL ohnehin nicht
+  function HasInformationLines(_Lines : TInvoiceLines) : Boolean;
+  var
+    j : Integer;
+  begin
+    Result := false;
+    for j := 0 to _Lines.Count-1 do
+    if (_Lines[j].LineStatusReasonCode = ilsrc_Information) then
+    begin
+      Result := true;
+      exit;
+    end;
+  end;
+
+  //BR-FXEXT-08: GROUP-Betrag = Summe der DETAIL- und GROUP-Unterpositionen,
+  //verglichen auf den Centbetraegen, die tatsaechlich geschrieben werden
+  function HasGroupAmountMismatch(_Lines : TInvoiceLines; _IsSubInvoiceLine : Boolean) : Boolean;
+  var
+    j,k : Integer;
+    lSum : Currency;
+  begin
+    Result := true;
+    for j := 0 to _Lines.Count-1 do
+    begin
+      if TXRechnungHelper.InvoiceLineStatusReasonCodeOf(_Lines[j],_IsSubInvoiceLine) = ilsrc_Group then
+      begin
+        lSum := 0;
+        for k := 0 to _Lines[j].SubInvoiceLines.Count-1 do
+        if TXRechnungHelper.InvoiceLineStatusReasonCodeOf(_Lines[j].SubInvoiceLines[k],true) in [ilsrc_Detail,ilsrc_Group] then
+          lSum := lSum + TXRechnungHelper.AmountFromStr(TXRechnungHelper.AmountToStr(_Lines[j].SubInvoiceLines[k].LineAmount));
+        if TXRechnungHelper.AmountToStr(lSum) <> TXRechnungHelper.AmountToStr(_Lines[j].LineAmount) then
+          exit;
+      end;
+      if HasGroupAmountMismatch(_Lines[j].SubInvoiceLines,true) then
+        exit;
+    end;
+    Result := false;
+  end;
+
+  //ausdruecklich DETAIL mit Unterpositionen: in EXTENDED zaehlen Ober- und
+  //Unterpositionen, in UBL nur die Oberposition - nicht uebertragbar
+  function HasDetailWithSubInvoiceLines(_Lines : TInvoiceLines) : Boolean;
+  var
+    j : Integer;
+  begin
+    Result := false;
+    for j := 0 to _Lines.Count-1 do
+    if ((_Lines[j].LineStatusReasonCode = ilsrc_Detail) and (_Lines[j].SubInvoiceLines.Count > 0)) or
+       HasDetailWithSubInvoiceLines(_Lines[j].SubInvoiceLines) then
+    begin
+      Result := true;
+      exit;
+    end;
+  end;
+
   function HasLineDeliveryData(_Lines : TInvoiceLines) : Boolean;
   var
     j : Integer;
@@ -417,6 +491,31 @@ begin
   if HasLineDeliveryData(_Invoice.InvoiceLines) then
   begin
     _ErrorCode := ccLineDeliveryOnlyExtended;
+    Result := false;
+    exit;
+  end;
+
+  //Unterpositionen: XRechnung CII und ZUGFeRD EN16931 kennen sie nicht. INFORMATION-
+  //Positionen auf oberster Ebene (zaehlen nicht in die Summen) und DETAIL-Positionen
+  //mit Unterpositionen (zaehlen samt Unterpositionen) gibt es nur in ZUGFeRD/Factur-X
+  //EXTENDED, ueberall sonst ergaeben sie andere Summen
+  if ((_Version in [XRechnungVersion_30x_UNCEFACT,ZUGFeRDEN16931Version_250]) and
+      HasSubInvoiceLines(_Invoice.InvoiceLines)) or
+     ((_Version <> ZUGFeRDExtendedVersion_250) and
+      (HasInformationLines(_Invoice.InvoiceLines) or
+       HasDetailWithSubInvoiceLines(_Invoice.InvoiceLines))) then
+  begin
+    _ErrorCode := ccSubInvoiceLinesNotSupported;
+    Result := false;
+    exit;
+  end;
+
+  //EXTENDED zaehlt nur DETAIL-Positionen, eine Oberposition muss deshalb genau
+  //die Summe ihrer Unterpositionen tragen (BR-FXEXT-08)
+  if (_Version = ZUGFeRDExtendedVersion_250) then
+  if HasGroupAmountMismatch(_Invoice.InvoiceLines,false) then
+  begin
+    _ErrorCode := ccSubInvoiceLineAmountMismatch;
     Result := false;
     exit;
   end;
@@ -921,6 +1020,44 @@ begin
     idtfcc_Z_ZeroRatedGoods: Result := 'Z';
     else Result := '';
   end;
+end;
+
+class function TXRechnungHelper.InvoiceLineStatusReasonCodeToStr(_Val: TInvoiceLineStatusReasonCode): String;
+begin
+  case _Val of
+    ilsrc_Detail: Result := 'DETAIL';
+    ilsrc_Group: Result := 'GROUP';
+    ilsrc_Information: Result := 'INFORMATION';
+    else Result := '';
+  end;
+end;
+
+class function TXRechnungHelper.InvoiceLineStatusReasonCodeFromStr(_Val: String): TInvoiceLineStatusReasonCode;
+begin
+  if SameText(_Val,'DETAIL') then
+    Result := ilsrc_Detail
+  else
+  if SameText(_Val,'GROUP') then
+    Result := ilsrc_Group
+  else
+  if SameText(_Val,'INFORMATION') then
+    Result := ilsrc_Information
+  else
+    Result := ilsrc_None;
+end;
+
+class function TXRechnungHelper.InvoiceLineStatusReasonCodeOf(_Invoiceline: TInvoiceLine;
+  _IsSubInvoiceLine: Boolean): TInvoiceLineStatusReasonCode;
+begin
+  //gesetzter Wert hat Vorrang, sonst aus der Struktur ableiten
+  Result := _Invoiceline.LineStatusReasonCode;
+  if Result <> ilsrc_None then
+    exit;
+  if _Invoiceline.SubInvoiceLines.Count > 0 then
+    Result := ilsrc_Group
+  else
+  if _IsSubInvoiceLine then
+    Result := ilsrc_Detail;
 end;
 
 class function TXRechnungHelper.InvoiceNoteSubjectCodeFromStr(

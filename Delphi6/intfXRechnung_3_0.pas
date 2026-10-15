@@ -40,6 +40,7 @@ type
     class procedure SaveDocumentUBL(_Invoice: TInvoice;_Xml : IXMLDocument; _Profile : TInvoiceProfile);
     class function LoadDocumentUNCEFACT(_Invoice: TInvoice;_Xml : IXMLDocument; out _Error : String) : Boolean;
     class function LoadDocumentUBL(_Invoice: TInvoice;_Xml : IXMLDocument; out _Error : String) : Boolean;
+    class procedure BuildSubInvoiceLines(_Invoice : TInvoice; _Lines : TList; _ParentLineIDs : TStrings; _NoAmountLines : TList);
   end;
 
 implementation
@@ -465,6 +466,113 @@ begin
   end;
 end;
 
+//Unterpositionen aus flach gelesenen Positionen aufbauen. CII (und der Weg ueber die
+//ZUGFeRD-Bibliothek) kennt keine Verschachtelung: jede Unterposition verweist ueber
+//ParentLineID (BT-X-304) auf die LineID ihrer Oberposition. _Lines enthaelt die
+//Positionen in Dokumentreihenfolge (alle zunaechst in _Invoice.InvoiceLines),
+//_ParentLineIDs je Position den Verweis, _NoAmountLines die Positionen ohne BT-131.
+class procedure TXRechnungInvoiceAdapter301.BuildSubInvoiceLines(_Invoice: TInvoice;
+  _Lines: TList; _ParentLineIDs: TStrings; _NoAmountLines: TList);
+var
+  i,j,k : Integer;
+  parentLine : TInvoiceLine;
+  parentLineID : String;
+  childHasCode : Boolean;
+
+  //wie XPath normalize-space(): Leerraum am Rand entfernen, innen auf ein
+  //Leerzeichen zusammenfassen (so vergleichen BR-FXEXT-08 und -11)
+  function InternalNormalizeSpace(const _Val : String) : String;
+  var
+    i : Integer;
+    lastWasSpace : Boolean;
+  begin
+    Result := '';
+    lastWasSpace := false;
+    for i := 1 to Length(_Val) do
+    if (_Val[i] = ' ') or (_Val[i] = #9) or (_Val[i] = #10) or (_Val[i] = #13) then
+      lastWasSpace := true
+    else
+    begin
+      if lastWasSpace and (Result <> '') then
+        Result := Result + ' ';
+      Result := Result + _Val[i];
+      lastWasSpace := false;
+    end;
+  end;
+
+  function InternalContainsLine(_Line, _Candidate : TInvoiceLine) : Boolean;
+  var
+    i : Integer;
+  begin
+    Result := true;
+    for i := 0 to _Line.SubInvoiceLines.Count-1 do
+    if (_Line.SubInvoiceLines[i] = _Candidate) or
+       InternalContainsLine(_Line.SubInvoiceLines[i],_Candidate) then
+      exit;
+    Result := false;
+  end;
+
+  //GROUP ohne BT-131 (erlaubt): die Summe der DETAIL- und GROUP-Unterpositionen
+  //eintragen, genau das verlangt BR-FXEXT-08 - sonst wuerde 0.00 geschrieben
+  function InternalGroupAmount(_Line : TInvoiceLine) : Currency;
+  var
+    i : Integer;
+  begin
+    if (_NoAmountLines.IndexOf(_Line) < 0) or (_Line.LineStatusReasonCode <> ilsrc_Group) then
+    begin
+      Result := _Line.LineAmount;
+      exit;
+    end;
+    Result := 0;
+    for i := 0 to _Line.SubInvoiceLines.Count-1 do
+    if TXRechnungHelper.InvoiceLineStatusReasonCodeOf(_Line.SubInvoiceLines[i],true) in [ilsrc_Detail,ilsrc_Group] then
+      Result := Result + InternalGroupAmount(_Line.SubInvoiceLines[i]);
+  end;
+
+begin
+  //Umhaengen in Dokumentreihenfolge. Bei unbekannter Oberposition oder einem
+  //Zyklus bleibt die Position auf ihrer Ebene. Verglichen wird wie im
+  //Schematron mit normalize-space().
+  for i := 0 to _Lines.Count-1 do
+  begin
+    parentLineID := InternalNormalizeSpace(_ParentLineIDs[i]);
+    if parentLineID = '' then
+      continue;
+    parentLine := nil;
+    for j := 0 to _Lines.Count-1 do
+    if (j <> i) and (InternalNormalizeSpace(TInvoiceLine(_Lines[j]).ID) = parentLineID) then
+    begin
+      parentLine := TInvoiceLine(_Lines[j]);
+      break;
+    end;
+    if (parentLine = nil) or InternalContainsLine(TInvoiceLine(_Lines[i]),parentLine) then
+      continue;
+    _Invoice.InvoiceLines.Extract(TInvoiceLine(_Lines[i]));
+    parentLine.SubInvoiceLines.Add(TInvoiceLine(_Lines[i]));
+  end;
+  //Eine Oberposition ohne BT-X-8 ist laut Schematron eine regulaere Position
+  //(DETAIL) und zaehlt in die Summen. Ohne Code wuerde der Schreibcode sie wegen
+  //ihrer Unterpositionen als GROUP ausgeben und damit umdeuten. Das gilt nur, wenn
+  //die Unterpositionen selbst einen Code tragen (in CII Pflicht, BR-FXEXT-06);
+  //aus UBL stammende Unterpositionen haben keinen, dort zaehlt die Oberposition.
+  for i := 0 to _Lines.Count-1 do
+  if (TInvoiceLine(_Lines[i]).SubInvoiceLines.Count > 0) and
+     (TInvoiceLine(_Lines[i]).LineStatusReasonCode = ilsrc_None) then
+  begin
+    childHasCode := false;
+    for k := 0 to TInvoiceLine(_Lines[i]).SubInvoiceLines.Count-1 do
+    if TInvoiceLine(_Lines[i]).SubInvoiceLines[k].LineStatusReasonCode <> ilsrc_None then
+    begin
+      childHasCode := true;
+      break;
+    end;
+    if childHasCode then
+      TInvoiceLine(_Lines[i]).LineStatusReasonCode := ilsrc_Detail;
+  end;
+  for i := 0 to _NoAmountLines.Count-1 do
+    TInvoiceLine(_NoAmountLines[i]).LineAmount := InternalGroupAmount(TInvoiceLine(_NoAmountLines[i]));
+end;
+
 class function TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice: TInvoice;
   _Xml: IXMLDocument; out _Error : String) : Boolean;
 var
@@ -473,6 +581,8 @@ var
   nodeApplicableHeaderTradeAgreement : IXMLDOMNode;
   nodes : IXMLDOMNodeList;
   i : Integer;
+  lines,noAmountLines : TList;
+  parentLineIDs : TStringList;
 
   procedure InternalReadInvoiceLine(_Invoiceline : TInvoiceLine; _Node : IXMLDOMNode);
   var
@@ -483,6 +593,7 @@ var
     if TXRechnungXMLHelper.SelectNode(_Node,'.//ram:AssociatedDocumentLineDocument',node2) then
     begin
       _Invoiceline.ID := TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:LineID');
+      _Invoiceline.LineStatusReasonCode := TXRechnungHelper.InvoiceLineStatusReasonCodeFromStr(TXRechnungXMLHelper.SelectNodeText(node2,'ram:LineStatusReasonCode'));
       if TXRechnungXMLHelper.SelectNode(node2,'.//ram:IncludedNote',node) then
         _Invoiceline.Note := TXRechnungXMLHelper.SelectNodeText(node,'.//ram:Content');
     end;
@@ -598,9 +709,6 @@ var
       end;
       _InvoiceLine.BuyerAccountingReference := TXRechnungXMLHelper.SelectNodeText(node2, './/ram:ReceivableSpecifiedTradeAccountingAccount/ram:ID');
     end;
-    if TXRechnungXMLHelper.SelectNodes(_Node,'.//ram:IncludedSupplyChainTradeLineItem',nodes) then
-    for i := 0 to nodes.length-1 do
-      InternalReadInvoiceLine(_InvoiceLine.SubInvoiceLines.AddInvoiceLine,nodes.item[i]);
   end;
 
 begin
@@ -627,8 +735,27 @@ begin
       exit;
 
     if TXRechnungXMLHelper.SelectNodes(xml,'.//*[local-name()="SupplyChainTradeTransaction"]/ram:IncludedSupplyChainTradeLineItem',nodes) then
-    for i := 0 to nodes.length-1 do
-      InternalReadInvoiceLine(_Invoice.InvoiceLines.AddInvoiceLine,nodes[i]);
+    begin
+      lines := TList.Create;
+      noAmountLines := TList.Create;
+      parentLineIDs := TStringList.Create;
+      try
+        for i := 0 to nodes.length-1 do
+        begin
+          lines.Add(_Invoice.InvoiceLines.AddInvoiceLine);
+          InternalReadInvoiceLine(TInvoiceLine(lines[i]),nodes[i]);
+          parentLineIDs.Add(TXRechnungXMLHelper.SelectNodeText(nodes[i],'ram:AssociatedDocumentLineDocument/ram:ParentLineID'));
+          if not TXRechnungXMLHelper.SelectNode(nodes[i],'ram:SpecifiedLineTradeSettlement/ram:SpecifiedTradeSettlementLineMonetarySummation/ram:LineTotalAmount',node) then
+            noAmountLines.Add(lines[i]);
+        end;
+        //Unterpositionen (BT-X-304, nur EXTENDED)
+        BuildSubInvoiceLines(_Invoice,lines,parentLineIDs,noAmountLines);
+      finally
+        parentLineIDs.Free;
+        noAmountLines.Free;
+        lines.Free;
+      end;
+    end;
 
     if TXRechnungXMLHelper.SelectNode(nodeSupplyChainTradeTransaction,'.//ram:ApplicableHeaderTradeAgreement',nodeApplicableHeaderTradeAgreement) then
     begin
@@ -1900,7 +2027,7 @@ end;
 class procedure TXRechnungInvoiceAdapter301.SaveDocumentUNCEFACT(
   _Invoice: TInvoice; _Xml: IXMLDocument; _Profile : TInvoiceProfile);
 var
-  xRoot : IXMLNode;
+  xRoot,xTransaction : IXMLNode;
   i : Integer;
   iPaymentTermsType : TInvoicePaymentTermsType;
   lDays : Integer;
@@ -1908,13 +2035,31 @@ var
   lBasisAmount,lActualDiscountAmount : Currency;
   bBT17Written,bBT18Written : Boolean;
 
-  procedure InternalAddInvoiceLine(_Invoiceline : TInvoiceLine; _Node : IXMLNode);
+  procedure InternalAddInvoiceLine(_Invoiceline : TInvoiceLine; _TransactionNode : IXMLNode; const _ParentLineID : String);
   var
     i : Integer;
+    _Node : IXMLNode;
+    lLineStatusReasonCode : TInvoiceLineStatusReasonCode;
   begin
+    //Unterpositionen gibt es in CII nur im Profil EXTENDED (BT-X-304, BT-X-8),
+    //EN16931 und XRechnung CII kennen sie nicht
+    if (_Invoiceline.SubInvoiceLines.Count > 0) and (_Profile <> ipZUGFeRDExtended) then
+      raise Exception.Create('SubInvoiceLines in UNCEFACT only supported with ZUGFeRD EXTENDED');
+    lLineStatusReasonCode := TXRechnungHelper.InvoiceLineStatusReasonCodeOf(_Invoiceline,_ParentLineID <> '');
+    _Node := _TransactionNode.AddChild('ram:IncludedSupplyChainTradeLineItem');
     with _Node.AddChild('ram:AssociatedDocumentLineDocument') do
     begin
       AddChild('ram:LineID').Text := _Invoiceline.ID;
+      //CII schachtelt nicht: die Unterposition verweist auf ihre Oberposition,
+      //der Untertyp (BT-X-8) kommt aus dem Feld oder wird aus der Struktur
+      //abgeleitet. Nur DETAIL-Positionen zaehlen in BT-106.
+      if (_Profile = ipZUGFeRDExtended) then
+      begin
+        if (_ParentLineID <> '') then
+          AddChild('ram:ParentLineID').Text := _ParentLineID;
+        if (lLineStatusReasonCode <> ilsrc_None) then
+          AddChild('ram:LineStatusReasonCode').Text := TXRechnungHelper.InvoiceLineStatusReasonCodeToStr(lLineStatusReasonCode);
+      end;
       if _Invoiceline.Note <> '' then
         AddChild('ram:IncludedNote').AddChild('ram:Content').Text := _Invoiceline.Note;
     end;
@@ -2039,6 +2184,12 @@ var
     end;
     with _Node.AddChild('ram:SpecifiedLineTradeSettlement') do
     begin
+      //Zwischensummen (GROUP) und Informationen (INFORMATION) duerfen in EXTENDED
+      //ohne Steuerkategorie bleiben (BR-FXEXT-CO-04 gilt nur fuer DETAIL),
+      //ein leeres ram:CategoryCode waere ungueltig
+      if not ((_Profile = ipZUGFeRDExtended) and
+              (lLineStatusReasonCode in [ilsrc_Group,ilsrc_Information]) and
+              (_Invoiceline.TaxCategory = idtfcc_None)) then
       with AddChild('ram:ApplicableTradeTax') do
       begin
         AddChild('ram:TypeCode').Text := 'VAT';
@@ -2107,8 +2258,8 @@ var
       if (_InvoiceLine.BuyerAccountingReference <> '') then
         AddChild('ram:ReceivableSpecifiedTradeAccountingAccount').AddChild('ram:ID').Text := _InvoiceLine.BuyerAccountingReference;
     end;
-    if _Invoiceline.SubInvoiceLines.Count > 0 then
-      raise Exception.Create('SubInvoiceLines in UNCEFACT not implemented');
+    for i := 0 to _Invoiceline.SubInvoiceLines.Count-1 do
+      InternalAddInvoiceLine(_Invoiceline.SubInvoiceLines[i],_TransactionNode,_Invoiceline.ID);
   end;
 
 begin
@@ -2162,10 +2313,11 @@ begin
     end;
   end;
 
-  with xRoot.AddChild('rsm:SupplyChainTradeTransaction') do
+  xTransaction := xRoot.AddChild('rsm:SupplyChainTradeTransaction');
+  with xTransaction do
   begin
     for i := 0 to _Invoice.InvoiceLines.Count-1 do
-      InternalAddInvoiceLine(_Invoice.InvoiceLines[i],AddChild('ram:IncludedSupplyChainTradeLineItem'));
+      InternalAddInvoiceLine(_Invoice.InvoiceLines[i],xTransaction,'');
 
     with AddChild('ram:ApplicableHeaderTradeAgreement') do
     begin

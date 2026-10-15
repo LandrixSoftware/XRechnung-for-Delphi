@@ -91,6 +91,7 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.TitelPositionsgruppen(inv);
   Sv(XRechnungVersion_30x_UBL,'TitelPositionsgruppen-ubl-30x.xml');
+  Sv(ZUGFeRDExtendedVersion_250,'TitelPositionsgruppen-ciiextended-25.xml');
   EA; Sv(PeppolBillingVersion_30,'TitelPositionsgruppen-ubl-peppol.xml');
   inv.Free;
 
@@ -272,6 +273,11 @@ begin
   TInvoiceTestCases.SammelrechnungLieferscheineJePosition(inv);
   Sv(ZUGFeRDExtendedVersion_250,'SammelrechnungLieferscheine-ciiextended-25.xml');
   Sv(ZUGFeRDEN16931Version_250,'SammelrechnungLieferscheine-ciiEN16931-25.xml');
+  inv.Free;
+
+  inv := TInvoice.Create;
+  TInvoiceTestCases.TitelPositionsgruppenExtended(inv);
+  Sv(ZUGFeRDExtendedVersion_250,'TitelPositionsgruppenExtended-ciiextended-25.xml');
   inv.Free;
 end;
 

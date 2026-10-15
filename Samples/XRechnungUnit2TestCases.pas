@@ -58,6 +58,7 @@ type
     class procedure Austauschteilesteuer(inv : TInvoice);
     class procedure Differenzbesteuerung(inv : TInvoice);
     class procedure TitelPositionsgruppen(inv : TInvoice);
+    class procedure TitelPositionsgruppenExtended(inv : TInvoice); //nur ZUGFeRD/Factur-X EXTENDED
     class procedure MinimalbeispielB2BOhneLeitwegID(inv : TInvoice);
     class procedure Rechnungskorrektur(inv : TInvoice);
     class procedure Gutschrift(inv : TInvoice);
@@ -2431,6 +2432,31 @@ begin
   inv.ChargeTotalAmount := 0; //Zuschlaege
   inv.PrepaidAmount := 0; //Anzahlungen
   inv.PayableAmount := 476.00;      //Summe Zahlbar MwSt
+end;
+
+class procedure TInvoiceTestCases.TitelPositionsgruppenExtended(inv: TInvoice);
+var
+  suc : Boolean;
+begin
+  //Titel/Positionsgruppen wie oben, dazu die Untertypen aus ZUGFeRD/Factur-X EXTENDED
+  //(BT-X-8): der Titel ist eine reine Zwischensumme ohne Steuerkategorie, eine
+  //zusaetzliche Unterposition ist nur Information und zaehlt nicht in die Summen
+  TitelPositionsgruppen(inv);
+  inv.InvoiceLines[0].TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_None;
+  inv.InvoiceLines[0].TaxPercent := 0;
+  with inv.InvoiceLines[0].SubInvoiceLines.AddInvoiceLine do
+  begin
+    ID := '01.03'; //Positionsnummer
+    LineStatusReasonCode := ilsrc_Information; //zaehlt nicht in BT-106 und nicht in den Titelbetrag
+    Name := 'Montage (im Preis enthalten)'; //Kurztext
+    Quantity := 1; //Menge
+    UnitCode := TInvoiceUnitCodeHelper.MapUnitOfMeasure('Stk',suc); //Mengeneinheit
+    TaxPercent := 19.0; //MwSt
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_S_StandardRate;
+    GrossPriceAmount := 50; //Brutto-Einzelpreis
+    NetPriceAmount := 50; //Netto-Einzelpreis
+    LineAmount := 50;
+  end;
 end;
 
 class procedure TInvoiceTestCases.VierNachkommastellen(inv: TInvoice);

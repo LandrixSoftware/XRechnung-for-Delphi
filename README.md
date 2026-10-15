@@ -188,6 +188,43 @@ die Positionsbemerkung (`Note`, BT-127) schreiben und das Lieferdatum als Leistu
 Position angeben (`InvoiceLinePeriodStartDate`/`EndDate`, BT-134/135). Ob die Empfängersoftware das
 als Lieferschein erkennt, hängt von ihr ab.
 
+### Titel/Positionsgruppen (Unterpositionen)
+
+Unterpositionen hängen an `TInvoiceLine.SubInvoiceLines` und können beliebig tief geschachtelt sein.
+Die Formate rechnen sie unterschiedlich:
+
+| Format | Abbildung | Was zählt in die Summe der Positionen (BT-106) |
+|---|---|---|
+| XRechnung UBL, Peppol | `cac:SubInvoiceLine` (Extension) | nur die Oberposition |
+| ZUGFeRD/Factur-X EXTENDED | flache Positionen mit `ParentLineID` (BT-X-304) und Untertyp (BT-X-8) | nur die `DETAIL`-Positionen |
+| XRechnung CII, ZUGFeRD EN16931 | – | nicht möglich, `ConsistencyCheck` meldet `ccSubInvoiceLinesNotSupported` (11) |
+
+In EXTENDED muss eine Oberposition deshalb genau die Summe ihrer `DETAIL`- und `GROUP`-Unterpositionen
+tragen (BR-FXEXT-08), und jede `DETAIL`-Unterposition ist eine vollständige Position mit Menge, Nettopreis
+und Steuerkategorie. `ConsistencyCheck` prüft die Beträge auf den geschriebenen Centbeträgen und meldet
+sonst `ccSubInvoiceLineAmountMismatch` (12).
+
+Den Untertyp leitet die Bibliothek aus der Struktur ab (Oberposition `GROUP`, Unterposition `DETAIL`);
+über `LineStatusReasonCode` lässt er sich setzen, etwa `ilsrc_Information` für eine Zeile, die nur
+informiert und nicht mitgezählt wird (nur EXTENDED; als Unterposition ist sie auch in UBL möglich,
+dort zählen Unterpositionen ohnehin nicht). Wer eine Oberposition ausdrücklich auf `ilsrc_Detail`
+setzt, zählt Ober- und Unterpositionen beide in die Summe – das ist gültig, aber selten gewollt, und
+lässt sich nicht nach UBL übertragen (`ccSubInvoiceLinesNotSupported`).
+
+Eine `GROUP`- oder `INFORMATION`-Zeile darf in EXTENDED ohne Steuerkategorie bleiben, und das ist
+auch die sichere Wahl: Die Schematron-Regeln zur Steueraufschlüsselung (z.B. BR-FXEXT-Z-01) werten
+die Kategorie jeder Zeile aus, also auch die von Zwischensummen. Eine Kategorie, die in der
+Aufschlüsselung (BG-23) nicht vorkommt, macht die Rechnung ungültig.
+
+Beim Einlesen wird die Hierarchie aus `ParentLineID` wieder aufgebaut und der Untertyp übernommen.
+Eine CII-Oberposition ohne Untertyp gilt wie im Schematron als `DETAIL` (ihre Unterpositionen tragen
+dort immer einen Untertyp); stammen die Unterpositionen aus UBL, bleibt die Oberposition ohne Untertyp
+und wird in EXTENDED als `GROUP` geschrieben. Eine `GROUP`-Zeile ohne
+Betrag bekommt die Summe ihrer Unterpositionen. Das gilt auch mit `{$DEFINE ZUGFeRD_Support}`, wenn
+CII über die ZUGFeRD-Bibliothek gelesen wird.
+Beispiele: `TInvoiceTestCases.TitelPositionsgruppen` und `TitelPositionsgruppenExtended`, Dateien
+`ValidXMLExamples/TitelPositionsgruppen*-*.xml`.
+
 ## Rechnung lesen
 
 Derselbe Aufruf nimmt XML und PDF entgegen; erst der letzte Parameter erlaubt den PDF-Weg:

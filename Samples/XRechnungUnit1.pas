@@ -18,7 +18,7 @@ interface
 
 //https://valitool.org/
 {.$DEFINE USE_Valitool}
-{.$DEFINE USE_Landrix_Valitool}
+{$DEFINE USE_Landrix_Valitool}
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
@@ -263,7 +263,8 @@ begin
   inv := TInvoice.Create;
   TInvoiceTestCases.TitelPositionsgruppen(inv);//Titel/Positionsgruppen
   TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UBL,ValidXMLExamplesPath+'TitelPositionsgruppen-ubl-30x.xml');
-  //TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'TitelPositionsgruppen-ciiextended-25.xml');
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'TitelPositionsgruppen-ciiextended-25.xml');
+  //Unterpositionen gibt es in CII nur im Profil EXTENDED, nicht in XRechnung CII
   //TXRechnungInvoiceAdapter.SaveToFile(inv,XRechnungVersion_30x_UNCEFACT,ValidXMLExamplesPath+'TitelPositionsgruppen-cii-30x.xml');
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyer := '9482348239847239874';
   inv.AccountingSupplierParty.ElectronicAddressSellerBuyerSchemeID := '0088';
@@ -520,6 +521,12 @@ begin
   TInvoiceTestCases.SammelrechnungLieferscheineJePosition(inv);
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'SammelrechnungLieferscheine-ciiextended-25.xml');
   TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDEN16931Version_250,ValidXMLExamplesPath+'SammelrechnungLieferscheine-ciiEN16931-25.xml');
+  inv.Free;
+
+  //Untertypen der Positionen (GROUP ohne Steuer, INFORMATION) gibt es nur in EXTENDED
+  inv := TInvoice.Create;
+  TInvoiceTestCases.TitelPositionsgruppenExtended(inv);
+  TXRechnungInvoiceAdapter.SaveToFile(inv,ZUGFeRDExtendedVersion_250,ValidXMLExamplesPath+'TitelPositionsgruppenExtended-ciiextended-25.xml');
   inv.Free;
 
   {$IFDEF USE_Valitool}
@@ -888,6 +895,8 @@ begin
       22: TInvoiceTestCases.BasismengeNachkommastellen(inv);
       //Lieferschein je Position, wird nur in ZUGFeRD/Factur-X EXTENDED ausgegeben
       23: TInvoiceTestCases.SammelrechnungLieferscheineJePosition(inv);
+      //Titel ohne Steuer und INFORMATION-Unterposition, nur ZUGFeRD/Factur-X EXTENDED
+      24: TInvoiceTestCases.TitelPositionsgruppenExtended(inv);
       else ShowMessage('Hat einer was vergessen!');
     end;
 

@@ -45,6 +45,10 @@ Es gibt zwei Visualisierungen, die das Skript in getrennte Verzeichnisse legt:
   (`H87 - piece` statt `H87`). In der Bibliothek `PeppolVisualize`/`PeppolVisualizeFile`.
 
 ## Historie
+- 15.10.2026 Update\
+  https://github.com/LandrixSoftware/validator-configuration-zugferd/releases/download/validation-configuration-zugferd-2.5.2/validation-configuration-zugferd-2.5.2-2026-10-15.zip\
+  https://github.com/itplr-kosit/xrechnung-visualization/releases/download/v2026-10-13/xrechnung-3.0.2-visualization-2026-10-13.zip
+
 - 03.09.2026 Update\
   https://docs.peppol.eu/poacc/billing/3.0/files/stylesheet-ubl.xslt\
   https://github.com/itplr-kosit/validator-configuration-bis/releases/download/release-3.0.21/validation-configuration-bis-3.0.21.zip\

@@ -137,7 +137,7 @@ function Install-Zugferd {
   Write-Host 'Installing: validator-configuration-zugferd'
   Remove-Dir (Join-Path $Root 'validator-configuration-zugferd')
   $zip = Join-Path $Root 'validator-configuration-zugferd.zip'
-  Invoke-Download -Uri "https://github.com/LandrixSoftware/validator-configuration-zugferd/releases/download/validation-configuration-zugferd-2.5/validation-configuration-zugferd-2.5-2026-07-01.zip" -Destination $zip -Label 'zugferd download'
+  Invoke-Download -Uri "https://github.com/LandrixSoftware/validator-configuration-zugferd/releases/download/validation-configuration-zugferd-2.5.2/validation-configuration-zugferd-2.5.2-2026-10-15.zip" -Destination $zip -Label 'zugferd download'
   Expand-Archive $zip -DestinationPath (Join-Path $Root 'validator-configuration-zugferd') -Force
   Remove-File $zip
 }
@@ -155,7 +155,7 @@ function Install-Vis30x {
   Write-Host 'Installing: visualization30x'
   Remove-Dir (Join-Path $Root 'visualization30x')
   $zip = Join-Path $Root 'visualization30x.zip'
-  Invoke-Download -Uri "https://github.com/itplr-kosit/xrechnung-visualization/releases/download/v2026-08-31/xrechnung-3.0.2-visualization-2026-08-31.zip" -Destination $zip -Label 'visualization30x download'
+  Invoke-Download -Uri "https://github.com/itplr-kosit/xrechnung-visualization/releases/download/v2026-10-13/xrechnung-3.0.2-visualization-2026-10-13.zip" -Destination $zip -Label 'visualization30x download'
   Expand-Archive $zip -DestinationPath (Join-Path $Root 'visualization30x') -Force
   Remove-File $zip
 }

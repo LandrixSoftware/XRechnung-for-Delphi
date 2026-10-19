@@ -59,6 +59,7 @@ type
 implementation
 
 uses
+  {$IFNDEF FPC}System.Contnrs,{$ENDIF}
   intf.XRechnung;
 
 { TXRechnungInvoiceAdapter301 }

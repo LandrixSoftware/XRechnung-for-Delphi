@@ -1491,7 +1491,6 @@ begin
     num1 := Trunc(d);
     save := FPos;
     SkipWhite;
-    savePos := FPos;
     tok := ReadToken;
     Val(String(tok), d, code);
     if (code = 0) and (Frac(d) = 0) and (d >= 0) and (d < 65536) then
@@ -2358,7 +2357,6 @@ begin
   Move(digest[0], FCryptKey[0], keyLen);
 
   // --- Algorithmus 6: passt das leere Benutzerpasswort zu /U? ---
-  ok := False;
   if r = 2 then
   begin
     // Algorithmus 4
@@ -2670,7 +2668,6 @@ begin
     else
       p := nil;
 
-    ok := False;
     if (fname = 'FlateDecode') or (fname = 'Fl') then
       ok := FilterFlate(raw, decoded)
     else if (fname = 'LZWDecode') or (fname = 'LZW') then

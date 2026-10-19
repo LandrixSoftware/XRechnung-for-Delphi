@@ -25,8 +25,8 @@ interface
 
 const
   LandrixProductInfo_ProductName = 'XRechnung-for-Delphi';
-  LandrixProductInfo_ProductVersion = '3.0.2.7';
-  LandrixProductInfo_ReleaseDate = '2026-06-12';
+  LandrixProductInfo_ProductVersion = '3.0.2.8';
+  LandrixProductInfo_ReleaseDate = '2026-10-19';
 
 implementation
 

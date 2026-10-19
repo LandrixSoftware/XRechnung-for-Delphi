@@ -1630,6 +1630,8 @@ begin
     Result := iuc_inch else
   if SameText(_Val,'H18') or SameText(_Val,'HAR') then
     Result := iuc_hectare else
+  if SameText(_Val,'XSA') then
+    Result := iuc_sack else
   Result := iuc_one; //C62
 end;
 
@@ -1678,6 +1680,7 @@ begin
     iuc_foot : Result := 'FOT';
     iuc_inch : Result := 'INH';
     iuc_hectare : Result := 'H18'; //Quadrathektometer = Hektar; HAR lehnt die Factur-X-Codeliste ab
+    iuc_sack : Result := 'XSA';
   end;
 end;
 

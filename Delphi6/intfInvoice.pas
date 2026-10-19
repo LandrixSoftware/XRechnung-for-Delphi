@@ -255,6 +255,7 @@ type
                       ,iuc_foot             //FOT
                       ,iuc_inch             //INH
                       ,iuc_hectare          //H18 (HAR lehnt Factur-X ab)
+                      ,iuc_sack             //XSA (Beutel/Tuete ist iuc_bag, XBG)
                       );
   //mehr Einheiten in Res\intf.Invoice.unusedUnits.pas
 
@@ -1587,7 +1588,13 @@ begin
   if SameText(_UnitOfMeasure,'sack') or
      SameText(_UnitOfMeasure,'s'+#228+'cke') or
      SameText(_UnitOfMeasure,'saecke') or
-     SameText(_UnitOfMeasure,'sck') or
+     SameText(_UnitOfMeasure,'sck') then
+  begin
+    Result := iuc_sack;
+    _Success := true;
+    exit;
+  end;
+  if SameText(_UnitOfMeasure,'beutel') or
      SameText(_UnitOfMeasure,'bag') or
      SameText(_UnitOfMeasure,'bags') then
   begin

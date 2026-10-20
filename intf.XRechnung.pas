@@ -178,6 +178,14 @@ type
     ccSubInvoiceLinesNotSupported = 11; //Unterpositionen nur in XRechnung UBL, Peppol und ZUGFeRD/Factur-X EXTENDED, INFORMATION auf oberster Ebene und DETAIL mit Unterpositionen nur EXTENDED
     ccSubInvoiceLineAmountMismatch = 12; //EXTENDED: Betrag einer Oberposition (GROUP) ungleich der Summe ihrer Unterpositionen (BR-FXEXT-08)
   public
+    //XMP-Beschreibung (rdf:Description) fuer ein ZUGFeRD-/Factur-X-PDF/A-3,
+    //passend zu ZUGFERD_INVOICE_PDF_SCHEMA. ConformanceLevel und Dateiname je
+    //Version: ZUGFeRDEN16931Version_250 = EN 16931 (factur-x.xml),
+    //ZUGFeRDExtendedVersion_250 = EXTENDED (factur-x.xml),
+    //XRechnungVersion_30x_UNCEFACT = XRECHNUNG (xrechnung.xml).
+    //UBL laesst sich nicht als ZUGFeRD einbetten -> Leerstring.
+    class function ZUGFeRDPdfXmpInfo(_Version : TXRechnungVersion) : String;
+    class function ZUGFeRDPdfFilename(_Version : TXRechnungVersion) : String;
     class function ConsistencyCheck(_Invoice : TInvoice; _Version : TXRechnungVersion) : Boolean; overload;
     class function ConsistencyCheck(_Invoice : TInvoice; _Version : TXRechnungVersion; out _ErrorCode : Integer) : Boolean; overload;
     class procedure CorrectDueDateIfNotDefined(_Invoice : TInvoice);
@@ -202,7 +210,12 @@ type
 const
   ZUGFERD_INVOICE_PDF_FILENAME_FACTURX =
     'factur-x.xml';
+  //Dateiname im PDF beim Profil XRECHNUNG (CII), sonst factur-x.xml
+  ZUGFERD_INVOICE_PDF_FILENAME_XRECHNUNG =
+    'xrechnung.xml';
 
+  //Fest fuer Profil EXTENDED. Fuer andere Profile (EN 16931, XRECHNUNG)
+  //TXRechnungInvoiceAdapter.ZUGFeRDPdfXmpInfo verwenden.
   ZUGFERD_INVOICE_PDF_XMP_INFO =
     '<rdf:Description xmlns:fx="urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#"' + #32 + 'rdf:about="">' + #10 +
     '<fx:DocumentType>INVOICE</fx:DocumentType>' + #10 +
@@ -214,7 +227,7 @@ const
     '<rdf:li rdf:parseType="Resource">' + #10 +
       '<pdfaSchema:schema>Factur-X PDFA Extension Schema</pdfaSchema:schema>' + #10 +
       '<pdfaSchema:namespaceURI>urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#</pdfaSchema:namespaceURI>' + #10 +
-      '<pdfaSchema:prefix>zf</pdfaSchema:prefix>' + #10 +
+      '<pdfaSchema:prefix>fx</pdfaSchema:prefix>' + #10 +
       '<pdfaSchema:property>' + #10 +
          '<rdf:Seq>' + #10 +
            '<rdf:li rdf:parseType="Resource">' + #10 +
@@ -342,6 +355,35 @@ begin
     hstrl.Free;
     xml := nil;
   end;
+end;
+
+class function TXRechnungInvoiceAdapter.ZUGFeRDPdfFilename(_Version : TXRechnungVersion) : String;
+begin
+  case _Version of
+    ZUGFeRDEN16931Version_250,
+    ZUGFeRDExtendedVersion_250    : Result := ZUGFERD_INVOICE_PDF_FILENAME_FACTURX;
+    XRechnungVersion_30x_UNCEFACT : Result := ZUGFERD_INVOICE_PDF_FILENAME_XRECHNUNG;
+    else Result := '';
+  end;
+end;
+
+class function TXRechnungInvoiceAdapter.ZUGFeRDPdfXmpInfo(_Version : TXRechnungVersion) : String;
+var
+  lLevel : String;
+begin
+  Result := '';
+  case _Version of
+    ZUGFeRDEN16931Version_250     : lLevel := 'EN 16931';
+    ZUGFeRDExtendedVersion_250    : lLevel := 'EXTENDED';
+    XRechnungVersion_30x_UNCEFACT : lLevel := 'XRECHNUNG';
+    else exit;
+  end;
+  Result :=
+    '<rdf:Description xmlns:fx="urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#"' + #32 + 'rdf:about="">' + #10 +
+    '<fx:DocumentType>INVOICE</fx:DocumentType>' + #10 +
+    '<fx:DocumentFileName>' + ZUGFeRDPdfFilename(_Version) + '</fx:DocumentFileName>' + #10 +
+    '<fx:Version>1.0</fx:Version>' + #10 +
+    '<fx:ConformanceLevel>' + lLevel + '</fx:ConformanceLevel></rdf:Description>';
 end;
 
 class function TXRechnungInvoiceAdapter.ConsistencyCheck(_Invoice: TInvoice;

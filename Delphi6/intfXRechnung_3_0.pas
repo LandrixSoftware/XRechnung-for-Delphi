@@ -1424,10 +1424,12 @@ var
 begin
   CoInitialize(nil);
   _Xml.Options := [doNodeAutoCreate, doNodeAutoIndent, doAttrNull];
+  //Delphi 6: erst aktivieren, dann den Prolog setzen. XML.Clear im Aufrufer
+  //deaktiviert das Dokument, SetPrologValue greift sonst auf ein nil-DOM zu (AV).
+  _Xml.Active := True;
   _Xml.Version := '1.0';
   _Xml.StandAlone := '';
   _Xml.Encoding := 'UTF-8';
-  _Xml.Active := True;
 
   if _Invoice.InvoiceTypeCode = itc_CreditNote then
   begin
@@ -2265,10 +2267,12 @@ var
 begin
   CoInitialize(nil);
   _Xml.Options := [doNodeAutoCreate, doNodeAutoIndent, doAttrNull];
+  //Delphi 6: erst aktivieren, dann den Prolog setzen. XML.Clear im Aufrufer
+  //deaktiviert das Dokument, SetPrologValue greift sonst auf ein nil-DOM zu (AV).
+  _Xml.Active := True;
   _Xml.Version := '1.0';
   _Xml.StandAlone := '';
   _Xml.Encoding := 'UTF-8';
-  _Xml.Active := True;
 
   xRoot := _Xml.AddChild('rsm:CrossIndustryInvoice');
 

@@ -664,17 +664,12 @@ begin
       //Fallback fuer Rechnungen ohne oder mit unbekannter CustomizationID. Die Feldstruktur
       //entspricht EN16931, daher wird strukturbasiert nach dem Wurzelelement eingelesen,
       //andernfalls gibt es wenigstens einen Fehlertext.
-      if (SameText(_XmlDocument.DocumentElement.NodeName,'Invoice') or
-          SameText(_XmlDocument.DocumentElement.NodeName,'ubl:Invoice') or
-          SameText(_XmlDocument.DocumentElement.NodeName,'ns0:Invoice') or
-          SameText(_XmlDocument.DocumentElement.NodeName,'CreditNote') or
-          SameText(_XmlDocument.DocumentElement.NodeName,'ubl:CreditNote') or
-          SameText(_XmlDocument.DocumentElement.NodeName,'ns0:CreditNote')) then
-        Result := TXRechnungInvoiceAdapter301.LoadDocumentUBL(_Invoice,_XmlDocument,_Error)
-      else
-      if (SameText(_XmlDocument.DocumentElement.NodeName,'CrossIndustryInvoice') or
-          SameText(_XmlDocument.DocumentElement.NodeName,'rsm:CrossIndustryInvoice')) then
+      if (Pos('CrossIndustryInvoice', _XmlDocument.DocumentElement.NodeName) > 0) then
         Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error)
+      else  
+      if ((Pos('Invoice',_XmlDocument.DocumentElement.NodeName) > 0) or
+          (Pos('CreditNote',_XmlDocument.DocumentElement.NodeName) > 0)) then
+        Result := TXRechnungInvoiceAdapter301.LoadDocumentUBL(_Invoice,_XmlDocument,_Error)
       else
         _Error := 'Nicht unterstuetztes Rechnungsformat (Wurzelelement '+_XmlDocument.DocumentElement.NodeName+')';
     end;
@@ -1862,29 +1857,11 @@ begin
   Result := XRechnungVersion_Unknown;
   if _XML = nil then
     exit;
-  if (SameText(_XML.DocumentElement.NodeName,'Invoice') or
-      SameText(_XML.DocumentElement.NodeName,'ubl:Invoice') or
-      SameText(_XML.DocumentElement.NodeName,'ns0:Invoice') or
-      SameText(_XML.DocumentElement.NodeName,'CreditNote') or
-      SameText(_XML.DocumentElement.NodeName,'ubl:CreditNote') or
-      SameText(_XML.DocumentElement.NodeName,'ns0:CreditNote')) then
+  if (Pos('CrossIndustryDocument',_XML.DocumentElement.NodeName) > 0) then
   begin
-    if not (TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'cbc:CustomizationID',node) or
-            TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'CustomizationID',node)) then
-      exit;
-    if Pos('xrechnung_3.0',AnsiLowerCase(node.Text))>0 then
-      Result := XRechnungVersion_30x_UBL
-    else
-    if Pos('billing:3.0',AnsiLowerCase(node.Text))>0 then
-      Result := PeppolBillingVersion_30
-    else
-    //aeltere XRechnung-Versionen und fremde EN16931-CIUS, z.B.
-    //urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.3
-    if Pos('urn:cen.eu:en16931:2017',AnsiLowerCase(node.Text))>0 then
-      Result := XRechnungVersion_2x_ReadingOnly;
+    Result := ZUGFeRDExtendedVersion_1_NotSupported;
   end else
-  if (SameText(_XML.DocumentElement.NodeName,'CrossIndustryInvoice') or
-      SameText(_XML.DocumentElement.NodeName,'rsm:CrossIndustryInvoice')) then
+  if (Pos('CrossIndustryInvoice',_XML.DocumentElement.NodeName) > 0) then
   begin
     if not (TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'rsm:ExchangedDocumentContext',node) or
             TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'ExchangedDocumentContext',node)) then
@@ -1902,11 +1879,23 @@ begin
     if Pos('urn:cen.eu:en16931:2017',AnsiLowerCase(node.Text))>0 then
       Result := ZUGFeRDEN16931Version_250;
   end else
-  if (SameText(_XML.DocumentElement.NodeName,'CrossIndustryDocument') or
-      SameText(_XML.DocumentElement.NodeName,'rsm:CrossIndustryDocument')) then
+  if ((Pos('Invoice',_XML.DocumentElement.NodeName) > 0) or
+      (Pos('CreditNote',_XML.DocumentElement.NodeName) > 0)) then
   begin
-    Result := ZUGFeRDExtendedVersion_1_NotSupported;
-  end;
+    if not (TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'cbc:CustomizationID',node) or
+            TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'CustomizationID',node)) then
+      exit;
+    if Pos('xrechnung_3.0',AnsiLowerCase(node.Text))>0 then
+      Result := XRechnungVersion_30x_UBL
+    else
+    if Pos('billing:3.0',AnsiLowerCase(node.Text))>0 then
+      Result := PeppolBillingVersion_30
+    else
+    //aeltere XRechnung-Versionen und fremde EN16931-CIUS, z.B.
+    //urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.3
+    if Pos('urn:cen.eu:en16931:2017',AnsiLowerCase(node.Text))>0 then
+      Result := XRechnungVersion_2x_ReadingOnly;
+  end;  
 end;
 
 class function TXRechnungValidationHelper.GetXRechnungVersion(

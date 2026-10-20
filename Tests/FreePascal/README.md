@@ -33,8 +33,9 @@ Der eigentliche Lese- und Schreibcode in `intf.XRechnung_3_0.pas` ist dadurch
 |---|---|
 | `XRechnungParityTest.lpr` | **Schreibpfad**: erzeugt alle Beispiele mit der FPC-Bibliothek und vergleicht sie kanonisch gegen die Delphi-Golden-Files |
 | `XRechnungRoundtripTest.lpr` | **Lesepfad**: liest jedes Golden-File mit der FPC-Bibliothek ein, schreibt die `TInvoice` zurück und vergleicht kanonisch gegen das Original |
+| `XRechnungPrefixTest.lpr` | **Lesepfad mit fremden Namespace-Präfixen** (Issue #92): schreibt jedes Golden-File mit anderen Präfixen (`ubl`→`n0`, `cbc`→`n1`, `ram`→`b` …) und mit Default-Namespace am Wurzelelement um, prüft die erkannte Version und den Roundtrip gegen das Original; `SelfBilledInvoice` und `InvoiceResponse` als Wurzel müssen abgelehnt werden (224 Fälle) |
 
-Beide nutzen `XRechnungXmlCompare.pas` für den kanonischen Vergleich (DOM-Baum;
+Alle drei nutzen `XRechnungXmlCompare.pas` für den kanonischen Vergleich (DOM-Baum;
 Whitespace-, Einrückungs- und Attribut-Reihenfolge-unabhängig) und geben eine
 PASS/FAIL-Summary aus (ExitCode 0 = alle 111 Dateien in Ordnung).
 
@@ -56,6 +57,7 @@ unverändert). `XRechnungGenerateExamples.pas` bildet `TForm1.Button1Click` aus
 ```powershell
 Tests\FreePascal\Scripts\run-xrechnung-paritytest-win.ps1              # Schreibpfad
 Tests\FreePascal\Scripts\run-xrechnung-roundtriptest-win.ps1           # Lesepfad
+Tests\FreePascal\Scripts\run-xrechnung-prefixtest-win.ps1              # fremde Namespace-Praefixe
 Tests\FreePascal\Scripts\run-xrechnung-paritytest-win.ps1 -ShowAll     # voller Log
 Tests\FreePascal\Scripts\run-xrechnung-paritytest-win.ps1 -Fpc <pfad\fpc.exe>
 ```

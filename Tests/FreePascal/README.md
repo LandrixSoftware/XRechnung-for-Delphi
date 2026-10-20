@@ -37,7 +37,8 @@ Der eigentliche Lese- und Schreibcode in `intf.XRechnung_3_0.pas` ist dadurch
 
 Alle drei nutzen `XRechnungXmlCompare.pas` für den kanonischen Vergleich (DOM-Baum;
 Whitespace-, Einrückungs- und Attribut-Reihenfolge-unabhängig) und geben eine
-PASS/FAIL-Summary aus (ExitCode 0 = alle 111 Dateien in Ordnung).
+PASS/FAIL-Summary aus (ExitCode 0 = alles in Ordnung: 111 Dateien bei Parity und
+Roundtrip, 224 Fälle beim Präfixtest).
 
 Der Roundtrip taugt als Lesetest, weil Lesen+Schreiben über alle 111
 Golden-Files verlustfrei ist — unter Delphi ebenso wie unter FPC. Jede

@@ -268,10 +268,10 @@ in [Distribution/README.md](Distribution/README.md).
 - [Samples/](Samples/) – VCL-Demo zum Erzeugen, Validieren und Visualisieren. Die Testfälle in
   `XRechnungUnit2TestCases.pas` decken vom Minimalbeispiel bis zu Skonto, Differenzbesteuerung und
   Reverse-Charge alles ab, was die Bibliothek kann.
-- [ValidXMLExamples/](ValidXMLExamples/) – 109 aus diesen Testfällen erzeugte Rechnungen, alle gegen
+- [ValidXMLExamples/](ValidXMLExamples/) – 111 aus diesen Testfällen erzeugte Rechnungen, alle gegen
   den KoSIT-Validator geprüft (Schema, Schematron, Acceptance).
 - [Tests/FreePascal/](Tests/FreePascal/) – Schreib-Parität und Lese-Roundtrip unter FreePascal gegen
-  dieselben 109 Dateien.
+  dieselben 111 Dateien.
 - [Tests/PdfExtract/](Tests/PdfExtract/) – Test der PDF-Anhangsextraktion unter Delphi und FreePascal.
 
 ## Sicherheit und Cyber Resilience Act / Security and Cyber Resilience Act

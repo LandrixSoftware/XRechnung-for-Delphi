@@ -296,6 +296,9 @@ begin
       ID := TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//cbc:ID');
       if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//cbc:DocumentTypeCode',node) then
         TypeCode := TXRechnungHelper.InvoiceAttachmentTypeCodeFromStr(node.text);
+      //BT-18-1
+      if (TypeCode = iatc_130) and TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//cbc:ID',node) then
+        SchemeID := TXRechnungXMLHelper.SelectAttributeText(node,'schemeID');
       DocumentDescription := TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//cbc:DocumentDescription');
       if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//cac:Attachment',node) then
       begin
@@ -912,6 +915,9 @@ begin
           ExternalReference := TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//ram:URIID');
         if TXRechnungXMLHelper.FindNode(nodes.item[i],'.//ram:TypeCode') then
           TypeCode := TXRechnungHelper.InvoiceAttachmentTypeCodeFromStr(TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//ram:TypeCode'));
+        //BT-18-1
+        if TypeCode = iatc_130 then
+          SchemeID := TXRechnungXMLHelper.SelectNodeText(nodes.item[i],'.//ram:ReferenceTypeCode');
         if TXRechnungXMLHelper.SelectNode(nodes.item[i],'.//ram:AttachmentBinaryObject',node) then
         begin
           AttachmentType := TXRechnungHelper.InvoiceAttachmentTypeFromStr(TXRechnungXMLHelper.SelectAttributeText(node,'mimeCode'));
@@ -1545,7 +1551,13 @@ begin
     end;
     with xRoot.AddChild('cac:AdditionalDocumentReference') do
     begin
-      AddChild('cbc:ID').Text := _Invoice.Attachments[i].ID;
+      with AddChild('cbc:ID') do
+      begin
+        //BT-18-1
+        if (_Invoice.Attachments[i].TypeCode = iatc_130) and (_Invoice.Attachments[i].SchemeID <> '') then
+          Attributes['schemeID'] := _Invoice.Attachments[i].SchemeID;
+        Text := _Invoice.Attachments[i].ID;
+      end;
       if (_Invoice.Attachments[i].TypeCode in [iatc_130{,iatc_916}]) then //916 gibt derzeit Fehler bei UBL, ggf. spaeter wieder aktivieren
         AddChild('cbc:DocumentTypeCode').Text := TXRechnungHelper.InvoiceAttachmentTypeCodeToStr(_Invoice.Attachments[i].TypeCode);
       if _Invoice.Attachments[i].DocumentDescription <> '' then
@@ -2504,6 +2516,9 @@ begin
             Attributes['filename'] := _Invoice.Attachments[i].Filename;
             Text := _Invoice.Attachments[i].GetDataAsBase64;
           end;
+          //BT-18-1, im Schema nach AttachmentBinaryObject
+          if (_Invoice.Attachments[i].TypeCode = iatc_130) and (_Invoice.Attachments[i].SchemeID <> '') then
+            AddChild('ram:ReferenceTypeCode').Text := _Invoice.Attachments[i].SchemeID;
         end;
       end;
       if not (_Invoice.ProjectReference = '') then

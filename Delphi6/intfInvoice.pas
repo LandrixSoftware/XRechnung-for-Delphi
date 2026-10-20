@@ -293,6 +293,7 @@ type
     DocumentDescription : String;
     Filename : String;
     TypeCode : TInvoiceAttachmentTypeCode;
+    SchemeID : String; //BT-18-1 Kennung des Schemas der Objektkennung (nur TypeCode 130), Codeliste UNTDID 1153, z.B. IL = Innenauftrag
     AttachmentType : TInvoiceAttachmentType;
     Data : TMemoryStream;         //https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/cac-AdditionalDocumentReference/cac-Attachment/cbc-EmbeddedDocumentBinaryObject/
     ExternalReference : String;   // Gemaesss BMF-Schreiben vom 15.10.2024 sollen Links auf rechnungsbegruendende Unterlagen nicht verwendet werden. Sie sollen stattdessen in die XML-Datei eingebettet werden. Dies gilt ab dem 01.01.2025.

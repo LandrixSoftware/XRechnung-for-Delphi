@@ -2987,6 +2987,8 @@ begin
       lAttachment.TypeCode := TXRechnungHelper.InvoiceAttachmentTypeCodeFromStr(
         CodeFromEnum<TZUGFeRDAdditionalReferencedDocumentTypeCode>(_InvoiceDescriptor.AdditionalReferencedDocuments[i].TypeCode));
       lAttachment.ExternalReference := _InvoiceDescriptor.AdditionalReferencedDocuments[i].URIID; //BT-124
+      if lAttachment.TypeCode = iatc_130 then
+        lAttachment.SchemeID := CodeFromEnum<TZUGFeRDReferenceTypeCodes>(_InvoiceDescriptor.AdditionalReferencedDocuments[i].ReferenceTypeCode); //BT-18-1
       if _InvoiceDescriptor.AdditionalReferencedDocuments[i].AttachmentBinaryObject <> nil then
       begin
         lAttachment.Data.LoadFromStream(_InvoiceDescriptor.AdditionalReferencedDocuments[i].AttachmentBinaryObject);

@@ -831,6 +831,8 @@ class function TXRechnungInvoiceAdapter.LoadFromXMLDocument(
   _Invoice: TInvoice; _XmlDocument: IXMLDocument;
   out _Error: String
   {$IFDEF ZUGFeRD_Support};_AdditionalContent : TZUGFeRDAdditionalContent = nil{$ENDIF}): Boolean;
+var
+  rootName : String;
 begin
   Result := false;
   if _Invoice = nil then
@@ -857,11 +859,11 @@ begin
       //Fallback fuer Rechnungen ohne oder mit unbekannter CustomizationID. Die Feldstruktur
       //entspricht EN16931, daher wird strukturbasiert nach dem Wurzelelement eingelesen,
       //andernfalls gibt es wenigstens einen Fehlertext.
-      if (Pos('CrossIndustryInvoice', _XmlDocument.DocumentElement.NodeName) > 0) then
+      rootName := TXRechnungXMLHelper.LocalName(_XmlDocument.DocumentElement.NodeName);
+      if rootName = 'CrossIndustryInvoice' then
         Result := TXRechnungInvoiceAdapter301.LoadDocumentUNCEFACT(_Invoice,_XmlDocument,_Error)
-      else  
-      if ((Pos('Invoice',_XmlDocument.DocumentElement.NodeName) > 0) or
-          (Pos('CreditNote',_XmlDocument.DocumentElement.NodeName) > 0)) then
+      else
+      if (rootName = 'Invoice') or (rootName = 'CreditNote') then
         Result := TXRechnungInvoiceAdapter301.LoadDocumentUBL(_Invoice,_XmlDocument,_Error)
       else
         _Error := 'Nicht unterstuetztes Rechnungsformat (Wurzelelement '+_XmlDocument.DocumentElement.NodeName+')';
@@ -2092,18 +2094,21 @@ class function TXRechnungValidationHelper.GetXRechnungVersion(
   _Xml: IXMLDocument): TXRechnungVersion;
 var
   node,node2 : IXMLNode;
+  rootName : String;
 begin
   Result := XRechnungVersion_Unknown;
   if _XML = nil then
     exit;
-  if (Pos('CrossIndustryDocument',_XML.DocumentElement.NodeName) > 0) then
+  //Namespace-Praefixe sind frei waehlbar (n0:Invoice statt ubl:Invoice),
+  //daher wird nur der lokale Name des Wurzelelements verglichen
+  rootName := TXRechnungXMLHelper.LocalName(_XML.DocumentElement.NodeName);
+  if rootName = 'CrossIndustryDocument' then
   begin
     Result := ZUGFeRDExtendedVersion_1_NotSupported;
   end else
-  if (Pos('CrossIndustryInvoice',_XML.DocumentElement.NodeName) > 0) then
+  if rootName = 'CrossIndustryInvoice' then
   begin
-    if not (TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'rsm:ExchangedDocumentContext',node) or
-            TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'ExchangedDocumentContext',node)) then
+    if not TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'rsm:ExchangedDocumentContext',node) then
       exit;
     if not TXRechnungXMLHelper.FindChild(node,'ram:GuidelineSpecifiedDocumentContextParameter',node2) then
       exit;
@@ -2118,11 +2123,9 @@ begin
     if Pos('urn:cen.eu:en16931:2017',AnsiLowerCase(node.Text))>0 then
       Result := ZUGFeRDEN16931Version_250;
   end else
-  if ((Pos('Invoice',_XML.DocumentElement.NodeName) > 0) or
-      (Pos('CreditNote',_XML.DocumentElement.NodeName) > 0)) then
+  if (rootName = 'Invoice') or (rootName = 'CreditNote') then
   begin
-    if not (TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'cbc:CustomizationID',node) or
-            TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'CustomizationID',node)) then
+    if not TXRechnungXMLHelper.FindChild(_XML.DocumentElement,'cbc:CustomizationID',node) then
       exit;
     if Pos('xrechnung_3.0',AnsiLowerCase(node.Text))>0 then
       Result := XRechnungVersion_30x_UBL

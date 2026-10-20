@@ -47,6 +47,7 @@ uses
 type
   TXRechnungXMLHelper = class(TObject)
   public
+    class function LocalName(const _NodeName : String) : String;
     class function FindChild(_Node : IXMLNode; const _NodeName : String; out _Result : IXMLNode) : Boolean;
     class function SelectNode(_XnRoot: IXMLDOMNode; const _NodePath: String; out _Result : IXMLDOMNode): Boolean;
     class function SelectNodes(_XnRoot: IXMLDOMNode; const _NodePath: String; out _Result : IXMLDOMNodeList): Boolean;
@@ -105,6 +106,11 @@ begin
   Result := _Result <> nil;
 end;
 
+class function TXRechnungXMLHelper.LocalName(const _NodeName: String): String;
+begin
+  Result := Copy(_NodeName,Pos(':',_NodeName)+1,MaxInt);
+end;
+
 class function TXRechnungXMLHelper.FindChild(_Node: IXMLNode; const _NodeName: String;
   out _Result: IXMLNode): Boolean;
 begin
@@ -112,6 +118,10 @@ begin
   if _Node = nil then
     exit;
   _Result := _Node.ChildNodes.FindNode(_NodeName,'');
+  //Namespace-Praefixe sind frei waehlbar (n1:CustomizationID statt
+  //cbc:CustomizationID), daher ersatzweise ueber den lokalen Namen suchen
+  if (_Result = nil) and (Pos(':',_NodeName) > 0) then
+    _Result := _Node.ChildNodes.FindNode(LocalName(_NodeName),'');
   Result := _Result <> nil;
 end;
 

@@ -600,8 +600,9 @@ begin
     begin
       if ANamespaceURI = '' then
       begin
-        // Xml.XMLIntf sucht ohne Namespace-Angabe ueber den vollen Knotennamen.
-        if n.NodeName = DOMString(AName) then
+        // Xml.XMLIntf sucht ohne Namespace-Angabe ueber den vollen oder den
+        // lokalen Knotennamen (NodeMatches in Xml.xmldom).
+        if (n.NodeName = DOMString(AName)) or (n.LocalName = DOMString(AName)) then
         begin
           Result := TXMLNodeShim.Create(FOwner, TDOMElement(n));
           exit;

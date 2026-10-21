@@ -116,6 +116,69 @@ const
   JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = $00002000;
 {$IFEND}
 
+//Jobobjekt-API selbst deklariert: XE7 und aelter kennen in Winapi.Windows weder die
+//Funktionen noch die Strukturen (Issue #94). Eigene Namen, damit es mit neueren
+//Delphi-Versionen, die alles mitbringen, keine Ueberschneidung gibt.
+//Aufbau laut winnt.h; die Groesse entspricht unter Win32 und Win64 der von
+//Winapi.Windows (48/64 bzw. 112/144 Byte).
+const
+  XR_JobObjectExtendedLimitInformation = 9;
+
+type
+  TXRJobObjectBasicLimitInformation = record
+    PerProcessUserTimeLimit : Int64;
+    PerJobUserTimeLimit : Int64;
+    LimitFlags : DWORD;
+    MinimumWorkingSetSize : NativeUInt;
+    MaximumWorkingSetSize : NativeUInt;
+    ActiveProcessLimit : DWORD;
+    Affinity : NativeUInt;
+    PriorityClass : DWORD;
+    SchedulingClass : DWORD;
+  end;
+
+  TXRIoCounters = record
+    ReadOperationCount : UInt64;
+    WriteOperationCount : UInt64;
+    OtherOperationCount : UInt64;
+    ReadTransferCount : UInt64;
+    WriteTransferCount : UInt64;
+    OtherTransferCount : UInt64;
+  end;
+
+  TXRJobObjectExtendedLimitInformation = record
+    BasicLimitInformation : TXRJobObjectBasicLimitInformation;
+    IoInfo : TXRIoCounters;
+    ProcessMemoryLimit : NativeUInt;
+    JobMemoryLimit : NativeUInt;
+    PeakProcessMemoryUsed : NativeUInt;
+    PeakJobMemoryUsed : NativeUInt;
+  end;
+
+function XR_CreateJobObject(lpJobAttributes : PSecurityAttributes; lpName : PWideChar) : THandle;
+  stdcall; external 'kernel32.dll' name 'CreateJobObjectW';
+function XR_SetInformationJobObject(hJob : THandle; JobObjectInformationClass : Integer;
+  lpJobObjectInformation : Pointer; cbJobObjectInformationLength : DWORD) : BOOL;
+  stdcall; external 'kernel32.dll' name 'SetInformationJobObject';
+function XR_AssignProcessToJobObject(hJob, hProcess : THandle) : BOOL;
+  stdcall; external 'kernel32.dll' name 'AssignProcessToJobObject';
+function XR_TerminateJobObject(hJob : THandle; uExitCode : UINT) : BOOL;
+  stdcall; external 'kernel32.dll' name 'TerminateJobObject';
+
+//Vergangene Millisekunden seit _StartTick. GetTickCount statt GetTickCount64, das XE7
+//nicht kennt; die Differenz ist ueber den Ueberlauf nach 49,7 Tagen hinweg richtig,
+//solange der einzelne Lauf kuerzer ist.
+//Gerechnet wird in Int64, damit auch {$Q+} beim Ueberlauf nicht anschlaegt.
+function XR_ElapsedMs(_StartTick : DWORD) : UInt64;
+var
+  Diff : Int64;
+begin
+  Diff := Int64(GetTickCount) - Int64(_StartTick);
+  if Diff < 0 then
+    Inc(Diff,Int64($100000000));
+  Result := UInt64(Diff);
+end;
+
 type
   TXRechnungValidationHelperJava = class(TInterfacedObject,IXRechnungValidationHelperJava)
   private
@@ -246,10 +309,10 @@ var
   SI: TStartupInfo;
   PI: TProcessInformation;
   StdOutPipeRead, StdOutPipeWrite, StdOutFile, StdInRead, StdInWrite, Job: THandle;
-  JobLimits : TJobObjectExtendedLimitInformation;
+  JobLimits : TXRJobObjectExtendedLimitInformation;
   Buffer: array[0..4095] of Byte;
   BytesRead, BytesAvail: Cardinal;
-  StartTick : UInt64;
+  StartTick : DWORD;
   TimedOut : Boolean;
   ProcessExitCode : DWORD;
   Output : TBytesStream;
@@ -333,18 +396,16 @@ begin
       // Eigene Sicherheitsstruktur statt SA: das Job-Handle darf nicht vererbbar sein,
       // sonst haelt eine geerbte Kopie im Kindprozess das Jobobjekt am Leben und
       // KILL_ON_JOB_CLOSE greift beim Schliessen unseres Handles nicht mehr.
-      // Kein nil, weil Winapi.Windows die Zeiger-Ueberladung von CreateJobObject erst
-      // ab Delphi 10.3 kennt; die var-Fassung gibt es in allen Versionen.
       JobSA.nLength := SizeOf(JobSA);
       JobSA.bInheritHandle := False;
       JobSA.lpSecurityDescriptor := nil;
-      Job := CreateJobObject(JobSA,nil);
+      Job := XR_CreateJobObject(@JobSA,nil);
       if Job <> 0 then
       begin
         FillChar(JobLimits,SizeOf(JobLimits),0);
         JobLimits.BasicLimitInformation.LimitFlags := JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
-        if not SetInformationJobObject(Job,JobObjectExtendedLimitInformation,
-                                       @JobLimits,SizeOf(JobLimits)) then
+        if not XR_SetInformationJobObject(Job,XR_JobObjectExtendedLimitInformation,
+                                          @JobLimits,SizeOf(JobLimits)) then
         begin
           CloseHandle(Job);
           Job := 0;
@@ -361,7 +422,7 @@ begin
 
     if Job <> 0 then
     begin
-      if not AssignProcessToJobObject(Job,PI.hProcess) then
+      if not XR_AssignProcessToJobObject(Job,PI.hProcess) then
       begin
         CloseHandle(Job); // ohne Job bleibt es beim TerminateProcess-Verhalten
         Job := 0;
@@ -379,7 +440,7 @@ begin
         //Pipe sonst genauso endlos blockiert wie WaitForSingleObject(...,INFINITE).
         //Erst lesen, dann auf Prozessende pruefen - sonst Deadlock, wenn der volle
         //Pipe-Puffer den Kindprozess blockiert.
-        StartTick := GetTickCount64;
+        StartTick := GetTickCount;
         TimedOut := false;
         repeat
           while PeekNamedPipe(StdOutPipeRead,nil,0,nil,@BytesAvail,nil) and (BytesAvail > 0) do
@@ -390,17 +451,17 @@ begin
             // Deadline auch hier pruefen: ein Prozess, der die Pipe dauerhaft gefuellt
             // haelt, wuerde die Schleife sonst nie verlassen und den Timeout aushebeln.
             if (ExecTimeoutSeconds > 0) and
-               (GetTickCount64 - StartTick >= UInt64(ExecTimeoutSeconds) * 1000) then
+               (XR_ElapsedMs(StartTick) >= UInt64(ExecTimeoutSeconds) * 1000) then
               Break;
           end;
           if WaitForSingleObject(PI.hProcess, 100) = WAIT_OBJECT_0 then
             Break;
           if (ExecTimeoutSeconds > 0) and
-             (GetTickCount64 - StartTick >= UInt64(ExecTimeoutSeconds) * 1000) then
+             (XR_ElapsedMs(StartTick) >= UInt64(ExecTimeoutSeconds) * 1000) then
           begin
             TimedOut := true;
             if Job <> 0 then
-              TerminateJobObject(Job,1) // beendet auch Enkelprozesse
+              XR_TerminateJobObject(Job,1) // beendet auch Enkelprozesse
             else
               TerminateProcess(PI.hProcess, 1);
             WaitForSingleObject(PI.hProcess, 5000); // sonst sind Tempdateien beim Loeschen evtl. noch gesperrt

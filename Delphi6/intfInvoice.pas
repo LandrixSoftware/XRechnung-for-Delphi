@@ -692,6 +692,7 @@ type
     CountrySubentity : String;
     AddressLine : String;
     CountryCode : String;
+    procedure Clear;
   end;
 
   TInvoiceAccountingParty = class(TObject)
@@ -729,6 +730,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    procedure Clear;
   end;
 
   TInvoiceDeliveryInformation = class(TObject)
@@ -741,6 +743,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    procedure Clear;
   end;
 
   TInvoicePrecedingInvoiceReference = class(TObject)
@@ -942,11 +945,57 @@ procedure TInvoice.Clear;
 begin
   ProfileID := 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0';
   InvoiceLines.Clear;
+  Attachments.Clear;
+  
+  InvoiceNumber := '';
+  InvoiceIssueDate := 0;
+  InvoiceDueDate := 0;
+  InvoicePeriodStartDate := 0;
+  InvoicePeriodEndDate := 0;
+  InvoiceTypeCode := TInvoiceTypeCode.itc_None;
+  InvoiceCurrencyCode := '';
+  TaxCurrencyCode := '';
+  BuyerReference := '';
+  Notes.Clear;
+  SellerOrderReference := '';
+  PurchaseOrderReference := '';
+  ProjectReference := '';
+  ReceiptDocumentReference := '';
+  ContractDocumentReference := '';
+  DeliveryReceiptNumber := '';
+  DeliveryReceiptDate := 0;
+  DeliveryReceiptNumberExtended := '';
+  DeliveryReceiptDateExtended := 0;
+  BuyerAccountingReference := '';
+  
+  AccountingSupplierParty.Clear;
+  AccountingCustomerParty.Clear;
+  DeliveryInformation.Clear;
+  
+  PaymentID := '';
+  PaymentTypes.Clear;
+  PaymentMandateID := '';
+  PaymentTermsType := iptt_None;
+  PaymentTermNetNote := '';
+  PaymentTermCashDiscount1Days := 0;
+  PaymentTermCashDiscount1Percent := 0;
+  PaymentTermCashDiscount1Base := 0;
+  PaymentTermCashDiscount1ActualAmount := 0;
+  PaymentTermCashDiscount2Days := 0;
+  PaymentTermCashDiscount2Percent := 0;
+  PaymentTermCashDiscount2Base := 0;
+  PaymentTermCashDiscount2ActualAmount := 0;
+  PaymentTermCashDiscount3Days := 0;
+  PaymentTermCashDiscount3Percent := 0;
+  PaymentTermCashDiscount3Base := 0;
+  PaymentTermCashDiscount3ActualAmount := 0;
+  
+  PrepaidPayments.Clear;
   AllowanceCharges.Clear;
   PrecedingInvoiceReferences.Clear;
-  Notes.Clear;
+  
+  TaxAmountTotal := 0;
   TaxAmountSubtotals.Clear;
-  PaymentTermsType := iptt_None;
 
   LineAmount := 0;
   TaxExclusiveAmount := 0;
@@ -1554,7 +1603,8 @@ begin
     exit;
   end;
   if SameText(_UnitOfMeasure,'set') or
-     SameText(_UnitOfMeasure,'sets') then
+     SameText(_UnitOfMeasure,'sets') or
+     SameText(_UnitOfMeasure,'satz') then
   begin
     Result := iuc_set;
     _Success := true;
@@ -1869,6 +1919,19 @@ begin
   end;
 end;
 
+{ TInvoiceAddress }
+
+procedure TInvoiceAddress.Clear;
+begin
+  StreetName := '';
+  AdditionalStreetName := '';
+  City := '';
+  PostalZone := '';
+  CountrySubentity := '';
+  AddressLine := '';
+  CountryCode := '';
+end;
+
 { TInvoiceAccountingParty }
 
 constructor TInvoiceAccountingParty.Create;
@@ -1880,6 +1943,30 @@ destructor TInvoiceAccountingParty.Destroy;
 begin
   if Assigned(Address) then begin Address.Free; Address := nil; end;
   inherited;
+end;
+
+procedure TInvoiceAccountingParty.Clear;
+begin
+  Name := '';
+  RegistrationName := '';
+  CompanyID := '';
+
+  Address.Clear;
+
+  IdentifierSellerBuyer := '';
+  GlobalIdentifierSellerBuyer := '';
+  GlobalIdentifierSellerBuyerSchemeID := '';
+  BankAssignedCreditorIdentifier := '';
+
+  VATCompanyID := '';
+  VATCompanyNumber := '';
+
+  ContactName := '';
+  ContactTelephone := '';
+  ContactElectronicMail := '';
+  AdditionalLegalInformationSeller := '';
+  ElectronicAddressSellerBuyer := '';
+  ElectronicAddressSellerBuyerSchemeID := ''; 
 end;
 
 { TInvoiceDeliveryInformation }
@@ -1894,6 +1981,15 @@ destructor TInvoiceDeliveryInformation.Destroy;
 begin
   if Assigned(Address) then begin Address.Free; Address := nil; end;
   inherited;
+end;
+
+procedure TInvoiceDeliveryInformation.Clear;
+begin
+  Name := '';
+  LocationIdentifier := '';
+  LocationIdentifierSchemeID := '0088';
+  Address.Clear;
+  ActualDeliveryDate := 0;
 end;
 
 { TInvoiceLineItemAttributes }

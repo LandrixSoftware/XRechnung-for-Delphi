@@ -2027,6 +2027,8 @@ begin
         Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
         Text := TXRechnungHelper.AmountToStr(_Invoice.ChargeTotalAmount);
       end;
+      //BT-113 ist optional; 0.00 wuerde von Empfaengern als Vorauszahlung angezeigt
+      if _Invoice.PrepaidAmount <> 0.0 then
       with AddChild('cbc:PrepaidAmount') do
       begin
         Attributes['currencyID'] := _Invoice.TaxCurrencyCode;
@@ -2880,7 +2882,8 @@ begin
         if _Invoice.PayableRoundingAmount <> 0.0 then
           AddChild('ram:RoundingAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.PayableRoundingAmount);
         AddChild('ram:GrandTotalAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.TaxInclusiveAmount);
-        AddChild('ram:TotalPrepaidAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.PrepaidAmount);
+        if _Invoice.PrepaidAmount <> 0.0 then
+          AddChild('ram:TotalPrepaidAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.PrepaidAmount);
         AddChild('ram:DuePayableAmount').Text := TXRechnungHelper.AmountToStr(_Invoice.PayableAmount);
       end;
       for i := 0 to _Invoice.PrecedingInvoiceReferences.Count-1 do

@@ -290,7 +290,6 @@ Zeile 3</ram:Description>
         <ram:TaxBasisTotalAmount>200.00</ram:TaxBasisTotalAmount>
         <ram:TaxTotalAmount currencyID="EUR">26.00</ram:TaxTotalAmount>
         <ram:GrandTotalAmount>226.00</ram:GrandTotalAmount>
-        <ram:TotalPrepaidAmount>0.00</ram:TotalPrepaidAmount>
         <ram:DuePayableAmount>226.00</ram:DuePayableAmount>
       </ram:SpecifiedTradeSettlementHeaderMonetarySummation>
       <ram:ReceivableSpecifiedTradeAccountingAccount>

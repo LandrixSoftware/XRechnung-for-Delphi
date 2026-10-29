@@ -2733,12 +2733,15 @@ begin
       //Nur ZUGFeRD EXTENDED kennt mehrere ram:SpecifiedTradePaymentTerms und die
       //Detailinformationen zu Zahlungsabschlaegen (ram:ApplicableTradePaymentDiscountTerms, BG-X-44).
       //EN16931 erlaubt nur eine Zahlungsbedingung, der Skonto wird dort als Text abgebildet.
-      if (_Profile = ipXRechnung) or
-         ((_Profile <> ipZUGFeRDExtended) and
-          (((_Invoice.PaymentTermsType = iptt_Net) and (_Invoice.PaymentTermNetNote <> '')) or
-           (_Invoice.PaymentTermsType in [iptt_CashDiscount1,iptt_CashDiscount2,iptt_CashDiscount3]) or
-           (_Invoice.InvoiceDueDate > 100) or
-           (_Invoice.PaymentMandateID <> ''))) then
+      //Ohne Inhalt kein Element, ein leeres ram:SpecifiedTradePaymentTerms
+      //verletzt PEPPOL-EN16931-R008. XRechnung schreibt bei einer Gutschrift
+      //kein Faelligkeitsdatum, das zaehlt dort also nicht als Inhalt.
+      if (_Profile <> ipZUGFeRDExtended) and
+         (((_Invoice.PaymentTermsType = iptt_Net) and (_Invoice.PaymentTermNetNote <> '')) or
+          (_Invoice.PaymentTermsType in [iptt_CashDiscount1,iptt_CashDiscount2,iptt_CashDiscount3]) or
+          ((_Invoice.InvoiceDueDate > 100) and
+           ((_Profile <> ipXRechnung) or (_Invoice.InvoiceTypeCode <> itc_CreditNote))) or
+          (_Invoice.PaymentMandateID <> '')) then
       with AddChild('ram:SpecifiedTradePaymentTerms') do
       begin
         case _Invoice.PaymentTermsType of

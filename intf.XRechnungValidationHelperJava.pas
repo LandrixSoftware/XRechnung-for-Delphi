@@ -332,14 +332,23 @@ begin
   StdInRead := INVALID_HANDLE_VALUE;
   Job := 0;
   if not CreatePipe(StdOutPipeRead, StdOutPipeWrite, @SA, 0) then
+  begin
+    HandleValidationError(Format('Ausgabe-Pipe fuer %s konnte nicht angelegt werden: %s',
+      [_Filename,SysErrorMessage(GetLastError)]));
     exit;
+  end;
   try
     if _StdOutFilename <> '' then
     begin
       StdOutFile := CreateFile(PChar(_StdOutFilename),GENERIC_WRITE,FILE_SHARE_READ,
                                @SA,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,0);
       if StdOutFile = INVALID_HANDLE_VALUE then
+      begin
+        // z.B. Datei von einem anderen Prozess gesperrt oder Verzeichnis schreibgeschuetzt
+        HandleValidationError(Format('Ausgabedatei %s konnte nicht angelegt werden: %s',
+          [_StdOutFilename,SysErrorMessage(GetLastError)]));
         exit;
+      end;
     end;
 
     // Leeres stdin statt des geerbten Handles: eine VCL-Anwendung hat keine Konsole,

@@ -418,7 +418,13 @@ begin
     if not CreateProcess(PChar(_Filename), PChar(CmdLine),
                          nil, nil, True, Flags, EnvPtr,
                          PChar(WorkDir), SI, PI) then
+    begin
+      // Fehler beim Prozessstart nicht verschlucken: sonst scheitert die Validierung still
+      // (leere Ausgabe, keine Meldung an den ValidationErrorHandler)
+      HandleValidationError(Format('%s konnte nicht gestartet werden: %s',
+        [_Filename,SysErrorMessage(GetLastError)]));
       exit;
+    end;
 
     if Job <> 0 then
     begin

@@ -319,7 +319,12 @@ Offenlegung Ihres Quellcodes oder Änderungen an die Landrix Software oder einer
 Eine kommerzielle Lizenz gilt auf Dauer und berechtigt Sie kostenlos zu allen zukünftigen Updates.
 
 Jede Firma, die Anwendungen mit der Bibliothek XRechnung-for-Delphi entwickelt, benötigt eine Lizenz.
-Die Kosten dafür betragen 750,00 EUR zzgl. MwSt. pro Firma.
+Die Kosten dafür betragen 950,00 EUR zzgl. MwSt. pro Firma.
+
+Firmen, die bis einschließlich 15. November 2026 eine kommerzielle Lizenz für XRechnung-for-Delphi erworben haben,
+dürfen auch [EInvoice-for-Pascal](https://github.com/LandrixSoftware/EInvoice-for-Pascal), die Nachfolgebibliothek
+für XRechnung, ZUGFeRD / Factur-X und Peppol, ohne weitere Zahlung unter deren kommerzieller Lizenz verwenden.
+Für später erworbene Lizenzen gilt das nicht.
 
 Bitte senden Sie eine E-Mail an info@landrix.de, um eine Rechnung mit den Zahlungsinformationen anzufordern.
 
@@ -338,7 +343,12 @@ Landrix Software to any other party. A commercial licence lasts into perpetuity,
 entitles you to all future updates, free of charge.
 
 A commercial licence is sold per company developing applications that use XRechnung-for-Delphi. 
-The cost is 750,00 EUR plus VAT per company.
+The cost is 950,00 EUR plus VAT per company.
+
+Companies that acquired a commercial licence for XRechnung-for-Delphi on or before 15 November 2026 may also use
+[EInvoice-for-Pascal](https://github.com/LandrixSoftware/EInvoice-for-Pascal), the successor library for
+XRechnung, ZUGFeRD / Factur-X and Peppol, under its commercial licence without further payment. This does not
+apply to licences acquired later.
 
 Please send an e-mail to info@landrix.de to request an invoice which will contain the bank details.
 

@@ -1,4 +1,48 @@
+# LANDRIX SOFTWARE XRechnung-for-Delphi Lizenzvereinbarung
+
+Diese Lizenzvereinbarung liegt in deutscher und englischer Fassung vor. Bei Abweichungen ist die deutsche Fassung
+maßgeblich.
+
+Die kommerzielle Lizenz für XRechnung-for-Delphi gibt Ihnen das Recht,
+
+- die Bibliothek zur Entwicklung von Anwendungen oder Softwaremodulen jeder Art durch ein einzelnes, namentlich
+  benanntes Unternehmen zu verwenden,
+- jede kommerzielle, kompilierte Anwendung zu verkaufen, die die Bibliothek verwendet,
+- den Quellcode der Bibliothek für den eigenen Gebrauch zu ändern,
+- die Komponente und den Quellcode auf allen Entwicklungssystemen des Unternehmens zu verwenden,
+- beliebig viele Anwendungen in beliebiger Stückzahl zu verkaufen, ohne dass zusätzliche Laufzeitgebühren anfallen.
+
+Eine kommerzielle Lizenz wird je Unternehmen verkauft, das Anwendungen mit XRechnung-for-Delphi entwickelt.
+Sie kostet 950,00 EUR zuzüglich Umsatzsteuer je Unternehmen.
+
+Unternehmen, die bis einschließlich 15. November 2026 eine kommerzielle Lizenz für XRechnung-for-Delphi erworben
+haben, dürfen auch EInvoice-for-Pascal (https://github.com/LandrixSoftware/EInvoice-for-Pascal), die
+Nachfolgebibliothek für XRechnung, ZUGFeRD / Factur-X und Peppol, ohne weitere Zahlung unter deren kommerzieller
+Lizenz verwenden. Für später erworbene Lizenzen gilt das nicht.
+
+Bitte fordern Sie per E-Mail an info@landrix.de eine Rechnung an; sie enthält die Bankverbindung.
+
+# Haftungsausschluss
+
+DIESE SOFTWARE WIRD IHNEN OHNE MÄNGELGEWÄHR („WIE BESEHEN“) UND OHNE AUSDRÜCKLICHE ODER STILLSCHWEIGENDE
+GEWÄHRLEISTUNG JEGLICHER ART ZUR VERFÜGUNG GESTELLT, EINSCHLIESSLICH, ABER NICHT BESCHRÄNKT AUF DIE GEWÄHRLEISTUNG DER
+MARKTGÄNGIGKEIT UND/ODER DER EIGNUNG FÜR EINEN BESTIMMTEN ZWECK.
+SIE TRAGEN DAS GESAMTE RISIKO HINSICHTLICH DER RICHTIGKEIT UND DER VERWENDUNG DER SOFTWARE SOWIE ALLE ANDEREN RISIKEN,
+DIE SICH AUS DER VERWENDUNG ODER LEISTUNG DIESER SOFTWARE UND DER DOKUMENTATION ERGEBEN.
+LANDRIX SOFTWARE HAFTET NICHT FÜR SCHÄDEN JEGLICHER ART, DIE AUS DER VERWENDUNG ODER DER UNMÖGLICHKEIT DER VERWENDUNG
+DIESER SOFTWARE ENTSTEHEN, AUCH WENN LANDRIX SOFTWARE AUF DIE MÖGLICHKEIT SOLCHER SCHÄDEN HINGEWIESEN WURDE.
+IM GRÖSSTMÖGLICHEN NACH GELTENDEM RECHT ZULÄSSIGEN UMFANG HAFTET LANDRIX SOFTWARE IN KEINEM FALL FÜR FOLGESCHÄDEN,
+NEBENSCHÄDEN, UNMITTELBARE, MITTELBARE, BESONDERE SCHÄDEN, SCHADENERSATZ MIT STRAFCHARAKTER ODER SONSTIGE SCHÄDEN
+JEGLICHER ART, EINSCHLIESSLICH, ABER NICHT BESCHRÄNKT AUF SCHÄDEN DURCH ENTGANGENEN GEWINN, BETRIEBSUNTERBRECHUNG,
+VERLUST VON GESCHÄFTSINFORMATIONEN ODER SONSTIGE VERMÖGENSSCHÄDEN, AUCH WENN LANDRIX SOFTWARE AUF DIE MÖGLICHKEIT
+SOLCHER SCHÄDEN HINGEWIESEN WURDE.
+
+---
+
 # LANDRIX SOFTWARE XRechnung-for-Delphi license agreement
+
+This license agreement is available in German and English. In case of any discrepancy, the German version
+prevails.
 
 The commercial license for XRechnung-for-Delphi gives you the right to:
 
@@ -9,7 +53,12 @@ The commercial license for XRechnung-for-Delphi gives you the right to:
 - sell any number of applications in any quantity without any additional run-time fees required
 
 A commercial licence is sold per company developing applications that use XRechnung-for-Delphi. 
-The cost is 750,00 EUR plus VAT per company.
+The cost is 950,00 EUR plus VAT per company.
+
+Companies that acquired a commercial licence for XRechnung-for-Delphi on or before 15 November 2026 may also use
+EInvoice-for-Pascal (https://github.com/LandrixSoftware/EInvoice-for-Pascal), the successor library for
+XRechnung, ZUGFeRD / Factur-X and Peppol, under its commercial licence without further payment. This does not
+apply to licences acquired later.
 
 Please send an e-mail to info@landrix.de to request an invoice which will contain the bank details.
 

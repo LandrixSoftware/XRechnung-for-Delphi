@@ -15,10 +15,10 @@ Die kommerzielle Lizenz für XRechnung-for-Delphi gibt Ihnen das Recht,
 Eine kommerzielle Lizenz wird je Unternehmen verkauft, das Anwendungen mit XRechnung-for-Delphi entwickelt.
 Sie kostet 950,00 EUR zuzüglich Umsatzsteuer je Unternehmen.
 
-Unternehmen, die bis einschließlich 15. November 2026 eine kommerzielle Lizenz für XRechnung-for-Delphi erworben
-haben, dürfen auch EInvoice-for-Pascal (https://github.com/LandrixSoftware/EInvoice-for-Pascal), die
-Nachfolgebibliothek für XRechnung, ZUGFeRD / Factur-X und Peppol, ohne weitere Zahlung unter deren kommerzieller
-Lizenz verwenden. Für später erworbene Lizenzen gilt das nicht.
+Die kommerzielle Lizenz gilt für XRechnung-for-Delphi und EInvoice-for-Pascal
+(https://github.com/LandrixSoftware/EInvoice-for-Pascal), die Nachfolgebibliothek für XRechnung, ZUGFeRD /
+Factur-X und Peppol, gemeinsam: Unternehmen mit einer kommerziellen Lizenz für eine der beiden Bibliotheken dürfen
+auch die andere ohne weitere Zahlung unter deren kommerzieller Lizenz verwenden.
 
 Bitte fordern Sie per E-Mail an info@landrix.de eine Rechnung an; sie enthält die Bankverbindung.
 
@@ -55,10 +55,10 @@ The commercial license for XRechnung-for-Delphi gives you the right to:
 A commercial licence is sold per company developing applications that use XRechnung-for-Delphi. 
 The cost is 950,00 EUR plus VAT per company.
 
-Companies that acquired a commercial licence for XRechnung-for-Delphi on or before 15 November 2026 may also use
-EInvoice-for-Pascal (https://github.com/LandrixSoftware/EInvoice-for-Pascal), the successor library for
-XRechnung, ZUGFeRD / Factur-X and Peppol, under its commercial licence without further payment. This does not
-apply to licences acquired later.
+The commercial licence covers XRechnung-for-Delphi and EInvoice-for-Pascal
+(https://github.com/LandrixSoftware/EInvoice-for-Pascal), the successor library for XRechnung, ZUGFeRD /
+Factur-X and Peppol, together: companies holding a commercial licence for either library may also use the other
+one under its commercial licence without further payment.
 
 Please send an e-mail to info@landrix.de to request an invoice which will contain the bank details.
 

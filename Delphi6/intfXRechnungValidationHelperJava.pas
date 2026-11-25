@@ -76,6 +76,7 @@ type
     function GetVersionFromFile(const _Filename : String) : Integer;
     function GetNewTempFileName(const _TempPath : String): string;
     function GetNewTempPath: string;
+    function PdfHasPdfAIdentification(const _Filename : String) : Boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -209,6 +210,32 @@ begin
   Result := lTempPath;
 end;
 
+// Prueft, ob das PDF eine PDF/A-Kennung in seinen XMP-Metadaten traegt. Mustang
+// "combine" verarbeitet nur PDF/A-Quellen (1, 2 oder 3) und bricht bei einem normalen
+// PDF mit "PDF-A version not supported" samt Stacktrace ab. Gesucht wird der Namespace
+// des pdfaid-Schemas: Er muss in jedem PDF/A in den XMP-Metadaten stehen, und deren
+// Stream darf in PDF/A nicht komprimiert sein - die Kennung steht also lesbar in der Datei.
+function TXRechnungValidationHelperJava.PdfHasPdfAIdentification(const _Filename : String) : Boolean;
+var
+  lStream : TFileStream;
+  lData : String;
+begin
+  Result := false;
+  try
+    lStream := TFileStream.Create(_Filename,fmOpenRead or fmShareDenyWrite);
+    try
+      SetLength(lData,lStream.Size);
+      if Length(lData) > 0 then
+        lStream.ReadBuffer(lData[1],Length(lData));
+    finally
+      lStream.Free;
+    end;
+  except
+    exit;
+  end;
+  Result := Pos('http://www.aiim.org/pdfa/ns/id/',lData) > 0;
+end;
+
 function TXRechnungValidationHelperJava.GetVersionFromFile(
   const _Filename: String): Integer;
 var
@@ -253,6 +280,8 @@ var
   tmpFilename : String;
 begin
   Result := false;
+  _CmdOutput := '';
+  _CombinedPdf := nil;
   if not FileExists(_InvoiceXMLFilename) then
     exit;
   if not FileExists(_InvoicePDFFilename) then
@@ -263,6 +292,13 @@ begin
     exit;
   if not DirectoryExists(TempPath) then
     exit;
+  if not PdfHasPdfAIdentification(_InvoicePDFFilename) then
+  begin
+    _CmdOutput := Format('%s ist kein PDF/A (keine pdfaid-Kennung in den XMP-Metadaten). '+
+      'Mustang kann XML nur in ein PDF/A-1, -2 oder -3 einbetten; ein normales PDF '+
+      'muss vorher mit einem anderen Werkzeug nach PDF/A konvertiert werden.',[_InvoicePDFFilename]);
+    exit;
+  end;
 
   tmpFilename := GetNewTempFileName(TempPath);
 
@@ -271,6 +307,9 @@ begin
     cmd.Add('chcp 65001 >nul');
     cmd.Add('pushd '+QuoteIfContainsSpace(ExtractFilePath(tmpFilename)));
 
+    // --format fx: Factur-X-/ZUGFeRD-2.1+-Metadaten (factur-x.xml, fx:Version 1.0).
+    // Mit --format zf schreibt Mustang ZUGFeRD-2.0-Metadaten (zugferd-invoice.xml,
+    // zf:Version 2p0), die nicht zum erzeugten ZUGFeRD-2.5-XML passen.
     //https://github.com/ZUGFeRD/mustangproject/blob/f9905d6fca18733b468541415b9750654045cc09/Mustang-CLI/src/main/java/org/mustangproject/commandline/Main.java#L45
     cmd.Add(QuoteIfContainsSpace(JavaRuntimeEnvironmentPath+'bin\java.exe')+' -Xmx1G '+
             '-Dfile.encoding=UTF-8 -jar '+QuoteIfContainsSpace(MustangprojectPath+'Mustang-CLI.jar')+
@@ -278,7 +317,7 @@ begin
             ' --source '+ QuoteIfContainsSpace(_InvoicePDFFilename)+
             ' --source-xml '+ QuoteIfContainsSpace(_InvoiceXMLFilename)+
             ' --out '+tmpFilename+'.pdf'+
-            ' --format zf'+
+            ' --format fx'+
             ' --version 2'+
             ' --profile '+IfThen(_Extended,'T','E')+
             ' --no-additional-attachments');

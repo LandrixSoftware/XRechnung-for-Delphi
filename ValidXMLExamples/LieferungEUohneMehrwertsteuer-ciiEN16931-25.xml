@@ -143,7 +143,7 @@
         <ram:CalculatedAmount>0.00</ram:CalculatedAmount>
         <ram:TypeCode>VAT</ram:TypeCode>
         <ram:ExemptionReason>Keine Ausweisung der Umsatzsteuer - innergemeinschaftliche Lieferung EU</ram:ExemptionReason>
-        <ram:BasisAmount>5000.00</ram:BasisAmount>
+        <ram:BasisAmount>4900.00</ram:BasisAmount>
         <ram:CategoryCode>K</ram:CategoryCode>
         <ram:ExemptionReasonCode>VATEX-EU-IC</ram:ExemptionReasonCode>
         <ram:RateApplicablePercent>0.00</ram:RateApplicablePercent>
@@ -156,6 +156,21 @@
           <udt:DateTimeString format="102">20260829</udt:DateTimeString>
         </ram:EndDateTime>
       </ram:BillingSpecifiedPeriod>
+      <ram:SpecifiedTradeAllowanceCharge>
+        <ram:ChargeIndicator>
+          <udt:Indicator>false</udt:Indicator>
+        </ram:ChargeIndicator>
+        <ram:CalculationPercent>2.0000</ram:CalculationPercent>
+        <ram:BasisAmount>5000.00</ram:BasisAmount>
+        <ram:ActualAmount>100.00</ram:ActualAmount>
+        <ram:ReasonCode>95</ram:ReasonCode>
+        <ram:Reason>Treuerabatt</ram:Reason>
+        <ram:CategoryTradeTax>
+          <ram:TypeCode>VAT</ram:TypeCode>
+          <ram:CategoryCode>K</ram:CategoryCode>
+          <ram:RateApplicablePercent>0.00</ram:RateApplicablePercent>
+        </ram:CategoryTradeTax>
+      </ram:SpecifiedTradeAllowanceCharge>
       <ram:SpecifiedTradePaymentTerms>
         <ram:Description>Zahlbar bis zum 29.09.2026 ohne Abzug.</ram:Description>
         <ram:DueDateDateTime>
@@ -165,11 +180,11 @@
       <ram:SpecifiedTradeSettlementHeaderMonetarySummation>
         <ram:LineTotalAmount>5000.00</ram:LineTotalAmount>
         <ram:ChargeTotalAmount>0.00</ram:ChargeTotalAmount>
-        <ram:AllowanceTotalAmount>0.00</ram:AllowanceTotalAmount>
-        <ram:TaxBasisTotalAmount>5000.00</ram:TaxBasisTotalAmount>
+        <ram:AllowanceTotalAmount>100.00</ram:AllowanceTotalAmount>
+        <ram:TaxBasisTotalAmount>4900.00</ram:TaxBasisTotalAmount>
         <ram:TaxTotalAmount currencyID="EUR">0.00</ram:TaxTotalAmount>
-        <ram:GrandTotalAmount>5000.00</ram:GrandTotalAmount>
-        <ram:DuePayableAmount>5000.00</ram:DuePayableAmount>
+        <ram:GrandTotalAmount>4900.00</ram:GrandTotalAmount>
+        <ram:DuePayableAmount>4900.00</ram:DuePayableAmount>
       </ram:SpecifiedTradeSettlementHeaderMonetarySummation>
     </ram:ApplicableHeaderTradeSettlement>
   </rsm:SupplyChainTradeTransaction>

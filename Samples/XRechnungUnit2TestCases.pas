@@ -1048,12 +1048,32 @@ begin
     TaxPercent := 0.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices;
     TaxExemptionReason := 'Keine Ausweisung der Umsatzsteuer - innergemeinschaftliche Lieferung EU';
+    //Text und Code muessen in ZUGFeRD EXTENDED mit der Steueraufschluesselung
+    //uebereinstimmen (BR-FXEXT-IC-08rev)
+    TaxExemptionReasonCode := 'VATEX-EU-IC';
     GrossPriceAmount := 5000; //Brutto-Einzelpreis
     DiscountOnTheGrossPrice := 0;
     NetPriceAmount := 5000; //Netto-Einzelpreis
     BaseQuantity := 0; //Preiseinheit 0 = wird nicht ausgegeben, entspricht default = 1
     BaseQuantityUnitCode := TInvoiceUnitCode.iuc_None; //Preiseinheit Mengeneinheit
     LineAmount := 5000;
+  end;
+
+  //Nachlass auf Dokumentebene, ebenfalls steuerbefreit (Issue #100)
+  with inv.AllowanceCharges.AddAllowanceCharge do
+  begin
+    ChargeIndicator := false;
+    ReasonCodeAllowance := TInvoiceAllowanceOrChargeIdentCode.iacic_Discount;
+    Reason := 'Treuerabatt';
+    BaseAmount := 5000.00;
+    MultiplierFactorNumeric := 2; //2 Prozent auf 5000 EUR
+    Amount := 100.00;
+    TaxPercent := 0.0;
+    TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices;
+    //Nur ZUGFeRD EXTENDED schreibt den Befreiungsgrund am Nachlass, er muss dem der
+    //Steueraufschluesselung entsprechen
+    TaxExemptionReason := 'Keine Ausweisung der Umsatzsteuer - innergemeinschaftliche Lieferung EU';
+    TaxExemptionReasonCode := 'VATEX-EU-IC';
   end;
 
   inv.TaxAmountTotal := 0.00; //Summe der gesamten MwSt
@@ -1063,17 +1083,17 @@ begin
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_K_VATExemptForEEAIntracommunitySupplyOfGoodsAndServices;
     TaxExemptionReason := 'Keine Ausweisung der Umsatzsteuer - innergemeinschaftliche Lieferung EU';
     TaxExemptionReasonCode := 'VATEX-EU-IC'; //BT-121, optional neben dem Text (BR-IC-10)
-    TaxableAmount := 5000.00;
+    TaxableAmount := 4900.00;
     TaxAmount     := 00.00;
   end;
 
   inv.LineAmount := 5000.00;         //Summe
-  inv.TaxExclusiveAmount := 5000.00; //Summe ohne MwSt
-  inv.TaxInclusiveAmount := 5000.00; //Summe inkl MwSt
-  inv.AllowanceTotalAmount := 0; //Abzuege
+  inv.TaxExclusiveAmount := 4900.00; //Summe ohne MwSt
+  inv.TaxInclusiveAmount := 4900.00; //Summe inkl MwSt
+  inv.AllowanceTotalAmount := 100.00; //Abzuege
   inv.ChargeTotalAmount := 0; //Zuschlaege
   inv.PrepaidAmount := 0; //Anzahlungen
-  inv.PayableAmount := 5000.00;      //Summe Zahlbar MwSt
+  inv.PayableAmount := 4900.00;      //Summe Zahlbar MwSt
 end;
 
 class procedure TInvoiceTestCases.Kleinunternehmerregelung(inv: TInvoice);
@@ -1823,6 +1843,7 @@ begin
     TaxPercent := 0.0; //MwSt
     TaxCategory := TInvoiceDutyTaxFeeCategoryCode.idtfcc_AE_VATReverseCharge;
     TaxExemptionReason := 'Hiermit erlaube ich mir folgende Rechnung fuer Bauleistungen zu stellen. Die Umsatzsteuer fuer diese Leistung schuldet nach Paragraph 13b UStG der Leistungsempfaenger.'; //!! Muss gleich TaxExemptionReason unten sein in ZUGFeRD Extented
+    TaxExemptionReasonCode := 'VATEX-EU-AE'; //!! Muss gleich TaxExemptionReasonCode unten sein in ZUGFeRD Extented (BR-FXEXT-AE-08rev)
     GrossPriceAmount := 50; //Brutto-Einzelpreis
     DiscountOnTheGrossPrice := 0;
     NetPriceAmount := 50; //Netto-Einzelpreis

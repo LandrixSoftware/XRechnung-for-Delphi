@@ -52,6 +52,7 @@ uses
   ,intf.ZUGFeRDCountryCodes
   ,intf.ZUGFeRDPaymentMeansTypeCodes
   ,intf.ZUGFeRDTaxCategoryCodes
+  ,intf.ZUGFeRDTaxExemptionReasonCodes
   ,intf.ZUGFeRDTradeAllowanceCharge
   ,intf.ZUGFeRDAllowanceReasonCodes
   ,intf.ZUGFeRDChargeReasonCodes
@@ -2568,10 +2569,14 @@ begin
   begin
     _Target.TaxPercent := _Source.Tax.Percent;
     _Target.TaxCategory := TaxCategoryFrom(_Source.Tax.CategoryCode);
+    _Target.TaxExemptionReason := _Source.Tax.ExemptionReason;
+    _Target.TaxExemptionReasonCode := CodeFromEnum<TZUGFeRDTaxExemptionReasonCodes>(_Source.Tax.ExemptionReasonCode);
   end else
   begin
     _Target.TaxPercent := 0;
     _Target.TaxCategory := idtfcc_None;
+    _Target.TaxExemptionReason := '';
+    _Target.TaxExemptionReasonCode := '';
   end;
 end;
 
@@ -2788,6 +2793,7 @@ begin
   _InvoiceLine.TaxPercent := _TradeLineItem.TaxPercent; //BT-152
   _InvoiceLine.TaxCategory := TaxCategoryFrom(_TradeLineItem.TaxCategoryCode); //BT-151
   _InvoiceLine.TaxExemptionReason := _TradeLineItem.TaxExemptionReason;
+  _InvoiceLine.TaxExemptionReasonCode := CodeFromEnum<TZUGFeRDTaxExemptionReasonCodes>(_TradeLineItem.TaxExemptionReasonCode);
   _InvoiceLine.GrossPriceAmount := _TradeLineItem.GrossUnitPrice.GetValueOrDefault(0); //BT-148
 
   for j := 0 to _TradeLineItem.TradeAllowanceCharges.Count-1 do
@@ -3012,6 +3018,7 @@ begin
       TaxPercent := _InvoiceDescriptor.Taxes[i].Percent; //BT-119
       TaxCategory := TaxCategoryFrom(_InvoiceDescriptor.Taxes[i].CategoryCode); //BT-118
       TaxExemptionReason := _InvoiceDescriptor.Taxes[i].ExemptionReason; //BT-120
+      TaxExemptionReasonCode := CodeFromEnum<TZUGFeRDTaxExemptionReasonCodes>(_InvoiceDescriptor.Taxes[i].ExemptionReasonCode); //BT-121
     end;
 
     _Invoice.LineAmount := _InvoiceDescriptor.LineTotalAmount.GetValueOrDefault(0); //BT-106

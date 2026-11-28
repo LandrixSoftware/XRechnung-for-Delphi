@@ -672,6 +672,7 @@ var
       if TXRechnungXMLHelper.SelectNode(node2,'.//ram:ApplicableTradeTax',node) then
       begin
         _Invoiceline.TaxExemptionReason := TXRechnungXMLHelper.SelectNodeText(node,'.//ram:ExemptionReason');
+        _Invoiceline.TaxExemptionReasonCode := TXRechnungXMLHelper.SelectNodeText(node,'.//ram:ExemptionReasonCode');
         _Invoiceline.TaxCategory := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeFromStr(TXRechnungXMLHelper.SelectNodeText(node,'.//ram:CategoryCode'));
         _Invoiceline.TaxPercent := TXRechnungHelper.PercentageFromStr(TXRechnungXMLHelper.SelectNodeText(node,'.//ram:RateApplicablePercent'));
       end;
@@ -1056,6 +1057,8 @@ begin
         begin
           TaxCategory := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeFromStr(TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:CategoryCode'));
           TaxPercent := TXRechnungHelper.PercentageFromStr(TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:RateApplicablePercent'));
+          TaxExemptionReason := TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:ExemptionReason');
+          TaxExemptionReasonCode := TXRechnungXMLHelper.SelectNodeText(node2,'.//ram:ExemptionReasonCode');
         end;
       end;
 
@@ -2213,6 +2216,10 @@ var
         if (_Profile in [ipZUGFeRDExtended]) then
           AddChild('ram:ExemptionReason').Text := _Invoiceline.TaxExemptionReason;
         AddChild('ram:CategoryCode').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(_Invoiceline.TaxCategory);
+        //Schemareihenfolge: ExemptionReasonCode nach CategoryCode
+        if _Invoiceline.TaxExemptionReasonCode <> '' then
+        if (_Profile in [ipZUGFeRDExtended]) then
+          AddChild('ram:ExemptionReasonCode').Text := _Invoiceline.TaxExemptionReasonCode;
         if ( _Invoiceline.TaxCategory <> idtfcc_O_ServicesOutsideScopeOfTax) then
           AddChild('ram:RateApplicablePercent').Text := TXRechnungHelper.PercentageToStr(_Invoiceline.TaxPercent);
       end;
@@ -2717,7 +2724,16 @@ begin
         with AddChild('ram:CategoryTradeTax') do
         begin
           AddChild('ram:TypeCode').Text := 'VAT';
+          //Befreiungsgrund nur EXTENDED (EN16931 kennt ihn hier nicht). Er muss dem der
+          //Steueraufschluesselung entsprechen, sonst zaehlt der Betrag nicht zu BT-116
+          //(BR-FXEXT-xx-08rev, Issue #100)
+          if _Invoice.AllowanceCharges[i].TaxExemptionReason <> '' then
+          if (_Profile in [ipZUGFeRDExtended]) then
+            AddChild('ram:ExemptionReason').Text := _Invoice.AllowanceCharges[i].TaxExemptionReason;
           AddChild('ram:CategoryCode').Text := TXRechnungHelper.InvoiceDutyTaxFeeCategoryCodeToStr(_Invoice.AllowanceCharges[i].TaxCategory);
+          if _Invoice.AllowanceCharges[i].TaxExemptionReasonCode <> '' then
+          if (_Profile in [ipZUGFeRDExtended]) then
+            AddChild('ram:ExemptionReasonCode').Text := _Invoice.AllowanceCharges[i].TaxExemptionReasonCode;
           if (_Invoice.AllowanceCharges[i].TaxCategory <> idtfcc_O_ServicesOutsideScopeOfTax) then
             AddChild('ram:RateApplicablePercent').Text := TXRechnungHelper.PercentageToStr(_Invoice.AllowanceCharges[i].TaxPercent);
         end;

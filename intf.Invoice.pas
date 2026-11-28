@@ -536,6 +536,11 @@ type
     Amount : Currency;
     TaxPercent : double;
     TaxCategory : TInvoiceDutyTaxFeeCategoryCode;
+    //Befreiungsgrund nur auf Dokumentebene (BG-20/BG-21) und nur ZUGFeRD/Factur-X EXTENDED.
+    //Muss mit BT-120/BT-121 der Steueraufschluesselung uebereinstimmen, sonst zaehlt
+    //der Nachlass/Zuschlag nicht zur Basis BT-116 (BR-FXEXT-xx-08rev, Issue #100)
+    TaxExemptionReason : String; //ram:CategoryTradeTax/ram:ExemptionReason
+    TaxExemptionReasonCode : String; //ram:CategoryTradeTax/ram:ExemptionReasonCode (VATEX), z. B. VATEX-EU-IC
   end;
 
   TInvoiceAllowanceCharges = class(TObjectList)
@@ -617,7 +622,8 @@ type
     BuyerAccountingReference : String; //BT-133 Buchungsreferenz des Kaeufers für die Rechnungsposition, vom Kaeufer vergeben
     TaxPercent : double; //BG-30, BT-152 MwSt
     TaxCategory : TInvoiceDutyTaxFeeCategoryCode; //BG-30, BT-151 MwSt-Einordnung
-    TaxExemptionReason : String;
+    TaxExemptionReason : String; //nur ZUGFeRD/Factur-X EXTENDED
+    TaxExemptionReasonCode : String; //nur ZUGFeRD/Factur-X EXTENDED, Code (VATEX), muss mit BT-121 uebereinstimmen
     // BG-29 Detailinformationen zum (Artikel-)-Preis
     GrossPriceAmount : Currency; //BG-29, BT-148 Brutto-Einzelpreis
     DiscountOnTheGrossPrice : Currency; //BG-29, BT-147 Rabatt auf den Bruttopreis ergibt Nettopreis, nur ein Rabatt moeglich wegen UBL, obwohl CII mehrere erlaubt
@@ -1201,6 +1207,8 @@ begin
   BuyerAccountingReference := '';
   TaxPercent := 0;
   TaxCategory := idtfcc_None;
+  TaxExemptionReason := '';
+  TaxExemptionReasonCode := '';
   GrossPriceAmount := 0;
   DiscountOnTheGrossPrice := 0;
   NetPriceAmount := 0;

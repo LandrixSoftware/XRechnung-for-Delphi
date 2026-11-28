@@ -32,6 +32,7 @@ function Resolve-FpcExecutable {
   $candidates = @()
   if (-not [string]::IsNullOrWhiteSpace($RequestedFpc)) { $candidates += $RequestedFpc }
   $candidates += @(
+    'D:\Bin\fpc\trunk\bin\aarch64-win64\fpc.exe',
     'D:\Bin\fpc\fpcupdeluxe\fpc\bin\x86_64-win64\fpc.exe',
     'D:\Bin\fpc\fpcupdeluxe\fpc\bin\aarch64-win64\fpc.exe',
     'D:\Bin\fpc\lazarus\fpc\3.2.2\bin\x86_64-win64\fpc.exe'

@@ -958,7 +958,7 @@ begin
   InvoiceDueDate := 0;
   InvoicePeriodStartDate := 0;
   InvoicePeriodEndDate := 0;
-  InvoiceTypeCode := TInvoiceTypeCode.itc_None;
+  InvoiceTypeCode := itc_None; //Delphi 6 kennt keine qualifizierten Enum-Werte
   InvoiceCurrencyCode := '';
   TaxCurrencyCode := '';
   BuyerReference := '';

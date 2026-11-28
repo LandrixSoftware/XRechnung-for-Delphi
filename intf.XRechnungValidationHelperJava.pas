@@ -214,7 +214,7 @@ type
     function SaxonTransform(const _Source,_Xsl,_Out,_WorkDir : String) : Boolean;
     function FopTransform(const _FoFilename,_PdfFilename,_WorkDir : String) : Boolean;
     function MustangCliParams(const _Params : String) : String;
-    function PdfHasPdfAIdentification(const _Filename : String) : Boolean;
+    function PdfHasPdfAIdentification(const _Filename : String; out _ReadError : String) : Boolean;
     function QuoteIfContainsSpace(const _Value : String) : String;
     function GetVersionFromStr(const _Xml : String) : Integer;
     function GetVersionFromFile(const _Filename : String) : Integer;
@@ -703,7 +703,10 @@ end;
 // PDF mit "PDF-A version not supported" samt Stacktrace ab. Gesucht wird der Namespace
 // des pdfaid-Schemas: Er muss in jedem PDF/A in den XMP-Metadaten stehen, und deren
 // Stream darf in PDF/A nicht komprimiert sein - die Kennung steht also lesbar in der Datei.
-function TXRechnungValidationHelperJava.PdfHasPdfAIdentification(const _Filename : String) : Boolean;
+// Kann die Datei nicht gelesen werden (z. B. gesperrt), ist _ReadError gefuellt; nur bei
+// leerem _ReadError bedeutet false "gelesen, aber keine Kennung".
+function TXRechnungValidationHelperJava.PdfHasPdfAIdentification(const _Filename : String;
+  out _ReadError : String) : Boolean;
 const
   cMarker : RawByteString = 'http://www.aiim.org/pdfa/ns/id/';
 var
@@ -711,12 +714,13 @@ var
   i,j,n : Integer;
 begin
   Result := false;
+  _ReadError := '';
   try
     lData := TFile.ReadAllBytes(_Filename);
   except
     on E:Exception do
     begin
-      HandleValidationError(Format('PDF %s konnte nicht gelesen werden: %s',[_Filename,E.Message]));
+      _ReadError := Format('PDF %s konnte nicht gelesen werden: %s',[_Filename,E.Message]);
       exit;
     end;
   end;
@@ -821,22 +825,52 @@ begin
   end;
 end;
 
+// Sucht ein Element mit dem lokalen Namen _LocalName und beliebigem Namespace-Praefix
+// (<n0:Invoice ...>). Der Name muss vollstaendig passen, <cac:InvoiceLine> zaehlt also
+// nicht als Invoice.
+function XmlContainsPrefixedElement(const _Xml, _LocalName : String) : Boolean;
+var
+  i,j,n,lenName : Integer;
+begin
+  Result := false;
+  n := Length(_Xml);
+  lenName := Length(_LocalName);
+  i := Pos(':'+_LocalName,_Xml);
+  while i > 0 do
+  begin
+    j := i+1+lenName; //erstes Zeichen nach dem Namen
+    if (j > n) or CharInSet(_Xml[j],[' ',#9,#10,#13,'>','/']) then
+    begin
+      //rueckwaerts ueber das Praefix bis zum '<'
+      j := i-1;
+      while (j >= 1) and CharInSet(_Xml[j],['A'..'Z','a'..'z','0'..'9','_','-','.']) do
+        Dec(j);
+      if (j >= 1) and (j < i-1) and (_Xml[j] = '<') then
+      begin
+        Result := true;
+        exit;
+      end;
+    end;
+    i := PosEx(':'+_LocalName,_Xml,i+1);
+  end;
+end;
+
 function TXRechnungValidationHelperJava.GetVersionFromStr(
   const _Xml: String): Integer;
 begin
   Result := 0;
+  //Namespace-Praefixe sind frei waehlbar (n0:Invoice statt ubl:Invoice), wie im
+  //Reader (TXRechnungValidationHelper.GetXRechnungVersion) zaehlt jedes Praefix
   if (Pos('<Invoice',_Xml) > 0) or
-     (Pos('<ubl:Invoice',_Xml) > 0) or
-     (Pos('<ns0:Invoice',_Xml) > 0) then
+     XmlContainsPrefixedElement(_Xml,'Invoice') then
     Result := 1
   else
   if (Pos('<CreditNote',_Xml) > 0) or
-     (Pos('<ubl:CreditNote',_Xml) > 0) or
-     (Pos('<ns0:CreditNote',_Xml) > 0) then
+     XmlContainsPrefixedElement(_Xml,'CreditNote') then
     Result := 2
   else
   if (Pos('<CrossIndustryInvoice',_Xml) > 0) or
-     (Pos('<rsm:CrossIndustryInvoice',_Xml) > 0) then
+     XmlContainsPrefixedElement(_Xml,'CrossIndustryInvoice') then
     Result := 3;
 end;
 
@@ -845,6 +879,7 @@ function TXRechnungValidationHelperJava.MustangCombinePdfAndXML(
   out _CmdOutput: String; out _CombinedPdf: TMemoryStream): Boolean;
 var
   tmpFilename : String;
+  readError : String;
 begin
   Result := false;
   _CmdOutput := '';
@@ -859,11 +894,14 @@ begin
     exit;
   if not RequireDir(TempPath) then
     exit;
-  if not PdfHasPdfAIdentification(_InvoicePDFFilename) then
+  if not PdfHasPdfAIdentification(_InvoicePDFFilename,readError) then
   begin
-    _CmdOutput := Format('%s ist kein PDF/A (keine pdfaid-Kennung in den XMP-Metadaten). '+
-      'Mustang kann XML nur in ein PDF/A-1, -2 oder -3 einbetten; ein normales PDF '+
-      'muss vorher mit einem anderen Werkzeug nach PDF/A konvertiert werden.',[_InvoicePDFFilename]);
+    if readError <> '' then
+      _CmdOutput := readError
+    else
+      _CmdOutput := Format('%s ist kein PDF/A (keine pdfaid-Kennung in den XMP-Metadaten). '+
+        'Mustang kann XML nur in ein PDF/A-1, -2 oder -3 einbetten; ein normales PDF '+
+        'muss vorher mit einem anderen Werkzeug nach PDF/A konvertiert werden.',[_InvoicePDFFilename]);
     HandleValidationError(_CmdOutput);
     exit;
   end;
